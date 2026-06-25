@@ -1,0 +1,5 @@
+{
+  "installCommand": "npm install --no-audit --no-fund --legacy-peer-deps --verbose",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next"
+}

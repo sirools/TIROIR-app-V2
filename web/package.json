@@ -1,0 +1,49 @@
+{
+  "name": "next-app",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "serve": "NODE_ENV=production next start --port 8151",
+    "lint": "next lint",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/supabase-js": "^2",
+    "@tamagui/config": "1.126.4",
+    "@tamagui/core": "1.126.4",
+    "@tamagui/web": "1.126.4",
+    "bcryptjs": "^3.0.2",
+    "cookie": "^1.0.2",
+    "lucide-react": "^0.544.0",
+    "mini-css-extract-plugin": "^2.9.1",
+    "next": "14.2.14",
+    "raf": "^3.4.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "styled-jsx": "^5.1.1",
+    "tamagui": "1.126.4",
+    "vercel": "latest"
+  },
+  "devDependencies": {
+    "@tamagui/next-plugin": "1.126.4",
+    "@types/node": "^20.14.1",
+    "@types/react": "19.1.15",
+    "autoprefixer": "^10.4.21",
+    "eslint-config-next": "^14.2.3",
+    "next-compose-plugins": "^2.2.1",
+    "next-transpile-modules": "^10.0.1",
+    "postcss": "^8.5.6",
+    "tree-kill": "^1.2.2",
+    "vitest": "^2.1.1"
+  },
+  "overrides": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-native": "npm:react-native-web@0.20.0"
+  }
+}

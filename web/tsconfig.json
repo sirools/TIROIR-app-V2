@@ -1,0 +1,57 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "ES2020"
+    ],
+    "jsx": "preserve",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "strict": false,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "app/provider": [
+        "stubs/provider"
+      ],
+      "app/provider/*": [
+        "stubs/provider"
+      ],
+      "app/provider/NextTamaguiProvider": [
+        "stubs/NextTamaguiProvider"
+      ],
+      "features/*": [
+        "../../features/*"
+      ]
+    },
+    "incremental": true
+  },
+  "include": [
+    ".",
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "../../features/**/*.ts",
+    "../../features/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "../../packages/app",
+    "../../packages/app/**/*"
+  ]
+}
