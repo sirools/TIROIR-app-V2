@@ -2,20 +2,9 @@
 
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useState, type ComponentType } from 'react'
+import { useState } from 'react'
 import { YStack, XStack, Text, Separator } from 'tamagui'
 import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
-import dynamic from 'next/dynamic'
-
-// ObjectCard client-only
-import type { ObjectCardProps } from '../../../../features/objects/components/ObjectCard'
-const ObjectCard = dynamic<ComponentType<ObjectCardProps>>(
-  async () => {
-    const mod = await import('../../../../features/objects/components/ObjectCard')
-    return (mod.ObjectCard ?? mod.default) as ComponentType<ObjectCardProps>
-  },
-  { ssr: false }
-)
 
 function PasswordForm({ slug }: { slug: string }) {
   const [password, setPassword] = useState('')
@@ -32,10 +21,7 @@ function PasswordForm({ slug }: { slug: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, password }),
       })
-      if (res.ok) {
-        window.location.href = `/share/${slug}`
-        return
-      }
+      if (res.ok) { window.location.href = `/share/${slug}`; return }
       if (res.status === 401) setError('Mot de passe incorrect. Réessaie.')
       else if (res.status === 404) setError('Ce lien de partage est introuvable.')
       else if (res.status === 410) setError('Ce lien a expiré.')
@@ -57,28 +43,12 @@ function PasswordForm({ slug }: { slug: string }) {
             placeholder="Mot de passe"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{
-              flex: 1,
-              padding: '12px 14px',
-              borderRadius: 12,
-              border: '1px solid rgba(0,0,0,0.12)',
-            }}
+            style={{ flex: 1, padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(0,0,0,0.12)' }}
           />
           <button
             type="submit"
             disabled={loading}
-            style={{
-              padding: '10px 14px',
-              borderRadius: 12,
-              background: 'var(--orange, #F26900)',
-              color: 'white',
-              border: 0,
-              fontWeight: 700,
-              cursor: 'pointer',
-              opacity: loading ? 0.7 : 1,
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = '#E06100')}
-            onMouseOut={(e) => (e.currentTarget.style.background = 'var(--orange, #F26900)')}
+            style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--orange, #F26900)', color: 'white', border: 0, fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
           >
             {loading ? '...' : 'Valider'}
           </button>
@@ -86,6 +56,33 @@ function PasswordForm({ slug }: { slug: string }) {
         {error && <Text color="$red10" fontWeight="600">{error}</Text>}
       </YStack>
     </form>
+  )
+}
+
+// Carte objet inline (remplace ObjectCard du monorepo V1)
+function ObjectCard({ obj, slug }: { obj: any; slug: string }) {
+  const router = useRouter()
+  const imageUrl = obj.image_urls?.[0] ?? ''
+  return (
+    <div
+      onClick={() => router.push(`/share/o/${slug}/${obj.id}`)}
+      style={{ width: 260, cursor: 'pointer', borderRadius: 16, overflow: 'hidden', border: '1px solid #E8E2DA', background: '#fff' }}
+    >
+      {imageUrl
+        ? <img src={imageUrl} alt={obj.title} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
+        : <div style={{ width: '100%', aspectRatio: '1', background: '#F0EBE3', display: 'grid', placeItems: 'center', fontSize: 40 }}>📦</div>
+      }
+      <div style={{ padding: 16 }}>
+        <div style={{ fontWeight: 600, fontSize: 15, color: '#1A1612', marginBottom: 4 }}>{obj.title}</div>
+        {obj.status && <div style={{ fontSize: 12, color: '#6B6158' }}>{obj.status}</div>}
+        {obj.description && (
+          <div style={{ fontSize: 13, color: '#6B6158', marginTop: 6, lineHeight: 1.5,
+            display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {obj.description}
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -97,8 +94,6 @@ type Props = {
 }
 
 export default function ShareView({ sharedLink, objetsPartages = [], slug, gated }: Props) {
-  const router = useRouter()
-
   if (gated) {
     return (
       <YStack minHeight="100vh" bg="$background">
@@ -124,34 +119,18 @@ export default function ShareView({ sharedLink, objetsPartages = [], slug, gated
       <YStack px="$4" py="$6" width="100%" maxWidth={1440} marginHorizontal="auto" space="$6">
         <XStack justifyContent="space-between" alignItems="center" flexWrap="wrap">
           <Text fontSize="$6" fontWeight="700">Objets partagés</Text>
-          <Text fontSize="$6" fontWeight="600" color="$primary">
-            {totalValue.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}€ au total
-          </Text>
+          {totalValue > 0 && (
+            <Text fontSize="$6" fontWeight="600" color="$primary">
+              {totalValue.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}€ au total
+            </Text>
+          )}
         </XStack>
 
         <Separator borderColor="$border" />
 
         <XStack gap="$4" flexWrap="wrap">
           {objetsPartages.map((obj: any) => (
-            <ObjectCard
-              key={obj.id}
-              title={obj.title}
-              imageUrl={obj.image_urls?.[0] ?? ''}
-              status={obj.status}
-              description={obj.description}
-              date={obj.created_at}
-              zoom="detailed"
-              style={{ width: 280 }}
-              onPress={() => router.push(`/share/o/${slug}/${obj.id}`)}
-              visibleFields={[
-                'image',
-                'title',
-                'status',
-                'description',
-                'date',
-                { characteristics: ['Valeur', 'Couleur', 'Marque'] },
-              ]}
-            />
+            <ObjectCard key={obj.id} obj={obj} slug={slug} />
           ))}
         </XStack>
       </YStack>

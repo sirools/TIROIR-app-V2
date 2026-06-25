@@ -8,7 +8,7 @@ import { Theme, Text, Button } from 'tamagui'
 import LightboxGallery from '../../../../components/LightboxGallery'
 import HeaderTiroirWeb from '../../../../components/layout/HeaderTiroirWeb'
 import { hasValidCookie, makeCookieName, COOKIE_MAX_AGE_SEC } from '../../../../lib/shareAuth'
-import { getStatusMeta } from '../../../../../../features/objects/constants/statuses'
+import { getStatusMeta } from '../../../../lib/statuses'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 
 type SharedObjectPageProps = {
