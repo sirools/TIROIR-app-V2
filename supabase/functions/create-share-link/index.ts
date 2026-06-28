@@ -26,6 +26,14 @@ Deno.serve(async (req: Request) => {
     const { object_ids, title, options = {} } = body ?? {}
     if (!Array.isArray(object_ids) || object_ids.length === 0) return err(400, 'MISSING_OBJECT_IDS')
 
+    // Hash du mot de passe si fourni
+    let passwordHash: string | null = null
+    if (options.password_protected && typeof options.password === 'string' && options.password.length >= 4) {
+      const encoded = new TextEncoder().encode(options.password)
+      const hashBuffer = await crypto.subtle.digest('SHA-256', encoded)
+      passwordHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+    }
+
     // Vérifier que tous les objets appartiennent à l'utilisateur
     const { data: objects, error: objError } = await supabase
       .from('objects')
@@ -56,6 +64,7 @@ Deno.serve(async (req: Request) => {
         title: title ?? null,
         options: {
           password_protected: options.password_protected ?? false,
+          password_hash: passwordHash,
           allow_download: options.allow_download ?? false,
           include_documents: options.include_documents ?? false,
           show_memories: options.show_memories ?? false,

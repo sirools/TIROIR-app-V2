@@ -195,6 +195,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return errorResponse('DRAFT_WRONG_STATUS', 'Ce draft a expiré', 410)
   }
 
+  // ── Vérification quota IA ─────────────────────────────────────
+  const { data: quotaOk, error: quotaError } = await userClient.rpc('check_and_increment_ai_quota')
+  if (quotaError) {
+    console.error(`[chat-turn] Erreur quota : ${quotaError.message}`)
+    return errorResponse('INTERNAL_ERROR', 'Impossible de vérifier le quota', 500)
+  }
+  if (!quotaOk) {
+    console.warn(`[chat-turn] Quota épuisé pour user ${user.id}`)
+    return errorResponse('QUOTA_EXCEEDED', 'Quota IA du mois atteint (30 analyses)', 429)
+  }
+
   // ── Récupération des images du draft ──────────────────────────
   const { data: draftImages, error: imagesError } = await adminClient
     .from('ai_draft_images')
