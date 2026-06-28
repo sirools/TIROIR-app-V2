@@ -1,17 +1,22 @@
 /**
  * Ajoute les photos manquantes aux objets existants sans image.
- * Usage: UNSPLASH_KEY=xxx npx ts-node --project scripts/tsconfig.json scripts/patch-missing-photos.ts --email x --password y
+ * Priorité : Replicate/Flux (IA) → Unsplash (libre de droit)
+ *
+ * Usage:
+ *   REPLICATE_KEY=xxx npx ts-node --project scripts/tsconfig.json scripts/patch-missing-photos.ts --email x --password y
+ *   UNSPLASH_KEY=xxx  npx ts-node --project scripts/tsconfig.json scripts/patch-missing-photos.ts --email x --password y
  */
 import { createClient } from '@supabase/supabase-js'
 import ws from 'ws'
 import https from 'https'
 
+const REPLICATE_API_TOKEN = process.env.REPLICATE_KEY ?? ''
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_KEY ?? ''
 const SUPABASE_URL = 'https://jsduaelevpwflvwhhhvx.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzZHVhZWxldnB3Zmx2d2hoaHZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDE4MDUsImV4cCI6MjA5NzcxNzgwNX0.uwmOIuO2CHUT_s6mtXbJPkAy5dQWu_b6uCUJm1XQc0U'
 
-// Termes de recherche par titre d'objet
-const SEARCH_TERMS: Record<string, string[]> = {
+// Termes Unsplash de fallback par titre d'objet
+const UNSPLASH_TERMS: Record<string, string[]> = {
   'Table de chevet Art déco en palissandre': ['art deco bedside table', 'vintage nightstand wood'],
   'Lampe de bureau articulée Jielde': ['industrial desk lamp', 'articulated metal lamp'],
   'Étagère à corniche style Empire': ['antique wall shelf wood', 'empire style shelf'],
@@ -27,15 +32,91 @@ const SEARCH_TERMS: Record<string, string[]> = {
   'Paire de vases balustre en porcelaine de Chine': ['chinese blue white porcelain vase', 'oriental ceramic vase'],
   'Montre de gousset Longines or 18K': ['gold pocket watch antique', 'vintage pocket watch chain'],
   'Bureau Mazarin en marqueterie Boulle': ['boulle marquetry desk antique', 'louis XIV writing desk'],
-  'Paire de chenets en fonte de Tubalcain': ['antique fireplace andirons', 'cast iron fireplace tools'],
 }
 
-async function fetchUrl(query: string): Promise<string | null> {
+// ─── Replicate / Flux ─────────────────────────────────────────────────────────
+
+function buildFluxPrompt(title: string): string {
+  return `${title}, isolated on pure white background, professional studio product photography, soft even lighting, high resolution, sharp focus`
+}
+
+async function replicateFlux(prompt: string): Promise<string | null> {
+  if (!REPLICATE_API_TOKEN) return null
+
+  const body = JSON.stringify({
+    input: { prompt, aspect_ratio: '1:1', output_format: 'jpg', output_quality: 90 },
+  })
+
+  // 12s entre requêtes = 5 req/min, sous le rate limit Replicate (6/min)
+  await new Promise(r => setTimeout(r, 12000))
+
+  const predictionId = await new Promise<string | null>(resolve => {
+    const req = https.request(
+      {
+        hostname: 'api.replicate.com',
+        path: '/v1/models/black-forest-labs/flux-schnell/predictions',
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body),
+        },
+      },
+      res => {
+        let raw = ''
+        res.on('data', (c: Buffer) => (raw += c))
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(raw)
+            if (json.detail) process.stderr.write(`\n    ⚠ Replicate: ${json.detail}\n`)
+            resolve(json.id ?? null)
+          } catch { resolve(null) }
+        })
+      }
+    )
+    req.on('error', () => resolve(null))
+    req.write(body)
+    req.end()
+  })
+
+  if (!predictionId) return null
+
+  for (let i = 0; i < 20; i++) {
+    await new Promise(r => setTimeout(r, 3000))
+    const result = await new Promise<any>(resolve => {
+      https.get(
+        {
+          hostname: 'api.replicate.com',
+          path: `/v1/predictions/${predictionId}`,
+          headers: { Authorization: `Bearer ${REPLICATE_API_TOKEN}` },
+        },
+        res => {
+          let raw = ''
+          res.on('data', (c: Buffer) => (raw += c))
+          res.on('end', () => { try { resolve(JSON.parse(raw)) } catch { resolve(null) } })
+        }
+      ).on('error', () => resolve(null))
+    })
+
+    if (!result) break
+    if (result.status === 'succeeded') {
+      const out = result.output
+      return Array.isArray(out) ? out[0] : (out ?? null)
+    }
+    if (result.status === 'failed' || result.status === 'canceled') break
+  }
+  return null
+}
+
+// ─── Unsplash ─────────────────────────────────────────────────────────────────
+
+async function unsplashUrl(query: string): Promise<string | null> {
+  if (!UNSPLASH_ACCESS_KEY) return null
   return new Promise(resolve => {
     const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=3&orientation=squarish&content_filter=high`
     https.get(url, { headers: { Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}` } }, res => {
       let raw = ''
-      res.on('data', (c: Buffer) => raw += c)
+      res.on('data', (c: Buffer) => (raw += c))
       res.on('end', () => {
         try {
           const results = JSON.parse(raw).results ?? []
@@ -47,15 +128,26 @@ async function fetchUrl(query: string): Promise<string | null> {
   })
 }
 
+// ─── Download avec suivi des redirects ───────────────────────────────────────
+
 async function downloadBuffer(url: string): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    https.get(url, res => {
-      const chunks: Buffer[] = []
-      res.on('data', (c: Buffer) => chunks.push(c))
-      res.on('end', () => resolve(Buffer.concat(chunks)))
-    }).on('error', reject)
+    const get = (u: string) => {
+      https.get(u, res => {
+        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          get(res.headers.location)
+          return
+        }
+        const chunks: Buffer[] = []
+        res.on('data', (c: Buffer) => chunks.push(c))
+        res.on('end', () => resolve(Buffer.concat(chunks)))
+      }).on('error', reject)
+    }
+    get(url)
   })
 }
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
   const args = process.argv.slice(2)
@@ -69,35 +161,51 @@ async function main() {
   const { data: { user } } = await supabase.auth.getUser()
   console.log(`✓ Connecté : ${user.email}`)
 
+  if (REPLICATE_API_TOKEN) console.log('🎨 Mode : Replicate / Flux Schnell (IA)')
+  else if (UNSPLASH_ACCESS_KEY) console.log('📸 Mode : Unsplash (libre de droit)')
+  else { console.error('Aucune clé API définie. Passez REPLICATE_KEY ou UNSPLASH_KEY.'); process.exit(1) }
+
   // Objets sans image
   const { data: objectsWithImages } = await supabase.from('object_images').select('object_id')
   const coveredIds = new Set((objectsWithImages ?? []).map((r: any) => r.object_id))
-
   const { data: allObjects } = await supabase.from('objects').select('id, title').eq('user_id', user.id)
   const missing = (allObjects ?? []).filter((o: any) => !coveredIds.has(o.id))
 
-  console.log(`\n${missing.length} objets sans photo à traiter...\n`)
+  console.log(`\n${missing.length} objets sans photo...\n`)
   let done = 0
 
   for (const obj of missing) {
-    const terms = SEARCH_TERMS[obj.title] ?? [obj.title]
-    let imgUrl: string | null = null
+    process.stdout.write(`  ⏳ "${obj.title}"...`)
 
-    for (const term of terms) {
-      imgUrl = await fetchUrl(term)
-      if (imgUrl) break
+    let imgUrl: string | null = null
+    let source = ''
+
+    if (REPLICATE_API_TOKEN) {
+      imgUrl = await replicateFlux(buildFluxPrompt(obj.title))
+      if (imgUrl) source = '🎨'
+    }
+
+    if (!imgUrl && UNSPLASH_ACCESS_KEY) {
+      const terms = UNSPLASH_TERMS[obj.title] ?? [obj.title]
+      for (const term of terms) {
+        imgUrl = await unsplashUrl(term)
+        if (imgUrl) { source = '📸'; break }
+      }
     }
 
     if (!imgUrl) {
-      console.log(`  ✗ "${obj.title}" — aucune photo trouvée`)
+      process.stdout.write(` ✗ aucune image\n`)
       continue
     }
 
     const buffer = await downloadBuffer(imgUrl)
-    const storagePath = `${user.id}/${obj.id}/unsplash-0.jpg`
+    const storagePath = `${user.id}/${obj.id}/cover-0.jpg`
 
-    const { error: upErr } = await supabase.storage.from('object-images').upload(storagePath, buffer, { contentType: 'image/jpeg', upsert: true })
-    if (upErr) { console.log(`  ✗ "${obj.title}" upload: ${upErr.message}`); continue }
+    const { error: upErr } = await supabase.storage
+      .from('object-images')
+      .upload(storagePath, buffer, { contentType: 'image/jpeg', upsert: true })
+
+    if (upErr) { process.stdout.write(` ✗ upload: ${upErr.message}\n`); continue }
 
     await supabase.from('object_images').insert({
       object_id: obj.id, user_id: user.id, storage_path: storagePath,
@@ -105,7 +213,7 @@ async function main() {
     })
 
     done++
-    console.log(`  ✓ (${done}/${missing.length}) "${obj.title}" 📸`)
+    process.stdout.write(` ✓ ${source}\n`)
   }
 
   console.log(`\n✅ ${done}/${missing.length} photos ajoutées`)
