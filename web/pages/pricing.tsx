@@ -41,6 +41,10 @@ const FAQ = [
     q: 'Pourquoi l\'IA est-elle limitée en gratuit ?',
     a: 'Chaque analyse a un coût réel en tokens (infrastructure Anthropic). La version premium finance ce coût et nous permet de maintenir un service de qualité sans publicité ni revente de données.',
   },
+  {
+    q: 'Comment contacter le support ?',
+    a: 'Pour toute question, problème ou demande, écrivez-nous à support@tiroir.app. Nous répondons le plus rapidement possible en fonction des volumes.',
+  },
 ]
 
 export default function Pricing() {
