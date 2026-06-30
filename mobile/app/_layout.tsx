@@ -6,12 +6,16 @@ import { Platform } from 'react-native'
 import Purchases, { LOG_LEVEL } from 'react-native-purchases'
 import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
 
-const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY!
+const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY
 
-// Initialisation RevenueCat au démarrage de l'app (hors rendu React)
-if (Platform.OS === 'ios') {
-  Purchases.setLogLevel(LOG_LEVEL.DEBUG)
-  Purchases.configure({ apiKey: RC_API_KEY })
+// Initialisation RevenueCat au démarrage de l'app
+try {
+  if (Platform.OS === 'ios' && RC_API_KEY) {
+    Purchases.setLogLevel(LOG_LEVEL.DEBUG)
+    Purchases.configure({ apiKey: RC_API_KEY })
+  }
+} catch (e) {
+  console.warn('[RC] configure error', e)
 }
 
 function RootGuard() {
@@ -21,12 +25,16 @@ function RootGuard() {
 
   // Lier l'user Supabase à RevenueCat dès qu'une session est disponible
   useEffect(() => {
-    if (session?.user?.id) {
-      Purchases.logIn(session.user.id).catch(e =>
-        console.warn('[RC] logIn error', e)
-      )
-    } else {
-      Purchases.logOut().catch(() => {})
+    if (!RC_API_KEY) return
+    try {
+      if (session?.user?.id) {
+        Purchases.logIn(session.user.id).catch(e =>
+          console.warn('[RC] logIn error', e)
+        )
+      }
+      // logOut() intentionnellement omis : RC gère l'état anonyme seul
+    } catch (e) {
+      console.warn('[RC] session sync error', e)
     }
   }, [session?.user?.id])
 
