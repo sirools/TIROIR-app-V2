@@ -211,7 +211,7 @@ export default function ProfileScreen() {
             </View>
 
             {!isPremium && (
-              <TouchableOpacity style={styles.upgradeBtn} activeOpacity={0.85}>
+              <TouchableOpacity style={styles.upgradeBtn} activeOpacity={0.85} onPress={() => router.push('/paywall')}>
                 <Zap size={14} color="white" strokeWidth={2.2} />
                 <Text style={styles.upgradeBtnText}>Passer à Premium</Text>
               </TouchableOpacity>
