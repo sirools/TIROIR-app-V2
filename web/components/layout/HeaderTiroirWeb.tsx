@@ -72,6 +72,9 @@ export default function HeaderTiroirWeb() {
                 Admin
               </button>
             )}
+            <a className="appstore-nav-btn" href="/pricing">
+              Tarifs
+            </a>
             <a
               className="appstore-nav-btn"
               href="https://apps.apple.com/app/id6751784101"
