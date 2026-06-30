@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "Tiroir",
+    "slug": "tiroir-v2",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "tiroir",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F7F3EE"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.sirools.tiroir",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F5F0EB"
+      },
+      "package": "com.tiroir.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Tiroir utilise la caméra pour photographier vos objets."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Tiroir accède à votre photothèque pour ajouter des photos à vos objets."
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "aa3c951d-bb0e-4398-8e90-3142a4f0d844"
+      }
+    },
+    "owner": "sirools"
+  }
+}
