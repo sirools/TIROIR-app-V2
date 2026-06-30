@@ -141,10 +141,10 @@ export default function HomeScreen() {
       >
         {/* En-tête */}
         <View style={styles.hero}>
-          <View style={styles.heroLeft}>
+          <TouchableOpacity style={styles.heroLeft} onPress={() => router.push('/profile')} activeOpacity={0.7}>
             <Text style={styles.greeting}>{greeting()}{profile?.display_name ? `, ${profile.display_name}` : ''}</Text>
             <Text style={styles.heroTitle}>Votre Tiroir</Text>
-          </View>
+          </TouchableOpacity>
           <BurgerIcon onPress={() => setMenuOpen(true)} />
         </View>
 
