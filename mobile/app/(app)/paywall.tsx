@@ -1,12 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert, ScrollView,
+  ActivityIndicator, Alert, ScrollView, Switch, Platform,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { ArrowLeft, Zap, Package, Brain, Camera, Check } from 'lucide-react-native'
 import Purchases, { PurchasesPackage } from 'react-native-purchases'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
+
+const MOCK_PACKAGES: PurchasesPackage[] = Platform.OS === 'web' ? [
+  { identifier: '$rc_monthly', packageType: 'MONTHLY', product: { identifier: 'tiroir_premium_monthly', price: 6.99, priceString: '6,99 €', introPrice: { price: 0, priceString: '0 €', periodNumberOfUnits: 7, periodUnit: 'DAY' } } } as any,
+  { identifier: '$rc_annual',  packageType: 'ANNUAL',  product: { identifier: 'tiroir_premium_annual',  price: 59.99, priceString: '59,99 €', introPrice: { price: 0, priceString: '0 €', periodNumberOfUnits: 7, periodUnit: 'DAY' } } } as any,
+] : []
 
 const FEATURES = [
   { icon: Package, label: 'Objets illimités' },
@@ -16,22 +22,46 @@ const FEATURES = [
 
 export default function PaywallScreen() {
   const router = useRouter()
-  const [packages, setPackages]   = useState<PurchasesPackage[]>([])
-  const [selected, setSelected]   = useState<PurchasesPackage | null>(null)
+  const insets = useSafeAreaInsets()
+
+  const [monthly, setMonthly]     = useState<PurchasesPackage | null>(null)
+  const [annual, setAnnual]       = useState<PurchasesPackage | null>(null)
+  const [isAnnual, setIsAnnual]   = useState(true)
   const [loading, setLoading]     = useState(true)
   const [purchasing, setPurchasing] = useState(false)
 
   useEffect(() => {
+    if (Platform.OS === 'web') {
+      setMonthly(MOCK_PACKAGES[0])
+      setAnnual(MOCK_PACKAGES[1])
+      setIsAnnual(true)
+      setLoading(false)
+      return
+    }
     Purchases.getOfferings().then(offerings => {
       const pkgs = offerings.current?.availablePackages ?? []
-      setPackages(pkgs)
-      // Sélectionner l'annuel par défaut s'il existe
-      const annual = pkgs.find(p => p.packageType === 'ANNUAL')
-      setSelected(annual ?? pkgs[0] ?? null)
+      const m = pkgs.find(p => p.packageType === 'MONTHLY') ?? null
+      const a = pkgs.find(p => p.packageType === 'ANNUAL') ?? null
+      setMonthly(m)
+      setAnnual(a)
+      setIsAnnual(!!a)
     }).catch(e => {
       console.warn('[Paywall] getOfferings error', e)
     }).finally(() => setLoading(false))
   }, [])
+
+  const selected = isAnnual ? (annual ?? monthly) : (monthly ?? annual)
+
+  // Économie annuelle vs mensuel × 12
+  const savings = monthly && annual
+    ? Math.round((1 - annual.product.price / (monthly.product.price * 12)) * 100)
+    : null
+
+  const monthlyEquiv = annual
+    ? (annual.product.price / 12).toFixed(2).replace('.', ',')
+    : null
+
+  const hasBothPlans = !!monthly && !!annual
 
   const handlePurchase = useCallback(async () => {
     if (!selected) return
@@ -68,12 +98,14 @@ export default function PaywallScreen() {
   }, [])
 
   return (
-    <View style={s.root}>
+    <View style={[s.root, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={s.backBtn}>
           <ArrowLeft size={22} color={Colors.textPrimary} strokeWidth={1.8} />
         </TouchableOpacity>
+        <Text style={s.headerTitle}>Tiroir Premium</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
@@ -82,8 +114,7 @@ export default function PaywallScreen() {
           <View style={s.heroIcon}>
             <Zap size={28} color="white" strokeWidth={2.2} />
           </View>
-          <Text style={s.heroTitle}>Tiroir Premium</Text>
-          <Text style={s.heroSub}>Inventaire illimité, IA et photos sans limites.</Text>
+          <Text style={s.heroTitle}>Inventaire illimité,{'\n'}IA et photos sans limites.</Text>
         </View>
 
         {/* Features */}
@@ -98,50 +129,57 @@ export default function PaywallScreen() {
           ))}
         </View>
 
-        {/* Plans */}
+        {/* Toggle mensuel / annuel */}
+        {hasBothPlans && (
+          <View style={s.toggleWrap}>
+            <Text style={[s.toggleLabel, !isAnnual && s.toggleLabelActive]}>Mensuel</Text>
+            <Switch
+              value={isAnnual}
+              onValueChange={setIsAnnual}
+              trackColor={{ false: Colors.border, true: Colors.accent }}
+              thumbColor="white"
+              ios_backgroundColor={Colors.border}
+            />
+            <Text style={[s.toggleLabel, isAnnual && s.toggleLabelActive]}>Annuel</Text>
+            {savings !== null && isAnnual && (
+              <View style={s.savingsBadge}>
+                <Text style={s.savingsText}>−{savings}%</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Price card */}
         {loading ? (
           <ActivityIndicator color={Colors.accent} style={{ marginVertical: 32 }} />
-        ) : packages.length === 0 ? (
+        ) : !selected ? (
           <Text style={s.unavailable}>Abonnements indisponibles pour le moment.</Text>
         ) : (
-          <View style={s.plans}>
-            {packages.map(pkg => {
-              const isAnnual  = pkg.packageType === 'ANNUAL'
-              const isSelected = selected?.identifier === pkg.identifier
-              return (
-                <TouchableOpacity
-                  key={pkg.identifier}
-                  style={[s.planCard, isSelected && s.planCardSelected]}
-                  onPress={() => setSelected(pkg)}
-                  activeOpacity={0.8}
-                >
-                  {isAnnual && (
-                    <View style={s.bestValueBadge}>
-                      <Text style={s.bestValueText}>2 mois offerts</Text>
-                    </View>
-                  )}
-                  <Text style={[s.planName, isSelected && s.planNameSelected]}>
-                    {isAnnual ? 'Annuel' : 'Mensuel'}
-                  </Text>
-                  <Text style={[s.planPrice, isSelected && s.planPriceSelected]}>
-                    {pkg.product.priceString}
-                    <Text style={s.planPricePer}>
-                      {isAnnual ? ' / an' : ' / mois'}
-                    </Text>
-                  </Text>
-                  {isAnnual && (
-                    <Text style={[s.planDetail, isSelected && s.planDetailSelected]}>
-                      soit {(pkg.product.price / 12).toFixed(2).replace('.', ',')} € / mois
-                    </Text>
-                  )}
-                  {pkg.product.introPrice && (
-                    <Text style={[s.planTrial, isSelected && s.planTrialSelected]}>
-                      7 jours d'essai gratuit
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              )
-            })}
+          <View style={s.priceCard}>
+            {isAnnual && annual?.product.introPrice && (
+              <View style={s.trialBadge}>
+                <Text style={s.trialText}>✦ 7 jours d'essai gratuit</Text>
+              </View>
+            )}
+            {!isAnnual && monthly?.product.introPrice && (
+              <View style={s.trialBadge}>
+                <Text style={s.trialText}>✦ 7 jours d'essai gratuit</Text>
+              </View>
+            )}
+
+            <View style={s.priceRow}>
+              <Text style={s.price}>{selected.product.priceString}</Text>
+              <Text style={s.pricePer}>
+                {isAnnual && annual ? ' / an' : ' / mois'}
+              </Text>
+            </View>
+
+            {isAnnual && monthlyEquiv && (
+              <Text style={s.priceEquiv}>
+                soit <Text style={s.priceEquivBold}>{monthlyEquiv} € / mois</Text>
+                {savings !== null ? ` — ${savings}% d'économie vs mensuel` : ''}
+              </Text>
+            )}
           </View>
         )}
 
@@ -174,37 +212,53 @@ export default function PaywallScreen() {
 
 const s = StyleSheet.create({
   root:    { flex: 1, backgroundColor: Colors.background },
-  header:  { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
+
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
+    borderBottomWidth: 1, borderBottomColor: Colors.border,
+  },
+  backBtn:     { width: 40 },
+  headerTitle: { fontSize: Typography.md, fontWeight: Typography.semibold, color: Colors.textPrimary },
 
   content: { padding: Spacing.lg, gap: Spacing.lg, paddingBottom: 48 },
 
   hero:      { alignItems: 'center', gap: 12, paddingVertical: Spacing.sm },
   heroIcon:  { width: 64, height: 64, borderRadius: 20, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
-  heroTitle: { fontSize: Typography.xxl, fontWeight: Typography.bold, color: Colors.textPrimary, textAlign: 'center' },
-  heroSub:   { fontSize: Typography.base, color: Colors.textSecondary, textAlign: 'center', lineHeight: 22 },
+  heroTitle: { fontSize: Typography.xl, fontWeight: Typography.bold, color: Colors.textPrimary, textAlign: 'center', lineHeight: 28 },
 
-  features:     { gap: 10 },
+  features:     { gap: 12 },
   featureRow:   { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  featureCheck: { width: 22, height: 22, borderRadius: 99, backgroundColor: Colors.accentLight, alignItems: 'center', justifyContent: 'center' },
+  featureCheck: { width: 24, height: 24, borderRadius: 99, backgroundColor: Colors.accentLight, alignItems: 'center', justifyContent: 'center' },
   featureLabel: { fontSize: Typography.base, color: Colors.textPrimary, fontWeight: Typography.medium },
 
-  plans:     { gap: 12 },
-  planCard:  {
-    borderRadius: Radius.lg, borderWidth: 1.5, borderColor: Colors.border,
-    backgroundColor: Colors.surface, padding: Spacing.md, gap: 4,
+  toggleWrap: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    paddingVertical: Spacing.sm,
   },
-  planCardSelected: { borderColor: Colors.accent, backgroundColor: '#FFF8F3' },
-  planName:         { fontSize: Typography.sm, fontWeight: Typography.semibold, color: Colors.textSecondary },
-  planNameSelected: { color: Colors.accent },
-  planPrice:        { fontSize: Typography.xxl, fontWeight: Typography.bold, color: Colors.textPrimary, letterSpacing: -0.5 },
-  planPriceSelected:{ color: Colors.accent },
-  planPricePer:     { fontSize: Typography.base, fontWeight: Typography.regular, color: Colors.textTertiary },
-  planDetail:       { fontSize: Typography.sm, color: Colors.textTertiary },
-  planDetailSelected:{ color: Colors.accent },
-  planTrial:        { fontSize: Typography.sm, color: Colors.textTertiary, fontWeight: Typography.medium },
-  planTrialSelected:{ color: Colors.accent },
-  bestValueBadge:   { alignSelf: 'flex-start', backgroundColor: Colors.accentLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 99, marginBottom: 4 },
-  bestValueText:    { fontSize: 11, fontWeight: Typography.bold, color: Colors.accent },
+  toggleLabel:       { fontSize: Typography.sm, color: Colors.textTertiary, fontWeight: Typography.medium },
+  toggleLabelActive: { color: Colors.textPrimary, fontWeight: Typography.bold },
+  savingsBadge: {
+    backgroundColor: '#DCFCE7', paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 999,
+  },
+  savingsText: { fontSize: 12, fontWeight: Typography.bold, color: '#16A34A' },
+
+  priceCard: {
+    backgroundColor: Colors.surface, borderRadius: Radius.lg,
+    borderWidth: 1.5, borderColor: Colors.accent,
+    padding: Spacing.lg, gap: 8, alignItems: 'center',
+  },
+  trialBadge: {
+    backgroundColor: Colors.accentLight, paddingHorizontal: 12, paddingVertical: 4,
+    borderRadius: 999, marginBottom: 4,
+  },
+  trialText:  { fontSize: 13, fontWeight: Typography.semibold, color: Colors.accent },
+  priceRow:   { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
+  price:      { fontSize: 42, fontWeight: Typography.bold, color: Colors.textPrimary, letterSpacing: -1 },
+  pricePer:   { fontSize: Typography.base, color: Colors.textTertiary, fontWeight: Typography.regular },
+  priceEquiv: { fontSize: Typography.sm, color: Colors.textTertiary, textAlign: 'center' },
+  priceEquivBold: { fontWeight: Typography.semibold, color: Colors.textSecondary },
 
   unavailable: { fontSize: Typography.sm, color: Colors.textTertiary, textAlign: 'center', paddingVertical: 24 },
 

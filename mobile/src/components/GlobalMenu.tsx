@@ -5,7 +5,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { User, Settings, LogOut, Link } from 'lucide-react-native'
+import { User, Settings, LogOut, Link, Zap } from 'lucide-react-native'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthContext'
 
@@ -20,6 +20,7 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const { profile, signOut } = useAuth()
+  const isPremium = (profile as any)?.plan === 'premium'
   const translateX = useRef(new Animated.Value(-MENU_WIDTH)).current
   const opacity = useRef(new Animated.Value(0)).current
 
@@ -76,9 +77,14 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
           <View style={styles.avatar}>
             <User size={22} color={Colors.accent} strokeWidth={1.5} />
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.profileName}>{profile?.display_name ?? 'Mon Profil'}</Text>
-            <Text style={styles.profileSub}>Voir le profil</Text>
+            <View style={[styles.planBadge, isPremium && styles.planBadgePremium]}>
+              <Zap size={9} color={isPremium ? '#7c3aed' : Colors.accent} strokeWidth={2.5} />
+              <Text style={[styles.planBadgeText, isPremium && styles.planBadgeTextPremium]}>
+                {isPremium ? 'Premium' : 'Version gratuite'}
+              </Text>
+            </View>
           </View>
         </TouchableOpacity>
 
@@ -95,6 +101,18 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
           label="Paramètres"
           onPress={() => navigate('/settings')}
         />
+
+        {isPremium ? (
+          <View style={styles.premiumActive}>
+            <Zap size={14} color="#7c3aed" strokeWidth={2} />
+            <Text style={styles.premiumActiveText}>Premium actif</Text>
+          </View>
+        ) : (
+          <TouchableOpacity style={styles.upgradeRow} onPress={() => navigate('/paywall')} activeOpacity={0.85}>
+            <Zap size={15} color="white" strokeWidth={2.2} />
+            <Text style={styles.upgradeText}>Passer à Premium</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Déconnexion tout en bas */}
         <View style={styles.spacer} />
@@ -196,6 +214,35 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     fontWeight: Typography.medium,
   },
+
+  // Badge plan
+  planBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFF4E6', borderWidth: 1, borderColor: '#FFD9A8',
+    paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, marginTop: 3,
+  },
+  planBadgePremium: { backgroundColor: '#F3EEFF', borderColor: '#D4BBFF' },
+  planBadgeText: { fontSize: 11, fontWeight: Typography.semibold, color: Colors.accent },
+  planBadgeTextPremium: { color: '#7c3aed' },
+
+  // Upgrade CTA
+  upgradeRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: Colors.accent, borderRadius: Radius.md,
+    paddingVertical: 11, paddingHorizontal: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  upgradeText: { fontSize: Typography.sm, fontWeight: Typography.bold, color: 'white' },
+
+  // Premium actif
+  premiumActive: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: '#F3EEFF', borderWidth: 1, borderColor: '#D4BBFF',
+    borderRadius: Radius.md, paddingVertical: 10, paddingHorizontal: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  premiumActiveText: { fontSize: Typography.sm, fontWeight: Typography.semibold, color: '#7c3aed' },
 
   spacer: { flex: 1 },
 
