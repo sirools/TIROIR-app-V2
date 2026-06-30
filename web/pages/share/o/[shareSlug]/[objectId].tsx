@@ -202,7 +202,7 @@ export default function SharedObjectPage({ slug, gated, object }: SharedObjectPa
               <button
                 className="btn btn-primary"
                 onClick={() =>
-                  (window.location.href = `mailto:hello@tiroir.com?subject=${encodeURIComponent(
+                  (window.location.href = `mailto:hello@tiroir.app?subject=${encodeURIComponent(
                     'Contact à propos de ' + (object.title || 'un objet')
                   )}`)
                 }
