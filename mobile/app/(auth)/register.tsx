@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase } from '@/lib/supabase'
-import { Screen, Button, Input, Colors, Typography, Spacing } from '@/components/ui'
+import { Screen, Button, Input, Checkbox, Colors, Typography, Spacing } from '@/components/ui'
 
 export default function RegisterScreen() {
   const router = useRouter()
@@ -12,6 +12,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [cguAccepted, setCguAccepted] = useState(false)
 
   async function handleRegister() {
     if (!email.trim() || !password || !name.trim()) {
@@ -20,6 +21,10 @@ export default function RegisterScreen() {
     }
     if (password.length < 6) {
       setError('Le mot de passe doit contenir au moins 6 caractères.')
+      return
+    }
+    if (!cguAccepted) {
+      setError('Merci d\'accepter les Conditions Générales d\'Utilisation pour continuer.')
       return
     }
 
@@ -102,12 +107,26 @@ export default function RegisterScreen() {
               containerStyle={{ marginTop: Spacing.md }}
             />
 
+            <View style={styles.cguRow}>
+              <Checkbox checked={cguAccepted} onToggle={() => setCguAccepted(v => !v)} />
+              <Text style={styles.cguText}>
+                J'ai lu et j'accepte les{' '}
+                <Text
+                  style={styles.cguLink}
+                  onPress={() => Linking.openURL('https://tiroir.app/cgu')}
+                >
+                  Conditions Générales d'Utilisation
+                </Text>
+              </Text>
+            </View>
+
             {error && <Text style={styles.error}>{error}</Text>}
 
             <Button
               label="Créer mon compte"
               onPress={handleRegister}
               loading={loading}
+              disabled={!cguAccepted}
               style={{ marginTop: Spacing.lg }}
             />
           </View>
@@ -138,6 +157,23 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   form: { gap: 0 },
+  cguRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+  cguText: {
+    flex: 1,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    lineHeight: Typography.sm * 1.5,
+  },
+  cguLink: {
+    color: Colors.accent,
+    fontWeight: Typography.semibold,
+    textDecorationLine: 'underline',
+  },
   error: {
     fontSize: Typography.sm,
     color: Colors.error,
