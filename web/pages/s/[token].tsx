@@ -125,9 +125,9 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
         <HeaderTiroirWeb />
 
         <main className="main">
-          <button className="back-link" onClick={() => router.back()} type="button">
-            ← Retour
-          </button>
+          <Link href="/mes-partages" legacyBehavior passHref>
+            <a className="back-link">← Retour à mes partages</a>
+          </Link>
 
           {error ? (
             <div className="error-state">
