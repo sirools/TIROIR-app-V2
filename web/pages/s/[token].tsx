@@ -203,10 +203,42 @@ function formatValue(obj: SharedObject) {
   return value.toLocaleString('fr-FR', { style: 'currency', currency, maximumFractionDigits: 0 })
 }
 
+type SortKey = 'title' | 'status' | 'location_note' | 'value'
+type SortDir = 'asc' | 'desc'
+
+function sortValueOf(obj: SharedObject, key: SortKey): string | number {
+  switch (key) {
+    case 'title': return obj.title?.toLowerCase() ?? ''
+    case 'status': return obj.status ? (STATUS_LABEL[obj.status] ?? obj.status).toLowerCase() : ''
+    case 'location_note': return obj.location_note?.toLowerCase() ?? ''
+    case 'value': return obj.user_value ?? obj.market_value ?? -Infinity
+  }
+}
+
+function sortObjects(objects: SharedObject[], key: SortKey | null, dir: SortDir) {
+  if (!key) return objects
+  const factor = dir === 'asc' ? 1 : -1
+  return [...objects].sort((a, b) => {
+    const va = sortValueOf(a, key)
+    const vb = sortValueOf(b, key)
+    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * factor
+    return String(va).localeCompare(String(vb), 'fr') * factor
+  })
+}
+
 export default function ShareV2Page({ token, title, objects, allowDownload, error, gated }: Props) {
   const router = useRouter()
   const [view, setView] = useState<'grid' | 'list'>('grid')
+  const [sortKey, setSortKey] = useState<SortKey | null>(null)
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
   const pageTitle = error ? 'Lien introuvable — TiROiR' : `${title} — TiROiR`
+
+  function toggleSort(key: SortKey) {
+    if (sortKey !== key) { setSortKey(key); setSortDir('asc'); return }
+    setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+  }
+
+  const sortedObjects = sortObjects(objects, sortKey, sortDir)
 
   if (gated) {
     return (
@@ -338,15 +370,23 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                     <thead>
                       <tr>
                         <th className="th-cover"></th>
-                        <th>Titre</th>
-                        <th>Statut</th>
-                        <th>Emplacement</th>
+                        <th className="th-sortable" onClick={() => toggleSort('title')}>
+                          Titre{sortKey === 'title' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                        </th>
+                        <th className="th-sortable" onClick={() => toggleSort('status')}>
+                          Statut{sortKey === 'status' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                        </th>
+                        <th className="th-sortable" onClick={() => toggleSort('location_note')}>
+                          Emplacement{sortKey === 'location_note' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                        </th>
                         <th>Description</th>
-                        <th className="th-value">Valeur</th>
+                        <th className="th-value th-sortable" onClick={() => toggleSort('value')}>
+                          Valeur{sortKey === 'value' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {objects.map(obj => (
+                      {sortedObjects.map(obj => (
                         <tr
                           key={obj.id}
                           onClick={() => router.push(`/s/${token}/${obj.id}`)}
@@ -461,6 +501,8 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
         }
         .th-cover { width: 64px; }
         .th-value { text-align: right; }
+        .th-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+        .th-sortable:hover { color: #F26900; }
         .table td {
           padding: 12px 16px; border-bottom: 1px solid #F0EBE3;
           font-size: 14px; color: #1A1612; vertical-align: middle;
