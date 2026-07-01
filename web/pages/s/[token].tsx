@@ -2,6 +2,7 @@
 import type { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { createClient } from '@supabase/supabase-js'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -16,6 +17,7 @@ interface SharedObject {
 }
 
 interface Props {
+  token: string
   title: string
   objects: SharedObject[]
   allowDownload: boolean
@@ -96,6 +98,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   return {
     props: {
+      token,
       title: link.title ?? 'Partage TiROiR',
       objects,
       allowDownload: link.options?.allow_download ?? false,
@@ -105,7 +108,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function ShareV2Page({ title, objects, allowDownload, error }: Props) {
+export default function ShareV2Page({ token, title, objects, allowDownload, error }: Props) {
+  const router = useRouter()
   const pageTitle = error ? 'Lien introuvable — TiROiR' : `${title} — TiROiR`
 
   return (
@@ -157,7 +161,13 @@ export default function ShareV2Page({ title, objects, allowDownload, error }: Pr
 
               <div className="grid">
                 {objects.map(obj => (
-                  <div key={obj.id} className="card">
+                  <div
+                    key={obj.id}
+                    className="card"
+                    onClick={() => router.push(`/s/${token}/${obj.id}`)}
+                    role="button"
+                    tabIndex={0}
+                  >
                     <div className="card-cover">
                       {obj.cover_url
                         ? <img src={obj.cover_url} alt={obj.title} className="cover-img" />
@@ -240,7 +250,7 @@ export default function ShareV2Page({ title, objects, allowDownload, error }: Pr
         .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
         .logo-box {
           width: 30px; height: 30px; border-radius: 8px;
-          background: #2D5016; color: white;
+          background: #F26900; color: white;
           display: grid; place-items: center; font-weight: 800;
         }
         .logo-text { font-weight: 800; font-size: 18px; color: #1A1612; }
@@ -268,6 +278,12 @@ export default function ShareV2Page({ title, objects, allowDownload, error }: Pr
           border-radius: 16px;
           border: 1px solid #E8E2DA;
           overflow: hidden;
+          cursor: pointer;
+          transition: box-shadow 0.15s, transform 0.15s;
+        }
+        .card:hover {
+          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+          transform: translateY(-2px);
         }
         .card-cover { aspect-ratio: 1; overflow: hidden; background: #F0EBE3; }
         .cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -290,8 +306,8 @@ export default function ShareV2Page({ title, objects, allowDownload, error }: Pr
         .download-row { display: flex; justify-content: center; margin-bottom: 32px; }
         .download-btn {
           padding: 12px 24px; border-radius: 12px;
-          border: 1.5px solid #2D5016; background: transparent;
-          color: #2D5016; font-weight: 600; font-size: 15px;
+          border: 1.5px solid #F26900; background: transparent;
+          color: #F26900; font-weight: 600; font-size: 15px;
           cursor: pointer; opacity: 0.5;
         }
 
@@ -304,12 +320,12 @@ export default function ShareV2Page({ title, objects, allowDownload, error }: Pr
         .app-cta-sub { font-size: 14px; color: #6B6158; margin: 8px 0 20px; }
         .cta-btn {
           display: inline-block;
-          background: #2D5016; color: white;
+          background: #F26900; color: white;
           padding: 14px 28px; border-radius: 999px;
           font-weight: 700; font-size: 15px; text-decoration: none;
           transition: background 0.15s;
         }
-        .cta-btn:hover { background: #1e3a0f; }
+        .cta-btn:hover { background: #D85E00; }
 
         /* Error state */
         .error-state {
