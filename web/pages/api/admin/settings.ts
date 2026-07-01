@@ -18,11 +18,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!profile?.is_admin) return res.status(403).json({ error: 'Accès refusé' })
 
-  const { free_ai_quota_monthly, free_objects_max, free_photos_per_object } = req.body
+  const {
+    free_ai_quota_monthly, free_objects_max, free_photos_per_object,
+    supabase_db_limit_mb, supabase_storage_limit_mb,
+    estimated_cost_per_ai_analysis_usd, estimated_cost_per_photo_enhance_usd,
+    monthly_ai_spend_alert_usd,
+  } = req.body
 
   const { error } = await admin
     .from('app_settings')
-    .update({ free_ai_quota_monthly, free_objects_max, free_photos_per_object })
+    .update({
+      free_ai_quota_monthly, free_objects_max, free_photos_per_object,
+      supabase_db_limit_mb, supabase_storage_limit_mb,
+      estimated_cost_per_ai_analysis_usd, estimated_cost_per_photo_enhance_usd,
+      monthly_ai_spend_alert_usd,
+    })
     .eq('id', 1)
 
   if (error) return res.status(500).json({ error: error.message })

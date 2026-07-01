@@ -7,6 +7,11 @@ interface AppSettings {
   free_ai_quota_monthly: number
   free_objects_max: number
   free_photos_per_object: number
+  supabase_db_limit_mb: number
+  supabase_storage_limit_mb: number
+  estimated_cost_per_ai_analysis_usd: number
+  estimated_cost_per_photo_enhance_usd: number
+  monthly_ai_spend_alert_usd: number
 }
 
 interface KPIs {
@@ -16,8 +21,13 @@ interface KPIs {
   accountsWithObjects: number
   medianObjectsPerActiveUser: number
   aiAnalysesThisMonth: number
+  photoEnhanceThisMonth: number
   quotaExceeded30d: number
   events: { action: string; count: number }[]
+  dbSizeMb: number
+  storageSizeMb: number
+  aiAnalysesLifetime: number
+  photoEnhanceLifetime: number
 }
 
 interface Props {
@@ -47,6 +57,15 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
     setTimeout(() => setSaved(false), 2500)
   }
 
+  const monthlyAiCost = kpis.aiAnalysesThisMonth * settings.estimated_cost_per_ai_analysis_usd
+    + kpis.photoEnhanceThisMonth * settings.estimated_cost_per_photo_enhance_usd
+  const lifetimeAiCost = kpis.aiAnalysesLifetime * settings.estimated_cost_per_ai_analysis_usd
+    + kpis.photoEnhanceLifetime * settings.estimated_cost_per_photo_enhance_usd
+  const costAlert = monthlyAiCost > settings.monthly_ai_spend_alert_usd
+
+  const dbPct = settings.supabase_db_limit_mb > 0 ? (kpis.dbSizeMb / settings.supabase_db_limit_mb) * 100 : 0
+  const storagePct = settings.supabase_storage_limit_mb > 0 ? (kpis.storageSizeMb / settings.supabase_storage_limit_mb) * 100 : 0
+
   return (
     <main style={s.root}>
       <header style={s.header}>
@@ -70,7 +89,37 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
           <Kpi label="Comptes avec ≥1 objet" value={`${kpis.accountsWithObjects} (${conversionPct}%)`} />
           <Kpi label="Médiane objets / user actif" value={kpis.medianObjectsPerActiveUser} />
           <Kpi label="Analyses IA (ce mois)" value={kpis.aiAnalysesThisMonth} />
+          <Kpi label="Améliorations photo IA (ce mois)" value={kpis.photoEnhanceThisMonth} />
           <Kpi label="Quota IA atteint (30j)" value={kpis.quotaExceeded30d} highlight={kpis.quotaExceeded30d > 0} />
+        </div>
+
+        {/* ── Infrastructure & coûts IA ── */}
+        <h2 style={s.sectionTitle}>Infrastructure & coûts IA</h2>
+        <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
+          Les coûts IA sont des <strong>estimations</strong> basées sur un coût moyen configurable par appel (pas un total exact issu de la facturation Anthropic/Google — aucun tracking de tokens réel pour l'instant).
+        </p>
+
+        <div style={s.grid}>
+          <div style={s.gaugeCard}>
+            <div style={s.gaugeHeader}>
+              <span style={s.gaugeLabel}>Base de données</span>
+              <span style={s.gaugeValue}>{kpis.dbSizeMb.toFixed(1)} / {settings.supabase_db_limit_mb} Mo</span>
+            </div>
+            <GaugeBar pct={dbPct} />
+          </div>
+          <div style={s.gaugeCard}>
+            <div style={s.gaugeHeader}>
+              <span style={s.gaugeLabel}>Storage</span>
+              <span style={s.gaugeValue}>{kpis.storageSizeMb.toFixed(1)} / {settings.supabase_storage_limit_mb} Mo</span>
+            </div>
+            <GaugeBar pct={storagePct} />
+          </div>
+          <div style={{ ...s.kpiCard, ...(costAlert ? s.kpiCardAlert : {}) }}>
+            <span style={s.kpiValue}>{monthlyAiCost.toFixed(2)} $</span>
+            <span style={s.kpiLabel}>Coût IA estimé (ce mois)</span>
+            {costAlert && <span style={s.alertText}>⚠ Dépasse le seuil de {settings.monthly_ai_spend_alert_usd} $</span>}
+          </div>
+          <Kpi label="Coût IA estimé (depuis le lancement)" value={`${lifetimeAiCost.toFixed(2)} $`} />
         </div>
 
         {/* ── Quotas pilotables ── */}
@@ -98,6 +147,59 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
             hint="1 = incite à passer premium pour plus de photos"
             value={settings.free_photos_per_object}
             onChange={v => setSettings(s => ({ ...s, free_photos_per_object: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <div style={s.settingsRow}>
+            <div>
+              <div style={s.settingsLabel}>Améliorations photo IA</div>
+              <div style={s.settingsHint}>Fonctionnalité premium uniquement — fixé à 0 pour le gratuit, non modifiable</div>
+            </div>
+            <span style={s.settingsLocked}>0 🔒</span>
+          </div>
+        </div>
+
+        {/* ── Infra & coûts pilotables ── */}
+        <h2 style={s.sectionTitle}>Limites infra & hypothèses de coût</h2>
+        <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
+          À ajuster quand tu changes de plan Supabase ou que les prix des API IA évoluent.
+        </p>
+        <div style={s.settingsCard}>
+          <QuotaField
+            label="Limite base de données (Mo)"
+            hint="500 Mo = plan Supabase Free"
+            value={settings.supabase_db_limit_mb}
+            onChange={v => setSettings(s => ({ ...s, supabase_db_limit_mb: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <QuotaField
+            label="Limite Storage (Mo)"
+            hint="1024 Mo = plan Supabase Free"
+            value={settings.supabase_storage_limit_mb}
+            onChange={v => setSettings(s => ({ ...s, supabase_storage_limit_mb: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <QuotaField
+            label="Coût estimé / analyse IA ($)"
+            hint="Coût moyen d'un appel Claude (approximatif)"
+            value={settings.estimated_cost_per_ai_analysis_usd}
+            step={0.001}
+            onChange={v => setSettings(s => ({ ...s, estimated_cost_per_ai_analysis_usd: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <QuotaField
+            label="Coût estimé / amélioration photo ($)"
+            hint="Prix Gemini 2.5 Flash Image : 0,039 $"
+            value={settings.estimated_cost_per_photo_enhance_usd}
+            step={0.001}
+            onChange={v => setSettings(s => ({ ...s, estimated_cost_per_photo_enhance_usd: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <QuotaField
+            label="Seuil d'alerte dépense IA / mois ($)"
+            hint="Le KPI ci-dessus s'affiche en rouge au-delà"
+            value={settings.monthly_ai_spend_alert_usd}
+            step={1}
+            onChange={v => setSettings(s => ({ ...s, monthly_ai_spend_alert_usd: v }))}
           />
           <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={saveSettings} disabled={saving} style={s.saveBtn}>
@@ -136,8 +238,18 @@ function Kpi({ label, value, highlight }: { label: string; value: string | numbe
   )
 }
 
-function QuotaField({ label, hint, value, onChange }: {
-  label: string; hint: string; value: number; onChange: (v: number) => void
+function GaugeBar({ pct }: { pct: number }) {
+  const clamped = Math.min(pct, 100)
+  const color = pct >= 90 ? '#C0392B' : pct >= 70 ? '#D97706' : '#2e7d32'
+  return (
+    <div style={s.gaugeTrack}>
+      <div style={{ ...s.gaugeFill, width: `${clamped}%`, background: color }} />
+    </div>
+  )
+}
+
+function QuotaField({ label, hint, value, onChange, step = 1 }: {
+  label: string; hint: string; value: number; onChange: (v: number) => void; step?: number
 }) {
   return (
     <div style={s.settingsRow}>
@@ -148,6 +260,7 @@ function QuotaField({ label, hint, value, onChange }: {
       <input
         type="number"
         min={0}
+        step={step}
         value={value}
         onChange={e => onChange(Number(e.target.value))}
         style={s.settingsInput}
@@ -183,14 +296,18 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     { count: quotaExceeded30d },
     { data: events },
     { data: appSettings },
+    { data: infraStats },
   ] = await Promise.all([
     admin.from('profiles').select('*', { count: 'exact', head: true }),
     admin.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', since30d),
     admin.from('objects').select('user_id'),
-    admin.from('profiles').select('ai_analyses_used'),
+    admin.from('profiles').select('ai_analyses_used, photo_enhance_used'),
     admin.from('activity_log').select('*', { count: 'exact', head: true }).eq('action', 'quota.exceeded').gte('created_at', since30d),
     admin.from('activity_log').select('action').gte('created_at', since30d),
-    admin.from('app_settings').select('free_ai_quota_monthly,free_objects_max,free_photos_per_object').eq('id', 1).single(),
+    admin.from('app_settings')
+      .select('free_ai_quota_monthly,free_objects_max,free_photos_per_object,supabase_db_limit_mb,supabase_storage_limit_mb,estimated_cost_per_ai_analysis_usd,estimated_cost_per_photo_enhance_usd,monthly_ai_spend_alert_usd')
+      .eq('id', 1).single(),
+    admin.rpc('get_admin_infra_stats').single(),
   ])
 
   const totalObjects = objectsByUser?.length ?? 0
@@ -203,12 +320,20 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     ? activeCounts[Math.floor(activeCounts.length / 2)] : 0
 
   const aiAnalysesThisMonth = (profilesUsage ?? []).reduce((sum, p) => sum + (p.ai_analyses_used ?? 0), 0)
+  const photoEnhanceThisMonth = (profilesUsage ?? []).reduce((sum, p) => sum + (p.photo_enhance_used ?? 0), 0)
 
   const eventCounts = new Map<string, number>()
   for (const e of events ?? []) eventCounts.set(e.action, (eventCounts.get(e.action) ?? 0) + 1)
   const eventsArr = Array.from(eventCounts.entries())
     .map(([action, count]) => ({ action, count }))
     .sort((a, b) => b.count - a.count)
+
+  const infra = infraStats as {
+    db_size_bytes: number
+    storage_size_bytes: number
+    ai_analyses_lifetime: number
+    photo_enhance_lifetime: number
+  } | null
 
   return {
     props: {
@@ -219,10 +344,24 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         accountsWithObjects: countsPerUser.size,
         medianObjectsPerActiveUser,
         aiAnalysesThisMonth,
+        photoEnhanceThisMonth,
         quotaExceeded30d: quotaExceeded30d ?? 0,
         events: eventsArr,
+        dbSizeMb: (infra?.db_size_bytes ?? 0) / 1024 / 1024,
+        storageSizeMb: (infra?.storage_size_bytes ?? 0) / 1024 / 1024,
+        aiAnalysesLifetime: infra?.ai_analyses_lifetime ?? 0,
+        photoEnhanceLifetime: infra?.photo_enhance_lifetime ?? 0,
       },
-      settings: appSettings ?? { free_ai_quota_monthly: 30, free_objects_max: 30, free_photos_per_object: 1 },
+      settings: appSettings ?? {
+        free_ai_quota_monthly: 30,
+        free_objects_max: 30,
+        free_photos_per_object: 1,
+        supabase_db_limit_mb: 500,
+        supabase_storage_limit_mb: 1024,
+        estimated_cost_per_ai_analysis_usd: 0.01,
+        estimated_cost_per_photo_enhance_usd: 0.039,
+        monthly_ai_spend_alert_usd: 50,
+      },
     },
   }
 }
@@ -241,15 +380,24 @@ const s: Record<string, React.CSSProperties> = {
   grid:              { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 40 },
   kpiCard:           { background: 'white', borderRadius: 16, padding: '20px 24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 6 },
   kpiCardHighlight:  { borderColor: '#F26900', boxShadow: '0 4px 16px rgba(242,105,0,0.15)' },
+  kpiCardAlert:      { borderColor: '#C0392B', boxShadow: '0 4px 16px rgba(192,57,43,0.18)' },
+  alertText:         { fontSize: 12, color: '#C0392B', fontWeight: 700 },
   kpiValue:          { fontSize: 28, fontWeight: 800, color: '#121212' },
   kpiLabel:          { fontSize: 13, color: '#5b5b5b', fontWeight: 600 },
   sectionTitle:      { fontSize: 18, fontWeight: 700, color: '#121212', marginBottom: 8 },
+  gaugeCard:         { background: 'white', borderRadius: 16, padding: '20px 24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 10 },
+  gaugeHeader:       { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' },
+  gaugeLabel:        { fontSize: 13, color: '#5b5b5b', fontWeight: 600 },
+  gaugeValue:        { fontSize: 13, color: '#121212', fontWeight: 700 },
+  gaugeTrack:        { height: 8, borderRadius: 99, background: '#F0EBE3', overflow: 'hidden' },
+  gaugeFill:         { height: '100%', borderRadius: 99, transition: 'width 200ms ease' },
   settingsCard:      { background: 'white', borderRadius: 16, padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 40 },
   settingsRow:       { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 },
   settingsDivider:   { height: 1, background: 'rgba(0,0,0,0.04)', margin: '16px 0' },
   settingsLabel:     { fontSize: 15, fontWeight: 600, color: '#121212' },
   settingsHint:      { fontSize: 13, color: '#5b5b5b', marginTop: 2 },
   settingsInput:     { width: 80, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #e0e0e0', fontSize: 16, fontWeight: 700, textAlign: 'right', outline: 'none' },
+  settingsLocked:    { width: 80, padding: '8px 12px', fontSize: 16, fontWeight: 700, textAlign: 'right', color: '#999' },
   saveBtn:           { padding: '10px 24px', borderRadius: 10, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer' },
   savedBadge:        { fontSize: 14, color: '#2e7d32', fontWeight: 600 },
   eventsTable:       { background: 'white', borderRadius: 16, padding: '8px 24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 40 },
