@@ -96,7 +96,12 @@ interface ObjectCardProps {
 function ObjectCard({ object, coverUrl, onPress, onLongPress, cols, display, isSelectMode, isSelected }: ObjectCardProps) {
   const size = cardSize(cols)
   const attrs = (object.attributes as Record<string, string> | null) ?? {}
-  const showInfo = cols <= 4 && (display.showName || display.showStatus || display.showBrand || display.showValue)
+  const value = object.user_value ?? object.market_value
+  const currSym = (object.value_currency ?? 'EUR') === 'EUR' ? '€' : (object.value_currency ?? 'EUR')
+  const showInfo = cols <= 4 && (
+    display.showName || display.showStatus || display.showBrand || display.showValue ||
+    display.showSize || display.showColor || display.showEra || display.showCondition
+  )
 
   return (
     <TouchableOpacity
@@ -136,14 +141,17 @@ function ObjectCard({ object, coverUrl, onPress, onLongPress, cols, display, isS
           {display.showBrand && attrs.brand && (
             <Text style={cardStyles.meta} numberOfLines={1}>{attrs.brand}</Text>
           )}
-          {display.showValue && attrs.value && (
-            <Text style={cardStyles.meta}>{attrs.value}</Text>
+          {display.showValue && value != null && (
+            <Text style={cardStyles.meta}>{value.toLocaleString('fr-FR')} {currSym}</Text>
           )}
           {display.showSize && attrs.size && (
             <Text style={cardStyles.meta}>Taille : {attrs.size}</Text>
           )}
           {display.showColor && attrs.color && (
             <Text style={cardStyles.meta}>{attrs.color}</Text>
+          )}
+          {display.showEra && attrs.year && (
+            <Text style={cardStyles.meta}>{attrs.year}</Text>
           )}
           {display.showCondition && attrs.condition && (
             <Text style={cardStyles.meta}>{attrs.condition}</Text>
