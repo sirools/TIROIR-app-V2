@@ -108,7 +108,7 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
 
   const OPTION_ROWS: { key: keyof ShareOptions; label: string; sub?: string }[] = [
     { key: 'password_protected', label: 'Protéger l\'accès par mot de passe' },
-    { key: 'allow_download', label: 'Autoriser le téléchargement .PDF et .CSV' },
+    { key: 'allow_download', label: 'Autoriser le téléchargement CSV' },
     { key: 'include_documents', label: 'Inclure les documents' },
     { key: 'show_memories', label: 'Afficher souvenirs' },
   ]

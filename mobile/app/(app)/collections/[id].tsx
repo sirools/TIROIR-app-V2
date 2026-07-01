@@ -444,6 +444,7 @@ export default function CollectionDetailScreen() {
     : objects
 
   const cols = zoom.cols
+  const allObjectsSelected = objects.length > 0 && selectedIds.size === objects.length
 
   // ── Multi-select handlers ─────────────────────────────────────────────────
 
@@ -463,6 +464,12 @@ export default function CollectionDetailScreen() {
   function exitSelectMode() {
     setSelectModeEnabled(false)
     setSelectedIds(new Set())
+  }
+
+  function toggleSelectAll() {
+    if (objects.length === 0) return
+    setSelectModeEnabled(true)
+    setSelectedIds(allObjectsSelected ? new Set() : new Set(objects.map(o => o.id)))
   }
 
   async function deleteSelected() {
@@ -552,12 +559,17 @@ export default function CollectionDetailScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.filterBtn, isSelectMode && styles.filterBtnActive]}
-          onPress={() => isSelectMode ? exitSelectMode() : setSelectModeEnabled(true)}
+          style={[
+            styles.filterBtn,
+            isSelectMode && styles.filterBtnActive,
+            objects.length === 0 && styles.filterBtnDisabled,
+          ]}
+          onPress={() => isSelectMode ? toggleSelectAll() : setSelectModeEnabled(true)}
           activeOpacity={0.75}
+          disabled={objects.length === 0}
         >
           <Text style={[styles.filterBtnText, isSelectMode && styles.filterBtnTextActive]}>
-            {isSelectMode && selectedIds.size > 0 ? `${selectedIds.size} ✓` : 'Sélect.'}
+            {isSelectMode ? (allObjectsSelected ? 'Vider' : 'Tout') : 'Sélect.'}
           </Text>
         </TouchableOpacity>
 
@@ -879,6 +891,9 @@ const styles = StyleSheet.create({
   filterBtnActive: {
     borderColor: Colors.accent,
     backgroundColor: Colors.accentLight,
+  },
+  filterBtnDisabled: {
+    opacity: 0.45,
   },
   filterBtnTextActive: {
     color: Colors.accent,

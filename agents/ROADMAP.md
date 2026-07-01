@@ -58,8 +58,58 @@ Pas de marketplace, partage, prêt, vente, collaboration, stats.
 - [ ] 5.5 Service + hook `useConversation` + `useVoiceInput` côté mobile
 - [ ] 5.6 Écran `(app)/chat.tsx` + CTA "Dicter à la voix" sur la home
 
+## Boussole produit V3+ — Tiroir collaboratif et interrogeable
+> Vision long terme issue des explorations produit du 2026-07-01. À garder comme direction, pas comme scope MVP.
+
+Tiroir peut évoluer d'un inventaire personnel vers un inventaire visuel collaboratif que l'on peut interroger naturellement. La promesse ne doit pas devenir "un chatbot dans Tiroir", mais plutôt : **Tiroir sait ce qu'il contient et on peut lui demander directement.**
+
+### Principe UX central
+- Garder une interface visuelle, camera-first et objet-first.
+- Utiliser `Demander à Tiroir...` comme couche transversale de recherche, filtre, synthèse, export et coordination.
+- L'agent doit réduire la complexité, pas la masquer.
+- Les actions fréquentes doivent rester visibles sans IA : capturer, retrouver, voir les objets à traiter, exporter, partager.
+- Ne pas transformer Tiroir en dashboard, Trello, Notion ou outil de gestion lourd.
+
+### Formule produit à préserver
+Camera + inventaire visuel + couche intelligente `Demander à Tiroir...`.
+
+Exemples de demandes cibles :
+- "Où est rangée la pendule dorée ?"
+- "Quels objets sont à vendre ?"
+- "Que faut-il vérifier ?"
+- "Combien avons-nous de vases ?"
+- "Prépare un export PDF pour l'assurance."
+- "Résume ce Tiroir."
+- "Quels objets Paul doit traiter ?"
+
+### Parallèle Tricount à retenir
+Tricount simplifie une situation collective confuse en trois actions : ajouter une dépense, voir qui doit quoi, régler.
+
+L'équivalent Tiroir collaboratif doit rester aussi simple :
+- Ajouter un objet.
+- Décider quoi en faire.
+- Suivre ce qui reste à traiter.
+
+Ne pas construire "Tricount + Trello + Notion pour objets". La bonne direction est plutôt : **le Tricount des objets partagés : chacun ajoute, tout le monde voit, on décide sans se perdre.**
+
+### Étapes à suivre, version MVP-compatible
+- [ ] Garder une home visuelle simple : grille d'objets, statuts visibles, bouton capture.
+- [ ] Ajouter progressivement un input `Demander à Tiroir...` limité à la recherche naturelle et aux filtres simples.
+- [ ] Structurer les fiches objets autour de photo, titre, description, tags/statuts, emplacement, notes.
+- [ ] Créer une vue `À traiter` simple, regroupée par statuts : à vendre, à estimer, fragile, à vérifier.
+- [ ] Prévoir un premier export propre : PDF ou lien web partageable, même non éditable au départ.
+- [ ] Reporter la collaboration temps réel, les assignations, commentaires, rôles et permissions avancées après validation de l'usage individuel.
+
+### Garde-fou
+Chaque nouvelle fonctionnalité doit répondre à une des trois intentions : capturer, décider, transmettre. Sinon elle sort du scope.
+
 ## Chantier en cours
 _Mis à jour à chaque session._
-Dernier état (2026-06-25) : Phase 1 complète + refonte UX/design majeure livrée (détail objet, navbar, collections, flow capture).
+Dernier état (2026-07-01) : Phase 1 complète + refonte UX/design majeure livrée (détail objet, navbar, collections, flow capture). Exploration produit V3+ ajoutée : Tiroir collaboratif, camera-first, avec couche `Demander à Tiroir...`.
 Prochains chantiers prioritaires : 2.1 page recherche → 2.2 redesign ajout objet ✓ → 2.3 contrôle grille → 2.4 sélection multiple CSV.
-Phase 5 (agentique vocal) : en attente de prototype design avant toute implémentation.
+
+⚠️ **Plusieurs agents IA travaillent sur ce repo en parallèle (Claude + Codex), sans coordination automatique.** Avant de commencer une session, checke `git log --oneline -15` pour voir ce qui vient d'être fait. État connu au 2026-07-01 :
+- Sélection multiple + export CSV (2.4) : fonctionnel côté web (`web/pages/api/shares/[token]/export.csv.ts`) et mobile (`SharePanel.tsx`, `collections/[id].tsx` — toggle tout sélectionner/désélectionner ajouté).
+- Protection par mot de passe des partages publics (`web/pages/s/[token]*`) : corrigée et vérifiée (elle était décorative avant, cf. `web/pages/api/shares/[token]/verify.ts`). L'export CSV respecte maintenant aussi ce mot de passe (cookie signé partagé, plus de blocage 403 systématique).
+- Dette connue, non liée aux chantiers ci-dessus : `components/SharedLinkPage.tsx` référence un chemin `features/objects` obsolète (erreurs tsc), ESLint `react/no-unescaped-entities` sur les pages marketing. Ne pas confondre avec une régression du jour.
+Phase 5 / V3+ : en attente de prototype design validé. Ne pas implémenter la collaboration lourde avant validation du MVP individuel et des exports simples.
