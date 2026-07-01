@@ -26,6 +26,7 @@ export default function CaptureScreen() {
   const [loading, setLoading] = useState(false)
   const [loadingManual, setLoadingManual] = useState(false)
   const [quotaUsed, setQuotaUsed] = useState(0)
+  const [quotaLimit, setQuotaLimit] = useState<number | null>(null)
   const [quotaExhausted, setQuotaExhausted] = useState(false)
 
   useFocusEffect(useCallback(() => {
@@ -39,7 +40,8 @@ export default function CaptureScreen() {
       if (data && data[0]) {
         const { used, quota } = data[0]
         setQuotaUsed(used)
-        setQuotaExhausted(used >= quota)
+        setQuotaLimit(quota)
+        setQuotaExhausted(quota !== null && used >= quota)
       }
     })
   }, [])
@@ -178,9 +180,11 @@ export default function CaptureScreen() {
           <Text style={styles.title}>Prends une photo</Text>
           <Text style={styles.subtitle}>L'IA analyse jusqu'à 5 photos pour créer la fiche</Text>
           <Text style={[styles.quotaCounter, quotaExhausted && styles.quotaCounterExhausted]}>
-            {quotaExhausted
-              ? `Quota IA épuisé · ${quotaUsed}/30 ce mois`
-              : `${30 - quotaUsed} analyse${30 - quotaUsed > 1 ? 's' : ''} IA restante${30 - quotaUsed > 1 ? 's' : ''} ce mois`
+            {quotaLimit === null
+              ? 'Analyses IA illimitées'
+              : quotaExhausted
+                ? `Quota IA épuisé · ${quotaUsed}/${quotaLimit} ce mois`
+                : `${quotaLimit - quotaUsed} analyse${quotaLimit - quotaUsed > 1 ? 's' : ''} IA restante${quotaLimit - quotaUsed > 1 ? 's' : ''} ce mois`
             }
           </Text>
         </View>

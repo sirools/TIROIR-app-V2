@@ -12,8 +12,9 @@ const FREE_FEATURES = [
 
 const PREMIUM_FEATURES = [
   'Objets illimités',
-  'Analyses IA sans restriction',
+  '150 analyses IA / mois',
   'Photos multiples par objet',
+  '50 améliorations photo IA / mois',
   'Collections & recherche',
   'Partage par lien',
   'Valeur marché estimée',
@@ -52,7 +53,7 @@ export default function Pricing() {
     <>
       <Head>
         <title>Tarifs — Tiroir</title>
-        <meta name="description" content="Un inventaire personnel alimenté par l'IA, gratuit pour commencer. Tiroir Premium à 6,99 €/mois pour un usage illimité." />
+        <meta name="description" content="Un inventaire personnel alimenté par l'IA, gratuit pour commencer. Tiroir Premium à 6,99 €/mois pour 150 analyses IA par mois et des objets illimités." />
       </Head>
 
       <HeaderTiroirWeb />
@@ -117,7 +118,7 @@ export default function Pricing() {
                 </div>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {PREMIUM_FEATURES.map(f => (
-                    <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, color: 'var(--ink)', fontWeight: f === 'Objets illimités' || f === 'Analyses IA sans restriction' ? 600 : 400 }}>
+                    <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, color: 'var(--ink)', fontWeight: f === 'Objets illimités' || f === '150 analyses IA / mois' || f === '50 améliorations photo IA / mois' ? 600 : 400 }}>
                       <CheckIcon orange /> {f}
                     </li>
                   ))}

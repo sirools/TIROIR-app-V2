@@ -5,7 +5,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { ArrowLeft, Zap, Package, Brain, Camera, Check } from 'lucide-react-native'
+import { ArrowLeft, Zap, Package, Brain, Camera, Check, Sparkles } from 'lucide-react-native'
 import Purchases, { PurchasesPackage } from 'react-native-purchases'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 
@@ -15,9 +15,10 @@ const MOCK_PACKAGES: PurchasesPackage[] = Platform.OS === 'web' ? [
 ] : []
 
 const FEATURES = [
-  { icon: Package, label: 'Objets illimités' },
-  { icon: Brain,   label: 'Analyses IA sans restriction' },
-  { icon: Camera,  label: 'Photos multiples par objet' },
+  { icon: Package,  label: 'Objets illimités' },
+  { icon: Brain,    label: '150 analyses IA par mois' },
+  { icon: Camera,   label: 'Photos multiples par objet' },
+  { icon: Sparkles, label: '50 améliorations photo IA / mois' },
 ]
 
 export default function PaywallScreen() {
@@ -117,7 +118,7 @@ export default function PaywallScreen() {
           <View style={s.heroIcon}>
             <Zap size={28} color="white" strokeWidth={2.2} />
           </View>
-          <Text style={s.heroTitle}>Inventaire illimité,{'\n'}IA et photos sans limites.</Text>
+          <Text style={s.heroTitle}>Inventaire illimité,{'\n'}150 analyses IA par mois.</Text>
         </View>
 
         {/* Features */}
