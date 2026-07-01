@@ -40,7 +40,7 @@ export default function Principles() {
     <section className="section" aria-labelledby="principles-title">
       <div className="container">
         <h2 id="principles-title" className="h2" style={{ marginBottom: 20 }}>
-          Les 5 idées qui façonnent Tiroir
+          5 idées simples qui nous façonnent
         </h2>
 
         <div className="grid">

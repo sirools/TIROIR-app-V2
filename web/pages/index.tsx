@@ -3,6 +3,7 @@ import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import Hero from "../components/landing/Hero"
 import FlowSteps from "../components/landing/FlowSteps"
 import StoryScroll from "../components/landing/StoryScroll"
+import Principles from "../components/landing/Principles"
 import FinalCTA from "../components/landing/FinalCTA"
 
 export default function Landing() {
@@ -19,6 +20,7 @@ export default function Landing() {
         <Hero />
         <FlowSteps />
         <StoryScroll />
+        <Principles />
         <FinalCTA />
       </main>
 
