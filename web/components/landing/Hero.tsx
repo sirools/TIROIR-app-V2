@@ -75,8 +75,10 @@ export default function Hero() {
         .hero-content {
           position: relative;
           z-index: 2;
-          padding-top: 80px;
-          padding-bottom: 80px;
+          width: 100%;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 80px 24px;
         }
 
         .hero-copy {
