@@ -39,7 +39,10 @@ export default function PaywallScreen() {
       return
     }
     Purchases.getOfferings().then(offerings => {
+      console.log('[Paywall] all offerings:', JSON.stringify(offerings.all))
+      console.log('[Paywall] current offering:', JSON.stringify(offerings.current))
       const pkgs = offerings.current?.availablePackages ?? []
+      console.log('[Paywall] packages count:', pkgs.length, pkgs.map(p => p.identifier))
       const m = pkgs.find(p => p.packageType === 'MONTHLY') ?? null
       const a = pkgs.find(p => p.packageType === 'ANNUAL') ?? null
       setMonthly(m)

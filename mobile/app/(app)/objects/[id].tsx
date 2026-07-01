@@ -27,6 +27,7 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
 import { Screen, Colors, Typography, Spacing, Radius, ActionSheet } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
+import { DocumentsSection, ObjectDocument } from '@/components/DocumentsSection'
 import { TiroirObject, ObjectImage, Collection } from '@/types/database'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -1472,6 +1473,7 @@ export default function ObjectScreen() {
 
   const [object, setObject] = useState<TiroirObject | null>(null)
   const [images, setImages] = useState<ObjectImage[]>([])
+  const [documents, setDocuments] = useState<ObjectDocument[]>([])
   const [allCollections, setAllCollections] = useState<Collection[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -1532,15 +1534,17 @@ export default function ObjectScreen() {
 
   async function loadObject(objectId: string) {
     setLoading(true)
-    const [objRes, imgRes, colRes] = await Promise.all([
+    const [objRes, imgRes, docRes, colRes] = await Promise.all([
       supabase.from('objects').select('*').eq('id', objectId).single(),
       supabase.from('object_images').select('*').eq('object_id', objectId).order('position'),
+      supabase.from('object_documents').select('*').eq('object_id', objectId).order('position'),
       supabase.from('collections').select('*').order('name'),
     ])
     if (objRes.error) { setLoading(false); return }
     const obj = objRes.data as TiroirObject
     setObject(obj)
     setImages((imgRes.data as ObjectImage[]) ?? [])
+    setDocuments((docRes.data as ObjectDocument[]) ?? [])
     setAllCollections((colRes.data as Collection[]) ?? [])
     setLocationBricks(parseBricks(obj.location_note))
     setLoading(false)
@@ -2021,6 +2025,13 @@ export default function ObjectScreen() {
             <AttributesSection
               attributes={Object.entries(object.attributes ?? {}).filter(([, v]) => v !== null && v !== '')}
               onSave={attrs => saveField({ attributes: attrs })}
+            />
+
+            {/* ── Documents ── */}
+            <DocumentsSection
+              objectId={object.id}
+              documents={documents}
+              onDocumentsChange={setDocuments}
             />
 
             {/* ── Actions bas de page ── */}
