@@ -72,6 +72,15 @@ export default function HeaderTiroirWeb() {
                 Admin
               </button>
             )}
+            {isLoggedIn && (
+              <button
+                className="appstore-nav-btn"
+                type="button"
+                onClick={() => router.push('/mes-partages')}
+              >
+                Mes partages
+              </button>
+            )}
             <a className="appstore-nav-btn" href="/pricing">
               Tarifs
             </a>
