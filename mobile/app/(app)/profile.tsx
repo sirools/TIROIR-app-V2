@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, ScrollView,
+  Alert, ActivityIndicator, ScrollView, AppState,
 } from 'react-native'
-import { useRouter, useFocusEffect } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { ArrowLeft, User, Edit3, Check, Package, FolderOpen, TrendingUp, Link2, Brain, Camera, Zap } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -34,7 +34,14 @@ export default function ProfileScreen() {
   const plan: string = (profile as any)?.plan ?? 'free'
   const isPremium = plan === 'premium'
 
-  useFocusEffect(useCallback(() => { loadStats() }, []))
+  // Recharge les stats au montage et à chaque retour en foreground
+  useEffect(() => {
+    loadStats()
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') loadStats()
+    })
+    return () => sub.remove()
+  }, [])
 
   async function loadStats() {
     const [objRes, colRes, valRes, shareRes, photoRes, quotaRes, limitsRes] = await Promise.all([
