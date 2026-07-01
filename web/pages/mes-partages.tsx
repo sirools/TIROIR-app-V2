@@ -87,7 +87,7 @@ export default function MesPartages({ shares }: Props) {
       </main>
 
       <style jsx>{`
-        .main { max-width: 1300px; width: 100%; margin: 0 auto; padding: 32px 20px 56px; box-sizing: border-box; }
+        .main { max-width: 1200px; width: 100%; margin: 0 auto; padding: 32px 24px 56px; box-sizing: border-box; }
 
         .page-hero {
           display: flex; align-items: flex-end; justify-content: space-between;

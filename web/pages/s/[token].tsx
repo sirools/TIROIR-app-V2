@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { createClient } from '@supabase/supabase-js'
+import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -121,22 +122,13 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
       </Head>
 
       <div className="root">
-        {/* Header */}
-        <header className="header">
-          <div className="header-inner">
-            <Link href="/" legacyBehavior passHref>
-              <a className="logo">
-                <div className="logo-box">T</div>
-                <strong className="logo-text">TiROiR</strong>
-              </a>
-            </Link>
-            <span className="count">
-              {!error && `${objects.length} objet${objects.length !== 1 ? 's' : ''}`}
-            </span>
-          </div>
-        </header>
+        <HeaderTiroirWeb />
 
         <main className="main">
+          <button className="back-link" onClick={() => router.back()} type="button">
+            ← Retour
+          </button>
+
           {error ? (
             <div className="error-state">
               <div className="error-icon">{error === 'expired' ? '⏱' : '🔍'}</div>
@@ -236,28 +228,15 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
           display: flex; flex-direction: column;
         }
 
-        /* Header */
-        .header {
-          background: #fff;
-          border-bottom: 1px solid #E8E2DA;
-          position: sticky; top: 0; z-index: 10;
-        }
-        .header-inner {
-          max-width: 1200px; margin: 0 auto;
-          padding: 0 20px; height: 60px;
-          display: flex; align-items: center; justify-content: space-between;
-        }
-        .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-        .logo-box {
-          width: 30px; height: 30px; border-radius: 8px;
-          background: #F26900; color: white;
-          display: grid; place-items: center; font-weight: 800;
-        }
-        .logo-text { font-weight: 800; font-size: 18px; color: #1A1612; }
-        .count { font-size: 13px; color: #A89F96; }
-
         /* Main */
-        .main { flex: 1; max-width: 1200px; margin: 0 auto; padding: 32px 20px; width: 100%; }
+        .main { flex: 1; max-width: 1200px; margin: 0 auto; padding: 32px 24px; width: 100%; box-sizing: border-box; }
+
+        .back-link {
+          background: none; border: 0; cursor: pointer; padding: 0;
+          font-size: 14px; font-weight: 600; color: #6B6158;
+          margin-bottom: 20px;
+        }
+        .back-link:hover { color: #F26900; }
 
         /* Page hero */
         .page-hero { margin-bottom: 28px; }
@@ -267,10 +246,13 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
         /* Grid */
         .grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+          width: 100%;
+          grid-template-columns: 1fr 1fr;
           gap: 20px;
           margin-bottom: 32px;
         }
+        @media (min-width: 700px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
+        @media (min-width: 1000px) { .grid { grid-template-columns: 1fr 1fr 1fr 1fr; } }
 
         /* Card */
         .card {
@@ -347,7 +329,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
         .footer-copy { font-size: 12px; color: #A89F96; }
 
         @media (max-width: 600px) {
-          .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+          .grid { gap: 12px; }
           .page-title { font-size: 22px; }
         }
       `}</style>

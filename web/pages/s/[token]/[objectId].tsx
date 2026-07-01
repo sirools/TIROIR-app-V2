@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import HeaderTiroirWeb from '../../../components/layout/HeaderTiroirWeb'
 
 interface ObjectDetail {
   id: string
@@ -130,16 +131,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
       <>
         <Head><title>{pageTitle}</title><meta name="robots" content="noindex,nofollow" /></Head>
         <div className="root">
-          <header className="header">
-            <div className="header-inner">
-              <Link href="/" legacyBehavior passHref>
-                <a className="logo">
-                  <div className="logo-box">T</div>
-                  <strong className="logo-text">TiROiR</strong>
-                </a>
-              </Link>
-            </div>
-          </header>
+          <HeaderTiroirWeb />
           <main className="main">
             <div className="error-state">
               <div className="error-icon">{error === 'expired' ? '⏱' : '🔍'}</div>
@@ -171,21 +163,13 @@ export default function SharedObjectDetailPage({ token, object, images, document
       </Head>
 
       <div className="root">
-        <header className="header">
-          <div className="header-inner">
-            <Link href="/" legacyBehavior passHref>
-              <a className="logo">
-                <div className="logo-box">T</div>
-                <strong className="logo-text">TiROiR</strong>
-              </a>
-            </Link>
-            <Link href={`/s/${token}`} legacyBehavior passHref>
-              <a className="back-link">← Retour au partage</a>
-            </Link>
-          </div>
-        </header>
+        <HeaderTiroirWeb />
 
         <main className="main">
+          <Link href={`/s/${token}`} legacyBehavior passHref>
+            <a className="back-link">← Retour au partage</a>
+          </Link>
+
           {/* ── Bento : Galerie + Infos ── */}
           <div className="hero-card">
             <div className="hero-gallery">
@@ -301,27 +285,13 @@ const styles = `
     color: #1A1612;
     display: flex; flex-direction: column;
   }
-  .header {
-    background: #fff;
-    border-bottom: 1px solid #E8E2DA;
-    position: sticky; top: 0; z-index: 10;
+  .back-link {
+    display: inline-block; font-size: 14px; color: #6B6158; text-decoration: none;
+    font-weight: 600; margin-bottom: 20px;
   }
-  .header-inner {
-    max-width: 900px; margin: 0 auto;
-    padding: 0 20px; height: 60px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-  .logo-box {
-    width: 30px; height: 30px; border-radius: 8px;
-    background: #F26900; color: white;
-    display: grid; place-items: center; font-weight: 800;
-  }
-  .logo-text { font-weight: 800; font-size: 18px; color: #1A1612; }
-  .back-link { font-size: 14px; color: #6B6158; text-decoration: none; font-weight: 600; }
   .back-link:hover { color: #F26900; }
 
-  .main { flex: 1; max-width: 1100px; margin: 0 auto; padding: 32px 20px 56px; width: 100%; }
+  .main { flex: 1; max-width: 1200px; margin: 0 auto; padding: 32px 24px 56px; width: 100%; box-sizing: border-box; }
 
   /* ── Bento : Hero (galerie + infos) ── */
   .hero-card {
