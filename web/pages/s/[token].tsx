@@ -3,8 +3,10 @@ import type { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
+import { hasValidCookie } from '../../lib/shareAuth'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -23,6 +25,7 @@ interface Props {
   objects: SharedObject[]
   allowDownload: boolean
   error?: 'not_found' | 'expired'
+  gated?: boolean
 }
 
 // ── Status helpers ─────────────────────────────────────────────────────────────
@@ -59,6 +62,10 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   if (linkErr || !link) return { props: { error: 'not_found', title: '', objects: [], allowDownload: false } }
   if (link.expires_at && new Date(link.expires_at) < new Date()) {
     return { props: { error: 'expired', title: '', objects: [], allowDownload: false } }
+  }
+
+  if (link.options?.password_protected && !hasValidCookie(token, ctx)) {
+    return { props: { token, title: link.title ?? 'Partage TiROiR', objects: [], allowDownload: false, gated: true } }
   }
 
   const ids: string[] = Array.isArray(link.object_ids) ? link.object_ids : []
@@ -107,11 +114,111 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   }
 }
 
+// ── Formulaire mot de passe ─────────────────────────────────────────────────────
+
+function PasswordForm({ token }: { token: string }) {
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const onSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault?.()
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/shares/${encodeURIComponent(token)}/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      if (res.ok) { window.location.href = `/s/${token}`; return }
+      if (res.status === 401) setError('Mot de passe incorrect. Réessaie.')
+      else if (res.status === 404) setError('Ce lien de partage est introuvable.')
+      else if (res.status === 410) setError('Ce lien a expiré.')
+      else setError("Une erreur est survenue. Réessaie plus tard.")
+    } catch {
+      setError("Impossible d'atteindre le serveur.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="password-gate">
+      <div className="password-icon">🔒</div>
+      <h1 className="password-title">Partage protégé</h1>
+      <p className="password-sub">Ce partage est protégé par un mot de passe.</p>
+      <form onSubmit={onSubmit} className="password-form">
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Mot de passe"
+          autoFocus
+          className="password-input"
+        />
+        <button type="submit" disabled={loading} className="password-btn">
+          {loading ? '...' : 'Valider'}
+        </button>
+      </form>
+      {error && <p className="password-error">{error}</p>}
+      <style jsx>{`
+        .password-gate {
+          display: flex; flex-direction: column; align-items: center;
+          gap: 8px; padding: 80px 24px; text-align: center;
+        }
+        .password-icon { font-size: 48px; margin-bottom: 8px; }
+        .password-title { font-size: 24px; font-weight: 800; color: #1A1612; }
+        .password-sub { font-size: 14px; color: #6B6158; margin-bottom: 16px; }
+        .password-form { display: flex; gap: 8px; width: 100%; max-width: 360px; }
+        .password-input {
+          flex: 1; padding: 12px 14px; border-radius: 12px;
+          border: 1px solid rgba(0,0,0,0.12); font-size: 15px;
+        }
+        .password-btn {
+          padding: 12px 20px; border-radius: 12px; border: 0;
+          background: #F26900; color: white; font-weight: 700;
+          font-size: 15px; cursor: pointer;
+        }
+        .password-btn:disabled { opacity: 0.7; cursor: default; }
+        .password-error { color: #C0392B; font-size: 14px; font-weight: 600; margin-top: 8px; }
+      `}</style>
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function ShareV2Page({ token, title, objects, allowDownload, error }: Props) {
+export default function ShareV2Page({ token, title, objects, allowDownload, error, gated }: Props) {
   const router = useRouter()
   const pageTitle = error ? 'Lien introuvable — TiROiR' : `${title} — TiROiR`
+
+  if (gated) {
+    return (
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+          <meta name="robots" content="noindex,nofollow" />
+        </Head>
+        <div className="root">
+          <HeaderTiroirWeb />
+          <main className="main">
+            <PasswordForm token={token} />
+          </main>
+        </div>
+        <style jsx>{`
+          .root {
+            min-height: 100vh;
+            background: #F7F3EE;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #1A1612;
+            display: flex; flex-direction: column;
+          }
+          .main { flex: 1; max-width: 1200px; margin: 0 auto; padding: 32px 24px; width: 100%; box-sizing: border-box; }
+        `}</style>
+      </>
+    )
+  }
 
   return (
     <>
@@ -192,9 +299,9 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
 
               {allowDownload && (
                 <div className="download-row">
-                  <button className="download-btn" disabled>
-                    ↓ Télécharger (.PDF / .CSV)
-                  </button>
+                  <a className="download-btn" href={`/api/shares/${encodeURIComponent(token)}/export.csv`} download>
+                    ↓ Télécharger CSV
+                  </a>
                 </div>
               )}
 
@@ -287,11 +394,14 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
         /* Download */
         .download-row { display: flex; justify-content: center; margin-bottom: 32px; }
         .download-btn {
+          display: inline-block;
           padding: 12px 24px; border-radius: 12px;
           border: 1.5px solid #F26900; background: transparent;
           color: #F26900; font-weight: 600; font-size: 15px;
-          cursor: pointer; opacity: 0.5;
+          cursor: pointer; text-decoration: none;
+          transition: background 0.15s, color 0.15s;
         }
+        .download-btn:hover { background: #F26900; color: white; }
 
         /* App CTA */
         .app-cta {

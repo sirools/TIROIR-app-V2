@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../../components/layout/HeaderTiroirWeb'
+import { hasValidCookie } from '../../../lib/shareAuth'
 
 interface ObjectDetail {
   id: string
@@ -34,6 +35,7 @@ interface Props {
   images: string[]
   documents: DocMeta[]
   error?: 'not_found' | 'expired'
+  gated?: boolean
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -70,6 +72,10 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   if (linkErr || !link) return { props: { token, object: null, images: [], documents: [], error: 'not_found' } }
   if (link.expires_at && new Date(link.expires_at) < new Date()) {
     return { props: { token, object: null, images: [], documents: [], error: 'expired' } }
+  }
+
+  if (link.options?.password_protected && !hasValidCookie(token, ctx)) {
+    return { props: { token, object: null, images: [], documents: [], gated: true } }
   }
 
   const ids: string[] = Array.isArray(link.object_ids) ? link.object_ids : []
@@ -122,9 +128,31 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   return { props: { token, object: obj as ObjectDetail, images, documents } }
 }
 
-export default function SharedObjectDetailPage({ token, object, images, documents, error }: Props) {
+export default function SharedObjectDetailPage({ token, object, images, documents, error, gated }: Props) {
   const [activeImg, setActiveImg] = useState(0)
-  const pageTitle = error || !object ? 'Objet introuvable — TiROiR' : `${object.title} — TiROiR`
+  const pageTitle = gated
+    ? 'Partage protégé — TiROiR'
+    : error || !object ? 'Objet introuvable — TiROiR' : `${object.title} — TiROiR`
+
+  if (gated) {
+    return (
+      <>
+        <Head><title>{pageTitle}</title><meta name="robots" content="noindex,nofollow" /></Head>
+        <div className="root">
+          <HeaderTiroirWeb />
+          <main className="main">
+            <div className="error-state">
+              <div className="error-icon">🔒</div>
+              <h1 className="error-title">Partage protégé</h1>
+              <p className="error-sub">Retourne à la page du partage pour saisir le mot de passe.</p>
+              <Link href={`/s/${token}`} legacyBehavior passHref><a className="cta-btn">Retour au partage</a></Link>
+            </div>
+          </main>
+          <style jsx>{`${styles}`}</style>
+        </div>
+      </>
+    )
+  }
 
   if (error || !object) {
     return (
