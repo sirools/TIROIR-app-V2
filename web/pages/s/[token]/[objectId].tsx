@@ -155,7 +155,12 @@ export default function SharedObjectDetailPage({ token, object, images, document
 
   const attributes = Object.entries(object.attributes ?? {}).filter(([, v]) => v !== null && v !== '')
   const value = object.user_value ?? object.market_value
-  const currency = object.value_currency ?? 'EUR'
+  const rawCurrency = object.value_currency ?? 'EUR'
+  const currency = rawCurrency === '€' ? 'EUR'
+    : rawCurrency === '$' ? 'USD'
+    : rawCurrency === '£' ? 'GBP'
+    : rawCurrency.length === 3 ? rawCurrency
+    : 'EUR'
 
   return (
     <>
