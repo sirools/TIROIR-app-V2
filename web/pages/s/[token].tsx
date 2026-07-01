@@ -17,6 +17,9 @@ interface SharedObject {
   status: string | null
   location_note: string | null
   cover_url: string | null
+  market_value: number | null
+  user_value: number | null
+  value_currency: string | null
 }
 
 interface Props {
@@ -72,7 +75,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   const { data: objData } = await supabase
     .from('objects')
-    .select('id, title, description, status, location_note')
+    .select('id, title, description, status, location_note, market_value, user_value, value_currency')
     .in('id', ids)
 
   // Covers
@@ -189,8 +192,20 @@ function PasswordForm({ token }: { token: string }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+function formatValue(obj: SharedObject) {
+  const value = obj.user_value ?? obj.market_value
+  if (value === null || value === undefined) return null
+  const currency = obj.value_currency === '€' ? 'EUR'
+    : obj.value_currency === '$' ? 'USD'
+    : obj.value_currency === '£' ? 'GBP'
+    : (obj.value_currency && obj.value_currency.length === 3) ? obj.value_currency
+    : 'EUR'
+  return value.toLocaleString('fr-FR', { style: 'currency', currency, maximumFractionDigits: 0 })
+}
+
 export default function ShareV2Page({ token, title, objects, allowDownload, error, gated }: Props) {
   const router = useRouter()
+  const [view, setView] = useState<'grid' | 'list'>('grid')
   const pageTitle = error ? 'Lien introuvable — TiROiR' : `${title} — TiROiR`
 
   if (gated) {
@@ -254,48 +269,115 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
           ) : (
             <>
               <div className="page-hero">
-                <h1 className="page-title">{title}</h1>
-                <p className="page-sub">Partagé via TiROiR · {objects.length} objet{objects.length !== 1 ? 's' : ''}</p>
+                <div className="page-hero-text">
+                  <h1 className="page-title">{title}</h1>
+                  <p className="page-sub">Partagé via TiROiR · {objects.length} objet{objects.length !== 1 ? 's' : ''}</p>
+                </div>
+                <div className="view-toggle" role="group" aria-label="Mode d'affichage">
+                  <button
+                    type="button"
+                    className={`view-btn ${view === 'grid' ? 'active' : ''}`}
+                    onClick={() => setView('grid')}
+                    aria-pressed={view === 'grid'}
+                  >
+                    ▦ Grille
+                  </button>
+                  <button
+                    type="button"
+                    className={`view-btn ${view === 'list' ? 'active' : ''}`}
+                    onClick={() => setView('list')}
+                    aria-pressed={view === 'list'}
+                  >
+                    ☰ Tableau
+                  </button>
+                </div>
               </div>
 
-              <div className="grid">
-                {objects.map(obj => (
-                  <div
-                    key={obj.id}
-                    className="card"
-                    onClick={() => router.push(`/s/${token}/${obj.id}`)}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    <div className="card-cover">
-                      {obj.cover_url
-                        ? <img src={obj.cover_url} alt={obj.title} className="cover-img" />
-                        : <div className="cover-placeholder">📦</div>
-                      }
+              {view === 'grid' ? (
+                <div className="grid">
+                  {objects.map(obj => (
+                    <div
+                      key={obj.id}
+                      className="card"
+                      onClick={() => router.push(`/s/${token}/${obj.id}`)}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="card-cover">
+                        {obj.cover_url
+                          ? <img src={obj.cover_url} alt={obj.title} className="cover-img" />
+                          : <div className="cover-placeholder">📦</div>
+                        }
+                      </div>
+                      <div className="card-body">
+                        <h2 className="card-title">{obj.title}</h2>
+                        {obj.status && (
+                          <div className="status-row">
+                            <span
+                              className="status-dot"
+                              style={{ background: STATUS_COLOR[obj.status] ?? '#9CA3AF' }}
+                            />
+                            <span className="status-label">
+                              {STATUS_LABEL[obj.status] ?? obj.status}
+                            </span>
+                          </div>
+                        )}
+                        {obj.location_note && (
+                          <p className="location">📍 {obj.location_note}</p>
+                        )}
+                        {obj.description && (
+                          <p className="description">{obj.description}</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="card-body">
-                      <h2 className="card-title">{obj.title}</h2>
-                      {obj.status && (
-                        <div className="status-row">
-                          <span
-                            className="status-dot"
-                            style={{ background: STATUS_COLOR[obj.status] ?? '#9CA3AF' }}
-                          />
-                          <span className="status-label">
-                            {STATUS_LABEL[obj.status] ?? obj.status}
-                          </span>
-                        </div>
-                      )}
-                      {obj.location_note && (
-                        <p className="location">📍 {obj.location_note}</p>
-                      )}
-                      {obj.description && (
-                        <p className="description">{obj.description}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th className="th-cover"></th>
+                        <th>Titre</th>
+                        <th>Statut</th>
+                        <th>Emplacement</th>
+                        <th>Description</th>
+                        <th className="th-value">Valeur</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {objects.map(obj => (
+                        <tr
+                          key={obj.id}
+                          onClick={() => router.push(`/s/${token}/${obj.id}`)}
+                        >
+                          <td className="td-cover">
+                            {obj.cover_url
+                              ? <img src={obj.cover_url} alt={obj.title} className="row-thumb" />
+                              : <div className="row-thumb-placeholder">📦</div>
+                            }
+                          </td>
+                          <td className="td-title">{obj.title}</td>
+                          <td>
+                            {obj.status && (
+                              <span className="status-row">
+                                <span
+                                  className="status-dot"
+                                  style={{ background: STATUS_COLOR[obj.status] ?? '#9CA3AF' }}
+                                />
+                                <span className="status-label">{STATUS_LABEL[obj.status] ?? obj.status}</span>
+                              </span>
+                            )}
+                          </td>
+                          <td className="td-muted">{obj.location_note ?? '—'}</td>
+                          <td className="td-description">{obj.description ?? '—'}</td>
+                          <td className="td-value">{formatValue(obj) ?? '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               {allowDownload && (
                 <div className="download-row">
@@ -346,9 +428,59 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
         .back-link:hover { color: #F26900; }
 
         /* Page hero */
-        .page-hero { margin-bottom: 28px; }
+        .page-hero {
+          display: flex; align-items: flex-end; justify-content: space-between;
+          gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+        }
         .page-title { font-size: 28px; font-weight: 800; color: #1A1612; line-height: 1.2; }
         .page-sub { font-size: 14px; color: #A89F96; margin-top: 6px; }
+
+        /* View toggle */
+        .view-toggle {
+          display: flex; gap: 4px; padding: 4px;
+          background: #F0EBE3; border-radius: 12px; flex-shrink: 0;
+        }
+        .view-btn {
+          padding: 8px 14px; border-radius: 9px; border: 0; background: transparent;
+          color: #6B6158; font-size: 13px; font-weight: 600; cursor: pointer;
+          transition: background 0.15s, color 0.15s;
+        }
+        .view-btn:hover { color: #1A1612; }
+        .view-btn.active { background: #fff; color: #1A1612; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+
+        /* Table view (desktop web only) */
+        .table-wrap {
+          background: #fff; border-radius: 16px; border: 1px solid #E8E2DA;
+          overflow: hidden; margin-bottom: 32px;
+        }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th {
+          text-align: left; font-size: 12px; font-weight: 700; color: #A89F96;
+          text-transform: uppercase; letter-spacing: 0.4px;
+          padding: 14px 16px; border-bottom: 1px solid #E8E2DA; background: #FBF9F6;
+        }
+        .th-cover { width: 64px; }
+        .th-value { text-align: right; }
+        .table td {
+          padding: 12px 16px; border-bottom: 1px solid #F0EBE3;
+          font-size: 14px; color: #1A1612; vertical-align: middle;
+        }
+        .table tbody tr { cursor: pointer; transition: background 0.15s; }
+        .table tbody tr:hover { background: #FBF9F6; }
+        .table tbody tr:last-child td { border-bottom: 0; }
+        .td-cover { width: 64px; }
+        .row-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; display: block; }
+        .row-thumb-placeholder {
+          width: 44px; height: 44px; border-radius: 8px; background: #F0EBE3;
+          display: grid; place-items: center; font-size: 18px;
+        }
+        .td-title { font-weight: 600; }
+        .td-muted { color: #6B6158; }
+        .td-description {
+          color: #6B6158; max-width: 320px;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .td-value { text-align: right; font-weight: 700; color: #F26900; white-space: nowrap; }
 
         /* Grid */
         .grid {
