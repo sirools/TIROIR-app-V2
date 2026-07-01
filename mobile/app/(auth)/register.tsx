@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
+import * as AppleAuthentication from 'expo-apple-authentication'
 import { supabase } from '@/lib/supabase'
-import { Screen, Button, Input, Checkbox, Colors, Typography, Spacing } from '@/components/ui'
+import { signInWithApple, signInWithGoogle } from '@/features/auth/socialAuth'
+import { Screen, Button, Input, Checkbox, GoogleButton, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 export default function RegisterScreen() {
   const router = useRouter()
@@ -10,9 +12,44 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [socialLoading, setSocialLoading] = useState<'apple' | 'google' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [cguAccepted, setCguAccepted] = useState(false)
+
+  async function handleAppleSignIn() {
+    if (!cguAccepted) {
+      setError("Merci d'accepter les Conditions Générales d'Utilisation pour continuer.")
+      return
+    }
+    setError(null)
+    setSocialLoading('apple')
+    try {
+      await signInWithApple()
+    } catch (e: any) {
+      if (e?.code !== 'ERR_REQUEST_CANCELED') {
+        setError(e?.message ?? "La connexion avec Apple a échoué.")
+      }
+    } finally {
+      setSocialLoading(null)
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    if (!cguAccepted) {
+      setError("Merci d'accepter les Conditions Générales d'Utilisation pour continuer.")
+      return
+    }
+    setError(null)
+    setSocialLoading('google')
+    try {
+      await signInWithGoogle()
+    } catch (e: any) {
+      setError(e?.message ?? "La connexion avec Google a échoué.")
+    } finally {
+      setSocialLoading(null)
+    }
+  }
 
   async function handleRegister() {
     if (!email.trim() || !password || !name.trim()) {
@@ -129,6 +166,31 @@ export default function RegisterScreen() {
               disabled={!cguAccepted}
               style={{ marginTop: Spacing.lg }}
             />
+
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>ou</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <View style={[styles.socialGroup, !cguAccepted && styles.socialGroupDisabled]}>
+              {Platform.OS === 'ios' && AppleAuthentication.AppleAuthenticationButton && (
+                <AppleAuthentication.AppleAuthenticationButton
+                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP}
+                  buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                  cornerRadius={Radius.lg}
+                  style={styles.appleButton}
+                  onPress={handleAppleSignIn}
+                />
+              )}
+
+              <GoogleButton
+                label="Continuer avec Google"
+                onPress={handleGoogleSignIn}
+                loading={socialLoading === 'google'}
+                style={{ marginTop: Spacing.sm }}
+              />
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -201,5 +263,30 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     color: Colors.textSecondary,
     lineHeight: Typography.base * 1.5,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  dividerText: {
+    fontSize: Typography.sm,
+    color: Colors.textTertiary,
+  },
+  socialGroup: {
+    marginTop: Spacing.md,
+  },
+  socialGroupDisabled: {
+    opacity: 0.5,
+  },
+  appleButton: {
+    height: 52,
+    width: '100%',
   },
 })

@@ -1,15 +1,44 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
+import * as AppleAuthentication from 'expo-apple-authentication'
 import { supabase } from '@/lib/supabase'
-import { Screen, Button, Input, Colors, Typography, Spacing } from '@/components/ui'
+import { signInWithApple, signInWithGoogle } from '@/features/auth/socialAuth'
+import { Screen, Button, Input, GoogleButton, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 export default function LoginScreen() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [socialLoading, setSocialLoading] = useState<'apple' | 'google' | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  async function handleAppleSignIn() {
+    setError(null)
+    setSocialLoading('apple')
+    try {
+      await signInWithApple()
+    } catch (e: any) {
+      if (e?.code !== 'ERR_REQUEST_CANCELED') {
+        setError(e?.message ?? "La connexion avec Apple a échoué.")
+      }
+    } finally {
+      setSocialLoading(null)
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError(null)
+    setSocialLoading('google')
+    try {
+      await signInWithGoogle()
+    } catch (e: any) {
+      setError(e?.message ?? "La connexion avec Google a échoué.")
+    } finally {
+      setSocialLoading(null)
+    }
+  }
 
   async function handleLogin() {
     if (!email.trim() || !password) {
@@ -77,6 +106,47 @@ export default function LoginScreen() {
               loading={loading}
               style={{ marginTop: Spacing.lg }}
             />
+
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>ou</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {Platform.OS === 'ios' && AppleAuthentication.AppleAuthenticationButton && (
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={Radius.lg}
+                style={styles.appleButton}
+                onPress={handleAppleSignIn}
+              />
+            )}
+
+            <GoogleButton
+              label="Continuer avec Google"
+              onPress={handleGoogleSignIn}
+              loading={socialLoading === 'google'}
+              style={{ marginTop: Spacing.sm }}
+            />
+
+            <Text style={styles.legalNote}>
+              En continuant, tu acceptes nos{' '}
+              <Text
+                style={styles.legalLink}
+                onPress={() => Linking.openURL('https://tiroir.app/cgu')}
+              >
+                CGU
+              </Text>
+              {' '}et notre{' '}
+              <Text
+                style={styles.legalLink}
+                onPress={() => Linking.openURL('https://tiroir.app/privacy')}
+              >
+                politique de confidentialité
+              </Text>
+              .
+            </Text>
           </View>
 
           <TouchableOpacity
@@ -138,5 +208,36 @@ const styles = StyleSheet.create({
   linkBold: {
     color: Colors.accent,
     fontWeight: Typography.semibold,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  dividerText: {
+    fontSize: Typography.sm,
+    color: Colors.textTertiary,
+  },
+  appleButton: {
+    height: 52,
+    width: '100%',
+    marginTop: Spacing.md,
+  },
+  legalNote: {
+    fontSize: Typography.xs,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    lineHeight: Typography.xs * 1.5,
+    marginTop: Spacing.md,
+  },
+  legalLink: {
+    color: Colors.accent,
+    fontWeight: Typography.medium,
   },
 })

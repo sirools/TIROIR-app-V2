@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Animated, Dimensions, Pressable, Alert, Modal,
+  Animated, Dimensions, Pressable, Alert, Modal, Platform,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -39,6 +39,14 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
   }, [visible])
 
   async function handleSignOut() {
+    if (Platform.OS === 'web') {
+      if (window.confirm("Se déconnecter ? Tu seras redirigé vers l'écran de connexion.")) {
+        onClose()
+        await signOut()
+      }
+      return
+    }
+
     Alert.alert('Se déconnecter', "Tu seras redirigé vers l'écran de connexion.", [
       { text: 'Annuler', style: 'cancel' },
       {
