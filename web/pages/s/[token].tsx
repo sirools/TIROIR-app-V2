@@ -231,11 +231,28 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const [sortKey, setSortKey] = useState<SortKey | null>(null)
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [exportMode, setExportMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const pageTitle = error ? 'Lien introuvable — TiROiR' : `${title} — TiROiR`
 
   function toggleSort(key: SortKey) {
     if (sortKey !== key) { setSortKey(key); setSortDir('asc'); return }
     setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+  }
+
+  function startExportSelection() {
+    setSelectedIds(new Set(objects.map(o => o.id)))
+    setExportMode(true)
+    setView('list')
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
   const sortedObjects = sortObjects(objects, sortKey, sortDir)
@@ -376,6 +393,17 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                   <table className="table">
                     <thead>
                       <tr>
+                        {exportMode && (
+                          <th className="th-check">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.size === objects.length && objects.length > 0}
+                              onChange={() => setSelectedIds(
+                                selectedIds.size === objects.length ? new Set() : new Set(objects.map(o => o.id))
+                              )}
+                            />
+                          </th>
+                        )}
                         <th className="th-cover"></th>
                         <th className="th-sortable" onClick={() => toggleSort('title')}>
                           Titre{sortKey === 'title' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
@@ -396,8 +424,17 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                       {sortedObjects.map(obj => (
                         <tr
                           key={obj.id}
-                          onClick={() => router.push(`/s/${token}/${obj.id}`)}
+                          onClick={() => exportMode ? toggleSelected(obj.id) : router.push(`/s/${token}/${obj.id}`)}
                         >
+                          {exportMode && (
+                            <td className="td-check" onClick={e => e.stopPropagation()}>
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.has(obj.id)}
+                                onChange={() => toggleSelected(obj.id)}
+                              />
+                            </td>
+                          )}
                           <td className="td-cover">
                             {obj.cover_url
                               ? <img src={obj.cover_url} alt={obj.title} className="row-thumb" />
@@ -425,7 +462,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                     {totalValueLabel && (
                       <tfoot>
                         <tr className="total-row">
-                          <td colSpan={5} className="td-total-label">Total</td>
+                          <td colSpan={exportMode ? 6 : 5} className="td-total-label">Total</td>
                           <td className="td-value td-total-value">{totalValueLabel}</td>
                         </tr>
                       </tfoot>
@@ -436,9 +473,47 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
 
               {allowDownload && (
                 <div className="download-row">
-                  <a className="download-btn" href={`/api/shares/${encodeURIComponent(token)}/export.csv`} download>
-                    ↓ Télécharger CSV
-                  </a>
+                  {!exportMode ? (
+                    <button type="button" className="download-btn" onClick={startExportSelection}>
+                      ↓ Télécharger CSV
+                    </button>
+                  ) : (
+                    <div className="export-panel">
+                      <div className="export-shortcuts">
+                        <button
+                          type="button"
+                          className="text-link"
+                          onClick={() => setSelectedIds(new Set(objects.map(o => o.id)))}
+                        >
+                          Tout sélectionner
+                        </button>
+                        <span className="dot-sep">·</span>
+                        <button
+                          type="button"
+                          className="text-link"
+                          onClick={() => setSelectedIds(new Set())}
+                        >
+                          Tout désélectionner
+                        </button>
+                      </div>
+                      <div className="export-actions">
+                        <span className="export-count">
+                          {selectedIds.size} objet{selectedIds.size !== 1 ? 's' : ''} sélectionné{selectedIds.size !== 1 ? 's' : ''}
+                        </span>
+                        <a
+                          className={`download-btn ${selectedIds.size === 0 ? 'btn-disabled' : ''}`}
+                          href={`/api/shares/${encodeURIComponent(token)}/export.csv?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}`}
+                          download
+                          onClick={(e) => { if (selectedIds.size === 0) e.preventDefault() }}
+                        >
+                          ↓ Télécharger la sélection
+                        </a>
+                        <button type="button" className="text-link" onClick={() => setExportMode(false)}>
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -538,6 +613,11 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .td-value { text-align: right; font-weight: 700; color: #F26900; white-space: nowrap; }
+        .th-check, .td-check { width: 40px; text-align: center; }
+        .th-check input[type="checkbox"], .td-check input[type="checkbox"] {
+          -webkit-appearance: checkbox; appearance: auto;
+          width: 16px; height: 16px; cursor: pointer; accent-color: #F26900;
+        }
         .total-row td { background: #FBF9F6; border-top: 2px solid #E8E2DA; border-bottom: 0; }
         .td-total-label { text-align: right; font-weight: 700; color: #6B6158; text-transform: uppercase; font-size: 12px; letter-spacing: 0.4px; }
         .td-total-value { font-size: 16px; }
@@ -591,9 +671,23 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
           border: 1.5px solid #F26900; background: transparent;
           color: #F26900; font-weight: 600; font-size: 15px;
           cursor: pointer; text-decoration: none;
-          transition: background 0.15s, color 0.15s;
         }
         .download-btn:hover { background: #F26900; color: white; }
+        .download-btn.btn-disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+
+        /* Export selection panel */
+        .export-panel {
+          display: flex; flex-direction: column; align-items: center; gap: 12px;
+        }
+        .export-shortcuts { display: flex; align-items: center; gap: 8px; }
+        .text-link {
+          background: none; border: 0; padding: 0; cursor: pointer;
+          font-size: 13px; font-weight: 600; color: #6B6158; text-decoration: underline;
+        }
+        .text-link:hover { color: #F26900; }
+        .dot-sep { color: #A89F96; font-size: 13px; }
+        .export-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center; }
+        .export-count { font-size: 14px; color: #1A1612; font-weight: 600; }
 
         /* App CTA */
         .app-cta {

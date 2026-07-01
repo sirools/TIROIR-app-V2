@@ -89,7 +89,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
-  const objectIds = Array.isArray(shareLink.object_ids) ? shareLink.object_ids : []
+  const shareObjectIds = Array.isArray(shareLink.object_ids) ? shareLink.object_ids : []
+
+  // Optional row selection from the export UI. Never trust client-supplied ids
+  // blindly — only keep the ones that actually belong to this share link.
+  const requestedIds = req.query.ids
+  const objectIds = typeof requestedIds === 'string' && requestedIds.length > 0
+    ? shareObjectIds.filter(id => requestedIds.split(',').includes(id))
+    : shareObjectIds
+
   if (objectIds.length === 0) {
     sendCsv(res, safeFilename(shareLink.title ?? 'tiroir-export'), buildCsv([], new Map()))
     return
