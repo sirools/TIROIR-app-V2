@@ -1,5 +1,6 @@
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
+import { useState } from 'react'
 import { serverSupabase, adminSupabase } from '../lib/supabase'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 
@@ -18,6 +19,12 @@ interface Props {
 
 export default function MesPartages({ shares }: Props) {
   const now = Date.now()
+  const [sortAsc, setSortAsc] = useState(false)
+
+  const sorted = [...shares].sort((a, b) => {
+    const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    return sortAsc ? diff : -diff
+  })
 
   return (
     <>
@@ -30,21 +37,29 @@ export default function MesPartages({ shares }: Props) {
 
       <main className="main">
         <div className="page-hero">
-          <h1 className="page-title">Mes partages</h1>
-          <p className="page-sub">
-            {shares.length} partage{shares.length !== 1 ? 's' : ''} actif{shares.length !== 1 ? 's' : ''}
-          </p>
+          <div>
+            <h1 className="page-title">Mes partages</h1>
+            <p className="page-sub">
+              {shares.length} partage{shares.length !== 1 ? 's' : ''} actif{shares.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          {shares.length > 1 && (
+            <button className="sort-btn" onClick={() => setSortAsc(v => !v)} type="button">
+              <span className="sort-arrow">{sortAsc ? '↑' : '↓'}</span>
+              {sortAsc ? 'Plus anciens d’abord' : 'Plus récents d’abord'}
+            </button>
+          )}
         </div>
 
         {shares.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🔗</div>
             <h2 className="empty-title">Aucun partage pour le moment</h2>
-            <p className="empty-sub">Crée un partage depuis l'app TiROiR pour le retrouver ici.</p>
+            <p className="empty-sub">Crée un partage depuis l&apos;app TiROiR pour le retrouver ici.</p>
           </div>
         ) : (
           <div className="grid">
-            {shares.map(share => {
+            {sorted.map(share => {
               const isExpired = share.expiresAt ? new Date(share.expiresAt).getTime() < now : false
               return (
                 <a
@@ -72,16 +87,38 @@ export default function MesPartages({ shares }: Props) {
       </main>
 
       <style jsx>{`
-        .main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 56px; }
+        .main { max-width: 1300px; width: 100%; margin: 0 auto; padding: 32px 20px 56px; box-sizing: border-box; }
 
-        .page-hero { margin-bottom: 28px; }
+        .page-hero {
+          display: flex; align-items: flex-end; justify-content: space-between;
+          flex-wrap: wrap; gap: 12px; margin-bottom: 28px;
+        }
         .page-title { font-size: 28px; font-weight: 800; color: #1A1612; line-height: 1.2; }
         .page-sub { font-size: 14px; color: #A89F96; margin-top: 6px; }
 
+        .sort-btn {
+          display: inline-flex; align-items: center; gap: 6px;
+          background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 999px;
+          padding: 9px 16px; font-size: 13px; font-weight: 600; color: #4A443E;
+          cursor: pointer; transition: border-color 0.15s, color 0.15s;
+        }
+        .sort-btn:hover { border-color: #F26900; color: #F26900; }
+        .sort-arrow { font-size: 14px; }
+
         .grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          width: 100%;
+          grid-template-columns: 1fr;
           gap: 20px;
+        }
+        @media (min-width: 640px) {
+          .grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (min-width: 980px) {
+          .grid { grid-template-columns: 1fr 1fr 1fr; }
+        }
+        @media (min-width: 1240px) {
+          .grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
         }
 
         .card {
@@ -91,6 +128,7 @@ export default function MesPartages({ shares }: Props) {
           padding: 20px;
           text-decoration: none; color: inherit;
           transition: box-shadow 0.15s, transform 0.15s;
+          min-width: 0;
         }
         .card:hover { box-shadow: 0 10px 28px rgba(0,0,0,0.1); transform: translateY(-2px); }
         .card.expired { opacity: 0.55; }
