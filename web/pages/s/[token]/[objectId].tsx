@@ -186,91 +186,96 @@ export default function SharedObjectDetailPage({ token, object, images, document
         </header>
 
         <main className="main">
-          {/* Galerie */}
-          <div className="gallery">
-            <div className="gallery-main">
-              {images.length > 0
-                ? <img src={images[activeImg]} alt={object.title} className="gallery-img" />
-                : <div className="gallery-placeholder">📦</div>
-              }
+          {/* ── Bento : Galerie + Infos ── */}
+          <div className="hero-card">
+            <div className="hero-gallery">
+              <div className="gallery-main">
+                {images.length > 0
+                  ? <img src={images[activeImg]} alt={object.title} className="gallery-img" />
+                  : <div className="gallery-placeholder">📦</div>
+                }
+              </div>
+              {images.length > 1 && (
+                <div className="gallery-thumbs">
+                  {images.map((src, i) => (
+                    <button
+                      key={i}
+                      className={`thumb ${i === activeImg ? 'active' : ''}`}
+                      onClick={() => setActiveImg(i)}
+                    >
+                      <img src={src} alt="" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            {images.length > 1 && (
-              <div className="gallery-thumbs">
-                {images.map((src, i) => (
-                  <button
-                    key={i}
-                    className={`thumb ${i === activeImg ? 'active' : ''}`}
-                    onClick={() => setActiveImg(i)}
-                  >
-                    <img src={src} alt="" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Titre + statut */}
-          <div className="detail-header">
-            <h1 className="detail-title">{object.title}</h1>
-            {object.status && (
-              <div className="status-row">
-                <span className="status-dot" style={{ background: STATUS_COLOR[object.status] ?? '#9CA3AF' }} />
-                <span className="status-label">{STATUS_LABEL[object.status] ?? object.status}</span>
-              </div>
-            )}
-          </div>
-
-          {object.location_note && <p className="location">📍 {object.location_note}</p>}
-          {object.description && <p className="description">{object.description}</p>}
-
-          {/* Valeur */}
-          {value !== null && value !== undefined && (
-            <div className="section">
-              <h2 className="section-title">Valeur estimée</h2>
-              <div className="value-box">
-                {value.toLocaleString('fr-FR', { style: 'currency', currency, maximumFractionDigits: 0 })}
-              </div>
-            </div>
-          )}
-
-          {/* Caractéristiques */}
-          {attributes.length > 0 && (
-            <div className="section">
-              <h2 className="section-title">Caractéristiques</h2>
-              <div className="attrs-card">
-                {attributes.map(([key, val], i) => (
-                  <div key={key} className={`attr-row ${i > 0 ? 'sep' : ''}`}>
-                    <span className="attr-key">{key}</span>
-                    <span className="attr-val">{val}</span>
+            <div className="hero-info">
+              <div className="detail-header">
+                <h1 className="detail-title">{object.title}</h1>
+                {object.status && (
+                  <div className="status-row">
+                    <span className="status-dot" style={{ background: STATUS_COLOR[object.status] ?? '#9CA3AF' }} />
+                    <span className="status-label">{STATUS_LABEL[object.status] ?? object.status}</span>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          )}
 
-          {/* Documents */}
-          {documents.length > 0 && (
-            <div className="section">
-              <h2 className="section-title">Documents</h2>
-              <div className="docs-card">
-                {documents.map((doc, i) => (
-                  <a
-                    key={doc.id}
-                    href={doc.signed_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`doc-row ${i > 0 ? 'sep' : ''}`}
-                  >
-                    <span className="doc-icon">📄</span>
-                    <div className="doc-info">
-                      <span className="doc-name">{doc.file_name}</span>
-                      <span className="doc-type">
-                        {doc.doc_type === 'autre' && doc.doc_type_label ? doc.doc_type_label : (DOC_TYPE_LABEL[doc.doc_type] ?? 'Document')}
-                      </span>
-                    </div>
-                  </a>
-                ))}
-              </div>
+              {object.location_note && <p className="location">📍 {object.location_note}</p>}
+              {object.description && <p className="description">{object.description}</p>}
+
+              {value !== null && value !== undefined && (
+                <div className="value-block">
+                  <span className="value-label">Valeur estimée</span>
+                  <span className="value-amount">
+                    {value.toLocaleString('fr-FR', { style: 'currency', currency, maximumFractionDigits: 0 })}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Bento : Caractéristiques + Documents côte à côte ── */}
+          {(attributes.length > 0 || documents.length > 0) && (
+            <div className="bento-grid">
+              {attributes.length > 0 && (
+                <div className="bento-card">
+                  <h2 className="section-title">Caractéristiques</h2>
+                  <div className="attrs-list">
+                    {attributes.map(([key, val], i) => (
+                      <div key={key} className={`attr-row ${i > 0 ? 'sep' : ''}`}>
+                        <span className="attr-key">{key}</span>
+                        <span className="attr-val">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {documents.length > 0 && (
+                <div className="bento-card">
+                  <h2 className="section-title">Documents</h2>
+                  <div className="docs-list">
+                    {documents.map((doc, i) => (
+                      <a
+                        key={doc.id}
+                        href={doc.signed_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`doc-row ${i > 0 ? 'sep' : ''}`}
+                      >
+                        <span className="doc-icon">📄</span>
+                        <div className="doc-info">
+                          <span className="doc-name">{doc.file_name}</span>
+                          <span className="doc-type">
+                            {doc.doc_type === 'autre' && doc.doc_type_label ? doc.doc_type_label : (DOC_TYPE_LABEL[doc.doc_type] ?? 'Document')}
+                          </span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </main>
@@ -316,17 +321,25 @@ const styles = `
   .back-link { font-size: 14px; color: #6B6158; text-decoration: none; font-weight: 600; }
   .back-link:hover { color: #F26900; }
 
-  .main { flex: 1; max-width: 900px; margin: 0 auto; padding: 24px 20px 48px; width: 100%; }
+  .main { flex: 1; max-width: 1100px; margin: 0 auto; padding: 32px 20px 56px; width: 100%; }
 
-  /* Galerie */
-  .gallery { margin-bottom: 20px; }
+  /* ── Bento : Hero (galerie + infos) ── */
+  .hero-card {
+    background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    padding: 28px;
+    display: grid; grid-template-columns: minmax(280px, 460px) 1fr; gap: 32px;
+    align-items: start;
+  }
+
+  .hero-gallery { display: flex; flex-direction: column; gap: 10px; }
   .gallery-main {
-    width: 100%; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden;
+    width: 100%; aspect-ratio: 4/3; border-radius: 14px; overflow: hidden;
     background: #F0EBE3; display: grid; place-items: center;
   }
   .gallery-img { width: 100%; height: 100%; object-fit: cover; }
   .gallery-placeholder { font-size: 64px; }
-  .gallery-thumbs { display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; }
+  .gallery-thumbs { display: flex; gap: 8px; overflow-x: auto; }
   .thumb {
     width: 56px; height: 56px; border-radius: 10px; overflow: hidden;
     border: 2px solid transparent; padding: 0; cursor: pointer; flex-shrink: 0;
@@ -335,43 +348,56 @@ const styles = `
   .thumb.active { border-color: #F26900; }
   .thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-  /* Détail */
-  .detail-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+  .hero-info { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .detail-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .detail-title { font-size: 26px; font-weight: 800; line-height: 1.25; }
-  .status-row { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .status-row { display: flex; align-items: center; gap: 6px; flex-shrink: 0; padding-top: 6px; }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; }
   .status-label { font-size: 13px; color: #6B6158; font-weight: 600; }
-  .location { font-size: 13px; color: #A89F96; margin-top: 8px; }
-  .description { font-size: 15px; color: #4A443E; line-height: 1.6; margin-top: 12px; }
+  .location { font-size: 13px; color: #A89F96; }
+  .description { font-size: 15px; color: #4A443E; line-height: 1.6; }
 
-  .section { margin-top: 28px; }
+  .value-block {
+    display: flex; flex-direction: column; gap: 4px;
+    margin-top: 4px; padding-top: 18px; border-top: 1px solid #F0EBE3;
+  }
+  .value-label {
+    font-size: 12px; font-weight: 700; color: #A89F96;
+    text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .value-amount { font-size: 28px; font-weight: 800; color: #F26900; }
+
+  /* ── Bento : Caractéristiques + Documents ── */
+  .bento-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 20px;
+    align-items: start;
+  }
+  .bento-card {
+    background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    padding: 24px;
+  }
   .section-title {
     font-size: 12px; font-weight: 700; color: #A89F96;
-    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px;
   }
 
-  .value-box {
-    background: #fff; border: 1px solid #E8E2DA; border-radius: 16px;
-    padding: 20px; font-size: 28px; font-weight: 800; color: #F26900;
-  }
-
-  .attrs-card, .docs-card {
-    background: #fff; border: 1px solid #E8E2DA; border-radius: 16px; overflow: hidden;
-  }
-  .attr-row { display: flex; justify-content: space-between; padding: 14px 16px; gap: 12px; }
+  .attrs-list, .docs-list { display: flex; flex-direction: column; }
+  .attr-row { display: flex; justify-content: space-between; padding: 12px 0; gap: 12px; }
   .attr-row.sep { border-top: 1px solid #F0EBE3; }
   .attr-key { font-size: 13px; color: #A89F96; font-weight: 600; }
   .attr-val { font-size: 14px; color: #1A1612; font-weight: 500; text-align: right; }
 
   .doc-row {
-    display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px; padding: 12px 0;
     text-decoration: none; color: inherit;
   }
   .doc-row.sep { border-top: 1px solid #F0EBE3; }
-  .doc-row:hover { background: #FDF9F5; }
+  .doc-row:hover .doc-name { color: #F26900; }
   .doc-icon { font-size: 22px; }
   .doc-info { display: flex; flex-direction: column; gap: 2px; }
-  .doc-name { font-size: 14px; font-weight: 600; color: #1A1612; }
+  .doc-name { font-size: 14px; font-weight: 600; color: #1A1612; transition: color 0.15s; }
   .doc-type { font-size: 12px; color: #A89F96; }
 
   .error-state {
@@ -394,8 +420,14 @@ const styles = `
   .footer-sep { font-size: 12px; color: #A89F96; }
   .footer-copy { font-size: 12px; color: #A89F96; }
 
+  @media (max-width: 800px) {
+    .hero-card { grid-template-columns: 1fr; padding: 20px; gap: 20px; }
+    .bento-grid { grid-template-columns: 1fr; }
+  }
+
   @media (max-width: 600px) {
     .detail-title { font-size: 21px; }
     .detail-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .bento-card { padding: 20px; }
   }
 `
