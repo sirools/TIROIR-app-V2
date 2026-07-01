@@ -1,30 +1,216 @@
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import { useState } from 'react'
-import { serverSupabase, adminSupabase } from '../lib/supabase'
+import { supabase, serverSupabase, adminSupabase } from '../lib/supabase'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 
+interface ShareOptions {
+  password_protected?: boolean
+  password_hash?: string | null
+  allow_download?: boolean
+  include_documents?: boolean
+  show_memories?: boolean
+}
+
 interface ShareLinkCard {
+  id: string
   token: string
   title: string
   objectCount: number
   createdAt: string
   expiresAt: string | null
-  passwordProtected: boolean
+  options: ShareOptions
+  isArchived: boolean
 }
 
 interface Props {
   shares: ShareLinkCard[]
 }
 
-export default function MesPartages({ shares }: Props) {
+async function sha256Hex(value: string) {
+  const encoded = new TextEncoder().encode(value)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded)
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+// ── Modale de paramètres ────────────────────────────────────────────────────────
+
+function ShareSettingsModal({
+  share,
+  onClose,
+  onSaved,
+}: {
+  share: ShareLinkCard
+  onClose: () => void
+  onSaved: (updated: { isArchived: boolean; options: ShareOptions }) => void
+}) {
+  const [isPrivate, setIsPrivate] = useState(!!share.options.password_protected)
+  const [isArchived, setIsArchived] = useState(share.isArchived)
+  const [password, setPassword] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSave() {
+    setError(null)
+
+    const wasPrivate = !!share.options.password_protected
+    const trimmed = password.trim()
+
+    if (isPrivate && !wasPrivate && trimmed.length < 4) {
+      setError('Renseigne un mot de passe (4 caractères minimum) pour passer en privé.')
+      return
+    }
+
+    setSaving(true)
+    try {
+      const nextOptions: ShareOptions = { ...share.options, password_protected: isPrivate }
+      if (isPrivate && trimmed.length >= 4) {
+        nextOptions.password_hash = await sha256Hex(trimmed)
+      }
+
+      const { error: updateError } = await supabase
+        .from('share_links')
+        .update({ options: nextOptions, is_archived: isArchived })
+        .eq('id', share.id)
+
+      if (updateError) {
+        setError("Impossible d'enregistrer les modifications. Réessaie.")
+        return
+      }
+
+      onSaved({ isArchived, options: nextOptions })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h2 className="modal-title">Paramètres du partage</h2>
+        <p className="modal-sub">{share.title}</p>
+
+        <div className="field">
+          <span className="field-label">Visibilité</span>
+          <div className="segmented">
+            <button
+              type="button"
+              className={`segment ${!isPrivate ? 'active' : ''}`}
+              onClick={() => setIsPrivate(false)}
+            >
+              Public
+            </button>
+            <button
+              type="button"
+              className={`segment ${isPrivate ? 'active' : ''}`}
+              onClick={() => setIsPrivate(true)}
+            >
+              🔒 Privé
+            </button>
+          </div>
+          {isPrivate && (
+            <input
+              type="password"
+              className="password-input"
+              placeholder={share.options.password_protected ? 'Laisser vide pour garder le mot de passe actuel' : 'Mot de passe (min. 4 car.)'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+          )}
+        </div>
+
+        <div className="field">
+          <span className="field-label">Statut</span>
+          <div className="segmented">
+            <button
+              type="button"
+              className={`segment ${!isArchived ? 'active' : ''}`}
+              onClick={() => setIsArchived(false)}
+            >
+              Actif
+            </button>
+            <button
+              type="button"
+              className={`segment ${isArchived ? 'active' : ''}`}
+              onClick={() => setIsArchived(true)}
+            >
+              Archivé
+            </button>
+          </div>
+          {isArchived && (
+            <p className="field-hint">Le lien cessera de fonctionner pour toute personne qui l&apos;a déjà.</p>
+          )}
+        </div>
+
+        {error && <p className="modal-error">{error}</p>}
+
+        <div className="modal-actions">
+          <button type="button" className="btn-ghost" onClick={onClose} disabled={saving}>Annuler</button>
+          <button type="button" className="btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? 'Enregistrement...' : 'Enregistrer'}
+          </button>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .modal-overlay {
+          position: fixed; inset: 0; background: rgba(26, 22, 18, 0.45);
+          display: flex; align-items: center; justify-content: center;
+          padding: 20px; z-index: 100;
+        }
+        .modal {
+          background: #fff; border-radius: 20px; padding: 28px;
+          width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .modal-title { font-size: 19px; font-weight: 800; color: #1A1612; }
+        .modal-sub { font-size: 13px; color: #A89F96; margin-top: 4px; margin-bottom: 20px; }
+        .field { margin-bottom: 20px; }
+        .field-label {
+          display: block; font-size: 12px; font-weight: 700; color: #6B6158;
+          text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px;
+        }
+        .segmented { display: flex; gap: 4px; padding: 4px; background: #F0EBE3; border-radius: 12px; }
+        .segment {
+          flex: 1; padding: 9px 12px; border-radius: 9px; border: 0; background: transparent;
+          color: #6B6158; font-size: 13px; font-weight: 600; cursor: pointer;
+          transition: background 0.15s, color 0.15s;
+        }
+        .segment.active { background: #fff; color: #1A1612; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .password-input {
+          width: 100%; margin-top: 10px; padding: 11px 14px; border-radius: 12px;
+          border: 1px solid rgba(0,0,0,0.12); font-size: 14px; box-sizing: border-box;
+        }
+        .field-hint { font-size: 12px; color: #C0392B; margin-top: 8px; line-height: 1.4; }
+        .modal-error { font-size: 13px; color: #C0392B; font-weight: 600; margin-bottom: 12px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+        .btn-ghost {
+          padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.12);
+          background: transparent; color: #6B6158; font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+        .btn-primary {
+          padding: 10px 18px; border-radius: 12px; border: 0;
+          background: #F26900; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+        }
+        .btn-primary:disabled, .btn-ghost:disabled { opacity: 0.6; cursor: default; }
+      `}</style>
+    </div>
+  )
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default function MesPartages({ shares: initialShares }: Props) {
   const now = Date.now()
   const [sortAsc, setSortAsc] = useState(false)
+  const [shares, setShares] = useState(initialShares)
+  const [editingToken, setEditingToken] = useState<string | null>(null)
 
   const sorted = [...shares].sort((a, b) => {
     const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     return sortAsc ? diff : -diff
   })
+
+  const editingShare = shares.find(s => s.token === editingToken) ?? null
 
   return (
     <>
@@ -61,30 +247,53 @@ export default function MesPartages({ shares }: Props) {
           <div className="grid">
             {sorted.map(share => {
               const isExpired = share.expiresAt ? new Date(share.expiresAt).getTime() < now : false
+              const isUnavailable = isExpired || share.isArchived
               return (
                 <a
                   key={share.token}
                   href={`/s/${share.token}`}
-                  className={`card ${isExpired ? 'expired' : ''}`}
+                  className={`card ${isUnavailable ? 'expired' : ''}`}
                 >
                   <div className="card-icon">🔗</div>
                   <div className="card-body">
                     <h2 className="card-title">{share.title}</h2>
                     <p className="card-meta">
                       {share.objectCount} objet{share.objectCount !== 1 ? 's' : ''}
-                      {share.passwordProtected && ' · 🔒 Protégé'}
+                      {share.options.password_protected && ' · 🔒 Privé'}
                     </p>
                     <p className="card-date">
                       Créé le {new Date(share.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
-                    {isExpired && <span className="badge-expired">Expiré</span>}
+                    {share.isArchived
+                      ? <span className="badge-expired">Archivé</span>
+                      : isExpired && <span className="badge-expired">Expiré</span>
+                    }
                   </div>
+                  <button
+                    type="button"
+                    className="settings-btn"
+                    aria-label="Paramètres du partage"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingToken(share.token) }}
+                  >
+                    ⚙️
+                  </button>
                 </a>
               )
             })}
           </div>
         )}
       </main>
+
+      {editingShare && (
+        <ShareSettingsModal
+          share={editingShare}
+          onClose={() => setEditingToken(null)}
+          onSaved={({ isArchived, options }) => {
+            setShares(prev => prev.map(s => s.token === editingShare.token ? { ...s, isArchived, options } : s))
+            setEditingToken(null)
+          }}
+        />
+      )}
 
       <style jsx>{`
         .main { max-width: 1200px; width: 100%; margin: 0 auto; padding: 32px 24px 56px; box-sizing: border-box; }
@@ -122,6 +331,7 @@ export default function MesPartages({ shares }: Props) {
         }
 
         .card {
+          position: relative;
           display: flex; align-items: flex-start; gap: 14px;
           background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px;
           box-shadow: 0 6px 20px rgba(0,0,0,0.06);
@@ -138,7 +348,7 @@ export default function MesPartages({ shares }: Props) {
           background: #FFF4E6; display: grid; place-items: center;
           font-size: 18px; flex-shrink: 0;
         }
-        .card-body { min-width: 0; flex: 1; }
+        .card-body { min-width: 0; flex: 1; padding-right: 24px; }
         .card-title {
           font-size: 15px; font-weight: 700; color: #1A1612;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -151,6 +361,15 @@ export default function MesPartages({ shares }: Props) {
           font-size: 11px; font-weight: 700; text-transform: uppercase;
           padding: 3px 8px; border-radius: 999px;
         }
+
+        .settings-btn {
+          position: absolute; top: 14px; right: 14px;
+          width: 30px; height: 30px; border-radius: 9px; border: 0;
+          background: #F7F3EE; font-size: 14px; cursor: pointer;
+          display: grid; place-items: center; flex-shrink: 0;
+          transition: background 0.15s;
+        }
+        .settings-btn:hover { background: #F0EBE3; }
 
         .empty-state {
           display: flex; flex-direction: column; align-items: center;
@@ -175,17 +394,19 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const admin = adminSupabase()
   const { data: links } = await admin
     .from('share_links')
-    .select('token, title, object_ids, options, created_at, expires_at')
+    .select('id, token, title, object_ids, options, created_at, expires_at, is_archived')
     .eq('user_id', session.user.id)
     .order('created_at', { ascending: false })
 
   const shares: ShareLinkCard[] = (links ?? []).map(l => ({
+    id: l.id,
     token: l.token,
     title: l.title ?? 'Partage sans titre',
     objectCount: Array.isArray(l.object_ids) ? l.object_ids.length : 0,
     createdAt: l.created_at,
     expiresAt: l.expires_at,
-    passwordProtected: !!l.options?.password_protected,
+    options: l.options ?? {},
+    isArchived: !!l.is_archived,
   }))
 
   return { props: { shares } }

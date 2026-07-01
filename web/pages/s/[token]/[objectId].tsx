@@ -65,12 +65,12 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   const { data: link, error: linkErr } = await supabase
     .from('share_links')
-    .select('object_ids, options, expires_at')
+    .select('object_ids, options, expires_at, is_archived')
     .eq('token', token)
     .single()
 
   if (linkErr || !link) return { props: { token, object: null, images: [], documents: [], error: 'not_found' } }
-  if (link.expires_at && new Date(link.expires_at) < new Date()) {
+  if (link.is_archived || (link.expires_at && new Date(link.expires_at) < new Date())) {
     return { props: { token, object: null, images: [], documents: [], error: 'expired' } }
   }
 

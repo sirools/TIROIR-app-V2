@@ -10,6 +10,7 @@ type ShareLinkRow = {
     password_protected?: boolean
   } | null
   expires_at: string | null
+  is_archived: boolean
 }
 
 type ExportObjectRow = {
@@ -64,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const supabase = adminSupabase()
   const { data: link, error: linkError } = await supabase
     .from('share_links')
-    .select('title, object_ids, options, expires_at')
+    .select('title, object_ids, options, expires_at, is_archived')
     .eq('token', token)
     .single()
 
@@ -74,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const shareLink = link as ShareLinkRow
-  if (shareLink.expires_at && new Date(shareLink.expires_at) < new Date()) {
+  if (shareLink.is_archived || (shareLink.expires_at && new Date(shareLink.expires_at) < new Date())) {
     res.status(410).json({ error: 'SHARE_EXPIRED' })
     return
   }

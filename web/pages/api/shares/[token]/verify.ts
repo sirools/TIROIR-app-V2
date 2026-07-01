@@ -22,12 +22,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { data: link, error } = await supabase
     .from('share_links')
-    .select('options, expires_at')
+    .select('options, expires_at, is_archived')
     .eq('token', token)
     .single()
 
   if (error || !link) return res.status(404).json({ error: 'Not found' })
-  if (link.expires_at && new Date(link.expires_at).getTime() < Date.now()) {
+  if (link.is_archived || (link.expires_at && new Date(link.expires_at).getTime() < Date.now())) {
     return res.status(410).json({ error: 'Link expired' })
   }
 
