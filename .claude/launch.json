@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mobile-web",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd mobile && npx expo start --web"],
+      "port": 8081,
+      "autoPort": true
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd web && npx next dev"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}
