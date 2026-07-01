@@ -239,6 +239,13 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
   }
 
   const sortedObjects = sortObjects(objects, sortKey, sortDir)
+  const totalValue = objects.reduce((sum, obj) => {
+    const v = obj.user_value ?? obj.market_value
+    return sum + (typeof v === 'number' ? v : 0)
+  }, 0)
+  const totalValueLabel = totalValue > 0
+    ? totalValue.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+    : null
 
   if (gated) {
     return (
@@ -415,6 +422,14 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                         </tr>
                       ))}
                     </tbody>
+                    {totalValueLabel && (
+                      <tfoot>
+                        <tr className="total-row">
+                          <td colSpan={5} className="td-total-label">Total</td>
+                          <td className="td-value td-total-value">{totalValueLabel}</td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               )}
@@ -523,6 +538,9 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .td-value { text-align: right; font-weight: 700; color: #F26900; white-space: nowrap; }
+        .total-row td { background: #FBF9F6; border-top: 2px solid #E8E2DA; border-bottom: 0; }
+        .td-total-label { text-align: right; font-weight: 700; color: #6B6158; text-transform: uppercase; font-size: 12px; letter-spacing: 0.4px; }
+        .td-total-value { font-size: 16px; }
 
         /* Grid */
         .grid {
