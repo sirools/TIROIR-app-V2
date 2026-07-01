@@ -22,9 +22,10 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { decode } from 'base64-arraybuffer'
-import { Plus, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, MapPin, CalendarDays, Share2 } from 'lucide-react-native'
+import { Plus, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, MapPin, CalendarDays, Share2, Sparkles, Star } from 'lucide-react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/features/auth/AuthContext'
 import { Screen, Colors, Typography, Spacing, Radius, ActionSheet } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
 import { DocumentsSection, ObjectDocument } from '@/components/DocumentsSection'
@@ -211,9 +212,13 @@ const lbStyles = StyleSheet.create({
 })
 
 function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
+  const router = useRouter()
+  const { profile } = useAuth()
   const [activeIndex, setActiveIndex] = useState(0)
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
   const [uploading, setUploading] = useState(false)
+  const [enhancing, setEnhancing] = useState(false)
+  const [settingCover, setSettingCover] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const flatRef = useRef<FlatList>(null)
@@ -326,6 +331,109 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
     setActiveIndex(Math.min(safeIndex, Math.max(0, newImages.length - 1)))
   }
 
+  // Alert.alert est un no-op silencieux sur react-native-web : sur web,
+  // on retombe sur window.alert/confirm pour garantir un retour visible.
+  function crossAlert(title: string, message: string, onConfirm?: () => void, confirmLabel = 'Voir Premium') {
+    if (Platform.OS === 'web') {
+      if (onConfirm) {
+        if (window.confirm(`${title}\n\n${message}`)) onConfirm()
+      } else {
+        window.alert(`${title}\n\n${message}`)
+      }
+      return
+    }
+    if (onConfirm) {
+      Alert.alert(title, message, [
+        { text: 'Annuler', style: 'cancel' },
+        { text: confirmLabel, onPress: onConfirm },
+      ])
+    } else {
+      Alert.alert(title, message)
+    }
+  }
+
+  async function enhanceActive() {
+    if (enhancing) return
+    const img = images[safeIndex]
+    if (!img) return
+
+    if (profile?.plan !== 'premium') {
+      crossAlert(
+        'Fonctionnalité Premium',
+        "L'amélioration IA des photos est réservée aux abonnés Premium.",
+        () => router.push('/paywall')
+      )
+      return
+    }
+
+    setEnhancing(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('enhance-object-photo', {
+        body: { object_id: objectId, image_id: img.id },
+      })
+      if (error) {
+        let code = 'INTERNAL_ERROR'
+        let message = "Impossible d'améliorer cette photo pour le moment."
+        try {
+          const parsed = await (error as any).context?.json?.()
+          if (parsed?.error) {
+            code = parsed.error.code ?? code
+            message = parsed.error.message ?? message
+          }
+        } catch {
+          // garde le message par défaut
+        }
+        if (code === 'QUOTA_EXCEEDED') {
+          crossAlert('Quota atteint', 'Tu as atteint ta limite de retouches IA ce mois-ci. Reviens le mois prochain.')
+        } else if (code === 'PREMIUM_REQUIRED') {
+          crossAlert('Fonctionnalité Premium', "Cette fonctionnalité est réservée aux abonnés Premium.")
+        } else {
+          crossAlert('Erreur', message)
+        }
+        return
+      }
+
+      const newImages = [...images, data.image as ObjectImage]
+      onImagesChange(newImages)
+      setTimeout(() => {
+        flatRef.current?.scrollToIndex({ index: newImages.length - 1, animated: true })
+        setActiveIndex(newImages.length - 1)
+      }, 100)
+    } catch {
+      crossAlert('Erreur', "Impossible d'améliorer cette photo pour le moment.")
+    } finally {
+      setEnhancing(false)
+    }
+  }
+
+  async function setAsCover() {
+    const img = images[safeIndex]
+    if (!img || img.is_cover || settingCover) return
+
+    const reordered = [
+      { ...img, is_cover: true },
+      ...images.filter(i => i.id !== img.id).map(i => ({ ...i, is_cover: false })),
+    ].map((i, idx) => ({ ...i, position: idx }))
+
+    setSettingCover(true)
+    onImagesChange(reordered)
+    setActiveIndex(0)
+    setTimeout(() => flatRef.current?.scrollToIndex({ index: 0, animated: true }), 100)
+
+    try {
+      const results = await Promise.all(
+        reordered.map(i =>
+          supabase.from('object_images').update({ position: i.position, is_cover: i.is_cover }).eq('id', i.id)
+        )
+      )
+      if (results.some(r => r.error)) {
+        crossAlert('Erreur', "Impossible de définir cette photo comme favorite.")
+      }
+    } finally {
+      setSettingCover(false)
+    }
+  }
+
   const total = images.length
 
   return (
@@ -385,6 +493,26 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
         </TouchableOpacity>
       )}
 
+      {/* Bouton favori (photo de garde) — au-dessus du bouton supprimer */}
+      {total > 1 && (
+        <TouchableOpacity
+          style={sl.favoriteBtn}
+          onPress={setAsCover}
+          disabled={settingCover || images[safeIndex]?.is_cover}
+          activeOpacity={0.8}
+        >
+          {settingCover
+            ? <ActivityIndicator size="small" color="white" />
+            : <Star
+                size={16}
+                color={images[safeIndex]?.is_cover ? '#F59E0B' : 'white'}
+                fill={images[safeIndex]?.is_cover ? '#F59E0B' : 'transparent'}
+                strokeWidth={2}
+              />
+          }
+        </TouchableOpacity>
+      )}
+
       {/* Bouton ajouter */}
       <TouchableOpacity
         style={sl.addBtn}
@@ -397,6 +525,21 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
           : <Plus size={18} color="white" strokeWidth={2.5} />
         }
       </TouchableOpacity>
+
+      {/* Bouton améliorer (IA, premium) */}
+      {total > 0 && (
+        <TouchableOpacity
+          style={sl.enhanceBtn}
+          onPress={enhanceActive}
+          disabled={enhancing}
+          activeOpacity={0.8}
+        >
+          {enhancing
+            ? <ActivityIndicator size="small" color="white" />
+            : <Sparkles size={16} color="white" strokeWidth={2} />
+          }
+        </TouchableOpacity>
+      )}
 
       {/* Confirm suppression */}
       <Modal visible={deleteConfirm} transparent animationType="fade" onRequestClose={() => setDeleteConfirm(false)}>
@@ -455,11 +598,27 @@ const sl = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
 
+  // Bouton favori (au-dessus du bouton supprimer)
+  favoriteBtn: {
+    position: 'absolute', bottom: 52, left: 14,
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+
   // Bouton ajouter (bas droite)
   addBtn: {
     position: 'absolute', bottom: 10, right: 14,
     width: 32, height: 32, borderRadius: 16,
     backgroundColor: Colors.accent,
+    alignItems: 'center', justifyContent: 'center',
+  },
+
+  // Bouton améliorer IA (au-dessus du bouton ajouter)
+  enhanceBtn: {
+    position: 'absolute', bottom: 52, right: 14,
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: '#7c3aed',
     alignItems: 'center', justifyContent: 'center',
   },
 

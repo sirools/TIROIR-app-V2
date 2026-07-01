@@ -4,7 +4,8 @@ import {
   Alert, ActivityIndicator, ScrollView, AppState,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import { ArrowLeft, User, Edit3, Check, Package, FolderOpen, TrendingUp, Link2, Brain, Camera, Zap } from 'lucide-react-native'
+import { ArrowLeft, User, Edit3, Check, Package, FolderOpen, TrendingUp, Link2, Brain, Camera, Zap, Sparkles } from 'lucide-react-native'
+import Purchases from 'react-native-purchases'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { Screen, Input, Colors, Typography, Spacing, Radius } from '@/components/ui'
@@ -21,6 +22,9 @@ interface Stats {
   aiResetAt: string | null
   objectsMax: number | null
   photosPerObject: number | null
+  photoEnhanceUsed: number
+  photoEnhanceQuota: number | null
+  photoEnhanceIsPremium: boolean
 }
 
 export default function ProfileScreen() {
@@ -44,7 +48,7 @@ export default function ProfileScreen() {
   }, [])
 
   async function loadStats() {
-    const [objRes, colRes, valRes, shareRes, photoRes, quotaRes, limitsRes] = await Promise.all([
+    const [objRes, colRes, valRes, shareRes, photoRes, quotaRes, limitsRes, enhanceQuotaRes] = await Promise.all([
       supabase.from('objects').select('id', { count: 'exact', head: true }),
       supabase.from('collections').select('id', { count: 'exact', head: true }),
       supabase.from('objects').select('market_value, user_value, value_currency').not('market_value', 'is', null),
@@ -52,6 +56,7 @@ export default function ProfileScreen() {
       supabase.from('object_images').select('id', { count: 'exact', head: true }),
       supabase.rpc('get_ai_quota'),
       supabase.rpc('get_plan_limits'),
+      supabase.rpc('get_photo_enhance_quota'),
     ])
 
     let totalValue: number | null = null
@@ -64,6 +69,7 @@ export default function ProfileScreen() {
 
     const quota  = quotaRes.data?.[0]
     const limits = limitsRes.data?.[0]
+    const enhanceQuota = enhanceQuotaRes.data?.[0]
     setStats({
       objects: objRes.count ?? 0,
       collections: colRes.count ?? 0,
@@ -76,7 +82,18 @@ export default function ProfileScreen() {
       aiResetAt: quota?.reset_at ?? null,
       objectsMax: limits?.objects_max ?? null,
       photosPerObject: limits?.photos_per_object ?? null,
+      photoEnhanceUsed: enhanceQuota?.used ?? 0,
+      photoEnhanceQuota: enhanceQuota?.quota ?? null,
+      photoEnhanceIsPremium: enhanceQuota?.is_premium ?? false,
     })
+  }
+
+  async function handleManageSubscription() {
+    try {
+      await Purchases.showManageSubscriptions()
+    } catch {
+      Alert.alert('Erreur', "Impossible d'ouvrir la gestion de l'abonnement pour le moment.")
+    }
   }
 
   async function handleSave() {
@@ -171,7 +188,7 @@ export default function ProfileScreen() {
                 <Brain size={16} color={Colors.accent} strokeWidth={1.6} />
                 <Text style={styles.forfaitLabel}>Analyses IA ce mois</Text>
                 <Text style={styles.forfaitValue}>
-                  {stats.aiQuota !== null ? `${stats.aiUsed} / ${stats.aiQuota}` : `${stats.aiUsed}`}
+                  {stats.aiQuota !== null ? `${stats.aiUsed} / ${stats.aiQuota}` : `${stats.aiUsed} · Illimité`}
                 </Text>
               </View>
               {stats.aiQuota !== null && (
@@ -217,6 +234,27 @@ export default function ProfileScreen() {
               )}
             </View>
 
+            <View style={styles.forfaitDivider} />
+
+            {/* Amélioration IA des photos */}
+            <View style={styles.forfaitRow}>
+              <View style={styles.forfaitRowHeader}>
+                <Sparkles size={16} color={Colors.accent} strokeWidth={1.6} />
+                <Text style={styles.forfaitLabel}>Améliorations photo IA</Text>
+                <Text style={styles.forfaitValue}>
+                  {stats.photoEnhanceIsPremium
+                    ? `${stats.photoEnhanceUsed} / ${stats.photoEnhanceQuota}`
+                    : '🔒 Premium'}
+                </Text>
+              </View>
+              {stats.photoEnhanceIsPremium && stats.photoEnhanceQuota !== null && (
+                <ProgressBar value={stats.photoEnhanceUsed} max={stats.photoEnhanceQuota} />
+              )}
+              {!stats.photoEnhanceIsPremium && (
+                <Text style={styles.forfaitHint}>Réservé aux abonnés Premium</Text>
+              )}
+            </View>
+
             {!isPremium && (
               <TouchableOpacity style={styles.upgradeBtn} activeOpacity={0.85} onPress={() => router.push('/paywall')}>
                 <Zap size={14} color="white" strokeWidth={2.2} />
@@ -255,6 +293,12 @@ export default function ProfileScreen() {
         <Text style={styles.hint}>
           L'email ne peut pas être modifié. Pour changer ton mot de passe, rends-toi dans Paramètres.
         </Text>
+
+        {isPremium && (
+          <TouchableOpacity onPress={handleManageSubscription} hitSlop={8} style={styles.manageSubBtn}>
+            <Text style={styles.manageSubText}>Gérer mon abonnement</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </Screen>
   )
@@ -368,4 +412,7 @@ const styles = StyleSheet.create({
   inlineInput: { paddingVertical: 0, height: 32, fontSize: Typography.base },
 
   hint: { fontSize: Typography.xs, color: Colors.textTertiary, lineHeight: 18, paddingHorizontal: Spacing.xs },
+
+  manageSubBtn: { alignItems: 'center', paddingVertical: Spacing.sm },
+  manageSubText: { fontSize: Typography.xs, color: Colors.textTertiary, fontWeight: Typography.medium, textDecorationLine: 'underline' },
 })
