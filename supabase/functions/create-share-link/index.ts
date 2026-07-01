@@ -23,8 +23,13 @@ Deno.serve(async (req: Request) => {
     if (authError || !user) return err(401, 'AUTH_INVALID')
 
     const body = await req.json().catch(() => null)
-    const { object_ids, title, options = {} } = body ?? {}
+    const { object_ids, title, options = {}, contact = {} } = body ?? {}
     if (!Array.isArray(object_ids) || object_ids.length === 0) return err(400, 'MISSING_OBJECT_IDS')
+
+    const contactName = typeof contact?.name === 'string' ? contact.name.trim().slice(0, 200) : ''
+    const contactEmail = typeof contact?.email === 'string' ? contact.email.trim().slice(0, 320) : ''
+    const contactPhone = typeof contact?.phone === 'string' ? contact.phone.trim().slice(0, 40) : ''
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)
 
     // Hash du mot de passe si fourni
     let passwordHash: string | null = null
@@ -67,7 +72,9 @@ Deno.serve(async (req: Request) => {
           password_hash: passwordHash,
           allow_download: options.allow_download ?? false,
           include_documents: options.include_documents ?? false,
-          show_memories: options.show_memories ?? false,
+          contact_name: contactName || null,
+          contact_email: isValidEmail ? contactEmail : null,
+          contact_phone: contactPhone || null,
         },
         expires_at: expiresAt,
       })
@@ -76,9 +83,29 @@ Deno.serve(async (req: Request) => {
 
     if (insertError || !link) return err(500, 'INSERT_FAILED')
 
+    const shareUrl = `https://tiroir.app/s/${link.token}`
+    let emailSent = false
+    if (isValidEmail) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user.id)
+        .single()
+      emailSent = await sendShareEmail({
+        to: contactEmail,
+        recipientName: contactName,
+        senderName: profile?.display_name || 'Un utilisateur Tiroir',
+        title: title ?? null,
+        objectCount: object_ids.length,
+        url: shareUrl,
+        passwordProtected: Boolean(passwordHash),
+      })
+    }
+
     return new Response(JSON.stringify({
       token: link.token,
-      url: `https://tiroir.app/s/${link.token}`,
+      url: shareUrl,
+      email_sent: emailSent,
     }), {
       status: 200,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -94,4 +121,112 @@ function err(status: number, code: string) {
     status,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   })
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+async function sendShareEmail(params: {
+  to: string
+  recipientName: string
+  senderName: string
+  title: string | null
+  objectCount: number
+  url: string
+  passwordProtected: boolean
+}): Promise<boolean> {
+  const apiKey = Deno.env.get('RESEND_API_KEY')
+  if (!apiKey) {
+    console.error('RESEND_API_KEY missing — skipping share email send')
+    return false
+  }
+
+  const { to, recipientName, senderName, title, objectCount, url, passwordProtected } = params
+  const safeSender = escapeHtml(senderName)
+  const safeRecipient = escapeHtml(recipientName || '')
+  const safeTitle = title ? escapeHtml(title) : null
+  const greeting = safeRecipient ? `Bonjour ${safeRecipient},` : 'Bonjour,'
+  const objectLabel = objectCount > 1 ? `${objectCount} objets` : '1 objet'
+  const collectionMention = safeTitle ? ` « ${safeTitle} »` : ''
+
+  const html = `
+  <!DOCTYPE html>
+  <html lang="fr">
+  <body style="margin:0;padding:0;background-color:#F7F3EE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F7F3EE;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border-radius:16px;overflow:hidden;max-width:480px;width:100%;">
+            <tr>
+              <td style="background-color:#2D5016;padding:28px 32px;">
+                <span style="color:#FFFFFF;font-size:20px;font-weight:700;letter-spacing:0.5px;">Tiroir</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px;">
+                <p style="margin:0 0 16px;color:#1A1612;font-size:16px;line-height:1.5;">${greeting}</p>
+                <p style="margin:0 0 24px;color:#1A1612;font-size:16px;line-height:1.5;">
+                  <strong>${safeSender}</strong> vient de partager une liste de ${objectLabel}${collectionMention} avec vous sur Tiroir.
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
+                  <tr>
+                    <td style="border-radius:10px;background-color:#2D5016;">
+                      <a href="${url}" style="display:inline-block;padding:14px 28px;color:#FFFFFF;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;">
+                        VOIR LES OBJETS PARTAGÉS
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                ${passwordProtected
+                  ? '<p style="margin:0 0 24px;color:#6B6158;font-size:13px;line-height:1.5;">🔒 Ce lien est protégé par un mot de passe que vous devez avoir reçu séparément.</p>'
+                  : ''
+                }
+                <p style="margin:0;color:#A89F96;font-size:12px;line-height:1.5;">
+                  Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br/>
+                  <a href="${url}" style="color:#2D5016;word-break:break-all;">${url}</a>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 32px;background-color:#F0EBE3;">
+                <p style="margin:0;color:#A89F96;font-size:11px;line-height:1.5;">
+                  Tiroir — l'inventaire de vos objets, simplement.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>`
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Tiroir <partage@tiroir.app>',
+        to: [to],
+        subject: `${senderName} a partagé des objets avec vous sur Tiroir`,
+        html,
+      }),
+    })
+    if (!response.ok) {
+      console.error('Resend send failed', response.status, await response.text())
+      return false
+    }
+    return true
+  } catch (e) {
+    console.error('Resend send error', e)
+    return false
+  }
 }

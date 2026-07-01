@@ -13,7 +13,6 @@ interface ShareOptions {
   password_protected: boolean
   allow_download: boolean
   include_documents: boolean
-  show_memories: boolean
 }
 
 interface SharePanelProps {
@@ -31,13 +30,16 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
     password_protected: false,
     allow_download: false,
     include_documents: false,
-    show_memories: false,
   })
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const passwordAnim = useRef(new Animated.Value(0)).current
+  const [contactName, setContactName] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
   const [generating, setGenerating] = useState(false)
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null)
+  const [emailSent, setEmailSent] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -45,6 +47,10 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
       setGeneratedUrl(null)
       setCopied(false)
       setPassword('')
+      setContactName('')
+      setContactEmail('')
+      setContactPhone('')
+      setEmailSent(false)
       Animated.spring(slideAnim, {
         toValue: 0, useNativeDriver: true, damping: 22, mass: 0.9,
       }).start()
@@ -67,12 +73,16 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
     }
   }
 
+  const trimmedEmail = contactEmail.trim()
+  const emailIsValid = trimmedEmail.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
+
   async function generateLink() {
     if (generating) return
     if (options.password_protected && password.trim().length < 4) {
       // champ visible mais vide ou trop court
       return
     }
+    if (!emailIsValid) return
     setGenerating(true)
     try {
       const { data, error } = await supabase.functions.invoke('create-share-link', {
@@ -83,10 +93,16 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
             ...options,
             password: options.password_protected ? password.trim() : undefined,
           },
+          contact: {
+            name: contactName.trim() || undefined,
+            email: trimmedEmail || undefined,
+            phone: contactPhone.trim() || undefined,
+          },
         },
       })
       if (error) throw error
       setGeneratedUrl(data.url)
+      setEmailSent(Boolean(data.email_sent))
     } catch {
       // keep generating=false, show nothing
     } finally {
@@ -110,7 +126,6 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
     { key: 'password_protected', label: 'Protéger l\'accès par mot de passe' },
     { key: 'allow_download', label: 'Autoriser le téléchargement CSV' },
     { key: 'include_documents', label: 'Inclure les documents' },
-    { key: 'show_memories', label: 'Afficher souvenirs' },
   ]
 
   return (
@@ -138,6 +153,55 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
                   </View>
                 ))}
               </ScrollView>
+            </View>
+
+            {/* Destinataire */}
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>Destinataire (optionnel)</Text>
+              <View style={styles.contactField}>
+                <TextInput
+                  style={styles.contactInput}
+                  value={contactName}
+                  onChangeText={setContactName}
+                  placeholder="Nom du destinataire"
+                  placeholderTextColor={Colors.textTertiary}
+                  autoCorrect={false}
+                  returnKeyType="next"
+                />
+              </View>
+              <View style={styles.contactField}>
+                <TextInput
+                  style={styles.contactInput}
+                  value={contactEmail}
+                  onChangeText={setContactEmail}
+                  placeholder="Email du destinataire"
+                  placeholderTextColor={Colors.textTertiary}
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  returnKeyType="next"
+                />
+              </View>
+              {!emailIsValid && (
+                <Text style={styles.contactError}>Format d'email invalide</Text>
+              )}
+              <View style={styles.contactField}>
+                <TextInput
+                  style={styles.contactInput}
+                  value={contactPhone}
+                  onChangeText={setContactPhone}
+                  placeholder="Téléphone du destinataire"
+                  placeholderTextColor={Colors.textTertiary}
+                  autoCorrect={false}
+                  keyboardType="phone-pad"
+                  returnKeyType="done"
+                />
+              </View>
+              {trimmedEmail.length > 0 && (
+                <Text style={styles.contactHint}>
+                  Un email Tiroir sera envoyé automatiquement à cette adresse.
+                </Text>
+              )}
             </View>
 
             {/* Options */}
@@ -191,9 +255,9 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
 
             {/* CTA */}
             <TouchableOpacity
-              style={[styles.generateBtn, (generating || (options.password_protected && password.trim().length < 4)) && styles.generateBtnDisabled]}
+              style={[styles.generateBtn, (generating || (options.password_protected && password.trim().length < 4) || !emailIsValid) && styles.generateBtnDisabled]}
               onPress={generateLink}
-              disabled={generating || (options.password_protected && password.trim().length < 4)}
+              disabled={generating || (options.password_protected && password.trim().length < 4) || !emailIsValid}
               activeOpacity={0.85}
             >
               {generating
@@ -214,6 +278,10 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
               <Text style={styles.linkUrl} numberOfLines={1}>{generatedUrl.replace('https://', '')}</Text>
               <Text style={styles.linkCopyIcon}>{copied ? '✓' : '⎘'}</Text>
             </TouchableOpacity>
+
+            {emailSent && trimmedEmail.length > 0 && (
+              <Text style={styles.emailSentBadge}>✉️ Email envoyé à {trimmedEmail}</Text>
+            )}
 
             <Text style={styles.successSub}>Souhaitez-vous l'envoyer maintenant ?</Text>
 
@@ -287,6 +355,32 @@ const styles = StyleSheet.create({
   objectRemove: { padding: 4 },
   objectRemoveIcon: { fontSize: 18, color: Colors.textTertiary },
 
+  contactField: {
+    backgroundColor: Colors.background,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 10,
+    marginBottom: Spacing.sm,
+  },
+  contactInput: {
+    fontSize: Typography.sm,
+    color: Colors.textPrimary,
+    padding: 0,
+  },
+  contactError: {
+    fontSize: Typography.xs,
+    color: '#DC2626',
+    marginTop: -Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  contactHint: {
+    fontSize: Typography.xs,
+    color: Colors.textTertiary,
+    marginTop: -Spacing.xs,
+  },
+
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -353,6 +447,7 @@ const styles = StyleSheet.create({
   linkCopyIcon: { fontSize: 18, color: Colors.textTertiary },
 
   successSub: { fontSize: Typography.sm, color: Colors.textSecondary },
+  emailSentBadge: { fontSize: Typography.sm, color: '#16A34A', fontWeight: Typography.medium },
 
   shareBtn: {
     backgroundColor: Colors.accent,

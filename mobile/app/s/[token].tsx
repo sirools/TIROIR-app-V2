@@ -26,7 +26,6 @@ interface ShareLink {
     password_protected: boolean
     allow_download: boolean
     include_documents: boolean
-    show_memories: boolean
   }
   expires_at: string | null
 }

@@ -9,7 +9,9 @@ interface ShareOptions {
   password_hash?: string | null
   allow_download?: boolean
   include_documents?: boolean
-  show_memories?: boolean
+  contact_name?: string | null
+  contact_email?: string | null
+  contact_phone?: string | null
 }
 
 interface ShareLinkCard {
@@ -264,6 +266,11 @@ export default function MesPartages({ shares: initialShares }: Props) {
                     <p className="card-date">
                       Créé le {new Date(share.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
+                    {(share.options.contact_name || share.options.contact_email) && (
+                      <p className="card-contact">
+                        👤 {[share.options.contact_name, share.options.contact_email].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
                     {share.isArchived
                       ? <span className="badge-expired">Archivé</span>
                       : isExpired && <span className="badge-expired">Expiré</span>
@@ -355,6 +362,10 @@ export default function MesPartages({ shares: initialShares }: Props) {
         }
         .card-meta { font-size: 13px; color: #6B6158; margin-top: 4px; }
         .card-date { font-size: 12px; color: #A89F96; margin-top: 8px; }
+        .card-contact {
+          font-size: 12px; color: #6B6158; margin-top: 6px;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
         .badge-expired {
           display: inline-block; margin-top: 8px;
           background: #FDECEA; color: #C0392B;
