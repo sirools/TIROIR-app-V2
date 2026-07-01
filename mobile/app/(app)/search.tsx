@@ -238,7 +238,6 @@ export default function SearchScreen() {
             autoCapitalize="none"
             returnKeyType="search"
             onSubmitEditing={onSubmit}
-            autoFocus
           />
           {searching && <ActivityIndicator size="small" color={Colors.accent} style={{ marginRight: 8 }} />}
           {!searching && query.length > 0 && (
