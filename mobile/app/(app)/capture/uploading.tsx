@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, StyleSheet, Animated, Platform, Image, TouchableOpacity } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@/lib/supabase'
 import { assistantService } from '@/services/assistant'
@@ -12,18 +13,19 @@ type Phase = 'uploading' | 'analyzing' | 'error'
 
 interface PickedImage { uri: string; mimeType: string; fileName: string }
 
-// Étapes de la checklist
+// Étapes de la checklist (libellés résolus au rendu via i18n)
 const STEPS = [
-  { key: 'upload',   label: 'Photos reçues',          sub: (p: number) => `${p} %` },
-  { key: 'identify', label: 'Objet identifié',         sub: () => 'Analyse visuelle' },
-  { key: 'attrs',    label: 'Lecture des attributs',   sub: () => 'Marque, modèle, couleur' },
-  { key: 'sheet',    label: 'Génération de la fiche',  sub: () => 'Titre, description, emplacement' },
+  { key: 'upload',   labelKey: 'uploading.stepUpload',   subKey: '' },
+  { key: 'identify', labelKey: 'uploading.stepIdentify', subKey: 'uploading.stepIdentifySub' },
+  { key: 'attrs',    labelKey: 'uploading.stepAttrs',    subKey: 'uploading.stepAttrsSub' },
+  { key: 'sheet',    labelKey: 'uploading.stepSheet',    subKey: 'uploading.stepSheetSub' },
 ]
 type StepKey = 'upload' | 'identify' | 'attrs' | 'sheet'
 type StepStatus = 'pending' | 'active' | 'done'
 
 export default function UploadingScreen() {
   const { draftId, images: imagesParam } = useLocalSearchParams<{ draftId: string; images: string }>()
+  const { t } = useTranslation()
   const { user } = useAuth()
   const router = useRouter()
 
@@ -138,7 +140,7 @@ export default function UploadingScreen() {
       setTimeout(() => setShowManualNav(true), 1500)
     } catch (err) {
       console.error('[Upload]', err)
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue.')
+      setError(err instanceof Error ? err.message : t('uploading.genericError'))
       setPhase('error')
     }
   }
@@ -173,7 +175,7 @@ export default function UploadingScreen() {
       setTimeout(() => setShowManualNav(true), 1500)
     } catch (err) {
       console.error('[Reanalyze]', err)
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue.')
+      setError(err instanceof Error ? err.message : t('uploading.genericError'))
       setPhase('error')
     }
   }
@@ -198,12 +200,12 @@ export default function UploadingScreen() {
     const { error: storageError } = await supabase.storage
       .from('object-images')
       .upload(storagePath, uploadData, { contentType: img.mimeType, upsert: false })
-    if (storageError) throw new Error(`Upload image ${position + 1} : ${storageError.message}`)
+    if (storageError) throw new Error(t('uploading.uploadImageError', { n: position + 1, msg: storageError.message }))
 
     const { error: dbError } = await supabase.from('ai_draft_images').insert({
       draft_id: draftId, user_id: user!.id, storage_path: storagePath, mime_type: img.mimeType, position,
     })
-    if (dbError) throw new Error(`Enregistrement image ${position + 1} : ${dbError.message}`)
+    if (dbError) throw new Error(t('uploading.saveImageError', { n: position + 1, msg: dbError.message }))
   }
 
   async function handleRetry() {
@@ -222,9 +224,9 @@ export default function UploadingScreen() {
       <Screen>
         <View style={styles.errorContainer}>
           <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.errorTitle}>Quelque chose s'est mal passé</Text>
+          <Text style={styles.errorTitle}>{t('uploading.errorTitle')}</Text>
           <Text style={styles.errorText}>{error}</Text>
-          <Button label="Réessayer" onPress={handleRetry} style={styles.retryBtn} />
+          <Button label={t('uploading.retry')} onPress={handleRetry} style={styles.retryBtn} />
         </View>
       </Screen>
     )
@@ -263,12 +265,12 @@ export default function UploadingScreen() {
         {/* Titre */}
         <View style={styles.titleBlock}>
           <Text style={styles.title}>
-            {phase === 'uploading' ? 'Envoi des photos…' : 'Analyse en cours…'}
+            {phase === 'uploading' ? t('uploading.sendingPhotos') : t('uploading.analyzing')}
           </Text>
           <Text style={styles.subtitle}>
             {phase === 'uploading'
-              ? `${uploadProgress} % — ${uploadedCount} / ${images.length} photo${images.length > 1 ? 's' : ''}`
-              : 'Je prépare ta fiche objet'}
+              ? t('uploading.progress', { percent: uploadProgress, done: uploadedCount, total: images.length, count: images.length })
+              : t('uploading.preparingSheet')}
           </Text>
         </View>
 
@@ -304,10 +306,10 @@ export default function UploadingScreen() {
                 </View>
                 <View style={styles.checkText}>
                   <Text style={[styles.checkLabel, status === 'pending' && styles.checkLabelMuted]}>
-                    {step.label}
+                    {t(step.labelKey)}
                   </Text>
                   <Text style={styles.checkSub}>
-                    {step.key === 'upload' ? step.sub(uploadProgress) : step.sub(0)}
+                    {step.key === 'upload' ? `${uploadProgress} %` : t(step.subKey)}
                   </Text>
                 </View>
               </Animated.View>
@@ -319,7 +321,7 @@ export default function UploadingScreen() {
         {phase === 'analyzing' && (
           <View style={styles.confidenceCard}>
             <View style={styles.confidenceHeader}>
-              <Text style={styles.confidenceLabel}>Confiance de l'analyse</Text>
+              <Text style={styles.confidenceLabel}>{t('uploading.confidence')}</Text>
               <Text style={styles.confidenceValue}>{confidence} %</Text>
             </View>
             <View style={styles.confidenceTrack}>
@@ -335,7 +337,7 @@ export default function UploadingScreen() {
             onPress={() => router.replace({ pathname: '/objects/[id]', params: { id: pendingDraftId.current! } })}
             activeOpacity={0.85}
           >
-            <Text style={styles.manualNavText}>Voir la fiche →</Text>
+            <Text style={styles.manualNavText}>{t('uploading.seeSheet')}</Text>
           </TouchableOpacity>
         )}
       </View>

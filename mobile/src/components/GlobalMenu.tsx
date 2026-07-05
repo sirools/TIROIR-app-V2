@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { User, Settings, LogOut, Link, Zap, MessageCircle } from 'lucide-react-native'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -19,6 +20,7 @@ interface GlobalMenuProps {
 export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
   const insets = useSafeAreaInsets()
   const router = useRouter()
+  const { t } = useTranslation()
   const { profile, signOut } = useAuth()
   const isPremium = (profile as any)?.plan === 'premium'
   const translateX = useRef(new Animated.Value(-MENU_WIDTH)).current
@@ -40,17 +42,17 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
 
   async function handleSignOut() {
     if (Platform.OS === 'web') {
-      if (window.confirm("Se déconnecter ? Tu seras redirigé vers l'écran de connexion.")) {
+      if (window.confirm(t('menu.signOutWeb'))) {
         onClose()
         await signOut()
       }
       return
     }
 
-    Alert.alert('Se déconnecter', "Tu seras redirigé vers l'écran de connexion.", [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(t('menu.signOut'), t('menu.signOutMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Se déconnecter',
+        text: t('menu.signOut'),
         style: 'destructive',
         onPress: async () => {
           onClose()
@@ -86,11 +88,11 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
             <User size={22} color={Colors.accent} strokeWidth={1.5} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.profileName}>{profile?.display_name ?? 'Mon Profil'}</Text>
+            <Text style={styles.profileName}>{profile?.display_name ?? t('menu.profileDefault')}</Text>
             <View style={[styles.planBadge, isPremium && styles.planBadgePremium]}>
               <Zap size={9} color={isPremium ? '#7c3aed' : Colors.accent} strokeWidth={2.5} />
               <Text style={[styles.planBadgeText, isPremium && styles.planBadgeTextPremium]}>
-                {isPremium ? 'Premium' : 'Version gratuite'}
+                {isPremium ? t('profile.premium') : t('profile.free')}
               </Text>
             </View>
           </View>
@@ -102,31 +104,31 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
         {isPremium && (
           <MenuItem
             icon={<MessageCircle size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
-            label="Assistant"
+            label={t('menu.assistant')}
             badge="BETA"
             onPress={() => navigate('/assistant')}
           />
         )}
         <MenuItem
           icon={<Link size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
-          label="Partages actifs"
+          label={t('shares.title')}
           onPress={() => navigate('/shares')}
         />
         <MenuItem
           icon={<Settings size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
-          label="Paramètres"
+          label={t('settings.title')}
           onPress={() => navigate('/settings')}
         />
 
         {isPremium ? (
           <View style={styles.premiumActive}>
             <Zap size={14} color="#7c3aed" strokeWidth={2} />
-            <Text style={styles.premiumActiveText}>Premium actif</Text>
+            <Text style={styles.premiumActiveText}>{t('menu.premiumActive')}</Text>
           </View>
         ) : (
           <TouchableOpacity style={styles.upgradeRow} onPress={() => navigate('/paywall')} activeOpacity={0.85}>
             <Zap size={15} color="white" strokeWidth={2.2} />
-            <Text style={styles.upgradeText}>Passer à Premium</Text>
+            <Text style={styles.upgradeText}>{t('profile.upgrade')}</Text>
           </TouchableOpacity>
         )}
 
@@ -134,7 +136,7 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
         <View style={styles.spacer} />
         <TouchableOpacity style={styles.signOutRow} onPress={handleSignOut} activeOpacity={0.7}>
           <LogOut size={16} color={Colors.textTertiary} strokeWidth={1.5} />
-          <Text style={styles.signOutText}>Se déconnecter</Text>
+          <Text style={styles.signOutText}>{t('menu.signOut')}</Text>
         </TouchableOpacity>
       </Animated.View>
     </Modal>

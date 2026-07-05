@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Image, TextInput, Animated,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { DraftProposedData, Collection } from '@/types/database'
@@ -22,6 +23,7 @@ function normalizeAttributes(
 export default function DraftScreen() {
   const { draftId } = useLocalSearchParams<{ draftId: string }>()
   const router = useRouter()
+  const { t } = useTranslation()
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -46,8 +48,8 @@ export default function DraftScreen() {
     setCoverUri(null)
   }, [draftId])
   const attrLabels: Record<string, string> = {
-    brand: 'Marque', model: 'Modèle', category: 'Catégorie',
-    color: 'Couleur', voltage: 'Voltage', serial_number: 'N° série',
+    brand: t('capture.attrBrand'), model: t('capture.attrModel'), category: t('capture.attrCategory'),
+    color: t('capture.attrColor'), voltage: t('capture.attrVoltage'), serial_number: t('capture.attrSerial'),
   }
 
   // Animation d'entrée
@@ -90,7 +92,7 @@ export default function DraftScreen() {
     const { data: { user } } = await supabase.auth.getUser()
     const { data: drawer } = await supabase.from('drawers').select('id').single()
     if (!drawer || !user) {
-      Alert.alert('Erreur', 'Tiroir introuvable.')
+      Alert.alert(t('common.error'), t('home.drawerNotFound'))
       setCreatingCollection(false)
       return
     }
@@ -100,7 +102,7 @@ export default function DraftScreen() {
       .select()
       .single()
     setCreatingCollection(false)
-    if (error) { Alert.alert('Erreur', error.message); return }
+    if (error) { Alert.alert(t('common.error'), error.message); return }
     setCollections(prev => [...prev, data])
     setSelectedCollectionId(data.id)
     setNewCollectionName('')
@@ -108,7 +110,7 @@ export default function DraftScreen() {
 
   async function handleConfirm() {
     if (!title.trim()) {
-      Alert.alert('Titre manquant', 'Donne un nom à cet objet avant de confirmer.')
+      Alert.alert(t('capture.titleMissingTitle'), t('capture.titleMissingMessage'))
       return
     }
     if (!draftId) return
@@ -120,9 +122,9 @@ export default function DraftScreen() {
     setConfirming(false)
     if (error) {
       let msg = error.message
-      if (msg.includes("non traité par l'IA")) msg = "L'analyse IA n'est pas encore terminée. Réessaie dans un instant."
-      else if (msg.includes('expiré')) msg = 'Ce brouillon a expiré. Recommence la capture.'
-      Alert.alert('Impossible de confirmer', msg)
+      if (msg.includes("non traité par l'IA")) msg = t('capture.confirmErrorAiPending')
+      else if (msg.includes('expiré')) msg = t('capture.confirmErrorExpired')
+      Alert.alert(t('capture.confirmErrorTitle'), msg)
       return
     }
     if (draftId) draftCache.clear(draftId)
@@ -130,10 +132,10 @@ export default function DraftScreen() {
   }
 
   async function handleReject() {
-    Alert.alert('Annuler ?', 'Les photos seront supprimées et le brouillon effacé.', [
-      { text: 'Non', style: 'cancel' },
+    Alert.alert(t('capture.cancelTitle'), t('capture.cancelMessage'), [
+      { text: t('capture.cancelNo'), style: 'cancel' },
       {
-        text: 'Oui, annuler', style: 'destructive',
+        text: t('capture.cancelYes'), style: 'destructive',
         onPress: async () => {
           const { data } = await supabase.rpc('reject_draft', { p_draft_id: draftId })
           const paths: string[] = data?.storage_paths_to_delete ?? []
@@ -182,7 +184,7 @@ export default function DraftScreen() {
             )}
             {/* Badge confiance IA */}
             <View style={styles.confidenceBadge}>
-              <Text style={styles.confidenceBadgeText}>✦ IA — à vérifier</Text>
+              <Text style={styles.confidenceBadgeText}>{t('capture.aiToVerify')}</Text>
             </View>
           </View>
 
@@ -203,18 +205,18 @@ export default function DraftScreen() {
             ) : (
               <TouchableOpacity onPress={() => setEditingTitle(true)} activeOpacity={0.7} style={styles.titleRow}>
                 <Text style={styles.titleText} numberOfLines={2}>
-                  {title || 'Sans titre'}
+                  {title || t('capture.untitled')}
                 </Text>
                 <Text style={styles.titleEdit}>✎</Text>
               </TouchableOpacity>
             )}
-            <Text style={styles.titleSub}>Proposition de l'IA · appuie pour modifier</Text>
+            <Text style={styles.titleSub}>{t('capture.titleAiHint')}</Text>
           </View>
 
           {/* Attributs IA — lecture seule */}
           {visibleAttrs.length > 0 && (
             <View style={styles.attrsCard}>
-              <Text style={styles.sectionLabel}>Détecté par l'IA</Text>
+              <Text style={styles.sectionLabel}>{t('capture.detectedByAi')}</Text>
               {visibleAttrs.map(([key, value], i) => (
                 <View key={key} style={[styles.attrRow, i > 0 && styles.attrSep]}>
                   <Text style={styles.attrKey}>{attrLabels[key] ?? key}</Text>
@@ -226,11 +228,11 @@ export default function DraftScreen() {
 
           {/* Description */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.sectionLabel}>Description</Text>
+            <Text style={styles.sectionLabel}>{t('capture.description')}</Text>
             <TextInput
               value={description}
               onChangeText={setDescription}
-              placeholder="Quelques mots sur l'objet…"
+              placeholder={t('capture.descriptionPlaceholder')}
               placeholderTextColor={Colors.textTertiary}
               style={[styles.field, styles.fieldMulti]}
               multiline
@@ -241,11 +243,11 @@ export default function DraftScreen() {
 
           {/* Emplacement */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.sectionLabel}>Emplacement</Text>
+            <Text style={styles.sectionLabel}>{t('capture.location')}</Text>
             <TextInput
               value={locationNote}
               onChangeText={setLocationNote}
-              placeholder="Garage, étagère du haut…"
+              placeholder={t('capture.locationPlaceholder')}
               placeholderTextColor={Colors.textTertiary}
               style={styles.field}
               returnKeyType="done"
@@ -254,7 +256,7 @@ export default function DraftScreen() {
 
           {/* Collection */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.sectionLabel}>Collection</Text>
+            <Text style={styles.sectionLabel}>{t('capture.collection')}</Text>
             <View style={styles.chips}>
               <TouchableOpacity
                 onPress={() => setSelectedCollectionId(null)}
@@ -262,7 +264,7 @@ export default function DraftScreen() {
                 activeOpacity={0.75}
               >
                 <Text style={[styles.chipText, selectedCollectionId === null && styles.chipTextActive]}>
-                  Sans collection
+                  {t('capture.noCollection')}
                 </Text>
               </TouchableOpacity>
               {collections.map(col => (
@@ -284,7 +286,7 @@ export default function DraftScreen() {
               <TextInput
                 value={newCollectionName}
                 onChangeText={setNewCollectionName}
-                placeholder="Nouvelle collection…"
+                placeholder={t('capture.newCollectionPlaceholder')}
                 placeholderTextColor={Colors.textTertiary}
                 style={[styles.field, { flex: 1 }]}
                 returnKeyType="done"
@@ -315,16 +317,16 @@ export default function DraftScreen() {
           >
             {confirming
               ? <ActivityIndicator color={Colors.textInverse} size="small" />
-              : <Text style={styles.btnPrimaryText}>Ajouter à mon Tiroir</Text>}
+              : <Text style={styles.btnPrimaryText}>{t('capture.addToDrawer')}</Text>}
           </TouchableOpacity>
 
           <View style={styles.bottomLinks}>
             <TouchableOpacity onPress={handleReanalyze} activeOpacity={0.7} hitSlop={8}>
-              <Text style={styles.bottomLinkText}>Relancer l'analyse IA</Text>
+              <Text style={styles.bottomLinkText}>{t('capture.reanalyze')}</Text>
             </TouchableOpacity>
             <Text style={styles.bottomLinkSep}>·</Text>
             <TouchableOpacity style={styles.btnCancel} onPress={handleReject} activeOpacity={0.7} hitSlop={8}>
-              <Text style={styles.btnCancelText}>Annuler</Text>
+              <Text style={styles.btnCancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
 

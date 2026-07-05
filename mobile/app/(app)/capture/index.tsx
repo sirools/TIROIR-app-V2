@@ -9,6 +9,7 @@ import * as ImageManipulator from 'expo-image-manipulator'
 import * as FileSystem from 'expo-file-system/legacy'
 import { useRouter } from 'expo-router'
 import { useFocusEffect } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
@@ -21,6 +22,7 @@ interface PickedImage {
 
 export default function CaptureScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [images, setImages] = useState<PickedImage[]>([])
   const [loading, setLoading] = useState(false)
@@ -49,7 +51,7 @@ export default function CaptureScreen() {
   async function pickFromLibrary() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
-      Alert.alert('Permission refusée', "Autorise l'accès à ta photothèque dans les réglages.")
+      Alert.alert(t('capture.permissionDeniedTitle'), t('capture.permissionLibrary'))
       return
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -67,7 +69,7 @@ export default function CaptureScreen() {
   async function pickFromCamera() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
     if (status !== 'granted') {
-      Alert.alert('Permission refusée', "Autorise l'accès à l'appareil photo dans les réglages.")
+      Alert.alert(t('capture.permissionDeniedTitle'), t('capture.permissionCamera'))
       return
     }
     const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.9 })
@@ -96,14 +98,14 @@ export default function CaptureScreen() {
 
   async function handleNext() {
     if (images.length === 0) {
-      Alert.alert('Ajoute au moins une photo', "Une photo est nécessaire pour analyser l'objet.")
+      Alert.alert(t('capture.needPhotoTitle'), t('capture.needPhotoMessage'))
       return
     }
     setLoading(true)
     const { data: draftId, error: draftError } = await supabase.rpc('begin_draft_capture')
     setLoading(false)
     if (draftError || !draftId) {
-      Alert.alert('Erreur', draftError?.message ?? 'Impossible de démarrer la capture.')
+      Alert.alert(t('common.error'), draftError?.message ?? t('capture.startCaptureError'))
       return
     }
     router.push({ pathname: '/capture/uploading', params: { draftId, images: JSON.stringify(images) } })
@@ -114,7 +116,7 @@ export default function CaptureScreen() {
     setLoadingManual(true)
     try {
       const { data: objectId, error: createError } = await supabase.rpc('create_empty_object')
-      if (createError || !objectId) throw new Error(createError?.message ?? 'Création impossible')
+      if (createError || !objectId) throw new Error(createError?.message ?? t('capture.createError'))
 
       for (let i = 0; i < images.length; i++) {
         const img = images[i]
@@ -150,7 +152,7 @@ export default function CaptureScreen() {
 
       router.replace(`/objects/edit/${objectId}`)
     } catch (e: any) {
-      Alert.alert('Erreur', e.message ?? 'Une erreur est survenue')
+      Alert.alert(t('common.error'), e.message ?? t('capture.genericError'))
     } finally {
       setLoadingManual(false)
     }
@@ -177,14 +179,14 @@ export default function CaptureScreen() {
 
         {/* Titre */}
         <View style={styles.header}>
-          <Text style={styles.title}>Prends une photo</Text>
-          <Text style={styles.subtitle}>L'IA analyse jusqu'à 5 photos pour créer la fiche</Text>
+          <Text style={styles.title}>{t('capture.title')}</Text>
+          <Text style={styles.subtitle}>{t('capture.subtitle')}</Text>
           <Text style={[styles.quotaCounter, quotaExhausted && styles.quotaCounterExhausted]}>
             {quotaLimit === null
-              ? 'Analyses IA illimitées'
+              ? t('capture.quotaUnlimited')
               : quotaExhausted
-                ? `Quota IA épuisé · ${quotaUsed}/${quotaLimit} ce mois`
-                : `${quotaLimit - quotaUsed} analyse${quotaLimit - quotaUsed > 1 ? 's' : ''} IA restante${quotaLimit - quotaUsed > 1 ? 's' : ''} ce mois`
+                ? t('capture.quotaExhausted', { used: quotaUsed, limit: quotaLimit })
+                : t('capture.quotaRemaining', { count: quotaLimit - quotaUsed })
             }
           </Text>
         </View>
@@ -195,8 +197,8 @@ export default function CaptureScreen() {
             <View style={styles.heroIconBg}>
               <CameraDrawing />
             </View>
-            <Text style={styles.heroLabel}>Appuie pour photographier</Text>
-            <Text style={styles.heroSub}>ou glisse depuis ta photothèque</Text>
+            <Text style={styles.heroLabel}>{t('capture.heroTap')}</Text>
+            <Text style={styles.heroSub}>{t('capture.heroOr')}</Text>
           </TouchableOpacity>
         )}
 
@@ -224,7 +226,7 @@ export default function CaptureScreen() {
           <View style={styles.tip}>
             <Text style={styles.tipIcon}>💡</Text>
             <Text style={styles.tipText}>
-              Plus de photos = fiche plus précise. Essaie face, dos et étiquette.
+              {t('capture.tip')}
             </Text>
           </View>
         )}
@@ -233,11 +235,11 @@ export default function CaptureScreen() {
         <View style={styles.actions}>
           <TouchableOpacity style={styles.btnAction} onPress={pickFromCamera} activeOpacity={0.8}>
             <Camera size={28} color={Colors.textPrimary} strokeWidth={1.5} />
-            <Text style={styles.btnActionLabel}>Prendre une{'\n'}photo</Text>
+            <Text style={styles.btnActionLabel}>{t('capture.takePhoto')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.btnAction} onPress={pickFromLibrary} activeOpacity={0.8}>
             <Images size={28} color={Colors.textPrimary} strokeWidth={1.5} />
-            <Text style={styles.btnActionLabel}>Photothèque</Text>
+            <Text style={styles.btnActionLabel}>{t('capture.library')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -252,7 +254,7 @@ export default function CaptureScreen() {
           disabled={!hasImages || loading || quotaExhausted}
         >
           <Text style={styles.btnPrimaryText}>
-            {loading ? 'Préparation…' : hasImages ? `Analyser ${images.length} photo${images.length > 1 ? 's' : ''} →` : 'Ajoute une photo pour continuer'}
+            {loading ? t('capture.preparing') : hasImages ? t('capture.analyzeCta', { count: images.length }) : t('capture.addPhotoToContinue')}
           </Text>
         </TouchableOpacity>
 
@@ -260,7 +262,7 @@ export default function CaptureScreen() {
         {hasImages && quotaExhausted && (
           <View style={styles.quotaBanner}>
             <Text style={styles.quotaText}>
-              <Text style={styles.quotaLink}>{/* TODO: onPress → écran recharge */}Recharger mon quota →</Text>
+              <Text style={styles.quotaLink}>{/* TODO: onPress → écran recharge */}{t('capture.rechargeQuota')}</Text>
             </Text>
           </View>
         )}
@@ -280,7 +282,7 @@ export default function CaptureScreen() {
             {loadingManual
               ? <ActivityIndicator size="small" color={Colors.textSecondary} />
               : <Text style={[styles.btnManualText, quotaExhausted && styles.btnManualTextProminent]}>
-                  Créer une fiche vide sans IA
+                  {t('capture.createEmpty')}
                 </Text>
             }
           </TouchableOpacity>
