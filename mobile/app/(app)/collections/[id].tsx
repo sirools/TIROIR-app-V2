@@ -4,6 +4,7 @@ import {
   RefreshControl, Alert, TextInput, Image, Dimensions, Modal, Animated, ScrollView,
 } from 'react-native'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft, MoreHorizontal, Eye, Minus, Plus,
   CheckSquare, Trash2, MoveRight, Tag, Share2, CheckCircle,
@@ -24,12 +25,12 @@ const ZOOM_LEVELS = [
 ]
 
 const BULK_STATUS_OPTIONS = [
-  { value: 'owned',  label: 'Possédé',     dot: '#22C55E' },
-  { value: 'stored', label: 'En stockage', dot: '#38BDF8' },
-  { value: 'loaned', label: 'Prêté',       dot: '#E879F9' },
-  { value: 'sold',   label: 'Vendu',       dot: '#FBBF24' },
-  { value: 'given',  label: 'Donné',       dot: '#FB7185' },
-  { value: 'lost',   label: 'Perdu',       dot: '#9CA3AF' },
+  { value: 'owned',  dot: '#22C55E' },
+  { value: 'stored', dot: '#38BDF8' },
+  { value: 'loaned', dot: '#E879F9' },
+  { value: 'sold',   dot: '#FBBF24' },
+  { value: 'given',  dot: '#FB7185' },
+  { value: 'lost',   dot: '#9CA3AF' },
 ]
 const DEFAULT_ZOOM = 2 // 75%, 3 colonnes
 
@@ -53,22 +54,17 @@ const DEFAULT_DISPLAY: DisplayConfig = {
   showBrand: false, showEra: false, showCondition: false,
 }
 
-const DISPLAY_FIELDS: { key: keyof DisplayConfig; label: string; icon: string }[] = [
-  { key: 'showPhoto',     label: 'Photo',    icon: '📷' },
-  { key: 'showName',      label: 'Nom',      icon: 'T'  },
-  { key: 'showStatus',    label: 'Statut',   icon: '◎'  },
-  { key: 'showValue',     label: 'Valeur',   icon: '€'  },
-  { key: 'showSize',      label: 'Taille',   icon: '↕'  },
-  { key: 'showColor',     label: 'Couleur',  icon: '◐'  },
-  { key: 'showBrand',     label: 'Marque',   icon: 'ℹ'  },
-  { key: 'showEra',       label: 'Époque',   icon: '📅' },
-  { key: 'showCondition', label: 'État',     icon: '✦'  },
+const DISPLAY_FIELDS: { key: keyof DisplayConfig; labelKey: string; icon: string }[] = [
+  { key: 'showPhoto',     labelKey: 'collectionDetail.fieldPhoto',     icon: '📷' },
+  { key: 'showName',      labelKey: 'collectionDetail.fieldName',      icon: 'T'  },
+  { key: 'showStatus',    labelKey: 'collectionDetail.fieldStatus',    icon: '◎'  },
+  { key: 'showValue',     labelKey: 'collectionDetail.fieldValue',     icon: '€'  },
+  { key: 'showSize',      labelKey: 'collectionDetail.fieldSize',      icon: '↕'  },
+  { key: 'showColor',     labelKey: 'collectionDetail.fieldColor',     icon: '◐'  },
+  { key: 'showBrand',     labelKey: 'collectionDetail.fieldBrand',     icon: 'ℹ'  },
+  { key: 'showEra',       labelKey: 'collectionDetail.fieldEra',       icon: '📅' },
+  { key: 'showCondition', labelKey: 'collectionDetail.fieldCondition', icon: '✦'  },
 ]
-
-const STATUS_LABELS: Record<string, string> = {
-  owned: 'Possédé', stored: 'Stocké', loaned: 'Prêté',
-  sold: 'Vendu', given: 'Donné', lost: 'Perdu',
-}
 
 // ── Calcul taille carte ───────────────────────────────────────────────────────
 
@@ -94,6 +90,7 @@ interface ObjectCardProps {
 }
 
 function ObjectCard({ object, coverUrl, onPress, onLongPress, cols, display, isSelectMode, isSelected }: ObjectCardProps) {
+  const { t, i18n } = useTranslation()
   const size = cardSize(cols)
   const attrs = (object.attributes as Record<string, string> | null) ?? {}
   const value = object.user_value ?? object.market_value
@@ -136,16 +133,16 @@ function ObjectCard({ object, coverUrl, onPress, onLongPress, cols, display, isS
             </Text>
           )}
           {display.showStatus && object.status && (
-            <Text style={cardStyles.tag}>{STATUS_LABELS[object.status] ?? object.status}</Text>
+            <Text style={cardStyles.tag}>{t(`status.${object.status}`, { defaultValue: object.status })}</Text>
           )}
           {display.showBrand && attrs.brand && (
             <Text style={cardStyles.meta} numberOfLines={1}>{attrs.brand}</Text>
           )}
           {display.showValue && value != null && (
-            <Text style={cardStyles.meta}>{value.toLocaleString('fr-FR')} {currSym}</Text>
+            <Text style={cardStyles.meta}>{value.toLocaleString(i18n.language)} {currSym}</Text>
           )}
           {display.showSize && attrs.size && (
-            <Text style={cardStyles.meta}>Taille : {attrs.size}</Text>
+            <Text style={cardStyles.meta}>{t('collectionDetail.sizeLabel', { value: attrs.size })}</Text>
           )}
           {display.showColor && attrs.color && (
             <Text style={cardStyles.meta}>{attrs.color}</Text>
@@ -214,6 +211,7 @@ interface DisplayPanelProps {
 }
 
 function DisplayPanel({ visible, config, onApply, onClose }: DisplayPanelProps) {
+  const { t } = useTranslation()
   const [draft, setDraft] = useState<DisplayConfig>(config)
   const slideAnim = useRef(new Animated.Value(300)).current
 
@@ -235,8 +233,8 @@ function DisplayPanel({ visible, config, onApply, onClose }: DisplayPanelProps) 
       <TouchableOpacity style={panelStyles.backdrop} activeOpacity={1} onPress={onClose} />
       <Animated.View style={[panelStyles.sheet, { transform: [{ translateY: slideAnim }] }]}>
         <View style={panelStyles.handle} />
-        <Text style={panelStyles.title}>Personnaliser l'affichage</Text>
-        <Text style={panelStyles.subtitle}>Choisissez les informations à afficher sur chaque carte :</Text>
+        <Text style={panelStyles.title}>{t('collectionDetail.customizeTitle')}</Text>
+        <Text style={panelStyles.subtitle}>{t('collectionDetail.customizeSub')}</Text>
 
         <View style={panelStyles.grid}>
           {DISPLAY_FIELDS.map(field => {
@@ -252,7 +250,7 @@ function DisplayPanel({ visible, config, onApply, onClose }: DisplayPanelProps) 
                   {field.icon}
                 </Text>
                 <Text style={[panelStyles.chipLabel, active && panelStyles.chipLabelActive]}>
-                  {field.label}
+                  {t(field.labelKey)}
                 </Text>
               </TouchableOpacity>
             )
@@ -264,7 +262,7 @@ function DisplayPanel({ visible, config, onApply, onClose }: DisplayPanelProps) 
           onPress={() => { onApply(draft); onClose() }}
           activeOpacity={0.88}
         >
-          <Text style={panelStyles.applyText}>APPLIQUER</Text>
+          <Text style={panelStyles.applyText}>{t('collectionDetail.apply')}</Text>
         </TouchableOpacity>
       </Animated.View>
     </Modal>
@@ -321,6 +319,7 @@ const panelStyles = StyleSheet.create({
 export default function CollectionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
+  const { t } = useTranslation()
 
   const [collection, setCollection] = useState<Collection | null>(null)
   const [objects, setObjects] = useState<TiroirObject[]>([])
@@ -394,7 +393,7 @@ export default function CollectionDetailScreen() {
       .update({ emoji, icon_color: color, updated_at: new Date().toISOString() })
       .eq('id', collectionId)
     if (error) {
-      Alert.alert('Erreur', error.message)
+      Alert.alert(t('common.error'), error.message)
       setCollection(prev => prev ? { ...prev, emoji: collection.emoji, icon_color: collection.icon_color } : prev)
     }
   }
@@ -410,7 +409,7 @@ export default function CollectionDetailScreen() {
     const newName = renameValue.trim()
     setRenameVisible(false)
     const { error } = await supabase.from('collections').update({ name: newName }).eq('id', collection.id)
-    if (error) { Alert.alert('Erreur', error.message); return }
+    if (error) { Alert.alert(t('common.error'), error.message); return }
     setCollection(prev => prev ? { ...prev, name: newName } : prev)
   }
 
@@ -423,7 +422,7 @@ export default function CollectionDetailScreen() {
     if (!collection) return
     setDeleteVisible(false)
     const { error } = await supabase.from('collections').delete().eq('id', collection.id)
-    if (error) { Alert.alert('Erreur', error.message); return }
+    if (error) { Alert.alert(t('common.error'), error.message); return }
     router.back()
   }
 
@@ -440,8 +439,8 @@ export default function CollectionDetailScreen() {
     return (
       <Screen>
         <View style={styles.loader}>
-          <Text style={styles.errorText}>Collection introuvable.</Text>
-          <TouchableOpacity onPress={() => router.back()}><Text style={styles.backLink}>← Retour</Text></TouchableOpacity>
+          <Text style={styles.errorText}>{t('collectionDetail.notFound')}</Text>
+          <TouchableOpacity onPress={() => router.back()}><Text style={styles.backLink}>← {t('common.back')}</Text></TouchableOpacity>
         </View>
       </Screen>
     )
@@ -537,7 +536,7 @@ export default function CollectionDetailScreen() {
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           {isSelectMode ? (
-            <Text style={styles.headerTitle}>{selectedIds.size} sélectionné{selectedIds.size > 1 ? 's' : ''}</Text>
+            <Text style={styles.headerTitle}>{t('collectionDetail.selectedCount', { count: selectedIds.size })}</Text>
           ) : (
             <>
               <View style={[styles.headerIcon, { backgroundColor: collection.icon_color ?? '#E8F0E0' }]}>
@@ -550,7 +549,7 @@ export default function CollectionDetailScreen() {
         </View>
         {isSelectMode ? (
           <TouchableOpacity onPress={exitSelectMode} style={styles.headerBtn} hitSlop={12}>
-            <Text style={styles.cancelSelectText}>Annuler</Text>
+            <Text style={styles.cancelSelectText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={openMenu} style={styles.headerBtn} hitSlop={12}>
@@ -563,7 +562,7 @@ export default function CollectionDetailScreen() {
       <View style={styles.toolbar}>
         <TouchableOpacity style={styles.filterBtn} onPress={() => setDisplayPanelVisible(true)} activeOpacity={0.75}>
           <Text style={styles.filterBtnIcon}>👁</Text>
-          <Text style={styles.filterBtnText}>Filtrer</Text>
+          <Text style={styles.filterBtnText}>{t('collectionDetail.filter')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -577,7 +576,7 @@ export default function CollectionDetailScreen() {
           disabled={objects.length === 0}
         >
           <Text style={[styles.filterBtnText, isSelectMode && styles.filterBtnTextActive]}>
-            {isSelectMode ? (allObjectsSelected ? 'Vider' : 'Tout') : 'Sélect.'}
+            {isSelectMode ? (allObjectsSelected ? t('collectionDetail.clear') : t('collectionDetail.all')) : t('collectionDetail.select')}
           </Text>
         </TouchableOpacity>
 
@@ -585,7 +584,7 @@ export default function CollectionDetailScreen() {
           style={styles.filterInput}
           value={filter}
           onChangeText={setFilter}
-          placeholder="Rechercher…"
+          placeholder={t('collectionDetail.searchPlaceholder')}
           placeholderTextColor={Colors.textTertiary}
           clearButtonMode="while-editing"
         />
@@ -616,10 +615,10 @@ export default function CollectionDetailScreen() {
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
         options={[
-          { label: 'Modifier l\'icône', onPress: () => setPickerVisible(true) },
-          { label: 'Renommer', onPress: doRename },
-          { label: 'Supprimer', onPress: doDelete, destructive: true },
-          { label: 'Annuler', onPress: () => {}, cancel: true },
+          { label: t('collectionDetail.editIcon'), onPress: () => setPickerVisible(true) },
+          { label: t('collections.rename'), onPress: doRename },
+          { label: t('common.delete'), onPress: doDelete, destructive: true },
+          { label: t('common.cancel'), onPress: () => {}, cancel: true },
         ]}
       />
 
@@ -627,12 +626,12 @@ export default function CollectionDetailScreen() {
       <Modal visible={renameVisible} transparent animationType="fade" onRequestClose={() => setRenameVisible(false)}>
         <TouchableOpacity style={styles.renameBackdrop} activeOpacity={1} onPress={() => setRenameVisible(false)} />
         <View style={styles.renameCard}>
-          <Text style={styles.renameTitle}>Renommer la collection</Text>
+          <Text style={styles.renameTitle}>{t('collectionDetail.renameTitle')}</Text>
           <TextInput
             style={styles.renameInput}
             value={renameValue}
             onChangeText={setRenameValue}
-            placeholder="Nom de la collection"
+            placeholder={t('collectionDetail.renamePlaceholder')}
             placeholderTextColor={Colors.textTertiary}
             autoFocus
             returnKeyType="done"
@@ -640,14 +639,14 @@ export default function CollectionDetailScreen() {
           />
           <View style={styles.renameActions}>
             <TouchableOpacity style={styles.renameCancelBtn} onPress={() => setRenameVisible(false)}>
-              <Text style={styles.renameCancelText}>Annuler</Text>
+              <Text style={styles.renameCancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.renameConfirmBtn, !renameValue.trim() && styles.renameConfirmDisabled]}
               onPress={submitRename}
               disabled={!renameValue.trim()}
             >
-              <Text style={styles.renameConfirmText}>Renommer</Text>
+              <Text style={styles.renameConfirmText}>{t('collections.rename')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -657,18 +656,18 @@ export default function CollectionDetailScreen() {
       <Modal visible={deleteVisible} transparent animationType="fade" onRequestClose={() => setDeleteVisible(false)}>
         <TouchableOpacity style={styles.renameBackdrop} activeOpacity={1} onPress={() => setDeleteVisible(false)} />
         <View style={styles.deleteCard}>
-          <Text style={styles.renameTitle}>Supprimer « {collection.name} » ?</Text>
+          <Text style={styles.renameTitle}>{t('home.deleteCollectionTitle', { name: collection.name })}</Text>
           <Text style={styles.deleteBody}>
             {objects.length > 0
-              ? `Elle contient ${objects.length} objet${objects.length > 1 ? 's' : ''}. Les objets resteront dans ton Tiroir.`
-              : 'Cette action est irréversible.'}
+              ? t('home.deleteCollectionWithObjects', { count: objects.length })
+              : t('home.deleteCollectionIrreversible')}
           </Text>
           <View style={styles.renameActions}>
             <TouchableOpacity style={styles.renameCancelBtn} onPress={() => setDeleteVisible(false)}>
-              <Text style={styles.renameCancelText}>Annuler</Text>
+              <Text style={styles.renameCancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.deleteConfirmBtn} onPress={confirmDelete}>
-              <Text style={styles.renameConfirmText}>Supprimer</Text>
+              <Text style={styles.renameConfirmText}>{t('common.delete')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -703,8 +702,8 @@ export default function CollectionDetailScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />}
         ListEmptyComponent={
           <EmptyState
-            title="Aucun objet"
-            subtitle={filter ? 'Aucun résultat pour cette recherche.' : 'Cette collection ne contient pas encore d\'objets.'}
+            title={t('collectionDetail.emptyTitle')}
+            subtitle={filter ? t('collectionDetail.emptyNoResults') : t('collectionDetail.emptySubtitle')}
           />
         }
         renderItem={({ item }) => (
@@ -729,19 +728,19 @@ export default function CollectionDetailScreen() {
         <View style={styles.actionBar}>
           <TouchableOpacity style={styles.actionBtn} onPress={() => setStatuerVisible(true)} activeOpacity={0.7} disabled={selectedIds.size === 0}>
             <Tag size={22} color={selectedIds.size === 0 ? Colors.textTertiary : Colors.textPrimary} strokeWidth={1.8} />
-            <Text style={[styles.actionLabel, selectedIds.size === 0 && styles.actionLabelDisabled]}>Statuer</Text>
+            <Text style={[styles.actionLabel, selectedIds.size === 0 && styles.actionLabelDisabled]}>{t('collectionDetail.actionStatus')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => { loadAllCollections(); setDeplacerVisible(true) }} activeOpacity={0.7} disabled={selectedIds.size === 0}>
             <MoveRight size={22} color={selectedIds.size === 0 ? Colors.textTertiary : Colors.textPrimary} strokeWidth={1.8} />
-            <Text style={[styles.actionLabel, selectedIds.size === 0 && styles.actionLabelDisabled]}>Déplacer</Text>
+            <Text style={[styles.actionLabel, selectedIds.size === 0 && styles.actionLabelDisabled]}>{t('collectionDetail.actionMove')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => setSharePanelVisible(true)} activeOpacity={0.7} disabled={selectedIds.size === 0}>
             <Share2 size={22} color={selectedIds.size === 0 ? Colors.textTertiary : Colors.textPrimary} strokeWidth={1.8} />
-            <Text style={[styles.actionLabel, selectedIds.size === 0 && styles.actionLabelDisabled]}>Partager</Text>
+            <Text style={[styles.actionLabel, selectedIds.size === 0 && styles.actionLabelDisabled]}>{t('collectionDetail.actionShare')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={confirmDeleteSelected} activeOpacity={0.7} disabled={selectedIds.size === 0}>
             <Trash2 size={22} color={selectedIds.size === 0 ? Colors.textTertiary : Colors.error} strokeWidth={1.8} />
-            <Text style={[styles.actionLabel, selectedIds.size > 0 ? styles.actionLabelDestructive : styles.actionLabelDisabled]}>Supprimer</Text>
+            <Text style={[styles.actionLabel, selectedIds.size > 0 ? styles.actionLabelDestructive : styles.actionLabelDisabled]}>{t('common.delete')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -751,7 +750,7 @@ export default function CollectionDetailScreen() {
         <TouchableOpacity style={styles.bulkBackdrop} activeOpacity={1} onPress={() => setStatuerVisible(false)} />
         <View style={styles.bulkSheet}>
           <View style={styles.bulkHandle} />
-          <Text style={styles.bulkTitle}>Statuer sur {selectedIds.size} objet{selectedIds.size > 1 ? 's' : ''}</Text>
+          <Text style={styles.bulkTitle}>{t('collectionDetail.statusOn', { count: selectedIds.size })}</Text>
           <ScrollView showsVerticalScrollIndicator={false}>
             {BULK_STATUS_OPTIONS.map(opt => (
               <TouchableOpacity
@@ -762,7 +761,7 @@ export default function CollectionDetailScreen() {
                 disabled={bulkActionLoading}
               >
                 <View style={[styles.bulkStatusDot, { backgroundColor: opt.dot }]} />
-                <Text style={styles.bulkOptionLabel}>{opt.label}</Text>
+                <Text style={styles.bulkOptionLabel}>{t(`status.${opt.value}`)}</Text>
                 {bulkActionLoading
                   ? <ActivityIndicator size="small" color={Colors.accent} />
                   : <CheckCircle size={18} color={Colors.borderLight} strokeWidth={1.5} />
@@ -778,11 +777,11 @@ export default function CollectionDetailScreen() {
         <TouchableOpacity style={styles.bulkBackdrop} activeOpacity={1} onPress={() => setDeplacerVisible(false)} />
         <View style={styles.bulkSheet}>
           <View style={styles.bulkHandle} />
-          <Text style={styles.bulkTitle}>Déplacer vers…</Text>
+          <Text style={styles.bulkTitle}>{t('collectionDetail.moveTo')}</Text>
           <ScrollView showsVerticalScrollIndicator={false}>
             <TouchableOpacity style={styles.bulkOptionRow} onPress={() => applyBulkMove(null)} activeOpacity={0.7} disabled={bulkActionLoading}>
               <View style={[styles.bulkStatusDot, { backgroundColor: Colors.textTertiary }]} />
-              <Text style={styles.bulkOptionLabel}>Aucune collection</Text>
+              <Text style={styles.bulkOptionLabel}>{t('capture.noCollection')}</Text>
             </TouchableOpacity>
             {allCollections.filter(c => c.id !== id).map(col => (
               <TouchableOpacity
@@ -813,15 +812,15 @@ export default function CollectionDetailScreen() {
             <Trash2 size={32} color={Colors.error} strokeWidth={1.5} />
           </View>
           <Text style={styles.bulkTitle}>
-            Supprimer {selectedIds.size} objet{selectedIds.size > 1 ? 's' : ''} ?
+            {t('collectionDetail.deleteBulkTitle', { count: selectedIds.size })}
           </Text>
-          <Text style={styles.bulkDeleteBody}>Cette action est irréversible. Les objets seront définitivement supprimés.</Text>
+          <Text style={styles.bulkDeleteBody}>{t('collectionDetail.deleteBulkBody')}</Text>
           <View style={styles.bulkActions}>
             <TouchableOpacity style={styles.bulkCancelBtn} onPress={() => setDeleteBulkVisible(false)}>
-              <Text style={styles.bulkCancelText}>Annuler</Text>
+              <Text style={styles.bulkCancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.bulkDeleteBtn} onPress={() => { setDeleteBulkVisible(false); deleteSelected() }}>
-              <Text style={styles.bulkDeleteText}>Supprimer</Text>
+              <Text style={styles.bulkDeleteText}>{t('common.delete')}</Text>
             </TouchableOpacity>
           </View>
         </View>
