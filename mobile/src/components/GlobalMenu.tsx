@@ -5,7 +5,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { User, Settings, LogOut, Link, Zap } from 'lucide-react-native'
+import { User, Settings, LogOut, Link, Zap, MessageCircle } from 'lucide-react-native'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthContext'
 
@@ -99,6 +99,14 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
         <View style={styles.divider} />
 
         {/* Entrées */}
+        {isPremium && (
+          <MenuItem
+            icon={<MessageCircle size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
+            label="Assistant"
+            badge="BETA"
+            onPress={() => navigate('/assistant')}
+          />
+        )}
         <MenuItem
           icon={<Link size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
           label="Partages actifs"
@@ -133,11 +141,16 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
   )
 }
 
-function MenuItem({ icon, label, onPress }: { icon: React.ReactNode; label: string; onPress: () => void }) {
+function MenuItem({ icon, label, badge, onPress }: { icon: React.ReactNode; label: string; badge?: string; onPress: () => void }) {
   return (
     <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.menuIcon}>{icon}</View>
       <Text style={styles.menuLabel}>{label}</Text>
+      {badge && (
+        <View style={styles.menuBadge}>
+          <Text style={styles.menuBadgeText}>{badge}</Text>
+        </View>
+      )}
     </TouchableOpacity>
   )
 }
@@ -222,6 +235,11 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     fontWeight: Typography.medium,
   },
+  menuBadge: {
+    backgroundColor: '#F3EEFF', borderWidth: 1, borderColor: '#D4BBFF',
+    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999,
+  },
+  menuBadgeText: { fontSize: 9, fontWeight: Typography.bold, color: '#7c3aed', letterSpacing: 0.3 },
 
   // Badge plan
   planBadge: {
