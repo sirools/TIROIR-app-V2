@@ -71,7 +71,10 @@ export default function RegisterScreen() {
     const { error: authError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { display_name: name.trim() } },
+      options: {
+        data: { display_name: name.trim() },
+        emailRedirectTo: 'https://tiroir.app/email-confirme',
+      },
     })
 
     setLoading(false)
