@@ -1,10 +1,12 @@
 import React, { useRef, useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 export default function OnboardingScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
 
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(32)).current
@@ -31,18 +33,17 @@ export default function OnboardingScreen() {
         {/* Texte */}
         <View style={styles.textBlock}>
           <Text style={styles.wordmark}>Tiroir</Text>
-          <Text style={styles.title}>Retrouve ce que{'\n'}tu possèdes.</Text>
+          <Text style={styles.title}>{t('onboarding.tagline')}</Text>
           <Text style={styles.subtitle}>
-            Photographie tes objets, l'IA crée les fiches automatiquement.
-            Retrouve n'importe quoi en quelques secondes.
+            {t('onboarding.subtitle')}
           </Text>
         </View>
 
         {/* Points d'onboarding */}
         <View style={styles.points}>
-          <OnboardingPoint icon="📷" text="Photo → fiche objet automatique" />
-          <OnboardingPoint icon="📦" text="Organise par collections" />
-          <OnboardingPoint icon="🔍" text="Retrouve en cherchant en français" />
+          <OnboardingPoint icon="📷" text={t('onboarding.point1')} />
+          <OnboardingPoint icon="📦" text={t('onboarding.point2')} />
+          <OnboardingPoint icon="🔍" text={t('onboarding.point3')} />
         </View>
 
         {/* CTAs */}
@@ -52,14 +53,14 @@ export default function OnboardingScreen() {
             onPress={() => router.replace('/capture')}
             activeOpacity={0.88}
           >
-            <Text style={styles.btnPrimaryText}>Ajouter mon premier objet →</Text>
+            <Text style={styles.btnPrimaryText}>{t('onboarding.ctaPrimary')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.btnGhost}
             onPress={() => router.replace('/(app)')}
             activeOpacity={0.7}
           >
-            <Text style={styles.btnGhostText}>Explorer d'abord</Text>
+            <Text style={styles.btnGhostText}>{t('onboarding.ctaSecondary')}</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>

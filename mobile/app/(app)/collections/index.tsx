@@ -12,6 +12,7 @@ import {
   Keyboard,
 } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Screen, EmptyState, IconPicker, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { Collection } from '@/types/database'
@@ -27,6 +28,7 @@ interface CollectionWithCount extends Collection {
 
 export default function CollectionsScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
   const [collections, setCollections] = useState<CollectionWithCount[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -94,7 +96,7 @@ export default function CollectionsScreen() {
       .update({ emoji, icon_color: color, updated_at: new Date().toISOString() })
       .eq('id', targetId)
 
-    if (error) Alert.alert('Erreur', error.message)
+    if (error) Alert.alert(t('common.error'), error.message)
   }
 
   // ── Renommer ────────────────────────────────────────────────────────────────
@@ -118,15 +120,14 @@ export default function CollectionsScreen() {
   // ── Supprimer ───────────────────────────────────────────────────────────────
 
   function handleDelete(collection: CollectionWithCount) {
-    const objectWord = collection.object_count === 1 ? 'objet' : 'objets'
     const subtitle = collection.object_count > 0
-      ? `Cette collection contient ${collection.object_count} ${objectWord}. Les objets ne seront pas supprimés mais perdront leur collection.`
-      : 'Cette action est irréversible.'
+      ? t('collections.deleteWithObjects', { count: collection.object_count })
+      : t('collections.deleteIrreversible')
 
-    Alert.alert(`Supprimer « ${collection.name} » ?`, subtitle, [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(t('collections.deleteTitle', { name: collection.name }), subtitle, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Supprimer',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           const { error } = await supabase
@@ -153,7 +154,7 @@ export default function CollectionsScreen() {
   return (
     <Screen edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Collections</Text>
+        <Text style={styles.headerTitle}>{t('collections.title')}</Text>
       </View>
 
       <FlatList
@@ -167,8 +168,8 @@ export default function CollectionsScreen() {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
           <EmptyState
-            title="Aucune collection"
-            subtitle="Tes collections apparaîtront ici dès que tu ajoutes un objet."
+            title={t('collections.emptyTitle')}
+            subtitle={t('collections.emptySubtitle')}
           />
         }
         renderItem={({ item }) => (
@@ -204,6 +205,7 @@ interface CollectionRowProps {
 }
 
 function CollectionRow({ collection, onPress, onRename, onDelete, onIconPress }: CollectionRowProps) {
+  const { t } = useTranslation()
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState(collection.name)
   const inputRef = useRef<TextInput>(null)
@@ -225,8 +227,6 @@ function CollectionRow({ collection, onPress, onRename, onDelete, onIconPress }:
     setDraftName(collection.name)
     setEditing(false)
   }
-
-  const objectWord = collection.object_count === 1 ? 'objet' : 'objets'
 
   return (
     <View style={rowStyles.container}>
@@ -265,7 +265,7 @@ function CollectionRow({ collection, onPress, onRename, onDelete, onIconPress }:
             ) : (
               <Text style={rowStyles.name} numberOfLines={1}>{collection.name}</Text>
             )}
-            <Text style={rowStyles.count}>{collection.object_count} {objectWord}</Text>
+            <Text style={rowStyles.count}>{t('common.objects', { count: collection.object_count })}</Text>
           </View>
           {!editing && <Text style={rowStyles.chevron}>›</Text>}
         </TouchableOpacity>
@@ -275,19 +275,19 @@ function CollectionRow({ collection, onPress, onRename, onDelete, onIconPress }:
       {editing ? (
         <View style={rowStyles.actions}>
           <TouchableOpacity onPress={cancelEdit} style={rowStyles.actionBtn} hitSlop={8}>
-            <Text style={rowStyles.actionCancel}>Annuler</Text>
+            <Text style={rowStyles.actionCancel}>{t('common.cancel')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={commitEdit} style={rowStyles.actionBtn} hitSlop={8}>
-            <Text style={rowStyles.actionSave}>OK</Text>
+            <Text style={rowStyles.actionSave}>{t('collections.ok')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={rowStyles.actions}>
           <TouchableOpacity onPress={startEdit} style={rowStyles.actionBtn} hitSlop={8}>
-            <Text style={rowStyles.actionEdit}>Renommer</Text>
+            <Text style={rowStyles.actionEdit}>{t('collections.rename')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onDelete} style={rowStyles.actionBtn} hitSlop={8}>
-            <Text style={rowStyles.actionDelete}>Supprimer</Text>
+            <Text style={rowStyles.actionDelete}>{t('common.delete')}</Text>
           </TouchableOpacity>
         </View>
       )}

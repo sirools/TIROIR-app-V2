@@ -156,5 +156,39 @@
     "deleteTitle": "¿Eliminar este enlace?",
     "deleteMessage_one": "El enlace compartido ({{count}} objeto) dejará de estar accesible.",
     "deleteMessage_other": "El enlace compartido ({{count}} objetos) dejará de estar accesible."
+  },
+  "onboarding": {
+    "tagline": "Encuentra todo\nlo que tienes.",
+    "subtitle": "Fotografía tus objetos y la IA crea las fichas automáticamente. Encuentra cualquier cosa en segundos.",
+    "point1": "Foto → ficha de objeto automática",
+    "point2": "Organiza por colecciones",
+    "point3": "Encuéntralo buscando en lenguaje natural",
+    "ctaPrimary": "Añadir mi primer objeto →",
+    "ctaSecondary": "Explorar primero"
+  },
+  "collections": {
+    "title": "Colecciones",
+    "emptyTitle": "Ninguna colección",
+    "emptySubtitle": "Tus colecciones aparecerán aquí en cuanto añadas un objeto.",
+    "rename": "Renombrar",
+    "ok": "OK",
+    "deleteTitle": "¿Eliminar «{{name}}»?",
+    "deleteWithObjects_one": "Esta colección contiene {{count}} objeto. Los objetos no se eliminarán pero perderán su colección.",
+    "deleteWithObjects_other": "Esta colección contiene {{count}} objetos. Los objetos no se eliminarán pero perderán su colección.",
+    "deleteIrreversible": "Esta acción es irreversible."
+  },
+  "search": {
+    "title": "Buscar",
+    "placeholder": "ej.: chaqueta azul, salón, Nike…",
+    "noResults": "Sin resultados",
+    "noResultsFor": "No se encontró ningún objeto para «{{query}}».",
+    "recentSearches": "Búsquedas recientes",
+    "recentAdds": "Añadidos recientes",
+    "loadMore_one": "Cargar más · {{count}} restante",
+    "loadMore_other": "Cargar más · {{count}} restantes",
+    "matchLocation": "Lugar",
+    "matchStatus": "Estado",
+    "matchAttribute": "Característica",
+    "matchKeyword": "Palabra clave"
   }
 }

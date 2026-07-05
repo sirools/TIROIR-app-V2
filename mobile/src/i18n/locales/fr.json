@@ -156,5 +156,39 @@
     "deleteTitle": "Supprimer ce lien ?",
     "deleteMessage_one": "Le lien partagé ({{count}} objet) ne sera plus accessible.",
     "deleteMessage_other": "Le lien partagé ({{count}} objets) ne sera plus accessible."
+  },
+  "onboarding": {
+    "tagline": "Retrouve ce que\ntu possèdes.",
+    "subtitle": "Photographie tes objets, l'IA crée les fiches automatiquement. Retrouve n'importe quoi en quelques secondes.",
+    "point1": "Photo → fiche objet automatique",
+    "point2": "Organise par collections",
+    "point3": "Retrouve en cherchant en langage naturel",
+    "ctaPrimary": "Ajouter mon premier objet →",
+    "ctaSecondary": "Explorer d'abord"
+  },
+  "collections": {
+    "title": "Collections",
+    "emptyTitle": "Aucune collection",
+    "emptySubtitle": "Tes collections apparaîtront ici dès que tu ajoutes un objet.",
+    "rename": "Renommer",
+    "ok": "OK",
+    "deleteTitle": "Supprimer « {{name}} » ?",
+    "deleteWithObjects_one": "Cette collection contient {{count}} objet. Les objets ne seront pas supprimés mais perdront leur collection.",
+    "deleteWithObjects_other": "Cette collection contient {{count}} objets. Les objets ne seront pas supprimés mais perdront leur collection.",
+    "deleteIrreversible": "Cette action est irréversible."
+  },
+  "search": {
+    "title": "Rechercher",
+    "placeholder": "ex : veste bleue, salon, Nike…",
+    "noResults": "Aucun résultat",
+    "noResultsFor": "Aucun objet trouvé pour « {{query}} ».",
+    "recentSearches": "Recherches récentes",
+    "recentAdds": "Ajouts récents",
+    "loadMore_one": "Charger plus · {{count}} restant",
+    "loadMore_other": "Charger plus · {{count}} restants",
+    "matchLocation": "Lieu",
+    "matchStatus": "Statut",
+    "matchAttribute": "Caractéristique",
+    "matchKeyword": "Mot-clé"
   }
 }

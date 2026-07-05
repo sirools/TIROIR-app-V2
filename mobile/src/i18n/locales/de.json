@@ -156,5 +156,39 @@
     "deleteTitle": "Diesen Link löschen?",
     "deleteMessage_one": "Der geteilte Link ({{count}} Objekt) ist nicht mehr zugänglich.",
     "deleteMessage_other": "Der geteilte Link ({{count}} Objekte) ist nicht mehr zugänglich."
+  },
+  "onboarding": {
+    "tagline": "Finde alles,\nwas du besitzt.",
+    "subtitle": "Fotografiere deine Objekte, die KI erstellt die Einträge automatisch. Finde alles in Sekunden.",
+    "point1": "Foto → automatischer Objekteintrag",
+    "point2": "Nach Sammlungen organisieren",
+    "point3": "Finde es per Suche in natürlicher Sprache",
+    "ctaPrimary": "Mein erstes Objekt hinzufügen →",
+    "ctaSecondary": "Zuerst erkunden"
+  },
+  "collections": {
+    "title": "Sammlungen",
+    "emptyTitle": "Keine Sammlung",
+    "emptySubtitle": "Deine Sammlungen erscheinen hier, sobald du ein Objekt hinzufügst.",
+    "rename": "Umbenennen",
+    "ok": "OK",
+    "deleteTitle": "„{{name}}“ löschen?",
+    "deleteWithObjects_one": "Diese Sammlung enthält {{count}} Objekt. Die Objekte werden nicht gelöscht, verlieren aber ihre Sammlung.",
+    "deleteWithObjects_other": "Diese Sammlung enthält {{count}} Objekte. Die Objekte werden nicht gelöscht, verlieren aber ihre Sammlung.",
+    "deleteIrreversible": "Diese Aktion ist unwiderruflich."
+  },
+  "search": {
+    "title": "Suchen",
+    "placeholder": "z. B. blaue Jacke, Wohnzimmer, Nike…",
+    "noResults": "Keine Ergebnisse",
+    "noResultsFor": "Kein Objekt gefunden für „{{query}}“.",
+    "recentSearches": "Letzte Suchen",
+    "recentAdds": "Kürzlich hinzugefügt",
+    "loadMore_one": "Mehr laden · {{count}} übrig",
+    "loadMore_other": "Mehr laden · {{count}} übrig",
+    "matchLocation": "Ort",
+    "matchStatus": "Status",
+    "matchAttribute": "Merkmal",
+    "matchKeyword": "Stichwort"
   }
 }

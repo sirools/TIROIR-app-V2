@@ -156,5 +156,39 @@
     "deleteTitle": "Delete this link?",
     "deleteMessage_one": "The shared link ({{count}} item) will no longer be accessible.",
     "deleteMessage_other": "The shared link ({{count}} items) will no longer be accessible."
+  },
+  "onboarding": {
+    "tagline": "Find everything\nyou own.",
+    "subtitle": "Photograph your items, the AI creates the entries automatically. Find anything in seconds.",
+    "point1": "Photo → automatic item entry",
+    "point2": "Organise by collections",
+    "point3": "Find it by searching in plain language",
+    "ctaPrimary": "Add my first item →",
+    "ctaSecondary": "Explore first"
+  },
+  "collections": {
+    "title": "Collections",
+    "emptyTitle": "No collections",
+    "emptySubtitle": "Your collections will appear here as soon as you add an item.",
+    "rename": "Rename",
+    "ok": "OK",
+    "deleteTitle": "Delete \"{{name}}\"?",
+    "deleteWithObjects_one": "This collection contains {{count}} item. The items won't be deleted but will lose their collection.",
+    "deleteWithObjects_other": "This collection contains {{count}} items. The items won't be deleted but will lose their collection.",
+    "deleteIrreversible": "This action is irreversible."
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "e.g. blue jacket, living room, Nike…",
+    "noResults": "No results",
+    "noResultsFor": "No item found for \"{{query}}\".",
+    "recentSearches": "Recent searches",
+    "recentAdds": "Recently added",
+    "loadMore_one": "Load more · {{count}} remaining",
+    "loadMore_other": "Load more · {{count}} remaining",
+    "matchLocation": "Location",
+    "matchStatus": "Status",
+    "matchAttribute": "Attribute",
+    "matchKeyword": "Keyword"
   }
 }

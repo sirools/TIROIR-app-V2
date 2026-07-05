@@ -4,6 +4,7 @@ import {
   TextInput, ScrollView, Image,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { supabase } from '@/lib/supabase'
 import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
@@ -67,10 +68,19 @@ const MATCH_COLORS: Record<Suggestion['matchType'], { bg: string; text: string }
   Statut:          { bg: '#F0FDF4', text: '#16A34A' },
 }
 
+// matchType reste un identifiant interne (FR) ; on le traduit à l'affichage.
+const MATCH_LABEL_KEY: Record<Suggestion['matchType'], string> = {
+  Lieu:            'search.matchLocation',
+  'Mot-clé':       'search.matchKeyword',
+  Caractéristique: 'search.matchAttribute',
+  Statut:          'search.matchStatus',
+}
+
 // ── Écran ─────────────────────────────────────────────────────────────────────
 
 export default function SearchScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
   const inputRef = useRef<TextInput>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -206,7 +216,7 @@ export default function SearchScreen() {
     if (!hasMore) return null
     return (
       <TouchableOpacity style={styles.loadMore} onPress={() => loadRecents(recentsOffset, false)} activeOpacity={0.75}>
-        <Text style={styles.loadMoreText}>Charger plus · {totalCount! - recentsOffset} restant{totalCount! - recentsOffset > 1 ? 's' : ''}</Text>
+        <Text style={styles.loadMoreText}>{t('search.loadMore', { count: totalCount! - recentsOffset })}</Text>
       </TouchableOpacity>
     )
   }
@@ -218,7 +228,7 @@ export default function SearchScreen() {
 
       {/* Header — style home */}
       <View style={styles.header}>
-        <Text style={styles.heroTitle}>Rechercher</Text>
+        <Text style={styles.heroTitle}>{t('search.title')}</Text>
         <BurgerIcon onPress={() => setMenuOpen(true)} />
       </View>
 
@@ -233,7 +243,7 @@ export default function SearchScreen() {
             style={styles.searchInput}
             value={query}
             onChangeText={onChangeText}
-            placeholder="ex : veste bleue, salon, Nike…"
+            placeholder={t('search.placeholder')}
             placeholderTextColor={Colors.textTertiary}
             autoCapitalize="none"
             returnKeyType="search"
@@ -256,15 +266,15 @@ export default function SearchScreen() {
           )}
           {!searching && suggestions.length === 0 && (
             <View style={styles.emptyWrap}>
-              <Text style={styles.emptyTitle}>Aucun résultat</Text>
-              <Text style={styles.emptySubtitle}>Aucun objet trouvé pour « {query} ».</Text>
+              <Text style={styles.emptyTitle}>{t('search.noResults')}</Text>
+              <Text style={styles.emptySubtitle}>{t('search.noResultsFor', { query })}</Text>
             </View>
           )}
           {suggestions.map((s, i) => {
             const c = MATCH_COLORS[s.matchType]
             return (
               <TouchableOpacity key={i} style={styles.suggestionRow} onPress={() => selectSuggestion(s)} activeOpacity={0.7}>
-                <Text style={styles.suggestionType}>📍 {s.matchType} :</Text>
+                <Text style={styles.suggestionType}>📍 {t(MATCH_LABEL_KEY[s.matchType])} :</Text>
                 <View style={[styles.suggestionChip, { backgroundColor: c.bg }]}>
                   <Text style={[styles.suggestionChipText, { color: c.text }]}>{s.label}</Text>
                 </View>
@@ -285,7 +295,7 @@ export default function SearchScreen() {
             <>
               {recentQueries.length > 0 && (
                 <View style={styles.recentSection}>
-                  <Text style={styles.sectionLabel}>Recherches récentes</Text>
+                  <Text style={styles.sectionLabel}>{t('search.recentSearches')}</Text>
                   <View style={styles.recentChips}>
                     {recentQueries.map((q, i) => (
                       <TouchableOpacity key={i} style={styles.recentChip} onPress={() => selectRecentQuery(q)} activeOpacity={0.7}>
@@ -296,9 +306,9 @@ export default function SearchScreen() {
                 </View>
               )}
               <View style={styles.sectionHeaderRow}>
-                <Text style={styles.sectionLabel}>Ajouts récents</Text>
+                <Text style={styles.sectionLabel}>{t('search.recentAdds')}</Text>
                 {totalCount !== null && (
-                  <Text style={styles.sectionCount}>{totalCount} objet{totalCount !== 1 ? 's' : ''}</Text>
+                  <Text style={styles.sectionCount}>{t('common.objects', { count: totalCount })}</Text>
                 )}
               </View>
             </>
