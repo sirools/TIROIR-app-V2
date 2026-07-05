@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker'
 import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { decode } from 'base64-arraybuffer'
+import { useTranslation } from 'react-i18next'
 import { FileText, Plus, Trash2 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { Colors, Typography, Spacing, Radius, ActionSheet } from '@/components/ui'
@@ -26,17 +27,17 @@ export interface ObjectDocument {
   created_at: string
 }
 
-const DOC_TYPES: { key: ObjectDocument['doc_type']; label: string }[] = [
-  { key: 'facture', label: 'Facture' },
-  { key: 'notice', label: 'Notice' },
-  { key: 'assurance', label: 'Assurance' },
-  { key: 'autre', label: 'Autre' },
+const DOC_TYPES: { key: ObjectDocument['doc_type']; labelKey: string }[] = [
+  { key: 'facture', labelKey: 'documents.typeFacture' },
+  { key: 'notice', labelKey: 'documents.typeNotice' },
+  { key: 'assurance', labelKey: 'documents.typeAssurance' },
+  { key: 'autre', labelKey: 'documents.typeAutre' },
 ]
 
-function formatSize(bytes: number | null): string {
+function formatSize(bytes: number | null, t: (k: string, o?: any) => string): string {
   if (!bytes) return ''
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Ko`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
+  if (bytes < 1024 * 1024) return t('documents.sizeKb', { n: Math.round(bytes / 1024) })
+  return t('documents.sizeMb', { n: (bytes / (1024 * 1024)).toFixed(1) })
 }
 
 interface DocumentsSectionProps {
@@ -46,6 +47,7 @@ interface DocumentsSectionProps {
 }
 
 export function DocumentsSection({ objectId, documents, onDocumentsChange }: DocumentsSectionProps) {
+  const { t } = useTranslation()
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
   const [addSheetVisible, setAddSheetVisible] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -70,7 +72,7 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
     setUploading(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Non authentifié')
+      if (!session) throw new Error(t('documents.notAuthenticated'))
       const userId = session.user.id
 
       const ext = fileName.split('.').pop() ?? 'dat'
@@ -115,7 +117,7 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
       setPendingLabel('')
       onDocumentsChange([...documents, inserted as ObjectDocument])
     } catch (err) {
-      Alert.alert('Erreur', err instanceof Error ? err.message : 'Upload échoué')
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : t('documents.uploadFailed'))
     } finally {
       setUploading(false)
     }
@@ -124,7 +126,7 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
   async function pickFromCamera() {
     const perm = await ImagePicker.requestCameraPermissionsAsync()
     if (!perm.granted) {
-      Alert.alert('Permission refusée', 'Autorisez l\'accès à l\'appareil photo dans les réglages.')
+      Alert.alert(t('capture.permissionDeniedTitle'), t('documents.permissionCamera'))
       return
     }
     const result = await ImagePicker.launchCameraAsync({ quality: 0.85 })
@@ -138,7 +140,7 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
   async function pickFromLibrary() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (!perm.granted) {
-      Alert.alert('Permission refusée', 'Autorisez l\'accès à la photothèque dans les réglages.')
+      Alert.alert(t('capture.permissionDeniedTitle'), t('documents.permissionLibrary'))
       return
     }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85 })
@@ -185,12 +187,13 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
 
   function typeLabel(doc: ObjectDocument): string {
     if (doc.doc_type === 'autre' && doc.doc_type_label) return doc.doc_type_label
-    return DOC_TYPES.find(t => t.key === doc.doc_type)?.label ?? 'Autre'
+    const found = DOC_TYPES.find(dt => dt.key === doc.doc_type)
+    return found ? t(found.labelKey) : t('documents.typeAutre')
   }
 
   return (
     <View>
-      <Text style={s.sectionTitle}>Documents</Text>
+      <Text style={s.sectionTitle}>{t('documents.title')}</Text>
 
       <View style={s.card}>
         {documents.map((doc, i) => {
@@ -212,7 +215,7 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
               <View style={s.rowContent}>
                 <Text style={s.fileName} numberOfLines={1}>{doc.file_name}</Text>
                 <Text style={s.meta}>
-                  {typeLabel(doc)}{doc.size_bytes ? ` · ${formatSize(doc.size_bytes)}` : ''}
+                  {typeLabel(doc)}{doc.size_bytes ? ` · ${formatSize(doc.size_bytes, t)}` : ''}
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setDeleteTarget(doc)} hitSlop={8} style={s.removeBtn}>
@@ -233,7 +236,7 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
             ? <ActivityIndicator size="small" color={Colors.accent} />
             : <>
                 <Plus size={15} color={Colors.accent} strokeWidth={2.2} />
-                <Text style={s.addCtaText}>Ajouter un document</Text>
+                <Text style={s.addCtaText}>{t('documents.add')}</Text>
               </>
           }
         </TouchableOpacity>
@@ -244,10 +247,10 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
         visible={addSheetVisible}
         onClose={() => setAddSheetVisible(false)}
         options={[
-          { label: 'Prendre une photo', onPress: pickFromCamera },
-          { label: 'Choisir depuis la photothèque', onPress: pickFromLibrary },
-          { label: 'Choisir un fichier', onPress: pickFromFiles },
-          { label: 'Annuler', onPress: () => {}, cancel: true },
+          { label: t('documents.sourcePhoto'), onPress: pickFromCamera },
+          { label: t('documents.sourceLibrary'), onPress: pickFromLibrary },
+          { label: t('documents.sourceFile'), onPress: pickFromFiles },
+          { label: t('common.cancel'), onPress: () => {}, cancel: true },
         ]}
       />
 
@@ -255,16 +258,16 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
       <Modal visible={!!pendingDoc} transparent animationType="fade">
         <View style={s.typeBackdrop}>
           <View style={s.typeSheet}>
-            <Text style={s.typeTitle}>Type de document</Text>
+            <Text style={s.typeTitle}>{t('documents.typeTitle')}</Text>
             <View style={s.typeChips}>
-              {DOC_TYPES.map(t => (
+              {DOC_TYPES.map(dt => (
                 <TouchableOpacity
-                  key={t.key}
-                  style={[s.typeChip, t.key === 'autre' && customMode && s.typeChipActive]}
-                  onPress={() => t.key === 'autre' ? setCustomMode(true) : confirmType(t.key)}
+                  key={dt.key}
+                  style={[s.typeChip, dt.key === 'autre' && customMode && s.typeChipActive]}
+                  onPress={() => dt.key === 'autre' ? setCustomMode(true) : confirmType(dt.key)}
                   activeOpacity={0.75}
                 >
-                  <Text style={[s.typeChipText, t.key === 'autre' && customMode && s.typeChipTextActive]}>{t.label}</Text>
+                  <Text style={[s.typeChipText, dt.key === 'autre' && customMode && s.typeChipTextActive]}>{t(dt.labelKey)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -272,7 +275,7 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
               <>
                 <TextInput
                   style={s.typeInput}
-                  placeholder="Libellé personnalisé"
+                  placeholder={t('documents.customLabel')}
                   placeholderTextColor={Colors.textTertiary}
                   value={pendingLabel}
                   onChangeText={setPendingLabel}
@@ -286,7 +289,7 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
                   disabled={!pendingLabel.trim()}
                   activeOpacity={0.85}
                 >
-                  <Text style={s.typeConfirmText}>Valider</Text>
+                  <Text style={s.typeConfirmText}>{t('documents.validate')}</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -300,14 +303,14 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
         <View style={s.confirmSheet}>
           <View style={s.confirmHandle} />
           <Trash2 size={26} color={Colors.error} strokeWidth={1.5} style={{ alignSelf: 'center', marginBottom: 8 }} />
-          <Text style={s.confirmTitle}>Supprimer ce document ?</Text>
-          <Text style={s.confirmSub}>Cette action est irréversible.</Text>
+          <Text style={s.confirmTitle}>{t('documents.deleteTitle')}</Text>
+          <Text style={s.confirmSub}>{t('documents.deleteBody')}</Text>
           <View style={s.confirmActions}>
             <TouchableOpacity style={s.cancelBtn} onPress={() => setDeleteTarget(null)}>
-              <Text style={s.cancelText}>Annuler</Text>
+              <Text style={s.cancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.confirmBtn} onPress={deleteDocument}>
-              <Text style={s.confirmBtnText}>Supprimer</Text>
+              <Text style={s.confirmBtnText}>{t('common.delete')}</Text>
             </TouchableOpacity>
           </View>
         </View>

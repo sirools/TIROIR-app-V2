@@ -377,5 +377,58 @@
     "fieldEra": "Época",
     "fieldCondition": "Estado",
     "sizeLabel": "Talla: {{value}}"
+  },
+  "iconPicker": {
+    "preview": "Vista previa",
+    "backgroundColor": "Color de fondo",
+    "icon": "Icono",
+    "apply": "Aplicar"
+  },
+  "documents": {
+    "title": "Documentos",
+    "notAuthenticated": "No autenticado",
+    "uploadFailed": "Error al subir",
+    "permissionCamera": "Permite el acceso a la cámara en los ajustes.",
+    "permissionLibrary": "Permite el acceso a la galería en los ajustes.",
+    "add": "Añadir un documento",
+    "sourcePhoto": "Hacer una foto",
+    "sourceLibrary": "Elegir de la galería",
+    "sourceFile": "Elegir un archivo",
+    "typeTitle": "Tipo de documento",
+    "typeFacture": "Factura",
+    "typeNotice": "Manual",
+    "typeAssurance": "Seguro",
+    "typeAutre": "Otro",
+    "customLabel": "Etiqueta personalizada",
+    "validate": "Validar",
+    "deleteTitle": "¿Eliminar este documento?",
+    "deleteBody": "Esta acción es irreversible.",
+    "sizeKb": "{{n}} KB",
+    "sizeMb": "{{n}} MB"
+  },
+  "sharePanel": {
+    "title": "Crear un enlace",
+    "selection": "Selección",
+    "recipient": "Destinatario (opcional)",
+    "recipientName": "Nombre del destinatario",
+    "recipientEmail": "Correo del destinatario",
+    "recipientPhone": "Teléfono del destinatario",
+    "invalidEmail": "Formato de correo no válido",
+    "emailAutoHint": "Se enviará automáticamente un correo de Tiroir a esta dirección.",
+    "shareOptions": "Opciones de compartir",
+    "optPassword": "Proteger el acceso con contraseña",
+    "optDownload": "Permitir la descarga CSV",
+    "optDocuments": "Incluir los documentos",
+    "passwordPlaceholder": "Contraseña del enlace (mín. 4 car.)",
+    "generate": "GENERAR UN ENLACE",
+    "successTitle": "¡Tu enlace se ha generado!",
+    "emailSentBadge": "✉️ Correo enviado a {{email}}",
+    "sendNow": "¿Quieres enviarlo ahora?",
+    "share": "COMPARTIR",
+    "later": "MÁS TARDE"
+  },
+  "documentViewer": {
+    "loading": "Cargando el documento…",
+    "loadError": "No se pudo cargar el documento."
   }
 }

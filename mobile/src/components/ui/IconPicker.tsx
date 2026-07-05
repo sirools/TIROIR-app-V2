@@ -7,6 +7,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { Colors, Typography, Spacing, Radius } from './tokens'
 
 export const EMOJI_LIST = [
@@ -36,6 +37,7 @@ interface IconPickerProps {
 }
 
 export function IconPicker({ visible, currentEmoji, currentColor, onSave, onClose }: IconPickerProps) {
+  const { t } = useTranslation()
   const [emoji, setEmoji] = useState(currentEmoji)
   const [color, setColor] = useState(currentColor)
 
@@ -62,11 +64,11 @@ export function IconPicker({ visible, currentEmoji, currentColor, onSave, onClos
           <View style={[s.previewIcon, { backgroundColor: color }]}>
             <Text style={s.previewEmoji}>{emoji}</Text>
           </View>
-          <Text style={s.previewLabel}>Aperçu</Text>
+          <Text style={s.previewLabel}>{t('iconPicker.preview')}</Text>
         </View>
 
         {/* Couleurs */}
-        <Text style={s.sectionLabel}>Couleur de fond</Text>
+        <Text style={s.sectionLabel}>{t('iconPicker.backgroundColor')}</Text>
         <View style={s.colorRow}>
           {COLOR_LIST.map(c => (
             <TouchableOpacity
@@ -79,7 +81,7 @@ export function IconPicker({ visible, currentEmoji, currentColor, onSave, onClos
         </View>
 
         {/* Emojis */}
-        <Text style={s.sectionLabel}>Icône</Text>
+        <Text style={s.sectionLabel}>{t('iconPicker.icon')}</Text>
         <View style={s.emojiGrid}>
           {EMOJI_LIST.map(e => (
             <TouchableOpacity
@@ -94,7 +96,7 @@ export function IconPicker({ visible, currentEmoji, currentColor, onSave, onClos
         </View>
 
         <TouchableOpacity style={s.saveBtn} onPress={() => onSave(emoji, color)} activeOpacity={0.85}>
-          <Text style={s.saveBtnText}>Appliquer</Text>
+          <Text style={s.saveBtnText}>{t('iconPicker.apply')}</Text>
         </TouchableOpacity>
       </View>
     </Modal>

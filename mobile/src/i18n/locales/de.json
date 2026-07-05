@@ -377,5 +377,58 @@
     "fieldEra": "Epoche",
     "fieldCondition": "Zustand",
     "sizeLabel": "Größe: {{value}}"
+  },
+  "iconPicker": {
+    "preview": "Vorschau",
+    "backgroundColor": "Hintergrundfarbe",
+    "icon": "Symbol",
+    "apply": "Anwenden"
+  },
+  "documents": {
+    "title": "Dokumente",
+    "notAuthenticated": "Nicht angemeldet",
+    "uploadFailed": "Upload fehlgeschlagen",
+    "permissionCamera": "Erlaube den Zugriff auf die Kamera in den Einstellungen.",
+    "permissionLibrary": "Erlaube den Zugriff auf die Fotomediathek in den Einstellungen.",
+    "add": "Dokument hinzufügen",
+    "sourcePhoto": "Foto aufnehmen",
+    "sourceLibrary": "Aus der Mediathek wählen",
+    "sourceFile": "Datei auswählen",
+    "typeTitle": "Dokumenttyp",
+    "typeFacture": "Rechnung",
+    "typeNotice": "Anleitung",
+    "typeAssurance": "Versicherung",
+    "typeAutre": "Sonstiges",
+    "customLabel": "Eigene Bezeichnung",
+    "validate": "Bestätigen",
+    "deleteTitle": "Dieses Dokument löschen?",
+    "deleteBody": "Diese Aktion ist unwiderruflich.",
+    "sizeKb": "{{n}} KB",
+    "sizeMb": "{{n}} MB"
+  },
+  "sharePanel": {
+    "title": "Freigabe erstellen",
+    "selection": "Auswahl",
+    "recipient": "Empfänger (optional)",
+    "recipientName": "Name des Empfängers",
+    "recipientEmail": "E-Mail des Empfängers",
+    "recipientPhone": "Telefon des Empfängers",
+    "invalidEmail": "Ungültiges E-Mail-Format",
+    "emailAutoHint": "Eine Tiroir-E-Mail wird automatisch an diese Adresse gesendet.",
+    "shareOptions": "Freigabeoptionen",
+    "optPassword": "Zugriff mit Passwort schützen",
+    "optDownload": "CSV-Download erlauben",
+    "optDocuments": "Dokumente einschließen",
+    "passwordPlaceholder": "Link-Passwort (mind. 4 Zeichen)",
+    "generate": "LINK GENERIEREN",
+    "successTitle": "Dein Link wurde generiert!",
+    "emailSentBadge": "✉️ E-Mail gesendet an {{email}}",
+    "sendNow": "Möchtest du ihn jetzt senden?",
+    "share": "TEILEN",
+    "later": "SPÄTER"
+  },
+  "documentViewer": {
+    "loading": "Dokument wird geladen…",
+    "loadError": "Dokument konnte nicht geladen werden."
   }
 }

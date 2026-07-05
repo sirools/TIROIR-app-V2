@@ -377,5 +377,58 @@
     "fieldEra": "Époque",
     "fieldCondition": "État",
     "sizeLabel": "Taille : {{value}}"
+  },
+  "iconPicker": {
+    "preview": "Aperçu",
+    "backgroundColor": "Couleur de fond",
+    "icon": "Icône",
+    "apply": "Appliquer"
+  },
+  "documents": {
+    "title": "Documents",
+    "notAuthenticated": "Non authentifié",
+    "uploadFailed": "Upload échoué",
+    "permissionCamera": "Autorisez l'accès à l'appareil photo dans les réglages.",
+    "permissionLibrary": "Autorisez l'accès à la photothèque dans les réglages.",
+    "add": "Ajouter un document",
+    "sourcePhoto": "Prendre une photo",
+    "sourceLibrary": "Choisir depuis la photothèque",
+    "sourceFile": "Choisir un fichier",
+    "typeTitle": "Type de document",
+    "typeFacture": "Facture",
+    "typeNotice": "Notice",
+    "typeAssurance": "Assurance",
+    "typeAutre": "Autre",
+    "customLabel": "Libellé personnalisé",
+    "validate": "Valider",
+    "deleteTitle": "Supprimer ce document ?",
+    "deleteBody": "Cette action est irréversible.",
+    "sizeKb": "{{n}} Ko",
+    "sizeMb": "{{n}} Mo"
+  },
+  "sharePanel": {
+    "title": "Créer un partage",
+    "selection": "Sélection",
+    "recipient": "Destinataire (optionnel)",
+    "recipientName": "Nom du destinataire",
+    "recipientEmail": "Email du destinataire",
+    "recipientPhone": "Téléphone du destinataire",
+    "invalidEmail": "Format d'email invalide",
+    "emailAutoHint": "Un email Tiroir sera envoyé automatiquement à cette adresse.",
+    "shareOptions": "Options de partage",
+    "optPassword": "Protéger l'accès par mot de passe",
+    "optDownload": "Autoriser le téléchargement CSV",
+    "optDocuments": "Inclure les documents",
+    "passwordPlaceholder": "Mot de passe du lien (min. 4 car.)",
+    "generate": "GÉNÉRER UN LIEN",
+    "successTitle": "Votre lien a été généré !",
+    "emailSentBadge": "✉️ Email envoyé à {{email}}",
+    "sendNow": "Souhaitez-vous l'envoyer maintenant ?",
+    "share": "PARTAGER",
+    "later": "PLUS TARD"
+  },
+  "documentViewer": {
+    "loading": "Chargement du document…",
+    "loadError": "Impossible de charger le document."
   }
 }

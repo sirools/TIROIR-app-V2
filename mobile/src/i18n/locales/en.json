@@ -377,5 +377,58 @@
     "fieldEra": "Era",
     "fieldCondition": "Condition",
     "sizeLabel": "Size: {{value}}"
+  },
+  "iconPicker": {
+    "preview": "Preview",
+    "backgroundColor": "Background colour",
+    "icon": "Icon",
+    "apply": "Apply"
+  },
+  "documents": {
+    "title": "Documents",
+    "notAuthenticated": "Not authenticated",
+    "uploadFailed": "Upload failed",
+    "permissionCamera": "Allow access to the camera in Settings.",
+    "permissionLibrary": "Allow access to the photo library in Settings.",
+    "add": "Add a document",
+    "sourcePhoto": "Take a photo",
+    "sourceLibrary": "Choose from the library",
+    "sourceFile": "Choose a file",
+    "typeTitle": "Document type",
+    "typeFacture": "Invoice",
+    "typeNotice": "Manual",
+    "typeAssurance": "Insurance",
+    "typeAutre": "Other",
+    "customLabel": "Custom label",
+    "validate": "Confirm",
+    "deleteTitle": "Delete this document?",
+    "deleteBody": "This action is irreversible.",
+    "sizeKb": "{{n}} KB",
+    "sizeMb": "{{n}} MB"
+  },
+  "sharePanel": {
+    "title": "Create a share",
+    "selection": "Selection",
+    "recipient": "Recipient (optional)",
+    "recipientName": "Recipient's name",
+    "recipientEmail": "Recipient's email",
+    "recipientPhone": "Recipient's phone",
+    "invalidEmail": "Invalid email format",
+    "emailAutoHint": "A Tiroir email will be sent automatically to this address.",
+    "shareOptions": "Share options",
+    "optPassword": "Protect access with a password",
+    "optDownload": "Allow CSV download",
+    "optDocuments": "Include documents",
+    "passwordPlaceholder": "Link password (min. 4 chars)",
+    "generate": "GENERATE A LINK",
+    "successTitle": "Your link has been generated!",
+    "emailSentBadge": "✉️ Email sent to {{email}}",
+    "sendNow": "Would you like to send it now?",
+    "share": "SHARE",
+    "later": "LATER"
+  },
+  "documentViewer": {
+    "loading": "Loading the document…",
+    "loadError": "Couldn't load the document."
   }
 }

@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Platform } from 'react-native'
 import { WebView } from 'react-native-webview'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react-native'
 import { Colors, Typography, Spacing } from '@/components/ui'
 
@@ -15,8 +16,10 @@ interface DocumentViewerProps {
 // Rendu autonome de pdf.js embarqué en HTML (pas de dépendance à un viewer
 // externe type mozilla.github.io, qui bloque le chargement de fichiers distants
 // arbitraires). Le fetch + rendu se fait directement dans la WebView.
-function buildPdfHtml(pdfUrl: string): string {
+function buildPdfHtml(pdfUrl: string, loadingText: string, errorText: string): string {
   const escapedUrl = pdfUrl.replace(/'/g, "\\'")
+  const escLoading = loadingText.replace(/</g, '&lt;')
+  const escError = errorText.replace(/'/g, "\\'")
   return `
 <!DOCTYPE html>
 <html>
@@ -31,7 +34,7 @@ function buildPdfHtml(pdfUrl: string): string {
   </style>
 </head>
 <body>
-  <div id="status">Chargement du document…</div>
+  <div id="status">${escLoading}</div>
   <div id="pages"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -54,7 +57,7 @@ function buildPdfHtml(pdfUrl: string): string {
         await page.render({ canvasContext: ctx, viewport }).promise;
       }
     }).catch((e) => {
-      status.textContent = 'Impossible de charger le document.';
+      status.textContent = '${escError}';
     });
   </script>
 </body>
@@ -64,6 +67,7 @@ function buildPdfHtml(pdfUrl: string): string {
 
 export function DocumentViewer({ url, fileName, mimeType, onClose }: DocumentViewerProps) {
   const insets = useSafeAreaInsets()
+  const { t } = useTranslation()
   const isPdf = mimeType === 'application/pdf'
 
   return (
@@ -86,7 +90,7 @@ export function DocumentViewer({ url, fileName, mimeType, onClose }: DocumentVie
             })
           ) : (
             <WebView
-              source={{ html: buildPdfHtml(url) }}
+              source={{ html: buildPdfHtml(url, t('documentViewer.loading'), t('documentViewer.loadError')) }}
               style={s.webview}
               startInLoadingState
               originWhitelist={['*']}

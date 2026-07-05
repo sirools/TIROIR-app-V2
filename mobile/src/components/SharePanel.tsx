@@ -4,6 +4,7 @@ import {
   ScrollView, Share, ActivityIndicator, Switch, TextInput,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
+import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui/tokens'
@@ -24,6 +25,7 @@ interface SharePanelProps {
 }
 
 export function SharePanel({ visible, selectedObjects, collectionName, onClose, onDone }: SharePanelProps) {
+  const { t } = useTranslation()
   const slideAnim = useRef(new Animated.Value(600)).current
 
   const [options, setOptions] = useState<ShareOptions>({
@@ -123,9 +125,9 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
   }
 
   const OPTION_ROWS: { key: keyof ShareOptions; label: string; sub?: string }[] = [
-    { key: 'password_protected', label: 'Protéger l\'accès par mot de passe' },
-    { key: 'allow_download', label: 'Autoriser le téléchargement CSV' },
-    { key: 'include_documents', label: 'Inclure les documents' },
+    { key: 'password_protected', label: t('sharePanel.optPassword') },
+    { key: 'allow_download', label: t('sharePanel.optDownload') },
+    { key: 'include_documents', label: t('sharePanel.optDocuments') },
   ]
 
   return (
@@ -133,13 +135,13 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
       <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
         <View style={styles.handle} />
-        <Text style={styles.title}>Créer un partage</Text>
+        <Text style={styles.title}>{t('sharePanel.title')}</Text>
 
         {!generatedUrl ? (
           <>
             {/* Objets sélectionnés */}
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Sélection</Text>
+              <Text style={styles.sectionLabel}>{t('sharePanel.selection')}</Text>
               <ScrollView style={styles.objectList} showsVerticalScrollIndicator={false} nestedScrollEnabled>
                 {selectedObjects.map(obj => (
                   <View key={obj.id} style={styles.objectRow}>
@@ -157,13 +159,13 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
 
             {/* Destinataire */}
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Destinataire (optionnel)</Text>
+              <Text style={styles.sectionLabel}>{t('sharePanel.recipient')}</Text>
               <View style={styles.contactField}>
                 <TextInput
                   style={styles.contactInput}
                   value={contactName}
                   onChangeText={setContactName}
-                  placeholder="Nom du destinataire"
+                  placeholder={t('sharePanel.recipientName')}
                   placeholderTextColor={Colors.textTertiary}
                   autoCorrect={false}
                   returnKeyType="next"
@@ -174,7 +176,7 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
                   style={styles.contactInput}
                   value={contactEmail}
                   onChangeText={setContactEmail}
-                  placeholder="Email du destinataire"
+                  placeholder={t('sharePanel.recipientEmail')}
                   placeholderTextColor={Colors.textTertiary}
                   autoCorrect={false}
                   autoCapitalize="none"
@@ -183,14 +185,14 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
                 />
               </View>
               {!emailIsValid && (
-                <Text style={styles.contactError}>Format d'email invalide</Text>
+                <Text style={styles.contactError}>{t('sharePanel.invalidEmail')}</Text>
               )}
               <View style={styles.contactField}>
                 <TextInput
                   style={styles.contactInput}
                   value={contactPhone}
                   onChangeText={setContactPhone}
-                  placeholder="Téléphone du destinataire"
+                  placeholder={t('sharePanel.recipientPhone')}
                   placeholderTextColor={Colors.textTertiary}
                   autoCorrect={false}
                   keyboardType="phone-pad"
@@ -199,14 +201,14 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
               </View>
               {trimmedEmail.length > 0 && (
                 <Text style={styles.contactHint}>
-                  Un email Tiroir sera envoyé automatiquement à cette adresse.
+                  {t('sharePanel.emailAutoHint')}
                 </Text>
               )}
             </View>
 
             {/* Options */}
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Options de partage</Text>
+              <Text style={styles.sectionLabel}>{t('sharePanel.shareOptions')}</Text>
               {OPTION_ROWS.map(row => (
                 <View key={row.key}>
                   <View style={styles.optionRow}>
@@ -233,7 +235,7 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
                           style={styles.passwordInput}
                           value={password}
                           onChangeText={setPassword}
-                          placeholder="Mot de passe du lien (min. 4 car.)"
+                          placeholder={t('sharePanel.passwordPlaceholder')}
                           placeholderTextColor={Colors.textTertiary}
                           secureTextEntry={!showPassword}
                           autoCorrect={false}
@@ -262,7 +264,7 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
             >
               {generating
                 ? <ActivityIndicator color="white" />
-                : <Text style={styles.generateBtnText}>GÉNÉRER UN LIEN</Text>
+                : <Text style={styles.generateBtnText}>{t('sharePanel.generate')}</Text>
               }
             </TouchableOpacity>
           </>
@@ -272,7 +274,7 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
             <View style={styles.successIcon}>
               <Text style={styles.successCheck}>✓</Text>
             </View>
-            <Text style={styles.successTitle}>Votre lien a été généré !</Text>
+            <Text style={styles.successTitle}>{t('sharePanel.successTitle')}</Text>
 
             <TouchableOpacity style={styles.linkBox} onPress={copyLink} activeOpacity={0.8}>
               <Text style={styles.linkUrl} numberOfLines={1}>{generatedUrl.replace('https://', '')}</Text>
@@ -280,17 +282,17 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
             </TouchableOpacity>
 
             {emailSent && trimmedEmail.length > 0 && (
-              <Text style={styles.emailSentBadge}>✉️ Email envoyé à {trimmedEmail}</Text>
+              <Text style={styles.emailSentBadge}>{t('sharePanel.emailSentBadge', { email: trimmedEmail })}</Text>
             )}
 
-            <Text style={styles.successSub}>Souhaitez-vous l'envoyer maintenant ?</Text>
+            <Text style={styles.successSub}>{t('sharePanel.sendNow')}</Text>
 
             <TouchableOpacity style={styles.shareBtn} onPress={shareLink} activeOpacity={0.85}>
-              <Text style={styles.shareBtnText}>PARTAGER</Text>
+              <Text style={styles.shareBtnText}>{t('sharePanel.share')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.laterBtn} onPress={onDone} activeOpacity={0.75}>
-              <Text style={styles.laterBtnText}>PLUS TARD</Text>
+              <Text style={styles.laterBtnText}>{t('sharePanel.later')}</Text>
             </TouchableOpacity>
           </View>
         )}
