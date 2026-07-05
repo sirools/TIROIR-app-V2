@@ -15,7 +15,6 @@ interface AppSettings {
 }
 
 interface KPIs {
-  siteVisitsTotal: number
   siteVisits24h: number
   siteVisits7d: number
   siteVisits30d: number
@@ -88,11 +87,10 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
 
         {/* ── Site web ── */}
         <div style={s.grid}>
-          <Kpi label="Visites site web" value={kpis.siteVisitsTotal} />
-          <Kpi label="Visites site web (24h)" value={kpis.siteVisits24h} highlight={kpis.siteVisits24h > 0} />
-          <Kpi label="Visites site web (7j)" value={kpis.siteVisits7d} />
-          <Kpi label="Visites site web (30j)" value={kpis.siteVisits30d} />
-          <Kpi label="Visiteurs uniques (30j)" value={kpis.uniqueVisitors30d} />
+          <Kpi label="Visiteurs uniques (30j)" value={kpis.uniqueVisitors30d} highlight={kpis.uniqueVisitors30d > 0} />
+          <Kpi label="Visites (24h)" value={kpis.siteVisits24h} />
+          <Kpi label="Visites (7j)" value={kpis.siteVisits7d} />
+          <Kpi label="Visites (30j)" value={kpis.siteVisits30d} />
         </div>
 
         {/* ── KPIs ── */}
@@ -305,7 +303,6 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
   const [
-    { count: siteVisitsTotal },
     { count: siteVisits24h },
     { count: siteVisits7d },
     { count: siteVisits30d },
@@ -319,7 +316,6 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     { data: appSettings },
     { data: infraStats },
   ] = await Promise.all([
-    admin.from('site_pageviews').select('*', { count: 'exact', head: true }),
     admin.from('site_pageviews').select('*', { count: 'exact', head: true }).gte('created_at', since24h),
     admin.from('site_pageviews').select('*', { count: 'exact', head: true }).gte('created_at', since7d),
     admin.from('site_pageviews').select('*', { count: 'exact', head: true }).gte('created_at', since30d),
@@ -370,7 +366,6 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   return {
     props: {
       kpis: {
-        siteVisitsTotal: siteVisitsTotal ?? 0,
         siteVisits24h: siteVisits24h ?? 0,
         siteVisits7d: siteVisits7d ?? 0,
         siteVisits30d: siteVisits30d ?? 0,
