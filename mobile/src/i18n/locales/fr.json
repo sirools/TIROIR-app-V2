@@ -1,0 +1,91 @@
+{
+  "common": {
+    "cancel": "Annuler",
+    "back": "Retour",
+    "or": "ou",
+    "continueWithGoogle": "Continuer avec Google",
+    "cgu": "CGU",
+    "privacyPolicy": "politique de confidentialité",
+    "error": "Erreur"
+  },
+  "auth": {
+    "login": {
+      "tagline": "Retrouve ce que tu possèdes.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "toi@exemple.com",
+      "passwordLabel": "Mot de passe",
+      "signIn": "Se connecter",
+      "legalPrefix": "En continuant, tu acceptes nos ",
+      "legalAnd": " et notre ",
+      "forgotQuestion": "Mot de passe oublié ? ",
+      "reset": "Réinitialiser",
+      "noAccountQuestion": "Pas encore de compte ? ",
+      "createAccount": "Créer un compte",
+      "errorMissingCredentials": "Renseigne ton email et ton mot de passe.",
+      "errorInvalidCredentials": "Email ou mot de passe incorrect.",
+      "errorAppleFailed": "La connexion avec Apple a échoué.",
+      "errorGoogleFailed": "La connexion avec Google a échoué."
+    },
+    "register": {
+      "title": "Créer un compte",
+      "nameLabel": "Prénom",
+      "namePlaceholder": "Ada",
+      "emailLabel": "Email",
+      "emailPlaceholder": "ada@exemple.com",
+      "passwordLabel": "Mot de passe",
+      "passwordPlaceholder": "6 caractères minimum",
+      "cguPrefix": "J'ai lu et j'accepte les ",
+      "cguLink": "Conditions Générales d'Utilisation",
+      "submit": "Créer mon compte",
+      "successTitle": "Compte créé !",
+      "successText": "Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.",
+      "successSignIn": "Se connecter",
+      "errorMissingFields": "Renseigne ton prénom, ton email et un mot de passe.",
+      "errorPasswordTooShort": "Le mot de passe doit contenir au moins 6 caractères.",
+      "errorCguRequired": "Merci d'accepter les Conditions Générales d'Utilisation pour continuer.",
+      "errorAppleFailed": "La connexion avec Apple a échoué.",
+      "errorGoogleFailed": "La connexion avec Google a échoué."
+    },
+    "forgot": {
+      "title": "Mot de passe oublié",
+      "subtitle": "On t'envoie un lien de réinitialisation par email.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "toi@exemple.com",
+      "sendLink": "Envoyer le lien",
+      "successTitle": "Email envoyé",
+      "successText": "Vérifie ta boîte mail et clique sur le lien pour créer un nouveau mot de passe.",
+      "backToLogin": "Retour à la connexion",
+      "errorMissingEmail": "Renseigne ton adresse email."
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "sectionAccount": "COMPTE",
+    "changePassword": "Changer le mot de passe",
+    "sectionLanguage": "LANGUE",
+    "sectionLegal": "LÉGAL",
+    "privacyPolicy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "sectionDanger": "ZONE DANGEREUSE",
+    "deleteAccount": "Supprimer mon compte",
+    "deleting": "Suppression en cours…",
+    "deleteHint": "Supprime définitivement ton compte et toutes tes données (objets, photos, collections). Irréversible.",
+    "changePasswordTitle": "Nouveau mot de passe",
+    "changePasswordMessage": "Saisis ton nouveau mot de passe (8 caractères minimum).",
+    "passwordTooShortTitle": "Trop court",
+    "passwordTooShortMessage": "Le mot de passe doit faire au moins 8 caractères.",
+    "passwordUpdatedTitle": "Mot de passe mis à jour",
+    "passwordUpdatedMessage": "Tu peux maintenant te connecter avec ton nouveau mot de passe.",
+    "deleteTitle": "Supprimer mon compte ?",
+    "deleteMessage": "Toutes tes données seront définitivement supprimées : objets, collections, photos, partages. Cette action est irréversible.",
+    "deleteConfirm": "Supprimer définitivement",
+    "deleteLastTitle": "Dernière confirmation",
+    "deleteLastMessage": "Tape \"SUPPRIMER\" pour confirmer.",
+    "deleteLastConfirm": "Je confirme",
+    "deleteFailed": "La suppression a échoué. Réessaie ou contacte le support."
+  },
+  "language": {
+    "title": "Langue de l'application",
+    "systemDefault": "Langue de l'appareil"
+  }
+}

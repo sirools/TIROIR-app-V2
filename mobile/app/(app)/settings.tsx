@@ -4,32 +4,36 @@ import {
   ScrollView, Alert, ActivityIndicator, Linking,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import { ArrowLeft, ChevronRight, Lock, FileText, Shield, Trash2 } from 'lucide-react-native'
+import { useTranslation } from 'react-i18next'
+import { ArrowLeft, ChevronRight, Lock, FileText, Shield, Trash2, Check } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
+import { setAppLanguage, SUPPORTED_LANGUAGES, LANGUAGE_LABELS, type AppLanguage } from '@/i18n'
 import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 export default function SettingsScreen() {
   const router = useRouter()
+  const { t, i18n } = useTranslation()
   const { signOut } = useAuth()
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const currentLang = i18n.language as AppLanguage
 
   // ── Changer le mot de passe ──────────────────────────────────────────────
 
   async function handleChangePassword() {
     Alert.prompt(
-      'Nouveau mot de passe',
-      'Saisis ton nouveau mot de passe (8 caractères minimum).',
+      t('settings.changePasswordTitle'),
+      t('settings.changePasswordMessage'),
       async (password) => {
         if (!password || password.length < 8) {
-          Alert.alert('Trop court', 'Le mot de passe doit faire au moins 8 caractères.')
+          Alert.alert(t('settings.passwordTooShortTitle'), t('settings.passwordTooShortMessage'))
           return
         }
         const { error } = await supabase.auth.updateUser({ password })
         if (error) {
-          Alert.alert('Erreur', error.message)
+          Alert.alert(t('common.error'), error.message)
         } else {
-          Alert.alert('Mot de passe mis à jour', 'Tu peux maintenant te connecter avec ton nouveau mot de passe.')
+          Alert.alert(t('settings.passwordUpdatedTitle'), t('settings.passwordUpdatedMessage'))
         }
       },
       'secure-text'
@@ -40,12 +44,12 @@ export default function SettingsScreen() {
 
   function handleDeleteAccount() {
     Alert.alert(
-      'Supprimer mon compte ?',
-      'Toutes tes données seront définitivement supprimées : objets, collections, photos, partages. Cette action est irréversible.',
+      t('settings.deleteTitle'),
+      t('settings.deleteMessage'),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Supprimer définitivement',
+          text: t('settings.deleteConfirm'),
           style: 'destructive',
           onPress: confirmDeleteAccount,
         },
@@ -56,12 +60,12 @@ export default function SettingsScreen() {
   async function confirmDeleteAccount() {
     // Double confirmation avec saisie
     Alert.alert(
-      'Dernière confirmation',
-      'Tape "SUPPRIMER" pour confirmer.',
+      t('settings.deleteLastTitle'),
+      t('settings.deleteLastMessage'),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Je confirme',
+          text: t('settings.deleteLastConfirm'),
           style: 'destructive',
           onPress: executeDeleteAccount,
         },
@@ -78,7 +82,7 @@ export default function SettingsScreen() {
       await signOut()
     } catch (e: any) {
       setDeletingAccount(false)
-      Alert.alert('Erreur', e.message ?? 'La suppression a échoué. Réessaie ou contacte le support.')
+      Alert.alert(t('common.error'), e.message ?? t('settings.deleteFailed'))
     }
   }
 
@@ -91,40 +95,62 @@ export default function SettingsScreen() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
           <ArrowLeft size={22} color={Colors.textPrimary} strokeWidth={1.8} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Paramètres</Text>
+        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
         <View style={{ width: 22 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* Section Compte */}
-        <Text style={styles.sectionLabel}>COMPTE</Text>
+        <Text style={styles.sectionLabel}>{t('settings.sectionAccount')}</Text>
         <View style={styles.group}>
           <SettingsRow
             icon={<Lock size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
-            label="Changer le mot de passe"
+            label={t('settings.changePassword')}
             onPress={handleChangePassword}
           />
         </View>
 
+        {/* Section Langue */}
+        <Text style={styles.sectionLabel}>{t('settings.sectionLanguage')}</Text>
+        <View style={styles.group}>
+          {SUPPORTED_LANGUAGES.map((lang, index) => (
+            <React.Fragment key={lang}>
+              {index > 0 && <View style={styles.separator} />}
+              <TouchableOpacity
+                style={styles.row}
+                onPress={() => setAppLanguage(lang)}
+                activeOpacity={0.7}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: currentLang === lang }}
+              >
+                <Text style={styles.rowLabel}>{LANGUAGE_LABELS[lang]}</Text>
+                {currentLang === lang && (
+                  <Check size={18} color={Colors.accent} strokeWidth={2} />
+                )}
+              </TouchableOpacity>
+            </React.Fragment>
+          ))}
+        </View>
+
         {/* Section Légal */}
-        <Text style={styles.sectionLabel}>LÉGAL</Text>
+        <Text style={styles.sectionLabel}>{t('settings.sectionLegal')}</Text>
         <View style={styles.group}>
           <SettingsRow
             icon={<Shield size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
-            label="Politique de confidentialité"
+            label={t('settings.privacyPolicy')}
             onPress={() => Linking.openURL('https://tiroir.app/privacy')}
           />
           <View style={styles.separator} />
           <SettingsRow
             icon={<FileText size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
-            label="Conditions d'utilisation"
+            label={t('settings.terms')}
             onPress={() => Linking.openURL('https://tiroir.app/terms')}
           />
         </View>
 
         {/* Section Danger */}
-        <Text style={styles.sectionLabel}>ZONE DANGEREUSE</Text>
+        <Text style={styles.sectionLabel}>{t('settings.sectionDanger')}</Text>
         <View style={styles.group}>
           <TouchableOpacity
             style={styles.deleteRow}
@@ -138,12 +164,12 @@ export default function SettingsScreen() {
               <Trash2 size={18} color={Colors.error} strokeWidth={1.5} />
             )}
             <Text style={styles.deleteLabel}>
-              {deletingAccount ? 'Suppression en cours…' : 'Supprimer mon compte'}
+              {deletingAccount ? t('settings.deleting') : t('settings.deleteAccount')}
             </Text>
           </TouchableOpacity>
         </View>
         <Text style={styles.deleteHint}>
-          Supprime définitivement ton compte et toutes tes données (objets, photos, collections). Irréversible.
+          {t('settings.deleteHint')}
         </Text>
 
       </ScrollView>

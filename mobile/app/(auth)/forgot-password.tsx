@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Screen, Button, Input, Colors, Typography, Spacing } from '@/components/ui'
 
 export default function ForgotPasswordScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
@@ -13,7 +15,7 @@ export default function ForgotPasswordScreen() {
 
   async function handleSend() {
     if (!email.trim()) {
-      setError('Renseigne ton adresse email.')
+      setError(t('auth.forgot.errorMissingEmail'))
       return
     }
     setLoading(true)
@@ -37,25 +39,25 @@ export default function ForgotPasswordScreen() {
       >
         <View style={styles.container}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backRow}>
-            <Text style={styles.backText}>← Retour</Text>
+            <Text style={styles.backText}>← {t('common.back')}</Text>
           </TouchableOpacity>
 
           <View style={styles.header}>
-            <Text style={styles.title}>Mot de passe oublié</Text>
+            <Text style={styles.title}>{t('auth.forgot.title')}</Text>
             <Text style={styles.subtitle}>
-              On t'envoie un lien de réinitialisation par email.
+              {t('auth.forgot.subtitle')}
             </Text>
           </View>
 
           {sent ? (
             <View style={styles.successCard}>
               <Text style={styles.successIcon}>✉️</Text>
-              <Text style={styles.successTitle}>Email envoyé</Text>
+              <Text style={styles.successTitle}>{t('auth.forgot.successTitle')}</Text>
               <Text style={styles.successText}>
-                Vérifie ta boîte mail et clique sur le lien pour créer un nouveau mot de passe.
+                {t('auth.forgot.successText')}
               </Text>
               <Button
-                label="Retour à la connexion"
+                label={t('auth.forgot.backToLogin')}
                 onPress={() => router.replace('/(auth)/login')}
                 style={{ marginTop: Spacing.md }}
               />
@@ -63,18 +65,18 @@ export default function ForgotPasswordScreen() {
           ) : (
             <View style={styles.form}>
               <Input
-                label="Email"
+                label={t('auth.forgot.emailLabel')}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
-                placeholder="toi@exemple.com"
+                placeholder={t('auth.forgot.emailPlaceholder')}
                 autoFocus
               />
               {error && <Text style={styles.error}>{error}</Text>}
               <Button
-                label="Envoyer le lien"
+                label={t('auth.forgot.sendLink')}
                 onPress={handleSend}
                 loading={loading}
                 style={{ marginTop: Spacing.lg }}

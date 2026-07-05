@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import * as AppleAuthentication from 'expo-apple-authentication'
 import { supabase } from '@/lib/supabase'
 import { signInWithApple, signInWithGoogle } from '@/features/auth/socialAuth'
@@ -8,6 +9,7 @@ import { Screen, Button, Input, GoogleButton, Colors, Typography, Spacing, Radiu
 
 export default function LoginScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,7 +23,7 @@ export default function LoginScreen() {
       await signInWithApple()
     } catch (e: any) {
       if (e?.code !== 'ERR_REQUEST_CANCELED') {
-        setError(e?.message ?? "La connexion avec Apple a échoué.")
+        setError(e?.message ?? t('auth.login.errorAppleFailed'))
       }
     } finally {
       setSocialLoading(null)
@@ -34,7 +36,7 @@ export default function LoginScreen() {
     try {
       await signInWithGoogle()
     } catch (e: any) {
-      setError(e?.message ?? "La connexion avec Google a échoué.")
+      setError(e?.message ?? t('auth.login.errorGoogleFailed'))
     } finally {
       setSocialLoading(null)
     }
@@ -42,7 +44,7 @@ export default function LoginScreen() {
 
   async function handleLogin() {
     if (!email.trim() || !password) {
-      setError('Renseigne ton email et ton mot de passe.')
+      setError(t('auth.login.errorMissingCredentials'))
       return
     }
 
@@ -58,7 +60,7 @@ export default function LoginScreen() {
 
     if (authError) {
       if (authError.message.includes('Invalid login credentials')) {
-        setError('Email ou mot de passe incorrect.')
+        setError(t('auth.login.errorInvalidCredentials'))
       } else {
         setError(authError.message)
       }
@@ -75,21 +77,21 @@ export default function LoginScreen() {
         <View style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.wordmark}>Tiroir</Text>
-            <Text style={styles.tagline}>Retrouve ce que tu possèdes.</Text>
+            <Text style={styles.tagline}>{t('auth.login.tagline')}</Text>
           </View>
 
           <View style={styles.form}>
             <Input
-              label="Email"
+              label={t('auth.login.emailLabel')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
-              placeholder="toi@exemple.com"
+              placeholder={t('auth.login.emailPlaceholder')}
             />
             <Input
-              label="Mot de passe"
+              label={t('auth.login.passwordLabel')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -101,7 +103,7 @@ export default function LoginScreen() {
             {error && <Text style={styles.error}>{error}</Text>}
 
             <Button
-              label="Se connecter"
+              label={t('auth.login.signIn')}
               onPress={handleLogin}
               loading={loading}
               style={{ marginTop: Spacing.lg }}
@@ -109,7 +111,7 @@ export default function LoginScreen() {
 
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>ou</Text>
+              <Text style={styles.dividerText}>{t('common.or')}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -124,26 +126,26 @@ export default function LoginScreen() {
             )}
 
             <GoogleButton
-              label="Continuer avec Google"
+              label={t('common.continueWithGoogle')}
               onPress={handleGoogleSignIn}
               loading={socialLoading === 'google'}
               style={{ marginTop: Spacing.sm }}
             />
 
             <Text style={styles.legalNote}>
-              En continuant, tu acceptes nos{' '}
+              {t('auth.login.legalPrefix')}
               <Text
                 style={styles.legalLink}
                 onPress={() => Linking.openURL('https://tiroir.app/cgu')}
               >
-                CGU
+                {t('common.cgu')}
               </Text>
-              {' '}et notre{' '}
+              {t('auth.login.legalAnd')}
               <Text
                 style={styles.legalLink}
                 onPress={() => Linking.openURL('https://tiroir.app/privacy')}
               >
-                politique de confidentialité
+                {t('common.privacyPolicy')}
               </Text>
               .
             </Text>
@@ -153,14 +155,14 @@ export default function LoginScreen() {
             onPress={() => router.push('/(auth)/forgot-password')}
             style={styles.linkRow}
           >
-            <Text style={styles.link}>Mot de passe oublié ? <Text style={styles.linkBold}>Réinitialiser</Text></Text>
+            <Text style={styles.link}>{t('auth.login.forgotQuestion')}<Text style={styles.linkBold}>{t('auth.login.reset')}</Text></Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => router.push('/(auth)/register')}
             style={styles.linkRow}
           >
-            <Text style={styles.link}>Pas encore de compte ? <Text style={styles.linkBold}>Créer un compte</Text></Text>
+            <Text style={styles.link}>{t('auth.login.noAccountQuestion')}<Text style={styles.linkBold}>{t('auth.login.createAccount')}</Text></Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

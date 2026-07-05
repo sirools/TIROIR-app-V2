@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Platform } from 'react-native'
 import Purchases, { LOG_LEVEL } from 'react-native-purchases'
 import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
+import { loadStoredLanguage } from '@/i18n'
 
 const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY
 
@@ -63,6 +64,12 @@ function RootGuard() {
 }
 
 export default function RootLayout() {
+  // Applique la langue mémorisée par l'utilisateur (override de la langue de l'appareil).
+  // L'i18n est déjà initialisé de façon synchrone (langue de l'appareil) à l'import.
+  useEffect(() => {
+    loadStoredLanguage()
+  }, [])
+
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />

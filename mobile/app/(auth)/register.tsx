@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import * as AppleAuthentication from 'expo-apple-authentication'
 import { supabase } from '@/lib/supabase'
 import { signInWithApple, signInWithGoogle } from '@/features/auth/socialAuth'
@@ -8,6 +9,7 @@ import { Screen, Button, Input, Checkbox, GoogleButton, Colors, Typography, Spac
 
 export default function RegisterScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -19,7 +21,7 @@ export default function RegisterScreen() {
 
   async function handleAppleSignIn() {
     if (!cguAccepted) {
-      setError("Merci d'accepter les Conditions Générales d'Utilisation pour continuer.")
+      setError(t('auth.register.errorCguRequired'))
       return
     }
     setError(null)
@@ -28,7 +30,7 @@ export default function RegisterScreen() {
       await signInWithApple()
     } catch (e: any) {
       if (e?.code !== 'ERR_REQUEST_CANCELED') {
-        setError(e?.message ?? "La connexion avec Apple a échoué.")
+        setError(e?.message ?? t('auth.register.errorAppleFailed'))
       }
     } finally {
       setSocialLoading(null)
@@ -37,7 +39,7 @@ export default function RegisterScreen() {
 
   async function handleGoogleSignIn() {
     if (!cguAccepted) {
-      setError("Merci d'accepter les Conditions Générales d'Utilisation pour continuer.")
+      setError(t('auth.register.errorCguRequired'))
       return
     }
     setError(null)
@@ -45,7 +47,7 @@ export default function RegisterScreen() {
     try {
       await signInWithGoogle()
     } catch (e: any) {
-      setError(e?.message ?? "La connexion avec Google a échoué.")
+      setError(e?.message ?? t('auth.register.errorGoogleFailed'))
     } finally {
       setSocialLoading(null)
     }
@@ -53,15 +55,15 @@ export default function RegisterScreen() {
 
   async function handleRegister() {
     if (!email.trim() || !password || !name.trim()) {
-      setError('Renseigne ton prénom, ton email et un mot de passe.')
+      setError(t('auth.register.errorMissingFields'))
       return
     }
     if (password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères.')
+      setError(t('auth.register.errorPasswordTooShort'))
       return
     }
     if (!cguAccepted) {
-      setError('Merci d\'accepter les Conditions Générales d\'Utilisation pour continuer.')
+      setError(t('auth.register.errorCguRequired'))
       return
     }
 
@@ -91,12 +93,12 @@ export default function RegisterScreen() {
       <Screen>
         <View style={styles.successContainer}>
           <Text style={styles.wordmark}>Tiroir</Text>
-          <Text style={styles.successTitle}>Compte créé !</Text>
+          <Text style={styles.successTitle}>{t('auth.register.successTitle')}</Text>
           <Text style={styles.successText}>
-            Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.
+            {t('auth.register.successText')}
           </Text>
           <Button
-            label="Se connecter"
+            label={t('auth.register.successSignIn')}
             onPress={() => router.replace('/(auth)/login')}
             style={{ marginTop: Spacing.lg }}
           />
@@ -114,48 +116,48 @@ export default function RegisterScreen() {
         <View style={styles.container}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.back}>← Retour</Text>
+              <Text style={styles.back}>← {t('common.back')}</Text>
             </TouchableOpacity>
-            <Text style={styles.title}>Créer un compte</Text>
+            <Text style={styles.title}>{t('auth.register.title')}</Text>
           </View>
 
           <View style={styles.form}>
             <Input
-              label="Prénom"
+              label={t('auth.register.nameLabel')}
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
               autoComplete="name"
-              placeholder="Ada"
+              placeholder={t('auth.register.namePlaceholder')}
             />
             <Input
-              label="Email"
+              label={t('auth.register.emailLabel')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
-              placeholder="ada@exemple.com"
+              placeholder={t('auth.register.emailPlaceholder')}
               containerStyle={{ marginTop: Spacing.md }}
             />
             <Input
-              label="Mot de passe"
+              label={t('auth.register.passwordLabel')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              placeholder="6 caractères minimum"
+              placeholder={t('auth.register.passwordPlaceholder')}
               containerStyle={{ marginTop: Spacing.md }}
             />
 
             <View style={styles.cguRow}>
               <Checkbox checked={cguAccepted} onToggle={() => setCguAccepted(v => !v)} />
               <Text style={styles.cguText}>
-                J'ai lu et j'accepte les{' '}
+                {t('auth.register.cguPrefix')}
                 <Text
                   style={styles.cguLink}
                   onPress={() => Linking.openURL('https://tiroir.app/cgu')}
                 >
-                  Conditions Générales d'Utilisation
+                  {t('auth.register.cguLink')}
                 </Text>
               </Text>
             </View>
@@ -163,7 +165,7 @@ export default function RegisterScreen() {
             {error && <Text style={styles.error}>{error}</Text>}
 
             <Button
-              label="Créer mon compte"
+              label={t('auth.register.submit')}
               onPress={handleRegister}
               loading={loading}
               disabled={!cguAccepted}
@@ -172,7 +174,7 @@ export default function RegisterScreen() {
 
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>ou</Text>
+              <Text style={styles.dividerText}>{t('common.or')}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -188,7 +190,7 @@ export default function RegisterScreen() {
               )}
 
               <GoogleButton
-                label="Continuer avec Google"
+                label={t('common.continueWithGoogle')}
                 onPress={handleGoogleSignIn}
                 loading={socialLoading === 'google'}
                 style={{ marginTop: Spacing.sm }}

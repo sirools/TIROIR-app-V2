@@ -1,0 +1,91 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "back": "Volver",
+    "or": "o",
+    "continueWithGoogle": "Continuar con Google",
+    "cgu": "Condiciones de uso",
+    "privacyPolicy": "política de privacidad",
+    "error": "Error"
+  },
+  "auth": {
+    "login": {
+      "tagline": "Encuentra todo lo que tienes.",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "passwordLabel": "Contraseña",
+      "signIn": "Iniciar sesión",
+      "legalPrefix": "Al continuar, aceptas nuestras ",
+      "legalAnd": " y nuestra ",
+      "forgotQuestion": "¿Olvidaste tu contraseña? ",
+      "reset": "Restablecer",
+      "noAccountQuestion": "¿Aún no tienes cuenta? ",
+      "createAccount": "Crear una cuenta",
+      "errorMissingCredentials": "Introduce tu correo y tu contraseña.",
+      "errorInvalidCredentials": "Correo o contraseña incorrectos.",
+      "errorAppleFailed": "El inicio de sesión con Apple falló.",
+      "errorGoogleFailed": "El inicio de sesión con Google falló."
+    },
+    "register": {
+      "title": "Crear una cuenta",
+      "nameLabel": "Nombre",
+      "namePlaceholder": "Ada",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "ada@ejemplo.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "6 caracteres mínimo",
+      "cguPrefix": "He leído y acepto las ",
+      "cguLink": "Condiciones Generales de Uso",
+      "submit": "Crear mi cuenta",
+      "successTitle": "¡Cuenta creada!",
+      "successText": "Revisa tu correo para confirmar tu dirección y luego inicia sesión.",
+      "successSignIn": "Iniciar sesión",
+      "errorMissingFields": "Introduce tu nombre, tu correo y una contraseña.",
+      "errorPasswordTooShort": "La contraseña debe tener al menos 6 caracteres.",
+      "errorCguRequired": "Acepta las Condiciones Generales de Uso para continuar.",
+      "errorAppleFailed": "El inicio de sesión con Apple falló.",
+      "errorGoogleFailed": "El inicio de sesión con Google falló."
+    },
+    "forgot": {
+      "title": "Contraseña olvidada",
+      "subtitle": "Te enviamos un enlace de restablecimiento por correo.",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "sendLink": "Enviar el enlace",
+      "successTitle": "Correo enviado",
+      "successText": "Revisa tu correo y haz clic en el enlace para crear una nueva contraseña.",
+      "backToLogin": "Volver al inicio de sesión",
+      "errorMissingEmail": "Introduce tu dirección de correo."
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "sectionAccount": "CUENTA",
+    "changePassword": "Cambiar la contraseña",
+    "sectionLanguage": "IDIOMA",
+    "sectionLegal": "LEGAL",
+    "privacyPolicy": "Política de privacidad",
+    "terms": "Condiciones de uso",
+    "sectionDanger": "ZONA PELIGROSA",
+    "deleteAccount": "Eliminar mi cuenta",
+    "deleting": "Eliminando…",
+    "deleteHint": "Elimina definitivamente tu cuenta y todos tus datos (objetos, fotos, colecciones). Irreversible.",
+    "changePasswordTitle": "Nueva contraseña",
+    "changePasswordMessage": "Introduce tu nueva contraseña (8 caracteres mínimo).",
+    "passwordTooShortTitle": "Demasiado corta",
+    "passwordTooShortMessage": "La contraseña debe tener al menos 8 caracteres.",
+    "passwordUpdatedTitle": "Contraseña actualizada",
+    "passwordUpdatedMessage": "Ahora puedes iniciar sesión con tu nueva contraseña.",
+    "deleteTitle": "¿Eliminar mi cuenta?",
+    "deleteMessage": "Todos tus datos se eliminarán definitivamente: objetos, colecciones, fotos, enlaces compartidos. Esta acción es irreversible.",
+    "deleteConfirm": "Eliminar definitivamente",
+    "deleteLastTitle": "Última confirmación",
+    "deleteLastMessage": "Escribe \"ELIMINAR\" para confirmar.",
+    "deleteLastConfirm": "Confirmo",
+    "deleteFailed": "La eliminación falló. Inténtalo de nuevo o contacta con soporte."
+  },
+  "language": {
+    "title": "Idioma de la aplicación",
+    "systemDefault": "Idioma del dispositivo"
+  }
+}

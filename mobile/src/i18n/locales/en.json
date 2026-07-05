@@ -1,0 +1,91 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "back": "Back",
+    "or": "or",
+    "continueWithGoogle": "Continue with Google",
+    "cgu": "Terms of Use",
+    "privacyPolicy": "privacy policy",
+    "error": "Error"
+  },
+  "auth": {
+    "login": {
+      "tagline": "Find everything you own.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "signIn": "Sign in",
+      "legalPrefix": "By continuing, you accept our ",
+      "legalAnd": " and our ",
+      "forgotQuestion": "Forgot your password? ",
+      "reset": "Reset",
+      "noAccountQuestion": "No account yet? ",
+      "createAccount": "Create an account",
+      "errorMissingCredentials": "Enter your email and password.",
+      "errorInvalidCredentials": "Incorrect email or password.",
+      "errorAppleFailed": "Apple sign-in failed.",
+      "errorGoogleFailed": "Google sign-in failed."
+    },
+    "register": {
+      "title": "Create an account",
+      "nameLabel": "First name",
+      "namePlaceholder": "Ada",
+      "emailLabel": "Email",
+      "emailPlaceholder": "ada@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "6 characters minimum",
+      "cguPrefix": "I have read and accept the ",
+      "cguLink": "Terms of Use",
+      "submit": "Create my account",
+      "successTitle": "Account created!",
+      "successText": "Check your inbox to confirm your address, then sign in.",
+      "successSignIn": "Sign in",
+      "errorMissingFields": "Enter your first name, email and a password.",
+      "errorPasswordTooShort": "The password must be at least 6 characters.",
+      "errorCguRequired": "Please accept the Terms of Use to continue.",
+      "errorAppleFailed": "Apple sign-in failed.",
+      "errorGoogleFailed": "Google sign-in failed."
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "subtitle": "We'll send you a reset link by email.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "sendLink": "Send the link",
+      "successTitle": "Email sent",
+      "successText": "Check your inbox and click the link to create a new password.",
+      "backToLogin": "Back to sign in",
+      "errorMissingEmail": "Enter your email address."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "sectionAccount": "ACCOUNT",
+    "changePassword": "Change password",
+    "sectionLanguage": "LANGUAGE",
+    "sectionLegal": "LEGAL",
+    "privacyPolicy": "Privacy policy",
+    "terms": "Terms of Use",
+    "sectionDanger": "DANGER ZONE",
+    "deleteAccount": "Delete my account",
+    "deleting": "Deleting…",
+    "deleteHint": "Permanently deletes your account and all your data (objects, photos, collections). Irreversible.",
+    "changePasswordTitle": "New password",
+    "changePasswordMessage": "Enter your new password (8 characters minimum).",
+    "passwordTooShortTitle": "Too short",
+    "passwordTooShortMessage": "The password must be at least 8 characters.",
+    "passwordUpdatedTitle": "Password updated",
+    "passwordUpdatedMessage": "You can now sign in with your new password.",
+    "deleteTitle": "Delete my account?",
+    "deleteMessage": "All your data will be permanently deleted: objects, collections, photos, shares. This action is irreversible.",
+    "deleteConfirm": "Delete permanently",
+    "deleteLastTitle": "Final confirmation",
+    "deleteLastMessage": "Type \"DELETE\" to confirm.",
+    "deleteLastConfirm": "I confirm",
+    "deleteFailed": "Deletion failed. Try again or contact support."
+  },
+  "language": {
+    "title": "App language",
+    "systemDefault": "Device language"
+  }
+}
