@@ -19,6 +19,8 @@ import {
   PanResponder,
 } from 'react-native'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
+import { useTranslation } from 'react-i18next'
+import i18n from 'i18next'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { decode } from 'base64-arraybuffer'
@@ -37,18 +39,14 @@ const THUMB_SIZE = 52
 
 // ── Labels ───────────────────────────────────────────────────────────────────
 
-const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: 'owned',  label: 'Utilisé' },
-  { value: 'stored', label: 'Stocké' },
-  { value: 'loaned', label: 'Prêté' },
-  { value: 'lost',   label: 'Perdu' },
-  { value: 'sold',   label: 'À vendre' },
-  { value: 'given',  label: 'À jeter' },
+const STATUS_OPTIONS: { value: string; labelKey: string }[] = [
+  { value: 'owned',  labelKey: 'object.statusOptions.owned' },
+  { value: 'stored', labelKey: 'object.statusOptions.stored' },
+  { value: 'loaned', labelKey: 'object.statusOptions.loaned' },
+  { value: 'lost',   labelKey: 'object.statusOptions.lost' },
+  { value: 'sold',   labelKey: 'object.statusOptions.sold' },
+  { value: 'given',  labelKey: 'object.statusOptions.given' },
 ]
-
-const STATUS_LABEL: Record<string, string> = Object.fromEntries(
-  STATUS_OPTIONS.map(o => [o.value, o.label])
-)
 
 const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = {
   owned:   { bg: '#F0FDF4', text: '#16A34A', dot: '#22C55E' }, // vert
@@ -59,37 +57,38 @@ const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = 
   given:   { bg: '#FFF1F2', text: '#E11D48', dot: '#FB7185' }, // rouge
 }
 
+// Attributs connus → clé i18n du libellé (sert aussi de filtre de présence).
 const ATTR_LABELS: Record<string, string> = {
-  brand:           'Marque',
-  model:           'Modèle',
-  category:        'Catégorie',
-  serial_number:   'N° série',
-  estimated_value: 'Valeur estimée',
-  currency:        'Devise',
-  color:           'Couleur',
-  material:        'Matière',
-  dimensions:      'Dimensions',
-  voltage:         'Voltage',
+  brand:           'object.attrLabels.brand',
+  model:           'object.attrLabels.model',
+  category:        'object.attrLabels.category',
+  serial_number:   'object.attrLabels.serial_number',
+  estimated_value: 'object.attrLabels.estimated_value',
+  currency:        'object.attrLabels.currency',
+  color:           'object.attrLabels.color',
+  material:        'object.attrLabels.material',
+  dimensions:      'object.attrLabels.dimensions',
+  voltage:         'object.attrLabels.voltage',
 }
 
-const ATTR_PRESETS: { key: string; label: string }[] = [
-  { key: 'brand',         label: 'Marque' },
-  { key: 'model',         label: 'Modèle' },
-  { key: 'color',         label: 'Couleur' },
-  { key: 'material',      label: 'Matière' },
-  { key: 'condition',     label: 'État' },
-  { key: 'size',          label: 'Taille' },
-  { key: 'weight',        label: 'Poids' },
-  { key: 'dimensions',    label: 'Dimensions' },
-  { key: 'year',          label: 'Année' },
-  { key: 'serial_number', label: 'N° série' },
-  { key: 'voltage',       label: 'Voltage' },
+const ATTR_PRESETS: { key: string; labelKey: string }[] = [
+  { key: 'brand',         labelKey: 'object.attrLabels.brand' },
+  { key: 'model',         labelKey: 'object.attrLabels.model' },
+  { key: 'color',         labelKey: 'object.attrLabels.color' },
+  { key: 'material',      labelKey: 'object.attrLabels.material' },
+  { key: 'condition',     labelKey: 'object.attrLabels.condition' },
+  { key: 'size',          labelKey: 'object.attrLabels.size' },
+  { key: 'weight',        labelKey: 'object.attrLabels.weight' },
+  { key: 'dimensions',    labelKey: 'object.attrLabels.dimensions' },
+  { key: 'year',          labelKey: 'object.attrLabels.year' },
+  { key: 'serial_number', labelKey: 'object.attrLabels.serial_number' },
+  { key: 'voltage',       labelKey: 'object.attrLabels.voltage' },
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('fr-FR', {
+function formatDate(iso: string, locale: string) {
+  return new Date(iso).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -213,6 +212,7 @@ const lbStyles = StyleSheet.create({
 
 function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
   const router = useRouter()
+  const { t } = useTranslation()
   const { profile } = useAuth()
   const [activeIndex, setActiveIndex] = useState(0)
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
@@ -240,7 +240,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
   async function pickAndUpload() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (!perm.granted) {
-      Alert.alert('Permission refusée', 'Autorisez l\'accès à la galerie dans les réglages.')
+      Alert.alert(t('capture.permissionDeniedTitle'), t('object.photo.permissionGallery'))
       return
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -254,7 +254,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
     try {
       const asset = result.assets[0]
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Non authentifié')
+      if (!session) throw new Error(t('documents.notAuthenticated'))
       const userId = session.user.id
 
       // Dériver l'extension depuis mimeType (fiable sur web et iOS)
@@ -304,7 +304,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
         setActiveIndex(newImages.length - 1)
       }, 100)
     } catch (err) {
-      Alert.alert('Erreur', err instanceof Error ? err.message : 'Upload échoué')
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : t('documents.uploadFailed'))
     } finally {
       setUploading(false)
     }
@@ -333,7 +333,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
 
   // Alert.alert est un no-op silencieux sur react-native-web : sur web,
   // on retombe sur window.alert/confirm pour garantir un retour visible.
-  function crossAlert(title: string, message: string, onConfirm?: () => void, confirmLabel = 'Voir Premium') {
+  function crossAlert(title: string, message: string, onConfirm?: () => void, confirmLabel = t('object.photo.seePremium')) {
     if (Platform.OS === 'web') {
       if (onConfirm) {
         if (window.confirm(`${title}\n\n${message}`)) onConfirm()
@@ -344,7 +344,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
     }
     if (onConfirm) {
       Alert.alert(title, message, [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { text: confirmLabel, onPress: onConfirm },
       ])
     } else {
@@ -359,8 +359,8 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
 
     if (profile?.plan !== 'premium') {
       crossAlert(
-        'Fonctionnalité Premium',
-        "L'amélioration IA des photos est réservée aux abonnés Premium.",
+        t('object.photo.enhancePremiumTitle'),
+        t('object.photo.enhancePremiumMessage'),
         () => router.push('/paywall')
       )
       return
@@ -373,7 +373,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
       })
       if (error) {
         let code = 'INTERNAL_ERROR'
-        let message = "Impossible d'améliorer cette photo pour le moment."
+        let message = t('object.photo.enhanceError')
         try {
           const parsed = await (error as any).context?.json?.()
           if (parsed?.error) {
@@ -384,11 +384,11 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
           // garde le message par défaut
         }
         if (code === 'QUOTA_EXCEEDED') {
-          crossAlert('Quota atteint', 'Tu as atteint ta limite de retouches IA ce mois-ci. Reviens le mois prochain.')
+          crossAlert(t('object.photo.quotaTitle'), t('object.photo.quotaMessage'))
         } else if (code === 'PREMIUM_REQUIRED') {
-          crossAlert('Fonctionnalité Premium', "Cette fonctionnalité est réservée aux abonnés Premium.")
+          crossAlert(t('object.photo.enhancePremiumTitle'), t('object.photo.premiumRequiredMessage'))
         } else {
-          crossAlert('Erreur', message)
+          crossAlert(t('common.error'), message)
         }
         return
       }
@@ -400,7 +400,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
         setActiveIndex(newImages.length - 1)
       }, 100)
     } catch {
-      crossAlert('Erreur', "Impossible d'améliorer cette photo pour le moment.")
+      crossAlert(t('common.error'), t('object.photo.enhanceError'))
     } finally {
       setEnhancing(false)
     }
@@ -427,7 +427,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
         )
       )
       if (results.some(r => r.error)) {
-        crossAlert('Erreur', "Impossible de définir cette photo comme favorite.")
+        crossAlert(t('common.error'), t('object.photo.coverError'))
       }
     } finally {
       setSettingCover(false)
@@ -468,7 +468,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
         ListEmptyComponent={
           <View style={sl.empty}>
             <Text style={sl.emptyIcon}>📷</Text>
-            <Text style={sl.emptyText}>Aucune photo</Text>
+            <Text style={sl.emptyText}>{t('object.photoNone')}</Text>
           </View>
         }
       />
@@ -547,14 +547,14 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
         <View style={sl.confirmSheet}>
           <View style={sl.confirmHandle} />
           <Trash2 size={28} color={Colors.error} strokeWidth={1.5} style={{ alignSelf: 'center', marginBottom: 8 }} />
-          <Text style={sl.confirmTitle}>Supprimer cette photo ?</Text>
-          <Text style={sl.confirmSub}>Cette action est irréversible.</Text>
+          <Text style={sl.confirmTitle}>{t('object.photoDeleteTitle')}</Text>
+          <Text style={sl.confirmSub}>{t('object.irreversible')}</Text>
           <View style={sl.confirmActions}>
             <TouchableOpacity style={sl.cancelBtn} onPress={() => setDeleteConfirm(false)}>
-              <Text style={sl.cancelText}>Annuler</Text>
+              <Text style={sl.cancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={sl.confirmBtn} onPress={deleteActive}>
-              <Text style={sl.confirmText}>Supprimer</Text>
+              <Text style={sl.confirmText}>{t('common.delete')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -666,9 +666,10 @@ interface AttributesSectionProps {
 }
 
 function AttributesSection({ attributes: initialAttrs, onSave }: AttributesSectionProps) {
+  const { t } = useTranslation()
   // Tableau ordonné local
   const [entries, setEntries] = useState<AttrEntry[]>(() =>
-    initialAttrs.map(([k, v]) => ({ key: k, label: ATTR_LABELS[k] ?? k, value: String(v) }))
+    initialAttrs.map(([k, v]) => ({ key: k, label: ATTR_LABELS[k] ? t(ATTR_LABELS[k]) : k, value: String(v) }))
   )
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
   const [editingField, setEditingField] = useState<'label' | 'value' | null>(null)
@@ -755,7 +756,7 @@ function AttributesSection({ attributes: initialAttrs, onSave }: AttributesSecti
 
   return (
     <View>
-      <Text style={s.sectionTitle}>Caractéristiques</Text>
+      <Text style={s.sectionTitle}>{t('object.attrs.title')}</Text>
 
       <View style={[s.attrsCard, { overflow: 'visible' }]}>
         {entries.map((entry, i) => {
@@ -826,7 +827,7 @@ function AttributesSection({ attributes: initialAttrs, onSave }: AttributesSecti
           {/* Bouton ajout — dans la card, séparé par un divider */}
           {entries.length > 0 && <View style={s.attrSep} />}
           <TouchableOpacity style={s.attrsAddCta} onPress={() => setAdding(true)} activeOpacity={0.8}>
-            <Text style={s.attrsAddCtaText}>+ Ajouter une caractéristique</Text>
+            <Text style={s.attrsAddCtaText}>{t('object.attrs.add')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -835,44 +836,47 @@ function AttributesSection({ attributes: initialAttrs, onSave }: AttributesSecti
         <TouchableOpacity style={s.attrBackdrop} activeOpacity={1} onPress={() => setAdding(false)} />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={s.attrSheet}>
           <View style={s.attrSheetHandle} />
-          <Text style={s.attrSheetTitle}>Nouvelle caractéristique</Text>
+          <Text style={s.attrSheetTitle}>{t('object.attrs.sheetTitle')}</Text>
 
           {/* Presets */}
-          <Text style={s.attrSheetLabel}>Suggestions</Text>
+          <Text style={s.attrSheetLabel}>{t('object.attrs.suggestions')}</Text>
           <View style={s.attrPresets}>
-            {ATTR_PRESETS.filter(p => !entries.find(e => e.key === p.key)).map(p => (
+            {ATTR_PRESETS.filter(p => !entries.find(e => e.key === p.key)).map(p => {
+              const presetLabel = t(p.labelKey)
+              return (
               <TouchableOpacity
                 key={p.key}
-                style={[s.attrPresetChip, newLabel === p.label && s.attrPresetChipActive]}
-                onPress={() => { setNewLabel(p.label) }}
+                style={[s.attrPresetChip, newLabel === presetLabel && s.attrPresetChipActive]}
+                onPress={() => { setNewLabel(presetLabel) }}
                 activeOpacity={0.7}
               >
-                <Text style={[s.attrPresetChipText, newLabel === p.label && s.attrPresetChipTextActive]}>
-                  {p.label}
+                <Text style={[s.attrPresetChipText, newLabel === presetLabel && s.attrPresetChipTextActive]}>
+                  {presetLabel}
                 </Text>
               </TouchableOpacity>
-            ))}
+              )
+            })}
           </View>
 
           {/* Nom custom */}
-          <Text style={s.attrSheetLabel}>Nom du critère</Text>
+          <Text style={s.attrSheetLabel}>{t('object.attrs.nameLabel')}</Text>
           <TextInput
             style={s.attrSheetInput}
             value={newLabel}
             onChangeText={setNewLabel}
-            placeholder="ou saisir un critère personnalisé…"
+            placeholder={t('object.attrs.namePlaceholder')}
             placeholderTextColor={Colors.textTertiary}
             returnKeyType="next"
             onSubmitEditing={() => {}}
           />
 
           {/* Valeur */}
-          <Text style={s.attrSheetLabel}>Valeur</Text>
+          <Text style={s.attrSheetLabel}>{t('object.attrs.valueLabel')}</Text>
           <TextInput
             style={s.attrSheetInput}
             value={newValue}
             onChangeText={setNewValue}
-            placeholder="ex : Rouge, M, 2019…"
+            placeholder={t('object.attrs.valuePlaceholder')}
             placeholderTextColor={Colors.textTertiary}
             returnKeyType="done"
             onSubmitEditing={addEntry}
@@ -883,7 +887,7 @@ function AttributesSection({ attributes: initialAttrs, onSave }: AttributesSecti
             disabled={!newLabel.trim() || !newValue.trim()}
             activeOpacity={0.85}
           >
-            <Text style={s.attrSheetBtnText}>Ajouter</Text>
+            <Text style={s.attrSheetBtnText}>{t('object.attrs.addBtn')}</Text>
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </Modal>
@@ -971,11 +975,12 @@ const lb = StyleSheet.create({
 function DatePickerField({
   label, value, onChange,
 }: { label: string; value: string; onChange: (iso: string) => void }) {
+  const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
   const date = value ? new Date(value) : new Date()
 
   const display = value
-    ? new Date(value).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    ? new Date(value).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })
     : null
 
   return (
@@ -984,7 +989,7 @@ function DatePickerField({
       <TouchableOpacity style={vc.dateBtn} onPress={() => setOpen(true)} activeOpacity={0.7}>
         <CalendarDays size={16} color={display ? Colors.textPrimary : Colors.textTertiary} strokeWidth={1.5} />
         <Text style={[vc.dateBtnText, !display && vc.datePlaceholder]}>
-          {display ?? 'Choisir une date…'}
+          {display ?? t('object.chooseDate')}
         </Text>
         {display && (
           <TouchableOpacity onPress={() => onChange('')} hitSlop={8}>
@@ -997,7 +1002,7 @@ function DatePickerField({
           value={date}
           mode="date"
           display="spinner"
-          locale="fr-FR"
+          locale={i18n.language}
           maximumDate={new Date()}
           onChange={(_, selected) => {
             setOpen(false)
@@ -1018,13 +1023,14 @@ function DatePickerField({
 const DESC_COLLAPSED_LINES = 3
 
 function DescriptionBlock({ text, onEdit }: { text: string | null; onEdit: () => void }) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [isTruncated, setIsTruncated] = useState(false)
 
   if (!text) {
     return (
       <TouchableOpacity onPress={onEdit} activeOpacity={0.8}>
-        <Text style={s.descPlaceholder}>Appuyez pour ajouter une description…</Text>
+        <Text style={s.descPlaceholder}>{t('object.descriptionAdd')}</Text>
       </TouchableOpacity>
     )
   }
@@ -1044,7 +1050,7 @@ function DescriptionBlock({ text, onEdit }: { text: string | null; onEdit: () =>
       </TouchableOpacity>
       {(isTruncated || expanded) && (
         <TouchableOpacity onPress={() => setExpanded(p => !p)} activeOpacity={0.7} style={s.showMoreBtn}>
-          <Text style={s.showMoreText}>{expanded ? 'Voir moins ↑' : 'Voir plus ↓'}</Text>
+          <Text style={s.showMoreText}>{expanded ? t('object.showLess') : t('object.showMore')}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -1053,7 +1059,7 @@ function DescriptionBlock({ text, onEdit }: { text: string | null; onEdit: () =>
 
 // ── ValeurCard (fusion Valeur + Assurance) ────────────────────────────────────
 
-const CONFIDENCE_LABEL = { low: 'Confiance faible', medium: 'Confiance moyenne', high: 'Confiance élevée' }
+const CONFIDENCE_LABEL_KEY = { low: 'object.value.confidenceLow', medium: 'object.value.confidenceMedium', high: 'object.value.confidenceHigh' }
 const CONFIDENCE_COLOR = { low: Colors.textTertiary, medium: '#EA580C', high: '#16A34A' }
 
 // ── MarketValueSection — section IA avec show more et suppression ─────────────
@@ -1070,6 +1076,7 @@ interface MarketValueSectionProps {
 }
 
 function MarketValueSection({ object, estimating, sources, confidence, currSym, onEstimate, onClearMarketValue, onUpdateMarketValue }: MarketValueSectionProps) {
+  const { t, i18n } = useTranslation()
   const [summaryExpanded, setSummaryExpanded] = useState(false)
   const [summaryTruncated, setSummaryTruncated] = useState(false)
   const [editingMarketValue, setEditingMarketValue] = useState(false)
@@ -1110,10 +1117,10 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
   return (
     <View style={vc.section}>
       <View style={vc.sectionHead}>
-        <Text style={vc.sectionLabel}>Valeur marché</Text>
+        <Text style={vc.sectionLabel}>{t('object.value.marketValue')}</Text>
         {sources && (
           <Text style={[vc.confidenceBadge, { color: CONFIDENCE_COLOR[confidence] }]}>
-            {CONFIDENCE_LABEL[confidence]}
+            {t(CONFIDENCE_LABEL_KEY[confidence])}
           </Text>
         )}
       </View>
@@ -1121,7 +1128,7 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
       {estimating ? (
         <View style={vc.loadingRow}>
           <ActivityIndicator color={Colors.accent} size="small" />
-          <Text style={vc.loadingText}>Recherche en cours…</Text>
+          <Text style={vc.loadingText}>{t('object.value.searching')}</Text>
         </View>
       ) : object.market_value != null ? (
         <>
@@ -1145,16 +1152,16 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
             ) : savingMarketValue ? (
               <ActivityIndicator size="small" color={Colors.accent} />
             ) : (
-              <Text style={vc.iaValue}>{object.market_value.toLocaleString('fr-FR')} {currSym}</Text>
+              <Text style={vc.iaValue}>{object.market_value.toLocaleString(i18n.language)} {currSym}</Text>
             )}
             {/* Rappel valeur IA originale si l'utilisateur a overridé */}
             {sources?.ai_value != null && sources.ai_value !== object.market_value && (
-              <Text style={vc.iaValueHint}>IA : {sources.ai_value.toLocaleString('fr-FR')} {currSym}</Text>
+              <Text style={vc.iaValueHint}>{t('object.value.aiHint', { value: sources.ai_value.toLocaleString(i18n.language), sym: currSym })}</Text>
             )}
           </TouchableOpacity>
           {sources?.value_min != null && sources?.value_max != null && (
             <Text style={vc.range}>
-              Fourchette : {sources.value_min.toLocaleString('fr-FR')} – {sources.value_max.toLocaleString('fr-FR')} {currSym}
+              {t('object.value.range', { min: sources.value_min.toLocaleString(i18n.language), max: sources.value_max.toLocaleString(i18n.language), sym: currSym })}
             </Text>
           )}
           {sources?.summary ? (
@@ -1181,7 +1188,7 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
               </Animated.View>
               {summaryTruncated && (
                 <TouchableOpacity onPress={toggleSummary} activeOpacity={0.7}>
-                  <Text style={vc.showMore}>{summaryExpanded ? 'Voir moins ↑' : 'Voir plus ↓'}</Text>
+                  <Text style={vc.showMore}>{summaryExpanded ? t('object.showLess') : t('object.showMore')}</Text>
                 </TouchableOpacity>
               )}
             </>
@@ -1201,27 +1208,27 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
               onPress={() => { setMarketValueDraft(String(object.market_value)); setEditingMarketValue(true) }}
               activeOpacity={0.75}
             >
-              <Text style={[vc.marketActionText, { color: '#2563EB' }]}>✎ Modifier</Text>
+              <Text style={[vc.marketActionText, { color: '#2563EB' }]}>{t('object.value.edit')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[vc.marketActionBtn, vc.marketActionRefresh]}
               onPress={onEstimate}
               activeOpacity={0.75}
             >
-              <Text style={[vc.marketActionText, { color: '#15803D' }]}>↻ Rafraîchir</Text>
+              <Text style={[vc.marketActionText, { color: '#15803D' }]}>{t('object.value.refresh')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[vc.marketActionBtn, vc.marketActionDelete]}
               onPress={onClearMarketValue}
               activeOpacity={0.75}
             >
-              <Text style={[vc.marketActionText, { color: '#DC2626' }]}>✕ Supprimer</Text>
+              <Text style={[vc.marketActionText, { color: '#DC2626' }]}>{t('object.value.delete')}</Text>
             </TouchableOpacity>
           </View>
         </>
       ) : (
         <TouchableOpacity style={vc.estimateBtn} onPress={onEstimate} activeOpacity={0.8}>
-          <Text style={vc.estimateBtnText}>✦ Estimer avec l'IA</Text>
+          <Text style={vc.estimateBtnText}>{t('object.value.estimateAi')}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -1259,6 +1266,7 @@ function ValeurCard({
   onEstimate, onEditUserValue, onUserValueChange, onUserValueCommit,
   onSaveInsurance, onClearMarketValue, onUpdateMarketValue,
 }: ValeurCardProps) {
+  const { t, i18n } = useTranslation()
   const currency = object.value_currency ?? 'EUR'
   const currSym = currency === 'EUR' ? '€' : currency
   const sources = object.value_sources
@@ -1312,14 +1320,14 @@ function ValeurCard({
         <TouchableOpacity style={vc.estimationRow} onPress={onEditUserValue} activeOpacity={0.7}>
           {/* Gauche : label + diff IA */}
           <View style={vc.estimationLeft}>
-            <Text style={vc.sectionLabel}>Estimation</Text>
+            <Text style={vc.sectionLabel}>{t('object.value.estimation')}</Text>
             {object.user_value != null && object.market_value != null && (() => {
               const diff = object.user_value - object.market_value
               const pct = Math.round((diff / object.market_value) * 100)
               const up = diff >= 0
               return (
                 <Text style={[vc.estimationIaDiff, { color: up ? '#16A34A' : '#DC2626' }]}>
-                  {up ? '▲' : '▼'} {Math.abs(pct)}% vs IA
+                  {up ? '▲' : '▼'} {Math.abs(pct)}% {t('object.value.vsAi')}
                 </Text>
               )
             })()}
@@ -1341,15 +1349,15 @@ function ValeurCard({
                 placeholderTextColor={Colors.textTertiary}
               />
             ) : object.user_value != null ? (
-              <Text style={vc.valueText}>{object.user_value.toLocaleString('fr-FR')} {currSym}</Text>
+              <Text style={vc.valueText}>{object.user_value.toLocaleString(i18n.language)} {currSym}</Text>
             ) : (
-              <Text style={vc.valuePlaceholder}>Saisir…</Text>
+              <Text style={vc.valuePlaceholder}>{t('object.value.enter')}</Text>
             )}
             {depreciation != null && (
               <View style={[vc.diffBadge, { backgroundColor: depreciation >= 0 ? '#DCFCE7' : '#FEE2E2' }]}>
                 <Text style={[vc.diffBadgeText, { color: depreciation >= 0 ? '#16A34A' : '#DC2626' }]}>
                   {depreciation >= 0 ? '▲' : '▼'} {Math.abs(depreciation)}%{'\n'}
-                  <Text style={vc.diffBadgeSubtext}>vs achat</Text>
+                  <Text style={vc.diffBadgeSubtext}>{t('object.value.vsPurchase')}</Text>
                 </Text>
               </View>
             )}
@@ -1374,48 +1382,48 @@ function ValeurCard({
 
         {/* ── Section 3 : Assurance ── */}
         <View style={vc.section}>
-          <Text style={vc.sectionLabel}>Assurance</Text>
+          <Text style={vc.sectionLabel}>{t('object.insurance.title')}</Text>
           {!hasInsuranceData ? (
             <TouchableOpacity onPress={openInsuranceEdit} activeOpacity={0.8} style={vc.estimateBtn}>
-              <Text style={vc.estimateBtnText}>Ajouter le prix d'achat et l'assurance</Text>
+              <Text style={vc.estimateBtnText}>{t('object.insurance.addCta')}</Text>
             </TouchableOpacity>
           ) : (
             <View style={vc.rows}>
               {object.purchase_price != null && (
                 <View style={vc.row}>
-                  <Text style={vc.rowLabel}>Prix d'achat</Text>
-                  <Text style={vc.rowValue}>{currSym} {object.purchase_price.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</Text>
+                  <Text style={vc.rowLabel}>{t('object.insurance.purchasePrice')}</Text>
+                  <Text style={vc.rowValue}>{currSym} {object.purchase_price.toLocaleString(i18n.language, { minimumFractionDigits: 2 })}</Text>
                 </View>
               )}
               {object.purchase_date && (
                 <View style={vc.row}>
-                  <Text style={vc.rowLabel}>Date d'achat</Text>
-                  <Text style={vc.rowValue}>{new Date(object.purchase_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                  <Text style={vc.rowLabel}>{t('object.insurance.purchaseDate')}</Text>
+                  <Text style={vc.rowValue}>{new Date(object.purchase_date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
                 </View>
               )}
               <View style={vc.row}>
-                <Text style={vc.rowLabel}>Assuré</Text>
+                <Text style={vc.rowLabel}>{t('object.insurance.insured')}</Text>
                 <Text style={[vc.rowValue, { color: object.insured ? '#16A34A' : Colors.textTertiary }]}>
-                  {object.insured ? `Oui${object.insurance_type ? ` — ${object.insurance_type}` : ''}` : 'Non'}
+                  {object.insured ? `${t('object.insurance.yes')}${object.insurance_type ? ` — ${object.insurance_type}` : ''}` : t('object.insurance.no')}
                 </Text>
               </View>
               {object.insured && object.insurance_coverage != null && (
                 <View style={vc.row}>
-                  <Text style={vc.rowLabel}>Couverture</Text>
-                  <Text style={vc.rowValue}>Jusqu'à {currSym} {object.insurance_coverage.toLocaleString('fr-FR')}</Text>
+                  <Text style={vc.rowLabel}>{t('object.insurance.coverage')}</Text>
+                  <Text style={vc.rowValue}>{t('object.insurance.coverageUpTo', { sym: currSym, value: object.insurance_coverage.toLocaleString(i18n.language) })}</Text>
                 </View>
               )}
               {object.insured && object.insurance_expires_at && (
                 <View style={vc.row}>
-                  <Text style={vc.rowLabel}>Expiration</Text>
-                  <Text style={vc.rowValue}>{new Date(object.insurance_expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                  <Text style={vc.rowLabel}>{t('object.insurance.expiration')}</Text>
+                  <Text style={vc.rowValue}>{new Date(object.insurance_expires_at).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
                 </View>
               )}
             </View>
           )}
           {hasInsuranceData && (
             <TouchableOpacity onPress={openInsuranceEdit} activeOpacity={0.7} style={{ marginTop: Spacing.xs }}>
-              <Text style={vc.refreshText}>Modifier</Text>
+              <Text style={vc.refreshText}>{t('object.insurance.edit')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -1427,9 +1435,9 @@ function ValeurCard({
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={vc.sheet}>
           <View style={vc.sheetHandle} />
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={vc.sheetContent}>
-            <Text style={vc.sheetTitle}>Prix d'achat & Assurance</Text>
+            <Text style={vc.sheetTitle}>{t('object.insurance.sheetTitle')}</Text>
 
-            <Text style={vc.fieldLabel}>Prix d'achat</Text>
+            <Text style={vc.fieldLabel}>{t('object.insurance.purchasePrice')}</Text>
             <TextInput
               style={vc.input}
               value={draft.purchase_price}
@@ -1440,13 +1448,13 @@ function ValeurCard({
             />
 
             <DatePickerField
-              label="Date d'achat"
+              label={t('object.insurance.purchaseDate')}
               value={draft.purchase_date}
               onChange={v => setDraft(d => ({ ...d, purchase_date: v }))}
             />
 
             <View style={vc.switchRow}>
-              <Text style={vc.fieldLabel}>Objet assuré</Text>
+              <Text style={vc.fieldLabel}>{t('object.insurance.objectInsured')}</Text>
               <Switch
                 value={draft.insured}
                 onValueChange={v => setDraft(d => ({ ...d, insured: v }))}
@@ -1456,29 +1464,29 @@ function ValeurCard({
 
             {draft.insured && (
               <>
-                <Text style={vc.fieldLabel}>Type d'assurance</Text>
+                <Text style={vc.fieldLabel}>{t('object.insurance.type')}</Text>
                 <TextInput style={vc.input} value={draft.insurance_type}
                   onChangeText={v => setDraft(d => ({ ...d, insurance_type: v }))}
-                  placeholder="Assurance habitation" placeholderTextColor={Colors.textTertiary} />
+                  placeholder={t('object.insurance.typePlaceholder')} placeholderTextColor={Colors.textTertiary} />
 
-                <Text style={vc.fieldLabel}>Assureur</Text>
+                <Text style={vc.fieldLabel}>{t('object.insurance.provider')}</Text>
                 <TextInput style={vc.input} value={draft.insurance_provider}
                   onChangeText={v => setDraft(d => ({ ...d, insurance_provider: v }))}
                   placeholder="MMA, AXA…" placeholderTextColor={Colors.textTertiary} />
 
-                <Text style={vc.fieldLabel}>Couverture (€)</Text>
+                <Text style={vc.fieldLabel}>{t('object.insurance.coverageAmount')}</Text>
                 <TextInput style={vc.input} value={draft.insurance_coverage}
                   onChangeText={v => setDraft(d => ({ ...d, insurance_coverage: v }))}
                   keyboardType="decimal-pad" placeholder="200.00" placeholderTextColor={Colors.textTertiary} />
 
-                <Text style={vc.fieldLabel}>Référence police</Text>
+                <Text style={vc.fieldLabel}>{t('object.insurance.policyRef')}</Text>
                 <TextInput style={vc.input} value={draft.insurance_policy_ref}
                   onChangeText={v => setDraft(d => ({ ...d, insurance_policy_ref: v }))}
                   placeholder="MMA-2024-447812" placeholderTextColor={Colors.textTertiary}
                   autoCapitalize="characters" />
 
                 <DatePickerField
-                  label="Expiration assurance"
+                  label={t('object.insurance.expirationField')}
                   value={draft.insurance_expires_at}
                   onChange={v => setDraft(d => ({ ...d, insurance_expires_at: v }))}
                 />
@@ -1488,7 +1496,7 @@ function ValeurCard({
             <TouchableOpacity style={vc.saveBtn} onPress={commitInsurance} activeOpacity={0.85} disabled={insuranceSaving}>
               {insuranceSaving
                 ? <ActivityIndicator color="white" />
-                : <Text style={vc.saveBtnText}>Enregistrer</Text>
+                : <Text style={vc.saveBtnText}>{t('object.insurance.save')}</Text>
               }
             </TouchableOpacity>
           </ScrollView>
@@ -1629,6 +1637,7 @@ const vc = StyleSheet.create({
 export default function ObjectScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
+  const { t, i18n } = useTranslation()
 
   const [object, setObject] = useState<TiroirObject | null>(null)
   const [images, setImages] = useState<ObjectImage[]>([])
@@ -1726,7 +1735,7 @@ export default function ObjectScreen() {
       p_attributes: merged.attributes ?? {},
     })
     setSaving(false)
-    if (error) Alert.alert('Erreur', error.message)
+    if (error) Alert.alert(t('common.error'), error.message)
     else setObject(merged)
   }
 
@@ -1825,7 +1834,7 @@ export default function ObjectScreen() {
     setEstimating(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Non authentifié')
+      if (!session) throw new Error(t('documents.notAuthenticated'))
       const res = await supabase.functions.invoke('estimate-value', {
         body: { object_id: object.id },
       })
@@ -1845,7 +1854,7 @@ export default function ObjectScreen() {
         },
       } : prev)
     } catch (err) {
-      Alert.alert('Erreur', err instanceof Error ? err.message : 'Estimation impossible')
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : t('object.estimateFailed'))
     } finally {
       setEstimating(false)
     }
@@ -1876,7 +1885,7 @@ export default function ObjectScreen() {
       p_insurance_provider:   draft.insured && draft.insurance_provider ? draft.insurance_provider : null,
       p_insurance_expires_at: draft.insured && draft.insurance_expires_at ? draft.insurance_expires_at : null,
     })
-    if (error) { Alert.alert('Erreur', error.message); return }
+    if (error) { Alert.alert(t('common.error'), error.message); return }
     setObject(prev => prev ? {
       ...prev,
       purchase_price:       draft.purchase_price ? parseFloat(draft.purchase_price.replace(',', '.')) : null,
@@ -1904,7 +1913,7 @@ export default function ObjectScreen() {
     const { error } = await supabase.from('objects')
       .update({ market_value: newValue, value_sources: updatedSources })
       .eq('id', object.id)
-    if (error) { Alert.alert('Erreur', error.message); return }
+    if (error) { Alert.alert(t('common.error'), error.message); return }
     setObject(prev => prev ? ({ ...prev, market_value: newValue, value_sources: updatedSources } as TiroirObject) : prev)
   }
 
@@ -1913,7 +1922,7 @@ export default function ObjectScreen() {
     const { error } = await supabase.from('objects')
       .update({ market_value: null, value_currency: null, value_estimated_at: null, value_sources: null })
       .eq('id', object.id)
-    if (error) { Alert.alert('Erreur', error.message); return }
+    if (error) { Alert.alert(t('common.error'), error.message); return }
     setObject(prev => prev ? ({ ...prev, market_value: null, value_estimated_at: null, value_sources: null } as TiroirObject) : prev)
   }
 
@@ -1930,7 +1939,7 @@ export default function ObjectScreen() {
   async function executeDelete() {
     setDeleteConfirmVisible(false)
     const { data, error } = await supabase.rpc('delete_object', { p_object_id: id })
-    if (error) { Alert.alert('Erreur', error.message); return }
+    if (error) { Alert.alert(t('common.error'), error.message); return }
     const paths: string[] = data?.storage_paths_to_delete ?? []
     if (paths.length > 0) await supabase.storage.from('object-images').remove(paths)
     router.back()
@@ -1950,9 +1959,9 @@ export default function ObjectScreen() {
     return (
       <Screen>
         <View style={s.loader}>
-          <Text style={s.errorText}>Objet introuvable.</Text>
+          <Text style={s.errorText}>{t('object.notFound')}</Text>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={s.backLink}>← Retour</Text>
+            <Text style={s.backLink}>{`← ${t('common.back')}`}</Text>
           </TouchableOpacity>
         </View>
       </Screen>
@@ -2016,7 +2025,7 @@ export default function ObjectScreen() {
                     <Text style={s.badgeCatText}>{category}</Text>
                   </View>
                 ) : null}
-                <Text style={s.metaDate}>Ajouté le {formatDate(object.created_at)}</Text>
+                <Text style={s.metaDate}>{t('object.addedOn', { date: formatDate(object.created_at, i18n.language) })}</Text>
               </View>
             </View>
 
@@ -2024,7 +2033,7 @@ export default function ObjectScreen() {
             <View style={s.card}>
               <View style={s.cardHead}>
                 <Text style={s.cardIcon}>✦</Text>
-                <Text style={s.cardLabel}>RÉSUMÉ IA</Text>
+                <Text style={s.cardLabel}>{t('object.aiSummary')}</Text>
                 <TouchableOpacity onPress={startEditDesc} style={s.editIconBtn}>
                   <Text style={s.editIconText}>✎</Text>
                 </TouchableOpacity>
@@ -2037,7 +2046,7 @@ export default function ObjectScreen() {
                   onBlur={commitDesc}
                   multiline
                   autoFocus
-                  placeholder="Décrivez l'objet, ajoutez des notes utiles…"
+                  placeholder={t('object.descriptionPlaceholder')}
                   placeholderTextColor={Colors.textTertiary}
                   returnKeyType="done"
                   blurOnSubmit
@@ -2062,11 +2071,11 @@ export default function ObjectScreen() {
                 onPress={toggleStatusPicker}
                 activeOpacity={0.7}
               >
-                <Text style={s.metricLabel}>Statut</Text>
+                <Text style={s.metricLabel}>{t('object.statusLabel')}</Text>
                 <View style={s.statusValueRow}>
                   <View style={[s.statusDot, { backgroundColor: STATUS_COLOR[object.status]?.dot ?? Colors.accent }]} />
                   <Text style={[s.metricValue, { color: STATUS_COLOR[object.status]?.text ?? Colors.accent, flex: 1 }]}>
-                    {STATUS_LABEL[object.status] ?? object.status}
+                    {t(`object.statusOptions.${object.status}`, { defaultValue: object.status })}
                   </Text>
                   <Text style={[s.statusChevron, { color: STATUS_COLOR[object.status]?.text ?? Colors.accent }]}>
                     {showStatusPicker ? '▲' : '▾'}
@@ -2080,7 +2089,7 @@ export default function ObjectScreen() {
                 onPress={toggleCollectionPicker}
                 activeOpacity={0.8}
               >
-                <Text style={s.metricLabel}>Collection</Text>
+                <Text style={s.metricLabel}>{t('object.collectionLabel')}</Text>
                 <View style={s.statusValueRow}>
                   <Text style={[s.metricValue, { flex: 1 }]} numberOfLines={1}>
                     {currentCollection?.name ?? '—'}
@@ -2109,7 +2118,7 @@ export default function ObjectScreen() {
                       >
                         {c && <View style={[s.chipDot, { backgroundColor: c.dot }]} />}
                         <Text style={[s.chipText, isActive && { color: c?.text, fontWeight: Typography.semibold }]}>
-                          {opt.label}
+                          {t(opt.labelKey)}
                         </Text>
                       </TouchableOpacity>
                     )
@@ -2129,7 +2138,7 @@ export default function ObjectScreen() {
                     style={[s.chip, !object.collection_id && s.chipActive]}
                     onPress={() => { handleCollectionChange(null); toggleCollectionPicker() }}
                   >
-                    <Text style={[s.chipText, !object.collection_id && s.chipTextActive]}>Aucune</Text>
+                    <Text style={[s.chipText, !object.collection_id && s.chipTextActive]}>{t('object.noCollection')}</Text>
                   </TouchableOpacity>
                   {allCollections.map(col => (
                     <TouchableOpacity
@@ -2149,7 +2158,7 @@ export default function ObjectScreen() {
 
             {/* ── Emplacement ── */}
             <View style={s.metricCard}>
-              <Text style={s.metricLabel}>Emplacement</Text>
+              <Text style={s.metricLabel}>{t('object.locationLabel')}</Text>
               <LocationBricks
                 bricks={locationBricks}
                 editingIdx={editingBrickIdx}
@@ -2199,11 +2208,11 @@ export default function ObjectScreen() {
               <View style={s.bottomRow}>
                 <TouchableOpacity style={s.bottomLink} onPress={() => setSharePanelVisible(true)} activeOpacity={0.7}>
                   <Share2 size={15} color={Colors.textSecondary} strokeWidth={1.8} />
-                  <Text style={s.bottomLinkText}>Partager</Text>
+                  <Text style={s.bottomLinkText}>{t('object.share')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={s.bottomLink} onPress={confirmDelete} activeOpacity={0.7}>
                   <Trash2 size={15} color={Colors.error} strokeWidth={1.8} />
-                  <Text style={[s.bottomLinkText, { color: Colors.error }]}>Supprimer</Text>
+                  <Text style={[s.bottomLinkText, { color: Colors.error }]}>{t('common.delete')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -2217,10 +2226,10 @@ export default function ObjectScreen() {
           visible={menuVisible}
           onClose={() => setMenuVisible(false)}
           options={[
-            { label: 'Modifier le titre', onPress: () => router.push(`/objects/edit/${id}`) },
-            { label: 'Partager', onPress: () => setSharePanelVisible(true) },
-            { label: 'Supprimer', onPress: confirmDelete, destructive: true },
-            { label: 'Annuler', onPress: () => {}, cancel: true },
+            { label: t('object.editTitle'), onPress: () => router.push(`/objects/edit/${id}`) },
+            { label: t('object.share'), onPress: () => setSharePanelVisible(true) },
+            { label: t('common.delete'), onPress: confirmDelete, destructive: true },
+            { label: t('common.cancel'), onPress: () => {}, cancel: true },
           ]}
         />
 
@@ -2240,14 +2249,14 @@ export default function ObjectScreen() {
           <View style={s.deleteOverlay}>
             <TouchableOpacity style={s.deleteOverlayBg} activeOpacity={1} onPress={() => setDeleteConfirmVisible(false)} />
             <View style={s.deleteSheet}>
-              <Text style={s.deleteSheetTitle}>Supprimer cet objet ?</Text>
-              <Text style={s.deleteSheetBody}>Cette action est irréversible.</Text>
+              <Text style={s.deleteSheetTitle}>{t('object.deleteObjectTitle')}</Text>
+              <Text style={s.deleteSheetBody}>{t('object.irreversible')}</Text>
               <View style={s.deleteSheetActions}>
                 <TouchableOpacity style={s.deleteSheetCancel} onPress={() => setDeleteConfirmVisible(false)}>
-                  <Text style={s.deleteSheetCancelText}>Annuler</Text>
+                  <Text style={s.deleteSheetCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={s.deleteSheetConfirm} onPress={executeDelete}>
-                  <Text style={s.deleteSheetConfirmText}>Supprimer</Text>
+                  <Text style={s.deleteSheetConfirmText}>{t('common.delete')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
