@@ -59,7 +59,7 @@ export default function SurveyInvite() {
       <div className="survey-invite__emoji" aria-hidden="true">📝</div>
       <p className="survey-invite__title">Une étude est en cours&nbsp;!</p>
       <p className="survey-invite__text">
-        On améliore Tiroir et ton avis compte. Ça prend 2 minutes.
+        On améliore Tiroir et ton avis compte. Compte 6 à 8 minutes.
       </p>
       <a
         className="survey-invite__cta"
