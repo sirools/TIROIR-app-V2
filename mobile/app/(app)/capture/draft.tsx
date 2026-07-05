@@ -9,6 +9,16 @@ import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { DraftProposedData, Collection } from '@/types/database'
 import { draftCache } from '@/services/draftCache'
 
+function normalizeAttributes(
+  attributes?: DraftProposedData['attributes']
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(attributes ?? {})
+      .filter(([, value]) => value !== null && value !== '')
+      .map(([key, value]) => [key, String(value)])
+  )
+}
+
 export default function DraftScreen() {
   const { draftId } = useLocalSearchParams<{ draftId: string }>()
   const router = useRouter()
@@ -31,7 +41,7 @@ export default function DraftScreen() {
     setTitle(data.title ?? '')
     setDescription(data.description ?? '')
     setLocationNote(data.location_note ?? '')
-    setAttributes(data.attributes ?? {})
+    setAttributes(normalizeAttributes(data.attributes))
     setSelectedCollectionId(null)
     setCoverUri(null)
   }, [draftId])
