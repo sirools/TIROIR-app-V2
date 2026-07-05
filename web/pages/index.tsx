@@ -5,6 +5,7 @@ import FlowSteps from "../components/landing/FlowSteps"
 import StoryScroll from "../components/landing/StoryScroll"
 import Principles from "../components/landing/Principles"
 import FinalCTA from "../components/landing/FinalCTA"
+import SurveyInvite from "../components/SurveyInvite"
 
 export default function Landing() {
   return (
@@ -36,6 +37,8 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      <SurveyInvite />
     </>
   )
 }
