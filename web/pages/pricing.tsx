@@ -92,7 +92,7 @@ export default function Pricing() {
                   ))}
                 </ul>
                 <a
-                  href="https://apps.apple.com/app/id6751784101"
+                  href="https://apps.apple.com/fr/app/tiroir/id6751784101"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn"
@@ -124,7 +124,7 @@ export default function Pricing() {
                   ))}
                 </ul>
                 <a
-                  href="https://apps.apple.com/app/id6751784101"
+                  href="https://apps.apple.com/fr/app/tiroir/id6751784101"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-primary"
@@ -178,7 +178,7 @@ export default function Pricing() {
                 Aucune carte bancaire requise pour commencer. Annulable à tout moment.
               </p>
               <a
-                href="https://apps.apple.com/app/id6751784101"
+                href="https://apps.apple.com/fr/app/tiroir/id6751784101"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: 'var(--orange)', padding: '12px 24px', borderRadius: 12, fontSize: 15, fontWeight: 700, textDecoration: 'none', marginTop: 16 }}

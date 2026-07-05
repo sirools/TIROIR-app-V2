@@ -8,7 +8,7 @@ export default function FinalCTA() {
             Disponible gratuitement sur iPhone. Aucune inscription requise pour commencer.
           </p>
           <a
-            href="https://apps.apple.com/app/id6751784101"
+            href="https://apps.apple.com/fr/app/tiroir/id6751784101"
             target="_blank"
             rel="noopener noreferrer"
             style={{
