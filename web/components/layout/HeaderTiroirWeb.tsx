@@ -4,11 +4,28 @@ import { useState, useEffect } from 'react'
 import React from 'react'
 import { supabase } from '../../lib/supabase'
 
+function UserIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.25" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M5.5 19c1.2-2.8 3.6-4.25 6.5-4.25s5.3 1.45 6.5 4.25"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 export default function HeaderTiroirWeb() {
   const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userName, setUserName] = useState<string | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40)
@@ -17,18 +34,23 @@ export default function HeaderTiroirWeb() {
   }, [])
 
   useEffect(() => {
-    function syncSession(session: { user: { id: string } } | null) {
+    function syncSession(session: { user: { id: string; email?: string } } | null) {
       setIsLoggedIn(!!session)
       if (!session) {
         setIsAdmin(false)
+        setUserName(null)
         return
       }
+      setUserName(session.user.email?.split('@')[0] ?? 'Mon compte')
       supabase
         .from('profiles')
-        .select('is_admin')
+        .select('is_admin, display_name')
         .eq('id', session.user.id)
         .single()
-        .then(({ data }) => setIsAdmin(!!data?.is_admin))
+        .then(({ data }) => {
+          setIsAdmin(!!data?.is_admin)
+          if (data?.display_name) setUserName(data.display_name)
+        })
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => syncSession(session))
@@ -40,7 +62,46 @@ export default function HeaderTiroirWeb() {
     return () => listener.subscription.unsubscribe()
   }, [])
 
+  // La page profil signale les changements de nom pour que le chip reste à jour
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const name = (e as CustomEvent<{ displayName?: string }>).detail?.displayName
+      if (name) setUserName(name)
+    }
+    window.addEventListener('tiroir:profile-updated', handler)
+    return () => window.removeEventListener('tiroir:profile-updated', handler)
+  }, [])
+
+  // Bloque le scroll de la page tant que le menu mobile est ouvert
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [menuOpen])
+
+  useEffect(() => {
+    const close = () => {
+      setMenuOpen(false)
+      setUserMenuOpen(false)
+    }
+    router.events.on('routeChangeStart', close)
+    return () => router.events.off('routeChangeStart', close)
+  }, [router.events])
+
+  // Ferme le dropdown utilisateur au clic en dehors
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.ti-user')) setUserMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [userMenuOpen])
+
   async function handleAuthClick() {
+    setMenuOpen(false)
+    setUserMenuOpen(false)
     if (isLoggedIn) {
       await supabase.auth.signOut()
       router.push('/')
@@ -49,6 +110,37 @@ export default function HeaderTiroirWeb() {
     router.push('/login')
   }
 
+  function navigate(path: string) {
+    setMenuOpen(false)
+    router.push(path)
+  }
+
+  const navItems = (
+    <>
+      {isAdmin && (
+        <button
+          className="appstore-nav-btn"
+          type="button"
+          onClick={() => navigate('/admin')}
+        >
+          Admin
+        </button>
+      )}
+      <a className="appstore-nav-btn" href="/pricing">
+        Tarifs
+      </a>
+      <a
+        className="appstore-nav-btn"
+        href="https://apps.apple.com/fr/app/tiroir/id6751784101"
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => setMenuOpen(false)}
+      >
+        App Store
+      </a>
+    </>
+  )
+
   return (
     <>
       <header className={`ti-header ${scrolled ? 'scrolled' : ''}`}>
@@ -56,53 +148,137 @@ export default function HeaderTiroirWeb() {
           {/* Logo */}
           <Link href="/" legacyBehavior passHref>
             <a className="ti-logo">
-              <div className="ti-logo__box">T</div>
+              <img className="ti-logo__box" src="/icons/app-icon-v2.png" alt="" width={32} height={32} />
               <strong className="ti-logo__text">TiROiR</strong>
             </a>
           </Link>
 
           {/* Actions droite */}
           <nav className="ti-actions">
-            {isAdmin && (
-              <button
-                className="appstore-nav-btn"
-                type="button"
-                onClick={() => router.push('/admin')}
-              >
-                Admin
+            {navItems}
+            {isLoggedIn ? (
+              <div className="ti-user">
+                <button
+                  className="ti-user__chip"
+                  type="button"
+                  aria-haspopup="menu"
+                  aria-expanded={userMenuOpen}
+                  onClick={() => setUserMenuOpen(v => !v)}
+                >
+                  <UserIcon />
+                  <span className="ti-user__name">{userName}</span>
+                  <svg
+                    className={`ti-user__chevron ${userMenuOpen ? 'open' : ''}`}
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                {userMenuOpen && (
+                  <div className="ti-user__dropdown" role="menu">
+                    <a className="ti-user__item" href="/profil" role="menuitem">
+                      Mon profil
+                    </a>
+                    <a className="ti-user__item" href="/mes-partages" role="menuitem">
+                      Mes partages
+                    </a>
+                    <button
+                      className="ti-user__item ti-user__item--danger"
+                      type="button"
+                      role="menuitem"
+                      onClick={handleAuthClick}
+                    >
+                      Se déconnecter
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button className="btn btn-primary" type="button" onClick={handleAuthClick}>
+                Se connecter
               </button>
             )}
-            {isLoggedIn && (
-              <button
-                className="appstore-nav-btn"
-                type="button"
-                onClick={() => router.push('/mes-partages')}
-              >
-                Mes partages
-              </button>
-            )}
-            <a className="appstore-nav-btn" href="/pricing">
-              Tarifs
-            </a>
-            <a
-              className="appstore-nav-btn"
-              href="https://apps.apple.com/fr/app/tiroir/id6751784101"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              App Store
-            </a>
-            <button
-              className="btn btn-primary"
-              type="button"
-              onClick={handleAuthClick}
-            >
-              {isLoggedIn ? 'Se déconnecter' : 'Se connecter'}
-            </button>
           </nav>
+
+          {/* Burger mobile */}
+          <button
+            className="ti-burger"
+            type="button"
+            aria-label="Ouvrir le menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(true)}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" stroke="#121212" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
         </div>
         <div className="ti-header__divider" />
       </header>
+
+      {/* Menu mobile plein écran */}
+      {menuOpen && (
+        <div className="ti-mobile-menu" role="dialog" aria-modal="true">
+          <div className="ti-mobile-menu__header">
+            <Link href="/" legacyBehavior passHref>
+              <a className="ti-logo" onClick={() => setMenuOpen(false)}>
+                <img className="ti-logo__box" src="/icons/app-icon-v2.png" alt="" width={32} height={32} />
+                <strong className="ti-logo__text">TiROiR</strong>
+              </a>
+            </Link>
+            <button
+              className="ti-mobile-menu__close"
+              type="button"
+              aria-label="Fermer le menu"
+              onClick={() => setMenuOpen(false)}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" stroke="#121212" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+          <nav className="ti-mobile-menu__nav">
+            {navItems}
+            {isLoggedIn ? (
+              <>
+                <div className="ti-mobile-menu__user">
+                  <UserIcon size={20} />
+                  <span>{userName}</span>
+                </div>
+                <button
+                  className="appstore-nav-btn"
+                  type="button"
+                  onClick={() => navigate('/profil')}
+                >
+                  Mon profil
+                </button>
+                <button
+                  className="appstore-nav-btn"
+                  type="button"
+                  onClick={() => navigate('/mes-partages')}
+                >
+                  Mes partages
+                </button>
+                <button
+                  className="appstore-nav-btn ti-mobile-menu__logout"
+                  type="button"
+                  onClick={handleAuthClick}
+                >
+                  Se déconnecter
+                </button>
+              </>
+            ) : (
+              <button className="btn btn-primary" type="button" onClick={handleAuthClick}>
+                Se connecter
+              </button>
+            )}
+          </nav>
+        </div>
+      )}
 
       <style jsx>{`
         .ti-header {
@@ -144,12 +320,7 @@ export default function HeaderTiroirWeb() {
           width: 32px;
           height: 32px;
           border-radius: 8px;
-          background: #F26900;
-          color: white;
-          display: grid;
-          place-items: center;
-          font-weight: 800;
-          font-size: 15px;
+          display: block;
         }
         .ti-logo__text {
           font-weight: 800;
@@ -165,7 +336,10 @@ export default function HeaderTiroirWeb() {
           gap: 8px;
           flex-shrink: 0;
         }
-        .btn {
+        /* Les items de nav sont rendus via une variable JSX partagée (navItems),
+           que styled-jsx ne scope pas : on cible en :global() sous les conteneurs scopés. */
+        .ti-actions :global(.btn),
+        .ti-mobile-menu__nav :global(.btn) {
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -176,12 +350,15 @@ export default function HeaderTiroirWeb() {
           border: 0;
           cursor: pointer;
         }
-        .btn-primary {
+        .ti-actions :global(.btn-primary),
+        .ti-mobile-menu__nav :global(.btn-primary) {
           background: #F26900;
           color: #fff;
         }
-        .btn-primary:hover { background: #D85E00; }
-        .appstore-nav-btn {
+        .ti-actions :global(.btn-primary:hover),
+        .ti-mobile-menu__nav :global(.btn-primary:hover) { background: #D85E00; }
+        .ti-actions :global(.appstore-nav-btn),
+        .ti-mobile-menu__nav :global(.appstore-nav-btn) {
           display: inline-flex;
           align-items: center;
           padding: 9px 16px;
@@ -195,10 +372,155 @@ export default function HeaderTiroirWeb() {
           cursor: pointer;
           transition: background 0.15s;
         }
-        .appstore-nav-btn:hover { background: #f5f5f5; }
+        .ti-actions :global(.appstore-nav-btn:hover),
+        .ti-mobile-menu__nav :global(.appstore-nav-btn:hover) { background: #f5f5f5; }
+
+        /* Chip utilisateur + dropdown */
+        .ti-user {
+          position: relative;
+        }
+        .ti-user__chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 12px;
+          border-radius: 10px;
+          border: 1px solid rgba(0,0,0,0.12);
+          background: #fff;
+          color: #121212;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+        .ti-user__chip:hover { background: #f5f5f5; }
+        .ti-user__name {
+          max-width: 140px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .ti-user__chevron {
+          transition: transform 0.15s;
+          flex-shrink: 0;
+        }
+        .ti-user__chevron.open { transform: rotate(180deg); }
+        .ti-user__dropdown {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          min-width: 200px;
+          background: #fff;
+          border: 1px solid rgba(0,0,0,0.08);
+          border-radius: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+          padding: 6px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          z-index: 60;
+          animation: ti-menu-in 0.15s ease;
+        }
+        .ti-user__item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 12px;
+          border-radius: 8px;
+          border: 0;
+          background: none;
+          font-size: 14px;
+          font-weight: 600;
+          color: #121212;
+          text-decoration: none;
+          text-align: left;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+        .ti-user__item:hover { background: #f5f5f5; }
+        .ti-user__item--danger { color: #C0392B; }
+        .ti-user__item--danger:hover { background: #FDECEA; }
+
+        /* Burger */
+        .ti-burger {
+          display: none;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          padding: 0;
+          border: 1px solid rgba(0,0,0,0.12);
+          border-radius: 10px;
+          background: transparent;
+          cursor: pointer;
+        }
+
+        /* Menu mobile plein écran */
+        .ti-mobile-menu {
+          position: fixed;
+          inset: 0;
+          z-index: 100;
+          background: #fff;
+          display: flex;
+          flex-direction: column;
+          animation: ti-menu-in 0.18s ease;
+        }
+        @keyframes ti-menu-in {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .ti-mobile-menu__header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 64px;
+          padding: 0 24px;
+          border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .ti-mobile-menu__close {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          padding: 0;
+          border: 1px solid rgba(0,0,0,0.12);
+          border-radius: 10px;
+          background: transparent;
+          cursor: pointer;
+        }
+        .ti-mobile-menu__nav {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          padding: 24px;
+        }
+        .ti-mobile-menu__nav :global(.appstore-nav-btn),
+        .ti-mobile-menu__nav :global(.btn) {
+          justify-content: center;
+          padding: 14px 16px;
+          font-size: 16px;
+        }
+        .ti-mobile-menu__user {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-top: 12px;
+          padding-top: 20px;
+          border-top: 1px solid rgba(0,0,0,0.08);
+          font-size: 15px;
+          font-weight: 700;
+          color: #121212;
+        }
+        .ti-mobile-menu__logout {
+          color: #C0392B !important;
+        }
 
         @media (max-width: 768px) {
           .ti-header__inner { gap: 12px; }
+          .ti-actions { display: none; }
+          .ti-burger { display: inline-flex; }
         }
       `}</style>
     </>

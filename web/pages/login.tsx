@@ -20,7 +20,7 @@ export default function Login() {
       setLoading(false)
       return
     }
-    router.push('/admin')
+    router.push('/')
   }
 
   return (
@@ -30,7 +30,7 @@ export default function Login() {
           <div style={s.logoBox}>T</div>
           <strong style={s.logoText}>Tiroir</strong>
         </div>
-        <h1 style={s.title}>Connexion admin</h1>
+        <h1 style={s.title}>Connexion</h1>
 
         <form onSubmit={handleSubmit} style={s.form}>
           <label style={s.label}>Email</label>
