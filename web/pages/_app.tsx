@@ -5,10 +5,12 @@ import type { AppProps } from 'next/app'
 import '@tamagui/core/reset.css'
 import { TamaguiProvider } from 'tamagui'
 import config from '../tamagui.config'
+import SiteVisitTracker from '../components/SiteVisitTracker'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <TamaguiProvider config={config} defaultTheme="light">
+      <SiteVisitTracker />
       <Component {...pageProps} />
 
       <style jsx global>{`

@@ -15,6 +15,11 @@ interface AppSettings {
 }
 
 interface KPIs {
+  siteVisitsTotal: number
+  siteVisits24h: number
+  siteVisits7d: number
+  siteVisits30d: number
+  uniqueVisitors30d: number
   totalAccounts: number
   newAccounts30d: number
   totalObjects: number
@@ -81,6 +86,15 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
         <h1 style={s.title}>Tableau de bord</h1>
         <p style={s.subtitle}>Données en temps réel depuis Supabase</p>
 
+        {/* ── Site web ── */}
+        <div style={s.grid}>
+          <Kpi label="Visites site web" value={kpis.siteVisitsTotal} />
+          <Kpi label="Visites site web (24h)" value={kpis.siteVisits24h} highlight={kpis.siteVisits24h > 0} />
+          <Kpi label="Visites site web (7j)" value={kpis.siteVisits7d} />
+          <Kpi label="Visites site web (30j)" value={kpis.siteVisits30d} />
+          <Kpi label="Visiteurs uniques (30j)" value={kpis.uniqueVisitors30d} />
+        </div>
+
         {/* ── KPIs ── */}
         <div style={s.grid}>
           <Kpi label="Comptes créés" value={kpis.totalAccounts} />
@@ -96,7 +110,7 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
         {/* ── Infrastructure & coûts IA ── */}
         <h2 style={s.sectionTitle}>Infrastructure & coûts IA</h2>
         <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
-          Les coûts IA sont des <strong>estimations</strong> basées sur un coût moyen configurable par appel (pas un total exact issu de la facturation Anthropic/Google — aucun tracking de tokens réel pour l'instant).
+          Les coûts IA sont des <strong>estimations</strong> basées sur un coût moyen configurable par appel (pas un total exact issu de la facturation Anthropic/Google — aucun tracking de tokens réel pour l&apos;instant).
         </p>
 
         <div style={s.grid}>
@@ -287,8 +301,15 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   if (!profile?.is_admin) return { notFound: true }
 
   const since30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
   const [
+    { count: siteVisitsTotal },
+    { count: siteVisits24h },
+    { count: siteVisits7d },
+    { count: siteVisits30d },
+    { data: siteVisitors30d },
     { count: totalAccounts },
     { count: newAccounts30d },
     { data: objectsByUser },
@@ -298,6 +319,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     { data: appSettings },
     { data: infraStats },
   ] = await Promise.all([
+    admin.from('site_pageviews').select('*', { count: 'exact', head: true }),
+    admin.from('site_pageviews').select('*', { count: 'exact', head: true }).gte('created_at', since24h),
+    admin.from('site_pageviews').select('*', { count: 'exact', head: true }).gte('created_at', since7d),
+    admin.from('site_pageviews').select('*', { count: 'exact', head: true }).gte('created_at', since30d),
+    admin.from('site_pageviews').select('visitor_id, ip_hash').gte('created_at', since30d),
     admin.from('profiles').select('*', { count: 'exact', head: true }),
     admin.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', since30d),
     admin.from('objects').select('user_id'),
@@ -328,6 +354,12 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     .map(([action, count]) => ({ action, count }))
     .sort((a, b) => b.count - a.count)
 
+  const uniqueVisitors30d = new Set(
+    (siteVisitors30d ?? [])
+      .map(row => row.visitor_id || row.ip_hash)
+      .filter(Boolean)
+  ).size
+
   const infra = infraStats as {
     db_size_bytes: number
     storage_size_bytes: number
@@ -338,6 +370,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   return {
     props: {
       kpis: {
+        siteVisitsTotal: siteVisitsTotal ?? 0,
+        siteVisits24h: siteVisits24h ?? 0,
+        siteVisits7d: siteVisits7d ?? 0,
+        siteVisits30d: siteVisits30d ?? 0,
+        uniqueVisitors30d,
         totalAccounts: totalAccounts ?? 0,
         newAccounts30d: newAccounts30d ?? 0,
         totalObjects,
