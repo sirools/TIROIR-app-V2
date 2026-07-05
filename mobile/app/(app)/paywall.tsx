@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Zap, Package, Brain, Camera, Check, Sparkles } from 'lucide-react-native'
 import Purchases, { PurchasesPackage } from 'react-native-purchases'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
@@ -15,15 +16,16 @@ const MOCK_PACKAGES: PurchasesPackage[] = Platform.OS === 'web' ? [
 ] : []
 
 const FEATURES = [
-  { icon: Package,  label: 'Objets illimités' },
-  { icon: Brain,    label: '150 analyses IA par mois' },
-  { icon: Camera,   label: 'Photos multiples par objet' },
-  { icon: Sparkles, label: '50 améliorations photo IA / mois' },
+  { icon: Package,  labelKey: 'paywall.featUnlimitedObjects' },
+  { icon: Brain,    labelKey: 'paywall.featAiAnalyses' },
+  { icon: Camera,   labelKey: 'paywall.featMultiPhotos' },
+  { icon: Sparkles, labelKey: 'paywall.featPhotoEnhance' },
 ]
 
 export default function PaywallScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const { t } = useTranslation()
 
   const [monthly, setMonthly]     = useState<PurchasesPackage | null>(null)
   const [annual, setAnnual]       = useState<PurchasesPackage | null>(null)
@@ -72,12 +74,12 @@ export default function PaywallScreen() {
     setPurchasing(true)
     try {
       await Purchases.purchasePackage(selected)
-      Alert.alert('Bienvenue dans Tiroir Premium ! 🎉', 'Ton abonnement est actif.', [
-        { text: 'Super !', onPress: () => router.back() },
+      Alert.alert(t('paywall.welcomeTitle'), t('paywall.welcomeMessage'), [
+        { text: t('paywall.welcomeCta'), onPress: () => router.back() },
       ])
     } catch (e: any) {
       if (!e.userCancelled) {
-        Alert.alert('Erreur', e.message ?? 'Une erreur est survenue.')
+        Alert.alert(t('common.error'), e.message ?? t('paywall.genericError'))
       }
     } finally {
       setPurchasing(false)
@@ -90,12 +92,12 @@ export default function PaywallScreen() {
       const info = await Purchases.restorePurchases()
       const active = Object.values(info.entitlements.active)
       if (active.length > 0) {
-        Alert.alert('Abonnement restauré ✓', '', [{ text: 'OK', onPress: () => router.back() }])
+        Alert.alert(t('paywall.restoredTitle'), '', [{ text: 'OK', onPress: () => router.back() }])
       } else {
-        Alert.alert('Aucun abonnement trouvé', 'Aucun achat précédent à restaurer.')
+        Alert.alert(t('paywall.noSubTitle'), t('paywall.noSubMessage'))
       }
     } catch (e: any) {
-      Alert.alert('Erreur', e.message ?? 'Impossible de restaurer.')
+      Alert.alert(t('common.error'), e.message ?? t('paywall.restoreError'))
     } finally {
       setPurchasing(false)
     }
@@ -108,7 +110,7 @@ export default function PaywallScreen() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={s.backBtn}>
           <ArrowLeft size={22} color={Colors.textPrimary} strokeWidth={1.8} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Tiroir Premium</Text>
+        <Text style={s.headerTitle}>{t('paywall.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -118,17 +120,17 @@ export default function PaywallScreen() {
           <View style={s.heroIcon}>
             <Zap size={28} color="white" strokeWidth={2.2} />
           </View>
-          <Text style={s.heroTitle}>Inventaire illimité,{'\n'}150 analyses IA par mois.</Text>
+          <Text style={s.heroTitle}>{t('paywall.heroTitle')}</Text>
         </View>
 
         {/* Features */}
         <View style={s.features}>
-          {FEATURES.map(({ icon: Icon, label }) => (
-            <View key={label} style={s.featureRow}>
+          {FEATURES.map(({ icon: Icon, labelKey }) => (
+            <View key={labelKey} style={s.featureRow}>
               <View style={s.featureCheck}>
                 <Check size={13} color={Colors.accent} strokeWidth={2.5} />
               </View>
-              <Text style={s.featureLabel}>{label}</Text>
+              <Text style={s.featureLabel}>{t(labelKey)}</Text>
             </View>
           ))}
         </View>
@@ -136,7 +138,7 @@ export default function PaywallScreen() {
         {/* Toggle mensuel / annuel */}
         {hasBothPlans && (
           <View style={s.toggleWrap}>
-            <Text style={[s.toggleLabel, !isAnnual && s.toggleLabelActive]}>Mensuel</Text>
+            <Text style={[s.toggleLabel, !isAnnual && s.toggleLabelActive]}>{t('paywall.monthly')}</Text>
             <Switch
               value={isAnnual}
               onValueChange={setIsAnnual}
@@ -144,7 +146,7 @@ export default function PaywallScreen() {
               thumbColor="white"
               ios_backgroundColor={Colors.border}
             />
-            <Text style={[s.toggleLabel, isAnnual && s.toggleLabelActive]}>Annuel</Text>
+            <Text style={[s.toggleLabel, isAnnual && s.toggleLabelActive]}>{t('paywall.annual')}</Text>
             {savings !== null && isAnnual && (
               <View style={s.savingsBadge}>
                 <Text style={s.savingsText}>−{savings}%</Text>
@@ -157,31 +159,31 @@ export default function PaywallScreen() {
         {loading ? (
           <ActivityIndicator color={Colors.accent} style={{ marginVertical: 32 }} />
         ) : !selected ? (
-          <Text style={s.unavailable}>Abonnements indisponibles pour le moment.</Text>
+          <Text style={s.unavailable}>{t('paywall.unavailable')}</Text>
         ) : (
           <View style={s.priceCard}>
             {isAnnual && annual?.product.introPrice && (
               <View style={s.trialBadge}>
-                <Text style={s.trialText}>✦ 7 jours d'essai gratuit</Text>
+                <Text style={s.trialText}>{t('paywall.freeTrial')}</Text>
               </View>
             )}
             {!isAnnual && monthly?.product.introPrice && (
               <View style={s.trialBadge}>
-                <Text style={s.trialText}>✦ 7 jours d'essai gratuit</Text>
+                <Text style={s.trialText}>{t('paywall.freeTrial')}</Text>
               </View>
             )}
 
             <View style={s.priceRow}>
               <Text style={s.price}>{selected.product.priceString}</Text>
               <Text style={s.pricePer}>
-                {isAnnual && annual ? ' / an' : ' / mois'}
+                {isAnnual && annual ? t('paywall.perYear') : t('paywall.perMonth')}
               </Text>
             </View>
 
             {isAnnual && monthlyEquiv && (
               <Text style={s.priceEquiv}>
-                soit <Text style={s.priceEquivBold}>{monthlyEquiv} € / mois</Text>
-                {savings !== null ? ` — ${savings}% d'économie vs mensuel` : ''}
+                {t('paywall.equiv')}<Text style={s.priceEquivBold}>{t('paywall.equivPerMonth', { price: monthlyEquiv })}</Text>
+                {savings !== null ? t('paywall.savingsVsMonthly', { percent: savings }) : ''}
               </Text>
             )}
           </View>
@@ -197,17 +199,17 @@ export default function PaywallScreen() {
           {purchasing
             ? <ActivityIndicator color="white" />
             : <Text style={s.ctaText}>
-                {selected?.product.introPrice ? 'Démarrer l\'essai gratuit' : 'S\'abonner'}
+                {selected?.product.introPrice ? t('paywall.startTrial') : t('paywall.subscribe')}
               </Text>
           }
         </TouchableOpacity>
 
         {/* Restore + legal */}
         <TouchableOpacity onPress={handleRestore} disabled={purchasing} style={s.restoreBtn}>
-          <Text style={s.restoreText}>Restaurer un achat</Text>
+          <Text style={s.restoreText}>{t('paywall.restore')}</Text>
         </TouchableOpacity>
         <Text style={s.legal}>
-          L'abonnement se renouvelle automatiquement. Tu peux annuler à tout moment depuis les Réglages iOS. Aucun frais pendant l'essai gratuit.
+          {t('paywall.legal')}
         </Text>
       </ScrollView>
     </View>

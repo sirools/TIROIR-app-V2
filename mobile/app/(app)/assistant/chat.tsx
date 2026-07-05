@@ -4,6 +4,7 @@ import {
   ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Send, Package } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -29,6 +30,7 @@ function nextId() {
 
 export default function AssistantScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
   const { profile } = useAuth()
   const { prompt } = useLocalSearchParams<{ prompt?: string }>()
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -71,16 +73,16 @@ export default function AssistantScreen() {
     setMissingLocationTitles(titles)
 
     const greeting = titles.length > 0
-      ? `👋 Salut ! J'ai remarqué que ${titles.length} objet${titles.length > 1 ? 's n\'ont' : ' n\'a'} pas d'emplacement renseigné. Tu veux que je te les liste, ou pose-moi une question sur ton inventaire.`
-      : `👋 Salut ! Pose-moi une question sur tes objets — par exemple "où est mon vélo ?" — je cherche dans ton inventaire.`
+      ? t('assistant.greetingMissing', { count: titles.length })
+      : t('assistant.greetingDefault')
 
     setMessages([{ id: nextId(), role: 'assistant', content: greeting }])
   }
 
   function showMissingLocationList() {
     if (!missingLocationTitles || missingLocationTitles.length === 0) return
-    const list = missingLocationTitles.slice(0, 15).map(t => `• ${t}`).join('\n')
-    const more = missingLocationTitles.length > 15 ? `\n… et ${missingLocationTitles.length - 15} autre(s).` : ''
+    const list = missingLocationTitles.slice(0, 15).map(title => `• ${title}`).join('\n')
+    const more = missingLocationTitles.length > 15 ? t('assistant.andMore', { count: missingLocationTitles.length - 15 }) : ''
     appendMessage('assistant', `${list}${more}`)
   }
 
@@ -102,7 +104,7 @@ export default function AssistantScreen() {
       if (error) throw error
       appendMessage('assistant', data.reply as string, data.objects as ReferencedObject[] | undefined)
     } catch {
-      appendMessage('assistant', "Désolé, je n'ai pas pu répondre. Réessaie dans un instant.")
+      appendMessage('assistant', t('assistant.errorReply'))
     } finally {
       setSending(false)
     }
@@ -124,7 +126,7 @@ export default function AssistantScreen() {
           <ArrowLeft size={22} color={Colors.textPrimary} strokeWidth={1.8} />
         </TouchableOpacity>
         <View style={styles.headerTitleRow}>
-          <Text style={styles.headerTitle}>Assistant</Text>
+          <Text style={styles.headerTitle}>{t('assistant.title')}</Text>
           <View style={styles.betaBadge}>
             <Text style={styles.betaBadgeText}>BETA</Text>
           </View>
@@ -176,7 +178,7 @@ export default function AssistantScreen() {
           {showMissingChip && (
             <View style={[styles.bubbleRow, styles.bubbleRowAssistant]}>
               <TouchableOpacity style={styles.chip} onPress={showMissingLocationList} activeOpacity={0.8}>
-                <Text style={styles.chipText}>Voir la liste</Text>
+                <Text style={styles.chipText}>{t('assistant.seeList')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -195,7 +197,7 @@ export default function AssistantScreen() {
             style={styles.input}
             value={input}
             onChangeText={setInput}
-            placeholder="Pose ta question…"
+            placeholder={t('assistant.inputPlaceholder')}
             placeholderTextColor={Colors.textTertiary}
             returnKeyType="send"
             onSubmitEditing={sendMessage}
