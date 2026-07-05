@@ -6,7 +6,10 @@
     "continueWithGoogle": "Mit Google fortfahren",
     "cgu": "Nutzungsbedingungen",
     "privacyPolicy": "Datenschutzerklärung",
-    "error": "Fehler"
+    "error": "Fehler",
+    "delete": "Löschen",
+    "objects_one": "{{count}} Objekt",
+    "objects_other": "{{count}} Objekte"
   },
   "auth": {
     "login": {
@@ -87,5 +90,71 @@
   "language": {
     "title": "App-Sprache",
     "systemDefault": "Gerätesprache"
+  },
+  "home": {
+    "title": "Dein Tiroir",
+    "greetingMorning": "Guten Morgen",
+    "greetingAfternoon": "Guten Tag",
+    "greetingEvening": "Guten Abend",
+    "search": "Suchen",
+    "myCollections": "MEINE SAMMLUNGEN",
+    "noCollections": "Keine Sammlung — erstelle eine mit der +-Schaltfläche",
+    "newCollection": "Neue Sammlung",
+    "collectionNamePlaceholder": "z. B. meine aktuellen Lieblingsjacken",
+    "iconLabel": "Symbol",
+    "colorLabel": "Farbe",
+    "create": "Erstellen",
+    "drawerNotFound": "Tiroir nicht gefunden.",
+    "deleteCollectionTitle": "„{{name}}“ löschen?",
+    "deleteCollectionWithObjects_one": "Sie enthält {{count}} Objekt. Die Objekte bleiben in deinem Tiroir.",
+    "deleteCollectionWithObjects_other": "Sie enthält {{count}} Objekte. Die Objekte bleiben in deinem Tiroir.",
+    "deleteCollectionIrreversible": "Diese Aktion ist unwiderruflich."
+  },
+  "profile": {
+    "title": "Mein Profil",
+    "premium": "Premium",
+    "free": "Kostenlose Version",
+    "statsTitle": "Statistiken",
+    "statObjects": "Objekte",
+    "statCollections": "Sammlungen",
+    "statValue": "geschätzter Wert",
+    "statShares": "aktive Freigaben",
+    "planTitle": "Tarifnutzung",
+    "aiThisMonth": "KI-Analysen diesen Monat",
+    "unlimited": "Unbegrenzt",
+    "resetOn": "Zurückgesetzt am {{date}}",
+    "objects": "Objekte",
+    "photosUploaded": "Hochgeladene Fotos",
+    "photosMaxPerObject_one": "max. {{count}} Foto pro Objekt",
+    "photosMaxPerObject_other": "max. {{count}} Fotos pro Objekt",
+    "aiPhotoEnhance": "KI-Fotoverbesserungen",
+    "premiumLocked": "🔒 Premium",
+    "premiumOnly": "Nur für Premium-Abonnenten",
+    "upgrade": "Auf Premium upgraden",
+    "name": "Name",
+    "namePlaceholder": "Dein Vorname oder Spitzname",
+    "email": "E-Mail",
+    "emailHint": "Die E-Mail kann nicht geändert werden. Um dein Passwort zu ändern, gehe zu den Einstellungen.",
+    "manageSubscription": "Mein Abo verwalten",
+    "required": "Erforderlich",
+    "nameRequired": "Der Name darf nicht leer sein.",
+    "manageSubError": "Die Abo-Verwaltung konnte gerade nicht geöffnet werden."
+  },
+  "shares": {
+    "title": "Aktive Freigaben",
+    "empty": "Keine geteilten Links",
+    "emptySubtitle": "Erstelle einen Link von der Seite eines Objekts oder einer Sammlung.",
+    "expired": "Abgelaufen",
+    "views_one": "{{count}} Aufruf",
+    "views_other": "{{count}} Aufrufe",
+    "createdOn": "Erstellt am {{date}}",
+    "expiresToday": "Läuft heute ab",
+    "expiresTomorrow": "Läuft morgen ab",
+    "expiresInDays": "Läuft in {{count}} T ab",
+    "copied": "Kopiert!",
+    "copy": "Kopieren",
+    "deleteTitle": "Diesen Link löschen?",
+    "deleteMessage_one": "Der geteilte Link ({{count}} Objekt) ist nicht mehr zugänglich.",
+    "deleteMessage_other": "Der geteilte Link ({{count}} Objekte) ist nicht mehr zugänglich."
   }
 }

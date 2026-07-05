@@ -4,6 +4,7 @@ import {
   Alert, ActivityIndicator, ScrollView, AppState,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, User, Edit3, Check, Package, FolderOpen, TrendingUp, Link2, Brain, Camera, Zap, Sparkles } from 'lucide-react-native'
 import Purchases from 'react-native-purchases'
 import { supabase } from '@/lib/supabase'
@@ -29,6 +30,7 @@ interface Stats {
 
 export default function ProfileScreen() {
   const router = useRouter()
+  const { t, i18n } = useTranslation()
   const { user, profile } = useAuth()
   const [editing, setEditing] = useState(false)
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
@@ -92,26 +94,26 @@ export default function ProfileScreen() {
     try {
       await Purchases.showManageSubscriptions()
     } catch {
-      Alert.alert('Erreur', "Impossible d'ouvrir la gestion de l'abonnement pour le moment.")
+      Alert.alert(t('common.error'), t('profile.manageSubError'))
     }
   }
 
   async function handleSave() {
     const name = displayName.trim()
-    if (!name) { Alert.alert('Requis', 'Le nom ne peut pas être vide.'); return }
+    if (!name) { Alert.alert(t('profile.required'), t('profile.nameRequired')); return }
     setSaving(true)
     const { error } = await supabase
       .from('profiles')
       .update({ display_name: name, updated_at: new Date().toISOString() })
       .eq('id', user!.id)
     setSaving(false)
-    if (error) { Alert.alert('Erreur', error.message); return }
+    if (error) { Alert.alert(t('common.error'), error.message); return }
     setEditing(false)
   }
 
   const photosMax = stats ? (stats.objectsMax !== null ? stats.objectsMax * (stats.photosPerObject ?? 1) : null) : null
   const resetLabel = stats?.aiResetAt
-    ? new Date(stats.aiResetAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+    ? new Date(stats.aiResetAt).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long' })
     : null
 
   return (
@@ -121,7 +123,7 @@ export default function ProfileScreen() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
           <ArrowLeft size={22} color={Colors.textPrimary} strokeWidth={1.8} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mon Profil</Text>
+        <Text style={styles.headerTitle}>{t('profile.title')}</Text>
         <TouchableOpacity hitSlop={12} onPress={() => editing ? handleSave() : setEditing(true)} disabled={saving}>
           {saving
             ? <ActivityIndicator size="small" color={Colors.accent} />
@@ -145,57 +147,57 @@ export default function ProfileScreen() {
           <View style={[styles.planBadge, isPremium && styles.planBadgePremium]}>
             <Zap size={11} color={isPremium ? '#7c3aed' : Colors.accent} strokeWidth={2.2} />
             <Text style={[styles.planBadgeText, isPremium && styles.planBadgeTextPremium]}>
-              {isPremium ? 'Premium' : 'Version gratuite'}
+              {isPremium ? t('profile.premium') : t('profile.free')}
             </Text>
           </View>
         </View>
 
         {stats && (<>
           {/* ── Statistiques ── */}
-          <Text style={styles.sectionTitle}>Statistiques</Text>
+          <Text style={styles.sectionTitle}>{t('profile.statsTitle')}</Text>
           <View style={styles.statsGrid}>
             <StatCard
               icon={<Package size={18} color={Colors.accent} strokeWidth={1.5} />}
               value={stats.objectsMax !== null ? `${stats.objects}/${stats.objectsMax}` : stats.objects.toString()}
-              label="objets"
+              label={t('profile.statObjects')}
             />
             <StatCard
               icon={<FolderOpen size={18} color={Colors.accent} strokeWidth={1.5} />}
               value={stats.collections.toString()}
-              label="collections"
+              label={t('profile.statCollections')}
             />
             <StatCard
               icon={<TrendingUp size={18} color={Colors.accent} strokeWidth={1.5} />}
               value={stats.totalValue !== null
-                ? stats.totalValue.toLocaleString('fr-FR', { style: 'currency', currency: stats.currency, maximumFractionDigits: 0 })
+                ? stats.totalValue.toLocaleString(i18n.language, { style: 'currency', currency: stats.currency, maximumFractionDigits: 0 })
                 : '—'}
-              label="valeur estimée"
+              label={t('profile.statValue')}
             />
             <StatCard
               icon={<Link2 size={18} color={Colors.accent} strokeWidth={1.5} />}
               value={stats.shares.toString()}
-              label="partages actifs"
+              label={t('profile.statShares')}
             />
           </View>
 
           {/* ── Suivi du Forfait ── */}
-          <Text style={styles.sectionTitle}>Suivi du Forfait</Text>
+          <Text style={styles.sectionTitle}>{t('profile.planTitle')}</Text>
           <View style={styles.forfaitCard}>
 
             {/* Analyses IA */}
             <View style={styles.forfaitRow}>
               <View style={styles.forfaitRowHeader}>
                 <Brain size={16} color={Colors.accent} strokeWidth={1.6} />
-                <Text style={styles.forfaitLabel}>Analyses IA ce mois</Text>
+                <Text style={styles.forfaitLabel}>{t('profile.aiThisMonth')}</Text>
                 <Text style={styles.forfaitValue}>
-                  {stats.aiQuota !== null ? `${stats.aiUsed} / ${stats.aiQuota}` : `${stats.aiUsed} · Illimité`}
+                  {stats.aiQuota !== null ? `${stats.aiUsed} / ${stats.aiQuota}` : `${stats.aiUsed} · ${t('profile.unlimited')}`}
                 </Text>
               </View>
               {stats.aiQuota !== null && (
                 <ProgressBar value={stats.aiUsed} max={stats.aiQuota} />
               )}
               {resetLabel && (
-                <Text style={styles.forfaitHint}>Remise à zéro le {resetLabel}</Text>
+                <Text style={styles.forfaitHint}>{t('profile.resetOn', { date: resetLabel })}</Text>
               )}
             </View>
 
@@ -205,7 +207,7 @@ export default function ProfileScreen() {
             <View style={styles.forfaitRow}>
               <View style={styles.forfaitRowHeader}>
                 <Package size={16} color={Colors.accent} strokeWidth={1.6} />
-                <Text style={styles.forfaitLabel}>Objets</Text>
+                <Text style={styles.forfaitLabel}>{t('profile.objects')}</Text>
                 <Text style={styles.forfaitValue}>
                   {stats.objectsMax !== null ? `${stats.objects} / ${stats.objectsMax}` : `${stats.objects}`}
                 </Text>
@@ -221,7 +223,7 @@ export default function ProfileScreen() {
             <View style={styles.forfaitRow}>
               <View style={styles.forfaitRowHeader}>
                 <Camera size={16} color={Colors.accent} strokeWidth={1.6} />
-                <Text style={styles.forfaitLabel}>Photos uploadées</Text>
+                <Text style={styles.forfaitLabel}>{t('profile.photosUploaded')}</Text>
                 <Text style={styles.forfaitValue}>
                   {photosMax !== null ? `${stats.totalPhotos} / ${photosMax}` : `${stats.totalPhotos}`}
                 </Text>
@@ -230,7 +232,7 @@ export default function ProfileScreen() {
                 <ProgressBar value={stats.totalPhotos} max={photosMax} />
               )}
               {stats.photosPerObject !== null && (
-                <Text style={styles.forfaitHint}>{stats.photosPerObject} photo{stats.photosPerObject > 1 ? 's' : ''} max par objet</Text>
+                <Text style={styles.forfaitHint}>{t('profile.photosMaxPerObject', { count: stats.photosPerObject })}</Text>
               )}
             </View>
 
@@ -240,25 +242,25 @@ export default function ProfileScreen() {
             <View style={styles.forfaitRow}>
               <View style={styles.forfaitRowHeader}>
                 <Sparkles size={16} color={Colors.accent} strokeWidth={1.6} />
-                <Text style={styles.forfaitLabel}>Améliorations photo IA</Text>
+                <Text style={styles.forfaitLabel}>{t('profile.aiPhotoEnhance')}</Text>
                 <Text style={styles.forfaitValue}>
                   {stats.photoEnhanceIsPremium
                     ? `${stats.photoEnhanceUsed} / ${stats.photoEnhanceQuota}`
-                    : '🔒 Premium'}
+                    : t('profile.premiumLocked')}
                 </Text>
               </View>
               {stats.photoEnhanceIsPremium && stats.photoEnhanceQuota !== null && (
                 <ProgressBar value={stats.photoEnhanceUsed} max={stats.photoEnhanceQuota} />
               )}
               {!stats.photoEnhanceIsPremium && (
-                <Text style={styles.forfaitHint}>Réservé aux abonnés Premium</Text>
+                <Text style={styles.forfaitHint}>{t('profile.premiumOnly')}</Text>
               )}
             </View>
 
             {!isPremium && (
               <TouchableOpacity style={styles.upgradeBtn} activeOpacity={0.85} onPress={() => router.push('/paywall')}>
                 <Zap size={14} color="white" strokeWidth={2.2} />
-                <Text style={styles.upgradeBtnText}>Passer à Premium</Text>
+                <Text style={styles.upgradeBtnText}>{t('profile.upgrade')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -267,12 +269,12 @@ export default function ProfileScreen() {
         {/* Infos compte */}
         <View style={styles.group}>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Nom</Text>
+            <Text style={styles.rowLabel}>{t('profile.name')}</Text>
             {editing ? (
               <Input
                 value={displayName}
                 onChangeText={setDisplayName}
-                placeholder="Ton prénom ou pseudo"
+                placeholder={t('profile.namePlaceholder')}
                 autoFocus
                 returnKeyType="done"
                 onSubmitEditing={handleSave}
@@ -285,18 +287,18 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.separator} />
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Email</Text>
+            <Text style={styles.rowLabel}>{t('profile.email')}</Text>
             <Text style={styles.rowValue} numberOfLines={1}>{user?.email ?? '—'}</Text>
           </View>
         </View>
 
         <Text style={styles.hint}>
-          L'email ne peut pas être modifié. Pour changer ton mot de passe, rends-toi dans Paramètres.
+          {t('profile.emailHint')}
         </Text>
 
         {isPremium && (
           <TouchableOpacity onPress={handleManageSubscription} hitSlop={8} style={styles.manageSubBtn}>
-            <Text style={styles.manageSubText}>Gérer mon abonnement</Text>
+            <Text style={styles.manageSubText}>{t('profile.manageSubscription')}</Text>
           </TouchableOpacity>
         )}
       </ScrollView>

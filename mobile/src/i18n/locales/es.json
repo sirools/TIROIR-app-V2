@@ -6,7 +6,10 @@
     "continueWithGoogle": "Continuar con Google",
     "cgu": "Condiciones de uso",
     "privacyPolicy": "política de privacidad",
-    "error": "Error"
+    "error": "Error",
+    "delete": "Eliminar",
+    "objects_one": "{{count}} objeto",
+    "objects_other": "{{count}} objetos"
   },
   "auth": {
     "login": {
@@ -87,5 +90,71 @@
   "language": {
     "title": "Idioma de la aplicación",
     "systemDefault": "Idioma del dispositivo"
+  },
+  "home": {
+    "title": "Tu Tiroir",
+    "greetingMorning": "Buenos días",
+    "greetingAfternoon": "Buenas tardes",
+    "greetingEvening": "Buenas noches",
+    "search": "Buscar",
+    "myCollections": "MIS COLECCIONES",
+    "noCollections": "Ninguna colección — crea una con el botón +",
+    "newCollection": "Nueva colección",
+    "collectionNamePlaceholder": "ej.: mis chaquetas favoritas del momento",
+    "iconLabel": "Icono",
+    "colorLabel": "Color",
+    "create": "Crear",
+    "drawerNotFound": "Cajón no encontrado.",
+    "deleteCollectionTitle": "¿Eliminar «{{name}}»?",
+    "deleteCollectionWithObjects_one": "Contiene {{count}} objeto. Los objetos permanecerán en tu Tiroir.",
+    "deleteCollectionWithObjects_other": "Contiene {{count}} objetos. Los objetos permanecerán en tu Tiroir.",
+    "deleteCollectionIrreversible": "Esta acción es irreversible."
+  },
+  "profile": {
+    "title": "Mi perfil",
+    "premium": "Premium",
+    "free": "Versión gratuita",
+    "statsTitle": "Estadísticas",
+    "statObjects": "objetos",
+    "statCollections": "colecciones",
+    "statValue": "valor estimado",
+    "statShares": "enlaces activos",
+    "planTitle": "Uso del plan",
+    "aiThisMonth": "Análisis de IA este mes",
+    "unlimited": "Ilimitado",
+    "resetOn": "Se reinicia el {{date}}",
+    "objects": "Objetos",
+    "photosUploaded": "Fotos subidas",
+    "photosMaxPerObject_one": "{{count}} foto máx. por objeto",
+    "photosMaxPerObject_other": "{{count}} fotos máx. por objeto",
+    "aiPhotoEnhance": "Mejoras de foto con IA",
+    "premiumLocked": "🔒 Premium",
+    "premiumOnly": "Solo para suscriptores Premium",
+    "upgrade": "Cambiar a Premium",
+    "name": "Nombre",
+    "namePlaceholder": "Tu nombre o apodo",
+    "email": "Correo electrónico",
+    "emailHint": "El correo no se puede modificar. Para cambiar tu contraseña, ve a Ajustes.",
+    "manageSubscription": "Gestionar mi suscripción",
+    "required": "Obligatorio",
+    "nameRequired": "El nombre no puede estar vacío.",
+    "manageSubError": "No se pudo abrir la gestión de la suscripción en este momento."
+  },
+  "shares": {
+    "title": "Enlaces activos",
+    "empty": "Ningún enlace compartido",
+    "emptySubtitle": "Crea un enlace desde la ficha de un objeto o una colección.",
+    "expired": "Caducado",
+    "views_one": "{{count}} vista",
+    "views_other": "{{count}} vistas",
+    "createdOn": "Creado el {{date}}",
+    "expiresToday": "Caduca hoy",
+    "expiresTomorrow": "Caduca mañana",
+    "expiresInDays": "Caduca en {{count}} d",
+    "copied": "¡Copiado!",
+    "copy": "Copiar",
+    "deleteTitle": "¿Eliminar este enlace?",
+    "deleteMessage_one": "El enlace compartido ({{count}} objeto) dejará de estar accesible.",
+    "deleteMessage_other": "El enlace compartido ({{count}} objetos) dejará de estar accesible."
   }
 }

@@ -4,6 +4,7 @@ import {
   ScrollView, RefreshControl, Alert, ActivityIndicator, Linking,
 } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import * as Clipboard from 'expo-clipboard'
 import { Link2, Eye, Trash2, Copy, ArrowLeft, ExternalLink } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
@@ -21,6 +22,7 @@ interface ShareLink {
 
 export default function SharesScreen() {
   const router = useRouter()
+  const { t, i18n } = useTranslation()
   const [links, setLinks] = useState<ShareLink[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -51,16 +53,16 @@ export default function SharesScreen() {
   function handleDelete(link: ShareLink) {
     const count = link.object_ids.length
     Alert.alert(
-      'Supprimer ce lien ?',
-      `Le lien partagé (${count} objet${count > 1 ? 's' : ''}) ne sera plus accessible.`,
+      t('shares.deleteTitle'),
+      t('shares.deleteMessage', { count }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             const { error } = await supabase.from('share_links').delete().eq('id', link.id)
-            if (error) { Alert.alert('Erreur', error.message); return }
+            if (error) { Alert.alert(t('common.error'), error.message); return }
             setLinks(prev => prev.filter(l => l.id !== link.id))
           },
         },
@@ -74,17 +76,17 @@ export default function SharesScreen() {
   }
 
   function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+    return new Date(iso).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
   function formatExpiry(iso: string) {
     const d = new Date(iso)
     const now = new Date()
     const diffDays = Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-    if (diffDays < 0) return 'Expiré'
-    if (diffDays === 0) return "Expire aujourd'hui"
-    if (diffDays === 1) return 'Expire demain'
-    return `Expire dans ${diffDays} j`
+    if (diffDays < 0) return t('shares.expired')
+    if (diffDays === 0) return t('shares.expiresToday')
+    if (diffDays === 1) return t('shares.expiresTomorrow')
+    return t('shares.expiresInDays', { count: diffDays })
   }
 
   return (
@@ -94,7 +96,7 @@ export default function SharesScreen() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
           <ArrowLeft size={22} color={Colors.textPrimary} strokeWidth={1.8} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Partages actifs</Text>
+        <Text style={styles.headerTitle}>{t('shares.title')}</Text>
         <View style={{ width: 22 }} />
       </View>
 
@@ -105,9 +107,9 @@ export default function SharesScreen() {
       ) : links.length === 0 ? (
         <View style={styles.center}>
           <Link2 size={40} color={Colors.textTertiary} strokeWidth={1.2} />
-          <Text style={styles.emptyTitle}>Aucun lien partagé</Text>
+          <Text style={styles.emptyTitle}>{t('shares.empty')}</Text>
           <Text style={styles.emptySubtitle}>
-            Crée un lien depuis la fiche d'un objet ou d'une collection.
+            {t('shares.emptySubtitle')}
           </Text>
         </View>
       ) : (
@@ -126,12 +128,12 @@ export default function SharesScreen() {
                   <View style={styles.cardTitleRow}>
                     <Link2 size={14} color={expired ? Colors.textTertiary : Colors.accent} strokeWidth={1.8} />
                     <Text style={[styles.cardTitle, expired && styles.cardTitleExpired]} numberOfLines={1}>
-                      {link.title ?? `${link.object_ids.length} objet${link.object_ids.length > 1 ? 's' : ''}`}
+                      {link.title ?? t('common.objects', { count: link.object_ids.length })}
                     </Text>
                   </View>
                   {expired && (
                     <View style={styles.badgeExpired}>
-                      <Text style={styles.badgeExpiredText}>Expiré</Text>
+                      <Text style={styles.badgeExpiredText}>{t('shares.expired')}</Text>
                     </View>
                   )}
                 </View>
@@ -140,13 +142,13 @@ export default function SharesScreen() {
                 <View style={styles.meta}>
                   <View style={styles.metaItem}>
                     <Eye size={12} color={Colors.textTertiary} strokeWidth={1.8} />
-                    <Text style={styles.metaText}>{link.view_count} vue{link.view_count > 1 ? 's' : ''}</Text>
+                    <Text style={styles.metaText}>{t('shares.views', { count: link.view_count })}</Text>
                   </View>
                   <Text style={styles.metaDot}>·</Text>
-                  <Text style={styles.metaText}>{link.object_ids.length} objet{link.object_ids.length > 1 ? 's' : ''}</Text>
+                  <Text style={styles.metaText}>{t('common.objects', { count: link.object_ids.length })}</Text>
                   <Text style={styles.metaDot}>·</Text>
                   <Text style={styles.metaText}>
-                    {link.expires_at ? formatExpiry(link.expires_at) : `Créé le ${formatDate(link.created_at)}`}
+                    {link.expires_at ? formatExpiry(link.expires_at) : t('shares.createdOn', { date: formatDate(link.created_at) })}
                   </Text>
                 </View>
 
@@ -169,7 +171,7 @@ export default function SharesScreen() {
                   >
                     <Copy size={14} color={copied ? Colors.accent : Colors.textSecondary} strokeWidth={1.8} />
                     <Text style={[styles.actionText, copied && styles.actionTextCopied]}>
-                      {copied ? 'Copié !' : 'Copier'}
+                      {copied ? t('shares.copied') : t('shares.copy')}
                     </Text>
                   </TouchableOpacity>
 
@@ -179,7 +181,7 @@ export default function SharesScreen() {
                     activeOpacity={0.7}
                   >
                     <Trash2 size={14} color={Colors.error} strokeWidth={1.8} />
-                    <Text style={styles.actionTextDestructive}>Supprimer</Text>
+                    <Text style={styles.actionTextDestructive}>{t('common.delete')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>

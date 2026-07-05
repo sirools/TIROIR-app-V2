@@ -6,7 +6,10 @@
     "continueWithGoogle": "Continue with Google",
     "cgu": "Terms of Use",
     "privacyPolicy": "privacy policy",
-    "error": "Error"
+    "error": "Error",
+    "delete": "Delete",
+    "objects_one": "{{count}} item",
+    "objects_other": "{{count}} items"
   },
   "auth": {
     "login": {
@@ -87,5 +90,71 @@
   "language": {
     "title": "App language",
     "systemDefault": "Device language"
+  },
+  "home": {
+    "title": "Your Tiroir",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "search": "Search",
+    "myCollections": "MY COLLECTIONS",
+    "noCollections": "No collections yet — create one with the + button",
+    "newCollection": "New collection",
+    "collectionNamePlaceholder": "e.g. my favourite jackets right now",
+    "iconLabel": "Icon",
+    "colorLabel": "Colour",
+    "create": "Create",
+    "drawerNotFound": "Drawer not found.",
+    "deleteCollectionTitle": "Delete \"{{name}}\"?",
+    "deleteCollectionWithObjects_one": "It contains {{count}} item. The items will stay in your Tiroir.",
+    "deleteCollectionWithObjects_other": "It contains {{count}} items. The items will stay in your Tiroir.",
+    "deleteCollectionIrreversible": "This action is irreversible."
+  },
+  "profile": {
+    "title": "My Profile",
+    "premium": "Premium",
+    "free": "Free plan",
+    "statsTitle": "Statistics",
+    "statObjects": "items",
+    "statCollections": "collections",
+    "statValue": "estimated value",
+    "statShares": "active shares",
+    "planTitle": "Plan usage",
+    "aiThisMonth": "AI analyses this month",
+    "unlimited": "Unlimited",
+    "resetOn": "Resets on {{date}}",
+    "objects": "Items",
+    "photosUploaded": "Photos uploaded",
+    "photosMaxPerObject_one": "{{count}} photo max per item",
+    "photosMaxPerObject_other": "{{count}} photos max per item",
+    "aiPhotoEnhance": "AI photo enhancements",
+    "premiumLocked": "🔒 Premium",
+    "premiumOnly": "Premium subscribers only",
+    "upgrade": "Upgrade to Premium",
+    "name": "Name",
+    "namePlaceholder": "Your first name or nickname",
+    "email": "Email",
+    "emailHint": "The email can't be changed. To change your password, go to Settings.",
+    "manageSubscription": "Manage my subscription",
+    "required": "Required",
+    "nameRequired": "The name can't be empty.",
+    "manageSubError": "Couldn't open subscription management right now."
+  },
+  "shares": {
+    "title": "Active shares",
+    "empty": "No shared links",
+    "emptySubtitle": "Create a link from an item or collection page.",
+    "expired": "Expired",
+    "views_one": "{{count}} view",
+    "views_other": "{{count}} views",
+    "createdOn": "Created on {{date}}",
+    "expiresToday": "Expires today",
+    "expiresTomorrow": "Expires tomorrow",
+    "expiresInDays": "Expires in {{count}} d",
+    "copied": "Copied!",
+    "copy": "Copy",
+    "deleteTitle": "Delete this link?",
+    "deleteMessage_one": "The shared link ({{count}} item) will no longer be accessible.",
+    "deleteMessage_other": "The shared link ({{count}} items) will no longer be accessible."
   }
 }

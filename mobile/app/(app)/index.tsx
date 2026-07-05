@@ -16,6 +16,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { EmptyState, Colors, Typography, Spacing, Radius } from '@/components/ui'
@@ -25,6 +26,7 @@ type CollectionWithCount = Collection & { objectCount: number }
 
 export default function HomeScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
   const { profile } = useAuth()
   const [collections, setCollections] = useState<CollectionWithCount[]>([])
   const [recentObjects, setRecentObjects] = useState<TiroirObject[]>([])
@@ -84,7 +86,7 @@ export default function HomeScreen() {
     const { data: drawer } = await supabase.from('drawers').select('id').single()
 
     if (!drawer || !user) {
-      Alert.alert('Erreur', 'Tiroir introuvable.')
+      Alert.alert(t('common.error'), t('home.drawerNotFound'))
       setCreating(false)
       return
     }
@@ -96,7 +98,7 @@ export default function HomeScreen() {
       .single()
 
     setCreating(false)
-    if (error) { Alert.alert('Erreur', error.message); return }
+    if (error) { Alert.alert(t('common.error'), error.message); return }
 
     setCollections(prev => [{ ...data, objectCount: 0 }, ...prev])
     setNewName('')
@@ -107,17 +109,17 @@ export default function HomeScreen() {
 
   function handleDeleteCollection(col: CollectionWithCount) {
     const msg = col.objectCount > 0
-      ? `Elle contient ${col.objectCount} objet${col.objectCount > 1 ? 's' : ''}. Les objets resteront dans ton Tiroir.`
-      : 'Cette action est irréversible.'
+      ? t('home.deleteCollectionWithObjects', { count: col.objectCount })
+      : t('home.deleteCollectionIrreversible')
 
-    Alert.alert(`Supprimer « ${col.name} » ?`, msg, [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(t('home.deleteCollectionTitle', { name: col.name }), msg, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Supprimer',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           const { error } = await supabase.from('collections').delete().eq('id', col.id)
-          if (error) { Alert.alert('Erreur', error.message); return }
+          if (error) { Alert.alert(t('common.error'), error.message); return }
           setCollections(prev => prev.filter(c => c.id !== col.id))
         },
       },
@@ -126,9 +128,9 @@ export default function HomeScreen() {
 
   const greeting = () => {
     const h = new Date().getHours()
-    if (h < 12) return 'Bonjour'
-    if (h < 18) return 'Bon après-midi'
-    return 'Bonsoir'
+    if (h < 12) return t('home.greetingMorning')
+    if (h < 18) return t('home.greetingAfternoon')
+    return t('home.greetingEvening')
   }
 
   return (
@@ -143,7 +145,7 @@ export default function HomeScreen() {
         <View style={styles.hero}>
           <TouchableOpacity style={styles.heroLeft} onPress={() => router.push('/profile')} activeOpacity={0.7}>
             <Text style={styles.greeting}>{greeting()}{profile?.display_name ? `, ${profile.display_name}` : ''}</Text>
-            <Text style={styles.heroTitle}>Votre Tiroir</Text>
+            <Text style={styles.heroTitle}>{t('home.title')}</Text>
           </TouchableOpacity>
           <BurgerIcon onPress={() => setMenuOpen(true)} />
         </View>
@@ -151,16 +153,16 @@ export default function HomeScreen() {
         {/* Barre de recherche */}
         <TouchableOpacity style={styles.searchBar} onPress={() => router.push('/search')} activeOpacity={0.7}>
           <Text style={styles.searchIcon}>🔍</Text>
-          <Text style={styles.searchPlaceholder}>Rechercher</Text>
+          <Text style={styles.searchPlaceholder}>{t('home.search')}</Text>
         </TouchableOpacity>
 
         {/* Section collections */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabel}>MES COLLECTIONS</Text>
+          <Text style={styles.sectionLabel}>{t('home.myCollections')}</Text>
         </View>
 
         {collections.length === 0 ? (
-          <Text style={styles.emptyHint}>Aucune collection — crée-en une avec le bouton +</Text>
+          <Text style={styles.emptyHint}>{t('home.noCollections')}</Text>
         ) : (
           <View style={styles.collectionList}>
             {collections.map(col => (
@@ -177,7 +179,7 @@ export default function HomeScreen() {
                 <View style={styles.collectionInfo}>
                   <Text style={styles.collectionName}>{col.name}</Text>
                   <Text style={styles.collectionCount}>
-                    {col.objectCount} objet{col.objectCount !== 1 ? 's' : ''}
+                    {t('common.objects', { count: col.objectCount })}
                   </Text>
                 </View>
                 <Text style={styles.chevron}>›</Text>
@@ -202,7 +204,7 @@ export default function HomeScreen() {
               <View style={[styles.modalPreviewIcon, { backgroundColor: newColor }]}>
                 <Text style={styles.modalPreviewEmoji}>{newEmoji}</Text>
               </View>
-              <Text style={styles.modalTitle}>Nouvelle collection</Text>
+              <Text style={styles.modalTitle}>{t('home.newCollection')}</Text>
             </View>
 
             {/* Nom */}
@@ -210,7 +212,7 @@ export default function HomeScreen() {
               style={styles.modalInput}
               value={newName}
               onChangeText={setNewName}
-              placeholder="ex : mes vestes préférées du moment"
+              placeholder={t('home.collectionNamePlaceholder')}
               placeholderTextColor={Colors.textTertiary}
               autoFocus
               returnKeyType="done"
@@ -218,7 +220,7 @@ export default function HomeScreen() {
             />
 
             {/* Emoji */}
-            <Text style={styles.modalPickerLabel}>Icône</Text>
+            <Text style={styles.modalPickerLabel}>{t('home.iconLabel')}</Text>
             <View style={styles.modalPickerRow}>
               {EMOJI_PRESETS.map(e => (
                 <TouchableOpacity
@@ -233,7 +235,7 @@ export default function HomeScreen() {
             </View>
 
             {/* Couleur */}
-            <Text style={styles.modalPickerLabel}>Couleur</Text>
+            <Text style={styles.modalPickerLabel}>{t('home.colorLabel')}</Text>
             <View style={styles.modalPickerRow}>
               {COLOR_PRESETS.map(c => (
                 <TouchableOpacity
@@ -247,7 +249,7 @@ export default function HomeScreen() {
 
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.modalCancel} onPress={() => { setShowCreate(false); setNewName('') }}>
-                <Text style={styles.modalCancelText}>Annuler</Text>
+                <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalConfirm, (!newName.trim() || creating) && styles.modalConfirmDisabled]}
@@ -256,7 +258,7 @@ export default function HomeScreen() {
               >
                 {creating
                   ? <ActivityIndicator color="white" size="small" />
-                  : <Text style={styles.modalConfirmText}>Créer</Text>
+                  : <Text style={styles.modalConfirmText}>{t('home.create')}</Text>
                 }
               </TouchableOpacity>
             </View>
