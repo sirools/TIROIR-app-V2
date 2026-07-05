@@ -536,5 +536,21 @@
       "expirationField": "Vencimiento del seguro",
       "save": "Guardar"
     }
+  },
+  "objectEdit": {
+    "title": "Editar",
+    "save": "Guardar",
+    "saveChanges": "Guardar los cambios",
+    "userNotConnected": "Usuario no conectado.",
+    "notFoundOrDenied": "Objeto no encontrado o acceso denegado.",
+    "loadError": "No se pudo cargar el objeto.",
+    "saveError": "No se pudo guardar.",
+    "titleRequired": "El título es obligatorio.",
+    "titleLabel": "Título *",
+    "titlePlaceholder": "Nombre del objeto",
+    "descriptionLabel": "Descripción",
+    "descriptionPlaceholder": "Describe el objeto (opcional)",
+    "locationPlaceholder": "Ej.: Armario del dormitorio, caja azul…",
+    "collectionSelected": "Colección seleccionada: {{name}}"
   }
 }

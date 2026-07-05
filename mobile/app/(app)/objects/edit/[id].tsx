@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Screen, Input, Button, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { TiroirObject, Collection } from '@/types/database'
@@ -33,6 +34,7 @@ interface FormErrors {
 export default function EditObjectScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
+  const { t } = useTranslation()
 
   const [object, setObject] = useState<TiroirObject | null>(null)
   const [collections, setCollections] = useState<Collection[]>([])
@@ -61,7 +63,7 @@ export default function EditObjectScreen() {
         data: { user },
       } = await supabase.auth.getUser()
       if (!user) {
-        Alert.alert('Erreur', 'Utilisateur non connecté.')
+        Alert.alert(t('common.error'), t('objectEdit.userNotConnected'))
         router.back()
         return
       }
@@ -90,7 +92,7 @@ export default function EditObjectScreen() {
       ])
 
       if (objRes.error || !objRes.data) {
-        Alert.alert('Erreur', 'Objet introuvable ou accès refusé.')
+        Alert.alert(t('common.error'), t('objectEdit.notFoundOrDenied'))
         router.back()
         return
       }
@@ -117,7 +119,7 @@ export default function EditObjectScreen() {
       })
     } catch (err) {
       console.error('[EditObjectScreen] loadData error:', err)
-      Alert.alert('Erreur', "Impossible de charger l'objet.")
+      Alert.alert(t('common.error'), t('objectEdit.loadError'))
       router.back()
     } finally {
       setLoading(false)
@@ -129,7 +131,7 @@ export default function EditObjectScreen() {
   function validate(): boolean {
     const newErrors: FormErrors = {}
     if (!form.title.trim()) {
-      newErrors.title = 'Le titre est obligatoire.'
+      newErrors.title = t('objectEdit.titleRequired')
     }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -152,7 +154,7 @@ export default function EditObjectScreen() {
 
       if (error) {
         console.error('[EditObjectScreen] update_object RPC error:', error)
-        Alert.alert('Erreur', error.message)
+        Alert.alert(t('common.error'), error.message)
         return
       }
 
@@ -160,7 +162,7 @@ export default function EditObjectScreen() {
       router.back()
     } catch (err) {
       console.error('[EditObjectScreen] handleSave error:', err)
-      Alert.alert('Erreur', 'La sauvegarde a échoué.')
+      Alert.alert(t('common.error'), t('objectEdit.saveError'))
     } finally {
       setSaving(false)
     }
@@ -188,9 +190,9 @@ export default function EditObjectScreen() {
     return (
       <Screen>
         <View style={styles.loader}>
-          <Text style={styles.errorText}>Objet introuvable.</Text>
+          <Text style={styles.errorText}>{t('object.notFound')}</Text>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backLink}>← Retour</Text>
+            <Text style={styles.backLink}>{`← ${t('common.back')}`}</Text>
           </TouchableOpacity>
         </View>
       </Screen>
@@ -209,9 +211,9 @@ export default function EditObjectScreen() {
         {/* ── Header ── */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.headerBack}>
-            <Text style={styles.headerBackText}>Annuler</Text>
+            <Text style={styles.headerBackText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Modifier</Text>
+          <Text style={styles.headerTitle}>{t('objectEdit.title')}</Text>
           <TouchableOpacity
             onPress={handleSave}
             disabled={saving}
@@ -220,7 +222,7 @@ export default function EditObjectScreen() {
             {saving ? (
               <ActivityIndicator color={Colors.accent} size="small" />
             ) : (
-              <Text style={styles.headerSaveText}>Enregistrer</Text>
+              <Text style={styles.headerSaveText}>{t('objectEdit.save')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -234,13 +236,13 @@ export default function EditObjectScreen() {
         >
           {/* Titre */}
           <Input
-            label="Titre *"
+            label={t('objectEdit.titleLabel')}
             value={form.title}
             onChangeText={text => {
               setForm(prev => ({ ...prev, title: text }))
               if (errors.title) setErrors(prev => ({ ...prev, title: undefined }))
             }}
-            placeholder="Nom de l'objet"
+            placeholder={t('objectEdit.titlePlaceholder')}
             error={errors.title}
             autoCapitalize="sentences"
             returnKeyType="next"
@@ -248,10 +250,10 @@ export default function EditObjectScreen() {
 
           {/* Description */}
           <Input
-            label="Description"
+            label={t('objectEdit.descriptionLabel')}
             value={form.description}
             onChangeText={text => setForm(prev => ({ ...prev, description: text }))}
-            placeholder="Décrivez l'objet (optionnel)"
+            placeholder={t('objectEdit.descriptionPlaceholder')}
             multiline
             numberOfLines={4}
             containerStyle={styles.textareaContainer}
@@ -262,17 +264,17 @@ export default function EditObjectScreen() {
 
           {/* Emplacement */}
           <Input
-            label="Emplacement"
+            label={t('object.locationLabel')}
             value={form.location_note}
             onChangeText={text => setForm(prev => ({ ...prev, location_note: text }))}
-            placeholder="Ex : Placard chambre, boîte bleue…"
+            placeholder={t('objectEdit.locationPlaceholder')}
             autoCapitalize="sentences"
             returnKeyType="done"
           />
 
           {/* Collection */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionLabel}>Collection</Text>
+            <Text style={styles.sectionLabel}>{t('object.collectionLabel')}</Text>
             <View style={styles.collectionList}>
               {collections.map(col => (
                 <CollectionChip
@@ -285,14 +287,14 @@ export default function EditObjectScreen() {
             </View>
             {selectedCollection && (
               <Text style={styles.collectionHint}>
-                Collection sélectionnée : {selectedCollection.name}
+                {t('objectEdit.collectionSelected', { name: selectedCollection.name })}
               </Text>
             )}
           </View>
 
           {/* Bouton Enregistrer (bas de page) */}
           <Button
-            label="Enregistrer les modifications"
+            label={t('objectEdit.saveChanges')}
             onPress={handleSave}
             loading={saving}
             style={styles.saveButton}

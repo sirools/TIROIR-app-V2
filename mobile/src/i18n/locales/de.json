@@ -536,5 +536,21 @@
       "expirationField": "Ablauf der Versicherung",
       "save": "Speichern"
     }
+  },
+  "objectEdit": {
+    "title": "Bearbeiten",
+    "save": "Speichern",
+    "saveChanges": "Änderungen speichern",
+    "userNotConnected": "Benutzer nicht angemeldet.",
+    "notFoundOrDenied": "Objekt nicht gefunden oder Zugriff verweigert.",
+    "loadError": "Objekt konnte nicht geladen werden.",
+    "saveError": "Speichern fehlgeschlagen.",
+    "titleRequired": "Der Titel ist erforderlich.",
+    "titleLabel": "Titel *",
+    "titlePlaceholder": "Name des Objekts",
+    "descriptionLabel": "Beschreibung",
+    "descriptionPlaceholder": "Beschreibe das Objekt (optional)",
+    "locationPlaceholder": "z. B. Schlafzimmerschrank, blaue Box…",
+    "collectionSelected": "Ausgewählte Sammlung: {{name}}"
   }
 }

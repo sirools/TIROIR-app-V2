@@ -536,5 +536,21 @@
       "expirationField": "Insurance expiration",
       "save": "Save"
     }
+  },
+  "objectEdit": {
+    "title": "Edit",
+    "save": "Save",
+    "saveChanges": "Save changes",
+    "userNotConnected": "User not logged in.",
+    "notFoundOrDenied": "Object not found or access denied.",
+    "loadError": "Couldn't load the object.",
+    "saveError": "Saving failed.",
+    "titleRequired": "The title is required.",
+    "titleLabel": "Title *",
+    "titlePlaceholder": "Object name",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe the object (optional)",
+    "locationPlaceholder": "E.g. Bedroom closet, blue box…",
+    "collectionSelected": "Selected collection: {{name}}"
   }
 }

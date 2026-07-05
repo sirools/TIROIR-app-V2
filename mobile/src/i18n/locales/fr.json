@@ -536,5 +536,21 @@
       "expirationField": "Expiration assurance",
       "save": "Enregistrer"
     }
+  },
+  "objectEdit": {
+    "title": "Modifier",
+    "save": "Enregistrer",
+    "saveChanges": "Enregistrer les modifications",
+    "userNotConnected": "Utilisateur non connecté.",
+    "notFoundOrDenied": "Objet introuvable ou accès refusé.",
+    "loadError": "Impossible de charger l'objet.",
+    "saveError": "La sauvegarde a échoué.",
+    "titleRequired": "Le titre est obligatoire.",
+    "titleLabel": "Titre *",
+    "titlePlaceholder": "Nom de l'objet",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Décrivez l'objet (optionnel)",
+    "locationPlaceholder": "Ex : Placard chambre, boîte bleue…",
+    "collectionSelected": "Collection sélectionnée : {{name}}"
   }
 }
