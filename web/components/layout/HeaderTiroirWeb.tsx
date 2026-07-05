@@ -103,8 +103,16 @@ export default function HeaderTiroirWeb() {
     setMenuOpen(false)
     setUserMenuOpen(false)
     if (isLoggedIn) {
-      await supabase.auth.signOut()
-      router.push('/')
+      // scope 'local' : nettoie la session du navigateur sans dépendre de la
+      // révocation serveur (qui peut échouer et laisser l'utilisateur coincé).
+      // On ignore toute erreur et on force un rechargement complet vers l'accueil
+      // pour repartir d'un état propre (cookies relus côté serveur).
+      try {
+        await supabase.auth.signOut({ scope: 'local' })
+      } catch {
+        /* on se déconnecte quoi qu'il arrive */
+      }
+      window.location.assign('/')
       return
     }
     router.push('/login')
