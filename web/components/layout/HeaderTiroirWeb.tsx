@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import React from 'react'
-import { supabase } from '../../lib/supabase'
+import { supabase, signOutEverywhere } from '../../lib/supabase'
 
 function UserIcon({ size = 18 }: { size?: number }) {
   return (
@@ -103,15 +103,9 @@ export default function HeaderTiroirWeb() {
     setMenuOpen(false)
     setUserMenuOpen(false)
     if (isLoggedIn) {
-      // scope 'local' : nettoie la session du navigateur sans dépendre de la
-      // révocation serveur (qui peut échouer et laisser l'utilisateur coincé).
-      // On ignore toute erreur et on force un rechargement complet vers l'accueil
-      // pour repartir d'un état propre (cookies relus côté serveur).
-      try {
-        await supabase.auth.signOut({ scope: 'local' })
-      } catch {
-        /* on se déconnecte quoi qu'il arrive */
-      }
+      // Déconnexion robuste (efface les cookies sb-* sur l'hôte et ses domaines
+      // parents), puis rechargement complet pour repartir d'un état propre.
+      await signOutEverywhere()
       window.location.assign('/')
       return
     }

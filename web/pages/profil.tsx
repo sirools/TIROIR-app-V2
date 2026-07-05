@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import { useState } from 'react'
-import { supabase, serverSupabase } from '../lib/supabase'
+import { supabase, serverSupabase, signOutEverywhere } from '../lib/supabase'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 
 interface Props {
@@ -47,13 +47,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, memberSi
   }
 
   async function handleSignOut() {
-    // scope 'local' + rechargement complet : déconnexion fiable même si la
-    // révocation serveur échoue (voir HeaderTiroirWeb.handleAuthClick).
-    try {
-      await supabase.auth.signOut({ scope: 'local' })
-    } catch {
-      /* on se déconnecte quoi qu'il arrive */
-    }
+    await signOutEverywhere()
     window.location.assign('/')
   }
 
