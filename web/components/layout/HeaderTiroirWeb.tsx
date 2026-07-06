@@ -134,7 +134,7 @@ export default function HeaderTiroirWeb() {
       </a>
       <a
         className="appstore-nav-btn"
-        href="https://apps.apple.com/fr/app/tiroir/id6751784101"
+        href={isEn ? 'https://apps.apple.com/us/app/tiroir/id6751784101' : 'https://apps.apple.com/fr/app/tiroir/id6751784101'}
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => setMenuOpen(false)}
