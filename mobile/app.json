@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tiroir",
     "slug": "tiroir-v2",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +16,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.sirools.tiroir",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleLocalizations": ["fr", "en", "es", "de"]
       }
     },
     "android": {
