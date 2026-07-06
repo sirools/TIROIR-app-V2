@@ -20,6 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const {
     free_ai_quota_monthly, free_objects_max, free_photos_per_object,
+    premium_ai_quota_monthly, premium_photo_enhance_quota_monthly,
     supabase_db_limit_mb, supabase_storage_limit_mb,
     estimated_cost_per_ai_analysis_usd, estimated_cost_per_photo_enhance_usd,
     monthly_ai_spend_alert_usd,
@@ -29,6 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .from('app_settings')
     .update({
       free_ai_quota_monthly, free_objects_max, free_photos_per_object,
+      premium_ai_quota_monthly, premium_photo_enhance_quota_monthly,
       supabase_db_limit_mb, supabase_storage_limit_mb,
       estimated_cost_per_ai_analysis_usd, estimated_cost_per_photo_enhance_usd,
       monthly_ai_spend_alert_usd,
