@@ -552,5 +552,20 @@
     "descriptionPlaceholder": "Describe the object (optional)",
     "locationPlaceholder": "E.g. Bedroom closet, blue box…",
     "collectionSelected": "Selected collection: {{name}}"
+  },
+  "shareView": {
+    "notFoundTitle": "Link not found",
+    "expiredTitle": "This link has expired",
+    "errorTitle": "Something went wrong",
+    "notFoundSub": "Check the address or ask for a new link.",
+    "expiredSub": "Ask the owner for a new link.",
+    "errorSub": "Please try again in a few moments.",
+    "protected": "Protected",
+    "defaultTitle": "TiROiR share",
+    "sharedVia": "Shared via TiROiR",
+    "download": "Download (.PDF / .CSV)",
+    "ctaTitle": "Create your own inventory",
+    "ctaSub": "TiROiR — photograph, catalog, find.",
+    "ctaBtn": "Discover TiROiR"
   }
 }

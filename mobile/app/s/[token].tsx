@@ -4,6 +4,7 @@ import {
   TouchableOpacity, ActivityIndicator, Linking, Platform,
 } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { Share2, Download, Lock, ExternalLink } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui/tokens'
@@ -32,10 +33,6 @@ interface ShareLink {
 
 // ── Status labels ──────────────────────────────────────────────────────────────
 
-const STATUS_LABEL: Record<string, string> = {
-  owned: 'Possédé', stored: 'En stockage', loaned: 'Prêté',
-  sold: 'Vendu', given: 'Donné', lost: 'Perdu',
-}
 const STATUS_DOT: Record<string, string> = {
   owned: '#22C55E', stored: '#38BDF8', loaned: '#E879F9',
   sold: '#FBBF24', given: '#FB7185', lost: '#9CA3AF',
@@ -45,6 +42,7 @@ const STATUS_DOT: Record<string, string> = {
 
 export default function SharePage() {
   const { token } = useLocalSearchParams<{ token: string }>()
+  const { t } = useTranslation()
 
   const [link, setLink] = useState<ShareLink | null>(null)
   const [objects, setObjects] = useState<SharedObject[]>([])
@@ -136,22 +134,22 @@ export default function SharePage() {
       <View style={styles.centered}>
         <Text style={styles.errorEmoji}>{error === 'expired' ? '⏱' : '🔍'}</Text>
         <Text style={styles.errorTitle}>
-          {error === 'not_found' ? 'Lien introuvable'
-            : error === 'expired' ? 'Ce lien a expiré'
-            : 'Une erreur est survenue'}
+          {error === 'not_found' ? t('shareView.notFoundTitle')
+            : error === 'expired' ? t('shareView.expiredTitle')
+            : t('shareView.errorTitle')}
         </Text>
         <Text style={styles.errorSub}>
           {error === 'not_found'
-            ? 'Vérifiez l\'adresse ou demandez un nouveau lien.'
+            ? t('shareView.notFoundSub')
             : error === 'expired'
-            ? 'Demandez un nouveau lien au propriétaire.'
-            : 'Veuillez réessayer dans quelques instants.'}
+            ? t('shareView.expiredSub')
+            : t('shareView.errorSub')}
         </Text>
       </View>
     )
   }
 
-  const pageTitle = link?.title ?? 'Partage TiROiR'
+  const pageTitle = link?.title ?? t('shareView.defaultTitle')
   const isProtected = link?.options.password_protected
   const allowDownload = link?.options.allow_download
 
@@ -166,10 +164,10 @@ export default function SharePage() {
           {isProtected && (
             <View style={styles.badge}>
               <Lock size={11} color={Colors.textSecondary} strokeWidth={2} />
-              <Text style={styles.badgeText}>Protégé</Text>
+              <Text style={styles.badgeText}>{t('shareView.protected')}</Text>
             </View>
           )}
-          <Text style={styles.countBadge}>{objects.length} objet{objects.length > 1 ? 's' : ''}</Text>
+          <Text style={styles.countBadge}>{t('common.objects', { count: objects.length })}</Text>
         </View>
       </View>
 
@@ -180,7 +178,7 @@ export default function SharePage() {
       >
         {/* Titre */}
         <Text style={styles.pageTitle}>{pageTitle}</Text>
-        <Text style={styles.pageSub}>Partagé via TiROiR · {objects.length} objet{objects.length > 1 ? 's' : ''}</Text>
+        <Text style={styles.pageSub}>{t('shareView.sharedVia')} · {t('common.objects', { count: objects.length })}</Text>
 
         {/* Grille objets */}
         <View style={styles.grid}>
@@ -204,7 +202,7 @@ export default function SharePage() {
                   <View style={styles.statusRow}>
                     <View style={[styles.statusDot, { backgroundColor: STATUS_DOT[obj.status] ?? '#9CA3AF' }]} />
                     <Text style={styles.statusLabel}>
-                      {STATUS_LABEL[obj.status] ?? obj.status}
+                      {t(`status.${obj.status}`, { defaultValue: obj.status })}
                     </Text>
                   </View>
                 )}
@@ -225,21 +223,21 @@ export default function SharePage() {
         {allowDownload && (
           <TouchableOpacity style={styles.downloadBtn} activeOpacity={0.8}>
             <Download size={18} color={Colors.accent} strokeWidth={1.8} />
-            <Text style={styles.downloadText}>Télécharger (.PDF / .CSV)</Text>
+            <Text style={styles.downloadText}>{t('shareView.download')}</Text>
           </TouchableOpacity>
         )}
 
         {/* CTA app */}
         <View style={styles.appCta}>
-          <Text style={styles.appCtaTitle}>Créez votre inventaire personnel</Text>
-          <Text style={styles.appCtaSub}>TiROiR — photographiez, cataloguez, retrouvez.</Text>
+          <Text style={styles.appCtaTitle}>{t('shareView.ctaTitle')}</Text>
+          <Text style={styles.appCtaSub}>{t('shareView.ctaSub')}</Text>
           <TouchableOpacity
             style={styles.appCtaBtn}
             onPress={() => Linking.openURL('https://tiroir.app')}
             activeOpacity={0.85}
           >
             <ExternalLink size={16} color="white" strokeWidth={2} />
-            <Text style={styles.appCtaBtnText}>Découvrir TiROiR</Text>
+            <Text style={styles.appCtaBtnText}>{t('shareView.ctaBtn')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -248,7 +246,7 @@ export default function SharePage() {
           style={styles.privacyLink}
           onPress={() => Linking.openURL('https://tiroir.app/privacy')}
         >
-          <Text style={styles.privacyLinkText}>Politique de confidentialité</Text>
+          <Text style={styles.privacyLinkText}>{t('settings.privacyPolicy')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

@@ -552,5 +552,20 @@
     "descriptionPlaceholder": "Décrivez l'objet (optionnel)",
     "locationPlaceholder": "Ex : Placard chambre, boîte bleue…",
     "collectionSelected": "Collection sélectionnée : {{name}}"
+  },
+  "shareView": {
+    "notFoundTitle": "Lien introuvable",
+    "expiredTitle": "Ce lien a expiré",
+    "errorTitle": "Une erreur est survenue",
+    "notFoundSub": "Vérifiez l'adresse ou demandez un nouveau lien.",
+    "expiredSub": "Demandez un nouveau lien au propriétaire.",
+    "errorSub": "Veuillez réessayer dans quelques instants.",
+    "protected": "Protégé",
+    "defaultTitle": "Partage TiROiR",
+    "sharedVia": "Partagé via TiROiR",
+    "download": "Télécharger (.PDF / .CSV)",
+    "ctaTitle": "Créez votre inventaire personnel",
+    "ctaSub": "TiROiR — photographiez, cataloguez, retrouvez.",
+    "ctaBtn": "Découvrir TiROiR"
   }
 }

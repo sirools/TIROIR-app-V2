@@ -552,5 +552,20 @@
     "descriptionPlaceholder": "Beschreibe das Objekt (optional)",
     "locationPlaceholder": "z. B. Schlafzimmerschrank, blaue Box…",
     "collectionSelected": "Ausgewählte Sammlung: {{name}}"
+  },
+  "shareView": {
+    "notFoundTitle": "Link nicht gefunden",
+    "expiredTitle": "Dieser Link ist abgelaufen",
+    "errorTitle": "Ein Fehler ist aufgetreten",
+    "notFoundSub": "Überprüfe die Adresse oder fordere einen neuen Link an.",
+    "expiredSub": "Fordere beim Eigentümer einen neuen Link an.",
+    "errorSub": "Bitte versuche es in ein paar Augenblicken erneut.",
+    "protected": "Geschützt",
+    "defaultTitle": "TiROiR-Freigabe",
+    "sharedVia": "Geteilt über TiROiR",
+    "download": "Herunterladen (.PDF / .CSV)",
+    "ctaTitle": "Erstelle dein persönliches Inventar",
+    "ctaSub": "TiROiR — fotografieren, katalogisieren, wiederfinden.",
+    "ctaBtn": "TiROiR entdecken"
   }
 }
