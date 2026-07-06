@@ -1,10 +1,15 @@
 // apps/next/pages/_document.tsx
-import Document, { Html, Head, Main, NextScript } from 'next/document'
+import Document, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document'
 
-export default class MyDocument extends Document {
+export default class MyDocument extends Document<{ locale: string }> {
+  static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps & { locale: string }> {
+    const initialProps = await Document.getInitialProps(ctx)
+    return { ...initialProps, locale: ctx.locale ?? 'fr' }
+  }
+
   render() {
     return (
-      <Html lang="fr">
+      <Html lang={this.props.locale}>
         <Head>
           {/* Resource Hints */}
           <link rel="dns-prefetch" href="https://fonts.googleapis.com" />

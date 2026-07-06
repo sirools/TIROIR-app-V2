@@ -9,6 +9,16 @@ const supaHost = SUPABASE_URL.replace(/^https?:\/\//, '').split('/')[0] // ex: w
 const nextConfig = {
   typescript: { ignoreBuildErrors: true },
 
+  // i18n natif (Pages Router). FR = défaut sans préfixe (tiroir.app/...),
+  // EN préfixé (tiroir.app/en/...). Détection auto désactivée tant que
+  // toutes les pages publiques ne sont pas traduites — les liens App Store
+  // pointent explicitement vers /en.
+  i18n: {
+    locales: ['fr', 'en'],
+    defaultLocale: 'fr',
+    localeDetection: false,
+  },
+
   // Autoriser les images distantes (Next/Image)
   images: {
     remotePatterns: [
