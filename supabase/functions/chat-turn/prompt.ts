@@ -10,11 +10,35 @@ import type {
   ClaudeImageSource,
   ClaudeMessage,
   AiDraftImageRow,
+  AiLocale,
 } from './types.ts'
+
+// ── Langues supportées ───────────────────────────────────────────
+
+/** Nom de la langue cible tel qu'exprimé DANS cette langue, pour l'instruction au modèle. */
+const LANGUAGE_NATIVE_NAME: Record<AiLocale, string> = {
+  fr: 'français',
+  en: 'English',
+  es: 'español',
+  de: 'Deutsch',
+}
+
+/** Langue par défaut côté serveur si le client n'envoie rien de valide. */
+export const DEFAULT_AI_LOCALE: AiLocale = 'fr'
 
 // ── Prompt système ───────────────────────────────────────────────
 
-export const SYSTEM_PROMPT = `Tu es l'assistant d'inventaire de l'application Tiroir.
+/**
+ * Construit le prompt système en fonction de la langue active de l'app.
+ * Les champs rédactionnels (title, description, category, color, material,
+ * assistant_message) sortent dans la langue demandée ; les noms propres et
+ * valeurs techniques (brand, model, serial_number, currency, dimensions,
+ * voltage) ne sont JAMAIS traduits.
+ */
+export function buildSystemPrompt(locale: AiLocale = DEFAULT_AI_LOCALE): string {
+  const language = LANGUAGE_NATIVE_NAME[locale] ?? LANGUAGE_NATIVE_NAME[DEFAULT_AI_LOCALE]
+
+  return `Tu es l'assistant d'inventaire de l'application Tiroir.
 Ton rôle est d'analyser les photos d'un objet et d'en extraire les informations structurées.
 
 RÈGLES ABSOLUES :
@@ -51,7 +75,11 @@ CONTRAINTES GÉNÉRALES :
 - location_note est toujours null (l'utilisateur le renseignera lui-même).
 - Si plusieurs objets sont visibles, concentre-toi sur l'objet principal au premier plan.
 - Si l'image est floue ou illisible, propose quand même un titre générique et explique dans assistant_message.
-- Réponds en français.`
+
+LANGUE DE RÉDACTION :
+- Rédige title, description, assistant_message et les valeurs de attributes.category, attributes.color et attributes.material en ${language}.
+- Ne traduis JAMAIS les noms propres ni les valeurs techniques : brand, model, serial_number, currency (code ISO, ex: "EUR"), dimensions et voltage restent tels quels, quelle que soit la langue.`
+}
 
 // ── Construction des messages ────────────────────────────────────
 
@@ -87,6 +115,7 @@ function toClaudeMediaType(
 export function buildUserMessage(
   images: Array<AiDraftImageRow & { base64Data: string }>,
   userMessage?: string,
+  locale: AiLocale = DEFAULT_AI_LOCALE,
 ): ClaudeMessage {
   const content: ClaudeContentBlock[] = []
 
@@ -103,8 +132,16 @@ export function buildUserMessage(
     content.push({ type: 'image', source })
   }
 
-  // Texte d'instruction + message utilisateur optionnel
-  let textContent = `Analyse ${images.length === 1 ? 'cette photo' : 'ces ' + images.length + ' photos'} et retourne le JSON structuré de l'objet.`
+  // Texte d'instruction (localisé pour ne pas biaiser la langue de sortie)
+  // + message utilisateur optionnel.
+  const count = images.length
+  const instruction: Record<AiLocale, string> = {
+    fr: `Analyse ${count === 1 ? 'cette photo' : `ces ${count} photos`} et retourne le JSON structuré de l'objet.`,
+    en: `Analyze ${count === 1 ? 'this photo' : `these ${count} photos`} and return the structured JSON for the item.`,
+    es: `Analiza ${count === 1 ? 'esta foto' : `estas ${count} fotos`} y devuelve el JSON estructurado del objeto.`,
+    de: `Analysiere ${count === 1 ? 'dieses Foto' : `diese ${count} Fotos`} und gib das strukturierte JSON des Objekts zurück.`,
+  }
+  let textContent = instruction[locale] ?? instruction[DEFAULT_AI_LOCALE]
 
   if (userMessage && userMessage.trim().length > 0) {
     textContent += `\n\nNote de l'utilisateur : "${userMessage.trim()}"`

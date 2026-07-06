@@ -22,8 +22,9 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { callClaude, ClaudeError, extractTextFromResponse, CLAUDE_MODEL } from './claude.ts'
-import { SYSTEM_PROMPT, buildUserMessage, parseClaudeResponse } from './prompt.ts'
+import { buildSystemPrompt, buildUserMessage, parseClaudeResponse, DEFAULT_AI_LOCALE } from './prompt.ts'
 import type {
+  AiLocale,
   ChatTurnRequest,
   ChatTurnResponse,
   ChatTurnErrorResponse,
@@ -80,7 +81,16 @@ function validateBody(raw: unknown): ChatTurnRequest {
   const userMessage =
     typeof obj.user_message === 'string' ? obj.user_message.slice(0, 500) : undefined
 
-  return { draft_id: obj.draft_id.trim(), user_message: userMessage }
+  // Langue active de l'app. Whitelist stricte : toute valeur inconnue
+  // (ou absente) retombe sur la langue par défaut serveur.
+  const SUPPORTED_LOCALES: readonly AiLocale[] = ['fr', 'en', 'es', 'de']
+  const locale: AiLocale =
+    typeof obj.locale === 'string' &&
+    SUPPORTED_LOCALES.includes(obj.locale as AiLocale)
+      ? (obj.locale as AiLocale)
+      : DEFAULT_AI_LOCALE
+
+  return { draft_id: obj.draft_id.trim(), user_message: userMessage, locale }
 }
 
 class ValidationError extends Error {
@@ -160,9 +170,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return errorResponse('INVALID_BODY', 'Body JSON malformé', 400)
   }
 
-  const { draft_id, user_message } = request
+  const { draft_id, user_message, locale } = request
 
-  console.log(`[chat-turn] user=${user.id} draft=${draft_id}`)
+  console.log(`[chat-turn] user=${user.id} draft=${draft_id} locale=${locale}`)
 
   // ── Récupération et validation du draft ───────────────────────
   const { data: draft, error: draftError } = await adminClient
@@ -267,12 +277,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   // ── Appel Claude Vision ───────────────────────────────────────
-  const userMessage = buildUserMessage(imagesWithData, user_message)
+  const userMessage = buildUserMessage(imagesWithData, user_message, locale)
 
   const claudeRequest: ClaudeRequest = {
     model: CLAUDE_MODEL,
     max_tokens: 1024,
-    system: SYSTEM_PROMPT,
+    system: buildSystemPrompt(locale),
     messages: [userMessage],
   }
 

@@ -1,6 +1,20 @@
 import { supabase } from '@/lib/supabase'
 import { DraftProposedData } from '@/types/database'
 import { AssistantService } from './types'
+import i18n, { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, type AppLanguage } from '@/i18n'
+
+/**
+ * Langue active de l'app à transmettre à l'IA pour qu'elle rédige la fiche
+ * dans la bonne langue. i18n.language peut être une variante régionale
+ * (ex: 'en-US') : on ne garde que le code base et on retombe sur la langue
+ * par défaut si non supporté.
+ */
+function currentAiLocale(): AppLanguage {
+  const base = i18n.language?.split('-')[0]?.toLowerCase()
+  return (SUPPORTED_LANGUAGES as readonly string[]).includes(base ?? '')
+    ? (base as AppLanguage)
+    : DEFAULT_LANGUAGE
+}
 
 /**
  * Réponse brute de l'Edge Function chat-turn.
@@ -62,7 +76,7 @@ export class SupabaseAssistantService implements AssistantService {
           Authorization: `Bearer ${session.access_token}`,
           apikey: anonKey,
         },
-        body: JSON.stringify({ draft_id: draftId }),
+        body: JSON.stringify({ draft_id: draftId, locale: currentAiLocale() }),
         signal: controller.signal,
       })
     } catch (networkError) {

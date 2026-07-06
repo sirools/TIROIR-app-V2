@@ -14,7 +14,16 @@ export interface ChatTurnRequest {
    * Ex : "C'est une perceuse Bosch achetée en 2022"
    */
   user_message?: string
+  /**
+   * Langue active de l'app (préférence utilisateur → langue de l'appareil).
+   * Détermine la langue dans laquelle l'IA rédige la fiche.
+   * Défaut serveur : 'fr' si absent ou non supporté.
+   */
+  locale?: AiLocale
 }
+
+/** Langues dans lesquelles l'IA peut rédiger une fiche (miroir de SUPPORTED_LANGUAGES côté app). */
+export type AiLocale = 'fr' | 'en' | 'es' | 'de'
 
 // ── Réponse sortante ─────────────────────────────────────────────
 
