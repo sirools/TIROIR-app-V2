@@ -1,87 +1,76 @@
+import { useRouter } from 'next/router'
+
+// Propriétés visuelles (indépendantes de la langue)
 const STEPS = [
-  {
-    label: 'Scan',
-    emoji: '📷',
-    href: '#scan',
-    bg: '#FDE8D0',
-    text: '#7A3B10',
-    tagBg: '#F9C9A0',
-    pitch: 'Une photo suffit. L\'IA génère le titre, la description et les caractéristiques en quelques secondes.',
+  { id: 'scan',    emoji: '📷',  href: '#scan',        bg: '#FDE8D0', text: '#7A3B10', tagBg: '#F9C9A0' },
+  { id: 'storage', emoji: '🗂️', href: '#rangement',   bg: '#DCEFD8', text: '#1E4D1A', tagBg: '#B8E0B2' },
+  { id: 'central', emoji: '🌐',  href: '#centraliser', bg: '#E0EAF8', text: '#1A2F5E', tagBg: '#B8D0F0' },
+  { id: 'value',   emoji: '💰',  href: '#evaluer',     bg: '#FFF3CC', text: '#5E3D00', tagBg: '#FFE080' },
+  { id: 'share',   emoji: '🔗',  href: '#partager',    bg: '#EDE0F8', text: '#3D1A5E', tagBg: '#D4B8F0' },
+  { id: 'sell',    emoji: '🏷️', href: '#vente',       bg: '#FCE0E8', text: '#5E1A2F', tagBg: '#F4B0C8' },
+] as const
+
+const COPY = {
+  fr: {
+    eyebrow: 'Votre parcours avec Tiroir',
+    sub: 'Tiroir transforme le chaos en clarté. Photographiez, organisez, évaluez et partagez vos affaires — en quelques secondes, depuis votre téléphone.',
+    steps: {
+      scan:    { label: 'Scan',           pitch: "Une photo suffit. L'IA génère le titre, la description et les caractéristiques en quelques secondes." },
+      storage: { label: 'Rangement',      pitch: "Organisez vos objets en collections thématiques. Retrouvez n'importe quoi en deux secondes." },
+      central: { label: 'Centralisation', pitch: "Accédez à votre inventaire depuis n'importe quel appareil. Tout est synchronisé en temps réel." },
+      value:   { label: 'Évaluation',     pitch: "L'IA estime la valeur marché de chaque objet. Fourchette de prix, sources, tendances." },
+      share:   { label: 'Partage',        pitch: "Envoyez une fiche ou une collection entière via un lien. Aucune installation requise." },
+      sell:    { label: 'Vente',          pitch: "Vendez au bon prix avec les données du marché. Partagez la fiche directement à l'acheteur." },
+    },
   },
-  {
-    label: 'Rangement',
-    emoji: '🗂️',
-    href: '#rangement',
-    bg: '#DCEFD8',
-    text: '#1E4D1A',
-    tagBg: '#B8E0B2',
-    pitch: 'Organisez vos objets en collections thématiques. Retrouvez n\'importe quoi en deux secondes.',
+  en: {
+    eyebrow: 'Your journey with Tiroir',
+    sub: 'Tiroir turns chaos into clarity. Photograph, organize, value, and share your belongings — in seconds, from your phone.',
+    steps: {
+      scan:    { label: 'Scan',       pitch: 'One photo is enough. The AI generates the title, description, and attributes in seconds.' },
+      storage: { label: 'Organize',   pitch: 'Organize your items into themed collections. Find anything in two seconds.' },
+      central: { label: 'Centralize', pitch: 'Access your inventory from any device. Everything syncs in real time.' },
+      value:   { label: 'Valuation',  pitch: 'The AI estimates the market value of each item. Price range, sources, trends.' },
+      share:   { label: 'Share',      pitch: 'Send an entry or a whole collection via a link. No installation required.' },
+      sell:    { label: 'Sell',       pitch: 'Sell at the right price with market data. Share the entry directly with the buyer.' },
+    },
   },
-  {
-    label: 'Centralisation',
-    emoji: '🌐',
-    href: '#centraliser',
-    bg: '#E0EAF8',
-    text: '#1A2F5E',
-    tagBg: '#B8D0F0',
-    pitch: 'Accédez à votre inventaire depuis n\'importe quel appareil. Tout est synchronisé en temps réel.',
-  },
-  {
-    label: 'Évaluation',
-    emoji: '💰',
-    href: '#evaluer',
-    bg: '#FFF3CC',
-    text: '#5E3D00',
-    tagBg: '#FFE080',
-    pitch: 'L\'IA estime la valeur marché de chaque objet. Fourchette de prix, sources, tendances.',
-  },
-  {
-    label: 'Partage',
-    emoji: '🔗',
-    href: '#partager',
-    bg: '#EDE0F8',
-    text: '#3D1A5E',
-    tagBg: '#D4B8F0',
-    pitch: 'Envoyez une fiche ou une collection entière via un lien. Aucune installation requise.',
-  },
-  {
-    label: 'Vente',
-    emoji: '🏷️',
-    href: '#vente',
-    bg: '#FCE0E8',
-    text: '#5E1A2F',
-    tagBg: '#F4B0C8',
-    pitch: 'Vendez au bon prix avec les données du marché. Partagez la fiche directement à l\'acheteur.',
-  },
-]
+}
 
 export default function FlowSteps() {
+  const { locale } = useRouter()
+  const t = locale === 'en' ? COPY.en : COPY.fr
+  const isEn = locale === 'en'
   return (
     <section className="flow-section">
       {/* En-tête de section */}
       <div className="flow-header">
-        <span className="flow-eyebrow">Votre parcours avec Tiroir</span>
-        <h2 className="flow-title">De la photo à la vente,<br />chaque objet compte.</h2>
-        <p className="flow-sub">
-          Tiroir transforme le chaos en clarté. Photographiez, organisez, évaluez et partagez
-          vos affaires — en quelques secondes, depuis votre téléphone.
-        </p>
+        <span className="flow-eyebrow">{t.eyebrow}</span>
+        <h2 className="flow-title">
+          {isEn
+            ? <>From photo to sale,<br />every item counts.</>
+            : <>De la photo à la vente,<br />chaque objet compte.</>}
+        </h2>
+        <p className="flow-sub">{t.sub}</p>
       </div>
 
       {/* Blocs */}
       <div className="flow-grid">
-        {STEPS.map((step) => (
-          <a key={step.label} className="flow-card" href={step.href} style={{ background: step.bg }}>
+        {STEPS.map((step) => {
+          const c = t.steps[step.id]
+          return (
+          <a key={step.id} className="flow-card" href={step.href} style={{ background: step.bg }}>
             <div className="flow-card-top">
               <span className="flow-tag" style={{ background: step.tagBg, color: step.text }}>
                 <span className="flow-emoji">{step.emoji}</span>
-                {step.label}
+                {c.label}
               </span>
               <span className="flow-arrow" style={{ color: step.text }}>→</span>
             </div>
-            <p className="flow-pitch" style={{ color: step.text }}>{step.pitch}</p>
+            <p className="flow-pitch" style={{ color: step.text }}>{c.pitch}</p>
           </a>
-        ))}
+          )
+        })}
       </div>
 
       <style jsx>{`

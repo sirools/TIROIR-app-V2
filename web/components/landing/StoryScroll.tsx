@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { createPortal } from 'react-dom'
+import { useRouter } from 'next/router'
 
 interface Story {
   id: string
@@ -530,11 +531,47 @@ function StoryBlock({ story }: { story: Story }) {
   )
 }
 
+// Traductions anglaises (fusionnées par id ; les STORIES ci-dessus restent la source FR + le visuel)
+const STORY_COPY_EN: Record<string, { tag: string; headline: string; sub: string }> = {
+  scan: {
+    tag: 'Scan',
+    headline: 'One photo. A complete entry.',
+    sub: 'Point your camera at any item. The AI recognizes, names, describes, and sorts it in seconds. Your inventory builds itself almost on its own.',
+  },
+  rangement: {
+    tag: 'Organize',
+    headline: 'Organize effortlessly. Find things in two seconds.',
+    sub: 'Create themed collections, move items in one tap, filter by status or value. No more hours lost trying to remember where you put what.',
+  },
+  centraliser: {
+    tag: 'Centralize',
+    headline: 'Everything in one place, accessible anywhere.',
+    sub: 'Tiroir syncs your inventory across all your devices. Mobile app, web version — your items follow you. Nothing is ever lost.',
+  },
+  evaluer: {
+    tag: 'Valuation',
+    headline: 'Know exactly what each item is worth.',
+    sub: 'The AI estimates market value in real time — price ranges from resale marketplaces. Compare with your purchase price. Handy to sell fairly, insure, or simply know.',
+  },
+  partager: {
+    tag: 'Share',
+    headline: 'One link. Nothing to install.',
+    sub: 'Send a complete entry to a buyer, a relative, an insurer, a notary. They see photos, details, and estimated price — no account, no friction, from any device.',
+  },
+  vente: {
+    tag: 'Sell',
+    headline: 'Sell at the right price. First time.',
+    sub: 'Real-time market data, a share-ready product entry, purchase-price history. You negotiate with facts. The buyer receives a professional listing.',
+  },
+}
+
 export default function StoryScroll() {
+  const { locale } = useRouter()
+  const isEn = locale === 'en'
   return (
     <div>
       {STORIES.map(story => (
-        <StoryBlock key={story.id} story={story} />
+        <StoryBlock key={story.id} story={isEn ? { ...story, ...STORY_COPY_EN[story.id] } : story} />
       ))}
     </div>
   )

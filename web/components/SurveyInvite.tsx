@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 
 const SURVEY_URL =
   'https://docs.google.com/forms/d/e/1FAIpQLSfgJ6WTAkgl0yWfqbfVHU-Dkc5nFLEZNXp0FGETQDV0t_5Mew/viewform'
@@ -10,6 +11,8 @@ const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000
 const SCROLL_TRIGGER = 600
 
 export default function SurveyInvite() {
+  const { locale } = useRouter()
+  const isEn = locale === 'en'
   // 'hidden' tant que non déclenché, puis 'visible', puis 'leaving' pendant la sortie
   const [state, setState] = useState<'hidden' | 'visible' | 'leaving'>('hidden')
 
@@ -49,17 +52,19 @@ export default function SurveyInvite() {
   if (state === 'hidden') return null
 
   return (
-    <div className={`survey-invite ${state === 'leaving' ? 'leaving' : ''}`} role="dialog" aria-label="Enquête utilisateur">
-      <button className="survey-invite__close" type="button" aria-label="Fermer" onClick={dismiss}>
+    <div className={`survey-invite ${state === 'leaving' ? 'leaving' : ''}`} role="dialog" aria-label={isEn ? 'User survey' : 'Enquête utilisateur'}>
+      <button className="survey-invite__close" type="button" aria-label={isEn ? 'Close' : 'Fermer'} onClick={dismiss}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </button>
 
       <div className="survey-invite__emoji" aria-hidden="true">📝</div>
-      <p className="survey-invite__title">Une étude est en cours&nbsp;!</p>
+      <p className="survey-invite__title">{isEn ? 'A study is underway!' : 'Une étude est en cours !'}</p>
       <p className="survey-invite__text">
-        On améliore Tiroir et ton avis compte. Compte 6 à 8 minutes.
+        {isEn
+          ? "We're improving Tiroir and your feedback matters. Takes 6 to 8 minutes."
+          : 'On améliore Tiroir et ton avis compte. Compte 6 à 8 minutes.'}
       </p>
       <a
         className="survey-invite__cta"
@@ -68,7 +73,7 @@ export default function SurveyInvite() {
         rel="noopener noreferrer"
         onClick={dismiss}
       >
-        Participer à l&apos;enquête
+        {isEn ? 'Take the survey' : "Participer à l'enquête"}
       </a>
 
       <style jsx>{`

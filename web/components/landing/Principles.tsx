@@ -1,5 +1,6 @@
 // components/landing/Principles.tsx
 import React from "react"
+import { useRouter } from "next/router"
 
 type Item = {
   title: string
@@ -7,40 +8,37 @@ type Item = {
   icon: string // chemin vers un SVG dans /public/icons
 }
 
-const items: Item[] = [
-  {
-    title: "Valoriser les objets",
-    desc: "Remettre de l’ordre dans ce qu’on aime, vendre le pas utilisé.",
-    icon: "/icons/valoriser.svg",
+const ITEMS: Record<'fr' | 'en', { heading: string; items: Item[] }> = {
+  fr: {
+    heading: "5 idées simples qui nous façonnent",
+    items: [
+      { title: "Valoriser les objets", desc: "Remettre de l’ordre dans ce qu’on aime, vendre le pas utilisé.", icon: "/icons/valoriser.svg" },
+      { title: "Réduire notre empreinte", desc: "Moins d’achats, plus de conscience, plus de réemploi #économie-circulaire.", icon: "/icons/empreinte.svg" },
+      { title: "Partager en confiance", desc: "Vous choisissez à qui, quand, comment et pour combien de temps.", icon: "/icons/confiance.svg" },
+      { title: "Créer des liens locaux", desc: "Prêt, entraide, transmission, suivi. Rendre service aux proches.", icon: "/icons/liens.svg" },
+      { title: "Penser plus clair", desc: "Un esprit léger, un Tiroir bien rangé, un outil de communication utile.", icon: "/icons/clair.svg" },
+    ],
   },
-  {
-    title: "Réduire notre empreinte",
-    desc: "Moins d’achats, plus de conscience, plus de réemploi #économie-circulaire.",
-    icon: "/icons/empreinte.svg",
+  en: {
+    heading: "5 simple ideas that shape us",
+    items: [
+      { title: "Give your things value", desc: "Bring order to what you love, sell what you no longer use.", icon: "/icons/valoriser.svg" },
+      { title: "Shrink your footprint", desc: "Fewer purchases, more awareness, more reuse #circular-economy.", icon: "/icons/empreinte.svg" },
+      { title: "Share with confidence", desc: "You choose who, when, how, and for how long.", icon: "/icons/confiance.svg" },
+      { title: "Build local ties", desc: "Lending, mutual help, passing on, tracking. Help those around you.", icon: "/icons/liens.svg" },
+      { title: "Think more clearly", desc: "A lighter mind, a tidy Tiroir, a genuinely useful tool.", icon: "/icons/clair.svg" },
+    ],
   },
-  {
-    title: "Partager en confiance",
-    desc: "Vous choisissez à qui, quand, comment et pour combien de temps.",
-    icon: "/icons/confiance.svg",
-  },
-  {
-    title: "Créer des liens locaux",
-    desc: "Prêt, entraide, transmission, suivi. Rendre service aux proches.",
-    icon: "/icons/liens.svg",
-  },
-  {
-    title: "Penser plus clair",
-    desc: "Un esprit léger, un Tiroir bien rangé, un outil de communication utile.",
-    icon: "/icons/clair.svg",
-  },
-]
+}
 
 export default function Principles() {
+  const { locale } = useRouter()
+  const { heading, items } = locale === 'en' ? ITEMS.en : ITEMS.fr
   return (
     <section className="section" aria-labelledby="principles-title">
       <div className="container">
         <h2 id="principles-title" className="h2" style={{ marginBottom: 20 }}>
-          5 idées simples qui nous façonnent
+          {heading}
         </h2>
 
         <div className="grid">

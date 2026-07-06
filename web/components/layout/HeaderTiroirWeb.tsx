@@ -20,6 +20,7 @@ function UserIcon({ size = 18 }: { size?: number }) {
 
 export default function HeaderTiroirWeb() {
   const router = useRouter()
+  const isEn = router.locale === 'en'
   const [scrolled, setScrolled] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -41,7 +42,7 @@ export default function HeaderTiroirWeb() {
         setUserName(null)
         return
       }
-      setUserName(session.user.email?.split('@')[0] ?? 'Mon compte')
+      setUserName(session.user.email?.split('@')[0] ?? (router.locale === 'en' ? 'My account' : 'Mon compte'))
       supabase
         .from('profiles')
         .select('is_admin, display_name')
@@ -129,7 +130,7 @@ export default function HeaderTiroirWeb() {
         </button>
       )}
       <a className="appstore-nav-btn" href="/pricing">
-        Tarifs
+        {isEn ? 'Pricing' : 'Tarifs'}
       </a>
       <a
         className="appstore-nav-btn"
@@ -183,10 +184,10 @@ export default function HeaderTiroirWeb() {
                 {userMenuOpen && (
                   <div className="ti-user__dropdown" role="menu">
                     <a className="ti-user__item" href="/profil" role="menuitem">
-                      Mon profil
+                      {isEn ? 'My profile' : 'Mon profil'}
                     </a>
                     <a className="ti-user__item" href="/mes-partages" role="menuitem">
-                      Mes partages
+                      {isEn ? 'My shares' : 'Mes partages'}
                     </a>
                     <button
                       className="ti-user__item ti-user__item--danger"
@@ -194,14 +195,14 @@ export default function HeaderTiroirWeb() {
                       role="menuitem"
                       onClick={handleAuthClick}
                     >
-                      Se déconnecter
+                      {isEn ? 'Sign out' : 'Se déconnecter'}
                     </button>
                   </div>
                 )}
               </div>
             ) : (
               <button className="btn btn-primary" type="button" onClick={handleAuthClick}>
-                Se connecter
+                {isEn ? 'Sign in' : 'Se connecter'}
               </button>
             )}
           </nav>
@@ -210,7 +211,7 @@ export default function HeaderTiroirWeb() {
           <button
             className="ti-burger"
             type="button"
-            aria-label="Ouvrir le menu"
+            aria-label={isEn ? 'Open menu' : 'Ouvrir le menu'}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(true)}
           >
@@ -235,7 +236,7 @@ export default function HeaderTiroirWeb() {
             <button
               className="ti-mobile-menu__close"
               type="button"
-              aria-label="Fermer le menu"
+              aria-label={isEn ? 'Close menu' : 'Fermer le menu'}
               onClick={() => setMenuOpen(false)}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -256,26 +257,26 @@ export default function HeaderTiroirWeb() {
                   type="button"
                   onClick={() => navigate('/profil')}
                 >
-                  Mon profil
+                  {isEn ? 'My profile' : 'Mon profil'}
                 </button>
                 <button
                   className="appstore-nav-btn"
                   type="button"
                   onClick={() => navigate('/mes-partages')}
                 >
-                  Mes partages
+                  {isEn ? 'My shares' : 'Mes partages'}
                 </button>
                 <button
                   className="appstore-nav-btn ti-mobile-menu__logout"
                   type="button"
                   onClick={handleAuthClick}
                 >
-                  Se déconnecter
+                  {isEn ? 'Sign out' : 'Se déconnecter'}
                 </button>
               </>
             ) : (
               <button className="btn btn-primary" type="button" onClick={handleAuthClick}>
-                Se connecter
+                {isEn ? 'Sign in' : 'Se connecter'}
               </button>
             )}
           </nav>
