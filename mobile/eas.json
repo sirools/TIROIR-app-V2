@@ -31,6 +31,10 @@
         "appleId": "clement.ougier@gmail.com",
         "ascAppId": "6751784101",
         "appleTeamId": "3W3AX5Y887"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal"
       }
     },
     "preview": {
@@ -38,6 +42,10 @@
         "appleId": "clement.ougier@gmail.com",
         "ascAppId": "6751784101",
         "appleTeamId": "3W3AX5Y887"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal"
       }
     }
   }

@@ -41,3 +41,6 @@ yarn-error.*
 /android
 .env
 node_modules/
+
+# Google Play service account key (secret — ne jamais committer)
+google-service-account.json

@@ -27,8 +27,7 @@
       },
       "package": "com.tiroir.app",
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.CAMERA"
       ]
     },
     "web": {
@@ -39,15 +38,11 @@
       "expo-router",
       "expo-secure-store",
       [
-        "expo-camera",
-        {
-          "cameraPermission": "Tiroir utilise la caméra pour photographier vos objets."
-        }
-      ],
-      [
         "expo-image-picker",
         {
-          "photosPermission": "Tiroir accède à votre photothèque pour ajouter des photos à vos objets."
+          "photosPermission": "Tiroir accède à votre photothèque pour ajouter des photos à vos objets.",
+          "cameraPermission": "Tiroir utilise la caméra pour photographier vos objets.",
+          "microphonePermission": false
         }
       ],
       "@react-native-community/datetimepicker",
