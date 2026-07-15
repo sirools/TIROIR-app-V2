@@ -17,9 +17,17 @@ interface SharedObject {
   status: string | null
   location_note: string | null
   cover_url: string | null
+  attributes: Record<string, string | number | boolean | null> | null
   market_value: number | null
   user_value: number | null
   value_currency: string | null
+  purchase_price: number | null
+  purchase_currency: string | null
+  purchase_date: string | null
+  sale_price: number | null
+  deposit_amount: number | null
+  insured: boolean | null
+  created_at: string | null
 }
 
 interface Props {
@@ -40,6 +48,42 @@ const STATUS_LABEL: Record<string, string> = {
 const STATUS_COLOR: Record<string, string> = {
   owned: '#22C55E', stored: '#38BDF8', loaned: '#E879F9',
   sold: '#FBBF24', given: '#FB7185', lost: '#9CA3AF',
+}
+
+// Libellés FR des attributs connus (fallback : la clé brute)
+const ATTR_LABEL_FR: Record<string, string> = {
+  brand: 'Marque', model: 'Modèle', category: 'Catégorie', serial_number: 'N° de série',
+  color: 'Couleur', material: 'Matière', dimensions: 'Dimensions', voltage: 'Voltage',
+  condition: 'État', size: 'Taille', weight: 'Poids', year: 'Année',
+}
+// Ordre de priorité des attributs connus dans le tableau
+const ATTR_ORDER = ['brand', 'model', 'category', 'color', 'material', 'size', 'condition', 'dimensions', 'year', 'weight', 'voltage', 'serial_number']
+
+function attrLabel(key: string): string {
+  return ATTR_LABEL_FR[key] ?? (key.charAt(0).toUpperCase() + key.slice(1))
+}
+
+function normCurrency(raw: string | null | undefined): string {
+  const c = raw ?? 'EUR'
+  if (c === '€') return 'EUR'
+  if (c === '$') return 'USD'
+  if (c === '£') return 'GBP'
+  if (c.length === 3) return c
+  return 'EUR'
+}
+
+function money(amount: number | null | undefined, rawCurrency?: string | null): string | null {
+  if (amount === null || amount === undefined) return null
+  return amount.toLocaleString('fr-FR', {
+    style: 'currency', currency: normCurrency(rawCurrency), maximumFractionDigits: 0,
+  })
+}
+
+function shortDate(iso: string | null | undefined): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return null
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 // ── SSR ───────────────────────────────────────────────────────────────────────
@@ -75,7 +119,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   const { data: objData } = await supabase
     .from('objects')
-    .select('id, title, description, status, location_note, market_value, user_value, value_currency')
+    .select('id, title, description, status, location_note, attributes, market_value, user_value, value_currency, purchase_price, purchase_currency, purchase_date, sale_price, deposit_amount, insured, created_at')
     .in('id', ids)
 
   // Covers
@@ -192,18 +236,8 @@ function PasswordForm({ token }: { token: string }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-function formatValue(obj: SharedObject) {
-  const value = obj.user_value ?? obj.market_value
-  if (value === null || value === undefined) return null
-  const currency = obj.value_currency === '€' ? 'EUR'
-    : obj.value_currency === '$' ? 'USD'
-    : obj.value_currency === '£' ? 'GBP'
-    : (obj.value_currency && obj.value_currency.length === 3) ? obj.value_currency
-    : 'EUR'
-  return value.toLocaleString('fr-FR', { style: 'currency', currency, maximumFractionDigits: 0 })
-}
-
 type SortKey = 'title' | 'status' | 'location_note' | 'value'
+  | 'market_value' | 'purchase_price' | 'sale_price' | 'deposit_amount' | 'created_at'
 type SortDir = 'asc' | 'desc'
 
 function sortValueOf(obj: SharedObject, key: SortKey): string | number {
@@ -212,6 +246,11 @@ function sortValueOf(obj: SharedObject, key: SortKey): string | number {
     case 'status': return obj.status ? (STATUS_LABEL[obj.status] ?? obj.status).toLowerCase() : ''
     case 'location_note': return obj.location_note?.toLowerCase() ?? ''
     case 'value': return obj.user_value ?? obj.market_value ?? -Infinity
+    case 'market_value': return obj.market_value ?? -Infinity
+    case 'purchase_price': return obj.purchase_price ?? -Infinity
+    case 'sale_price': return obj.sale_price ?? -Infinity
+    case 'deposit_amount': return obj.deposit_amount ?? -Infinity
+    case 'created_at': return obj.created_at ? new Date(obj.created_at).getTime() : -Infinity
   }
 }
 
@@ -256,13 +295,47 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
   }
 
   const sortedObjects = sortObjects(objects, sortKey, sortDir)
-  const totalValue = objects.reduce((sum, obj) => {
-    const v = obj.user_value ?? obj.market_value
-    return sum + (typeof v === 'number' ? v : 0)
-  }, 0)
-  const totalValueLabel = totalValue > 0
-    ? totalValue.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
-    : null
+
+  // Colonnes d'attributs : union des clés présentes sur les objets, connues d'abord
+  const attrKeys = (() => {
+    const seen: string[] = []
+    for (const o of objects) {
+      for (const [k, v] of Object.entries(o.attributes ?? {})) {
+        if (v === null || v === undefined || v === '') continue
+        if (!seen.includes(k)) seen.push(k)
+      }
+    }
+    return seen.sort((a, b) => {
+      const ia = ATTR_ORDER.indexOf(a), ib = ATTR_ORDER.indexOf(b)
+      if (ia !== -1 && ib !== -1) return ia - ib
+      if (ia !== -1) return -1
+      if (ib !== -1) return 1
+      return seen.indexOf(a) - seen.indexOf(b)
+    })
+  })()
+
+  // Colonnes monétaires (partagent en-tête, cellule, total, tri)
+  const moneyCols: {
+    key: Extract<SortKey, 'value' | 'market_value' | 'purchase_price' | 'sale_price' | 'deposit_amount'>
+    label: string
+    get: (o: SharedObject) => number | null
+    cur: (o: SharedObject) => string | null
+  }[] = [
+    { key: 'value', label: 'Valeur estimée', get: o => o.user_value ?? o.market_value, cur: o => o.value_currency },
+    { key: 'market_value', label: 'Valeur marché', get: o => o.market_value, cur: o => o.value_currency },
+    { key: 'purchase_price', label: "Prix d'achat", get: o => o.purchase_price, cur: o => o.purchase_currency ?? o.value_currency },
+    { key: 'sale_price', label: 'Prix de vente', get: o => o.sale_price, cur: o => o.value_currency },
+    { key: 'deposit_amount', label: 'Caution', get: o => o.deposit_amount, cur: o => o.value_currency },
+  ]
+
+  // Total par colonne monétaire (EUR — devise dominante du partage)
+  const moneyTotals: Record<string, number> = {}
+  for (const col of moneyCols) {
+    moneyTotals[col.key] = objects.reduce((sum, o) => {
+      const v = col.get(o)
+      return sum + (typeof v === 'number' ? v : 0)
+    }, 0)
+  }
 
   if (gated) {
     return (
@@ -414,9 +487,18 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                         <th className="th-sortable" onClick={() => toggleSort('location_note')}>
                           Emplacement{sortKey === 'location_note' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                         </th>
-                        <th>Description</th>
-                        <th className="th-value th-sortable" onClick={() => toggleSort('value')}>
-                          Valeur{sortKey === 'value' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                        {attrKeys.map(k => (
+                          <th key={k} className="th-attr">{attrLabel(k)}</th>
+                        ))}
+                        <th className="th-desc">Description</th>
+                        {moneyCols.map(col => (
+                          <th key={col.key} className="th-value th-sortable" onClick={() => toggleSort(col.key)}>
+                            {col.label}{sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                          </th>
+                        ))}
+                        <th className="th-center">Assuré</th>
+                        <th className="th-sortable th-nowrap" onClick={() => toggleSort('created_at')}>
+                          Ajouté le{sortKey === 'created_at' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                         </th>
                       </tr>
                     </thead>
@@ -453,20 +535,38 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                               </span>
                             )}
                           </td>
-                          <td className="td-muted">{obj.location_note ?? '—'}</td>
+                          <td className="td-muted td-nowrap">{obj.location_note ?? '—'}</td>
+                          {attrKeys.map(k => {
+                            const v = obj.attributes?.[k]
+                            return (
+                              <td key={k} className="td-attr">
+                                {v === null || v === undefined || v === '' ? '—' : String(v)}
+                              </td>
+                            )
+                          })}
                           <td className="td-description">{obj.description ?? '—'}</td>
-                          <td className="td-value">{formatValue(obj) ?? '—'}</td>
+                          {moneyCols.map(col => (
+                            <td key={col.key} className="td-value">
+                              {money(col.get(obj), col.cur(obj)) ?? '—'}
+                            </td>
+                          ))}
+                          <td className="td-center">{obj.insured ? 'Oui' : '—'}</td>
+                          <td className="td-muted td-nowrap">{shortDate(obj.created_at) ?? '—'}</td>
                         </tr>
                       ))}
                     </tbody>
-                    {totalValueLabel && (
-                      <tfoot>
-                        <tr className="total-row">
-                          <td colSpan={exportMode ? 6 : 5} className="td-total-label">Total</td>
-                          <td className="td-value td-total-value">{totalValueLabel}</td>
-                        </tr>
-                      </tfoot>
-                    )}
+                    <tfoot>
+                      <tr className="total-row">
+                        <td colSpan={(exportMode ? 1 : 0) + 4 + attrKeys.length + 1} className="td-total-label">Total</td>
+                        {moneyCols.map(col => (
+                          <td key={col.key} className="td-value td-total-value">
+                            {moneyTotals[col.key] > 0 ? money(moneyTotals[col.key], 'EUR') : '—'}
+                          </td>
+                        ))}
+                        <td className="td-center"></td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               )}
@@ -578,19 +678,23 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
         .view-btn:hover { color: #1A1612; }
         .view-btn.active { background: #fff; color: #1A1612; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
 
-        /* Table view (desktop web only) */
+        /* Table view — scroll horizontal pour absorber toutes les colonnes */
         .table-wrap {
           background: #fff; border-radius: 16px; border: 1px solid #E8E2DA;
-          overflow: hidden; margin-bottom: 32px;
+          overflow-x: auto; overflow-y: hidden; margin-bottom: 32px;
+          -webkit-overflow-scrolling: touch;
         }
         .table { width: 100%; border-collapse: collapse; }
         .table th {
           text-align: left; font-size: 12px; font-weight: 700; color: #A89F96;
           text-transform: uppercase; letter-spacing: 0.4px;
           padding: 14px 16px; border-bottom: 1px solid #E8E2DA; background: #FBF9F6;
+          white-space: nowrap;
         }
         .th-cover { width: 64px; }
         .th-value { text-align: right; }
+        .th-center { text-align: center; }
+        .th-nowrap { white-space: nowrap; }
         .th-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
         .th-sortable:hover { color: #F26900; }
         .table td {
@@ -606,10 +710,16 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
           width: 44px; height: 44px; border-radius: 8px; background: #F0EBE3;
           display: grid; place-items: center; font-size: 18px;
         }
-        .td-title { font-weight: 600; }
+        .td-title { font-weight: 600; white-space: nowrap; }
         .td-muted { color: #6B6158; }
+        .td-nowrap { white-space: nowrap; }
+        .td-attr {
+          color: #1A1612; max-width: 200px;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .td-center { text-align: center; color: #6B6158; }
         .td-description {
-          color: #6B6158; max-width: 320px;
+          color: #6B6158; max-width: 280px;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .td-value { text-align: right; font-weight: 700; color: #F26900; white-space: nowrap; }
@@ -619,8 +729,8 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
           width: 16px; height: 16px; cursor: pointer; accent-color: #F26900;
         }
         .total-row td { background: #FBF9F6; border-top: 2px solid #E8E2DA; border-bottom: 0; }
-        .td-total-label { text-align: right; font-weight: 700; color: #6B6158; text-transform: uppercase; font-size: 12px; letter-spacing: 0.4px; }
-        .td-total-value { font-size: 16px; }
+        .td-total-label { text-align: right; font-weight: 700; color: #6B6158; text-transform: uppercase; font-size: 12px; letter-spacing: 0.4px; white-space: nowrap; }
+        .td-total-value { font-size: 15px; }
 
         /* Grid */
         .grid {
