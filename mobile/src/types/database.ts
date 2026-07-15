@@ -68,6 +68,9 @@ export interface TiroirObject {
     summary?: string
     ai_value?: number  // valeur originale IA avant override utilisateur
   } | null
+  // Prix de vente / caution
+  sale_price: number | null
+  deposit_amount: number | null
   // Prix d'achat
   purchase_price: number | null
   purchase_currency: string
@@ -79,6 +82,20 @@ export interface TiroirObject {
   insurance_policy_ref: string | null
   insurance_provider: string | null
   insurance_expires_at: string | null
+}
+
+export interface ObjectInsurance {
+  id: string
+  object_id: string
+  user_id: string
+  label: string | null
+  price: number | null
+  billing_period: 'monthly' | 'yearly'
+  coverage: number | null
+  date: string | null // échéance du contrat (optionnelle)
+  position: number
+  created_at: string
+  updated_at: string
 }
 
 export interface ObjectImage {

@@ -25,6 +25,7 @@ export interface ObjectDocument {
   doc_type_label: string | null
   position: number
   created_at: string
+  insurance_id?: string | null
 }
 
 const DOC_TYPES: { key: ObjectDocument['doc_type']; labelKey: string }[] = [

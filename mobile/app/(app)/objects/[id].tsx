@@ -14,7 +14,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  Switch,
   Animated,
   PanResponder,
 } from 'react-native'
@@ -24,13 +23,13 @@ import i18n from 'i18next'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { decode } from 'base64-arraybuffer'
-import { Plus, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, MapPin, CalendarDays, Share2, Sparkles, Star } from 'lucide-react-native'
-import DateTimePicker from '@react-native-community/datetimepicker'
+import { Plus, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, MapPin, Share2, Sparkles, Star, Info } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { Screen, Colors, Typography, Spacing, Radius, ActionSheet } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
 import { DocumentsSection, ObjectDocument } from '@/components/DocumentsSection'
+import { InsurancesSection } from '@/components/InsurancesSection'
 import { TiroirObject, ObjectImage, Collection } from '@/types/database'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -911,6 +910,7 @@ interface LocationBricksProps {
 function LocationBricks({
   bricks, editingIdx, draft, onEditStart, onDraftChange, onEditCommit, onRemove, onAdd,
 }: LocationBricksProps) {
+  const { t } = useTranslation()
   return (
     <View style={lb.row}>
       {bricks.map((brick, i) => (
@@ -936,87 +936,43 @@ function LocationBricks({
           )}
         </React.Fragment>
       ))}
-      <TouchableOpacity style={lb.addBtn} onPress={onAdd} activeOpacity={0.7}>
-        <Text style={lb.addText}>+</Text>
+      <TouchableOpacity style={lb.addBtn} onPress={onAdd} activeOpacity={0.85}>
+        <Plus size={16} color="#FFFFFF" strokeWidth={2.4} />
+        <Text style={lb.addText}>{t('object.locationAdd')}</Text>
       </TouchableOpacity>
     </View>
   )
 }
 
+// Puces d'emplacement : typo alignée sur le corps de page (base), avec un
+// bouton d'ajout orange lisible mais harmonisé.
+const LOCATION_FONT = Typography.base
+
 const lb = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: Spacing.xs },
-  arrow: { fontSize: Typography.sm, color: Colors.textTertiary, paddingHorizontal: 2 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: Spacing.sm },
+  arrow: { fontSize: Typography.md, color: Colors.textTertiary, paddingHorizontal: 2 },
   brick: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: Colors.surfaceWarm, borderRadius: Radius.full,
-    paddingHorizontal: Spacing.sm + 2, paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm + 2, paddingVertical: 6,
     borderWidth: 1, borderColor: Colors.border,
   },
-  brickText: { fontSize: Typography.sm, color: Colors.textPrimary, fontWeight: Typography.medium, maxWidth: 120 },
-  remove: { fontSize: Typography.sm, color: Colors.textTertiary, lineHeight: 16 },
+  brickText: { fontSize: LOCATION_FONT, color: Colors.textPrimary, fontWeight: Typography.semibold, maxWidth: 160 },
+  remove: { fontSize: Typography.md, color: Colors.textTertiary, lineHeight: 18, marginLeft: 2 },
   input: {
-    fontSize: Typography.sm, color: Colors.textPrimary, fontWeight: Typography.medium,
+    fontSize: LOCATION_FONT, color: Colors.textPrimary, fontWeight: Typography.semibold,
     backgroundColor: Colors.surface, borderRadius: Radius.full,
-    paddingHorizontal: Spacing.sm + 2, paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm + 2, paddingVertical: 6,
     borderWidth: 1.5, borderColor: Colors.accent,
-    minWidth: 80,
+    minWidth: 90,
   },
   addBtn: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: Colors.surfaceWarm, borderWidth: 1.5,
-    borderColor: Colors.border, borderStyle: 'dashed',
-    alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: '#EA580C', borderRadius: Radius.full,
+    paddingHorizontal: Spacing.sm + 4, paddingVertical: 6,
   },
-  addText: { fontSize: Typography.md, color: Colors.textTertiary, lineHeight: 22 },
+  addText: { fontSize: Typography.sm, color: '#FFFFFF', fontWeight: Typography.bold },
 })
-
-// ── DatePickerField ───────────────────────────────────────────────────────────
-
-function DatePickerField({
-  label, value, onChange,
-}: { label: string; value: string; onChange: (iso: string) => void }) {
-  const { t, i18n } = useTranslation()
-  const [open, setOpen] = useState(false)
-  const date = value ? new Date(value) : new Date()
-
-  const display = value
-    ? new Date(value).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })
-    : null
-
-  return (
-    <View>
-      <Text style={vc.fieldLabel}>{label}</Text>
-      <TouchableOpacity style={vc.dateBtn} onPress={() => setOpen(true)} activeOpacity={0.7}>
-        <CalendarDays size={16} color={display ? Colors.textPrimary : Colors.textTertiary} strokeWidth={1.5} />
-        <Text style={[vc.dateBtnText, !display && vc.datePlaceholder]}>
-          {display ?? t('object.chooseDate')}
-        </Text>
-        {display && (
-          <TouchableOpacity onPress={() => onChange('')} hitSlop={8}>
-            <Text style={vc.dateClear}>×</Text>
-          </TouchableOpacity>
-        )}
-      </TouchableOpacity>
-      {open && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="spinner"
-          locale={i18n.language}
-          maximumDate={new Date()}
-          onChange={(_, selected) => {
-            setOpen(false)
-            if (selected) {
-              // Format ISO YYYY-MM-DD
-              const iso = selected.toISOString().split('T')[0]
-              onChange(iso)
-            }
-          }}
-        />
-      )}
-    </View>
-  )
-}
 
 // ── DescriptionBlock ──────────────────────────────────────────────────────────
 
@@ -1077,174 +1033,123 @@ interface MarketValueSectionProps {
 
 function MarketValueSection({ object, estimating, sources, confidence, currSym, onEstimate, onClearMarketValue, onUpdateMarketValue }: MarketValueSectionProps) {
   const { t, i18n } = useTranslation()
-  const [summaryExpanded, setSummaryExpanded] = useState(false)
-  const [summaryTruncated, setSummaryTruncated] = useState(false)
-  const [editingMarketValue, setEditingMarketValue] = useState(false)
-  const [marketValueDraft, setMarketValueDraft] = useState('')
-  const [savingMarketValue, setSavingMarketValue] = useState(false)
-  const summaryMaxH = useRef(new Animated.Value(9999)).current
-  const collapsedH = useRef(0)
-  const fullH = useRef(0)
-  const measured = useRef(false)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
 
-  useEffect(() => {
-    measured.current = false
-    setSummaryTruncated(false)
-    setSummaryExpanded(false)
-    summaryMaxH.setValue(9999)
-  }, [sources?.summary])
-
-  async function commitMarketValue() {
-    const parsed = parseFloat(marketValueDraft.replace(',', '.'))
-    setEditingMarketValue(false)
+  async function commit() {
+    const parsed = parseFloat(draft.replace(',', '.'))
+    setEditing(false)
     if (isNaN(parsed) || parsed <= 0 || parsed === object.market_value) return
-    setSavingMarketValue(true)
+    setSaving(true)
     await onUpdateMarketValue(parsed)
-    setSavingMarketValue(false)
+    setSaving(false)
   }
 
-  function toggleSummary() {
-    const next = !summaryExpanded
-    setSummaryExpanded(next)
-    Animated.spring(summaryMaxH, {
-      toValue: next ? fullH.current : collapsedH.current,
-      useNativeDriver: false,
-      damping: 22,
-      mass: 0.8,
-    }).start()
-  }
+  const hasValue = object.market_value != null
 
   return (
-    <View style={vc.section}>
-      <View style={vc.sectionHead}>
-        <Text style={vc.sectionLabel}>{t('object.value.marketValue')}</Text>
-        {sources && (
-          <Text style={[vc.confidenceBadge, { color: CONFIDENCE_COLOR[confidence] }]}>
-            {t(CONFIDENCE_LABEL_KEY[confidence])}
-          </Text>
+    <View style={[vc.section, { gap: 0 }]}>
+      {/* Row compacte, alignée sur les autres valeurs */}
+      <View style={vc.amountRow}>
+        <View style={vc.amountLabelWrap}>
+          <View style={vc.marketLabelWrap}>
+            <Text style={vc.amountLabel}>{t('object.value.marketValue')}</Text>
+            {hasValue && (
+              <TouchableOpacity onPress={() => setInfoOpen(true)} hitSlop={8} style={vc.infoBtn}>
+                <Info size={15} color={Colors.textTertiary} strokeWidth={1.8} />
+              </TouchableOpacity>
+            )}
+          </View>
+          <Text style={vc.amountHint}>{t('object.value.marketHint')}</Text>
+        </View>
+
+        {estimating ? (
+          <ActivityIndicator size="small" color={Colors.accent} />
+        ) : hasValue ? (
+          editing ? (
+            <TextInput
+              style={vc.amountInput}
+              value={draft}
+              onChangeText={setDraft}
+              onBlur={commit}
+              onSubmitEditing={commit}
+              keyboardType="decimal-pad"
+              autoFocus
+              returnKeyType="done"
+              selectTextOnFocus
+            />
+          ) : saving ? (
+            <ActivityIndicator size="small" color={Colors.accent} />
+          ) : (
+            <TouchableOpacity onPress={() => { setDraft(String(object.market_value)); setEditing(true) }} activeOpacity={0.7}>
+              <Text style={vc.amountValue}>{object.market_value!.toLocaleString(i18n.language)} {currSym}</Text>
+            </TouchableOpacity>
+          )
+        ) : (
+          <TouchableOpacity onPress={onEstimate} activeOpacity={0.8}>
+            <Text style={vc.marketEstimateLink}>{t('object.value.estimateAi')}</Text>
+          </TouchableOpacity>
         )}
       </View>
 
-      {estimating ? (
-        <View style={vc.loadingRow}>
-          <ActivityIndicator color={Colors.accent} size="small" />
-          <Text style={vc.loadingText}>{t('object.value.searching')}</Text>
-        </View>
-      ) : object.market_value != null ? (
-        <>
-          <TouchableOpacity
-            onPress={() => { setMarketValueDraft(String(object.market_value)); setEditingMarketValue(true) }}
-            activeOpacity={0.7}
-            style={vc.iaValueRow}
-          >
-            {editingMarketValue ? (
-              <TextInput
-                style={vc.marketValueInput}
-                value={marketValueDraft}
-                onChangeText={setMarketValueDraft}
-                onBlur={commitMarketValue}
-                onSubmitEditing={commitMarketValue}
-                keyboardType="decimal-pad"
-                autoFocus
-                returnKeyType="done"
-                selectTextOnFocus
-              />
-            ) : savingMarketValue ? (
-              <ActivityIndicator size="small" color={Colors.accent} />
-            ) : (
-              <Text style={vc.iaValue}>{object.market_value.toLocaleString(i18n.language)} {currSym}</Text>
+      {/* Drawer d'explication */}
+      <Modal visible={infoOpen} transparent animationType="slide" onRequestClose={() => setInfoOpen(false)}>
+        <TouchableOpacity style={vc.backdrop} activeOpacity={1} onPress={() => setInfoOpen(false)} />
+        <View style={vc.infoDrawer}>
+          <View style={vc.sheetHandle} />
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: Spacing.sm, paddingBottom: 8 }}>
+            <View style={vc.infoHead}>
+              <Text style={vc.infoTitle}>{t('object.value.marketValue')}</Text>
+              {sources && (
+                <Text style={[vc.confidenceBadge, { color: CONFIDENCE_COLOR[confidence] }]}>
+                  {t(CONFIDENCE_LABEL_KEY[confidence])}
+                </Text>
+              )}
+            </View>
+            {hasValue && (
+              <Text style={vc.infoValue}>{object.market_value!.toLocaleString(i18n.language)} {currSym}</Text>
             )}
-            {/* Rappel valeur IA originale si l'utilisateur a overridé */}
             {sources?.ai_value != null && sources.ai_value !== object.market_value && (
               <Text style={vc.iaValueHint}>{t('object.value.aiHint', { value: sources.ai_value.toLocaleString(i18n.language), sym: currSym })}</Text>
             )}
-          </TouchableOpacity>
-          {sources?.value_min != null && sources?.value_max != null && (
-            <Text style={vc.range}>
-              {t('object.value.range', { min: sources.value_min.toLocaleString(i18n.language), max: sources.value_max.toLocaleString(i18n.language), sym: currSym })}
-            </Text>
-          )}
-          {sources?.summary ? (
-            <>
-              <Animated.View style={{ maxHeight: summaryMaxH, overflow: 'hidden' }}>
-                <Text
-                  style={vc.summary}
-                  onLayout={e => {
-                    if (measured.current) return
-                    fullH.current = e.nativeEvent.layout.height
-                  }}
-                  onTextLayout={e => {
-                    if (measured.current) return
-                    const lines = e.nativeEvent.lines
-                    if (lines.length > 2) {
-                      measured.current = true
-                      setSummaryTruncated(true)
-                      const h = lines.slice(0, 2).reduce((s, l) => s + l.height, 0)
-                      collapsedH.current = h
-                      summaryMaxH.setValue(h)
-                    }
-                  }}
-                >{sources.summary}</Text>
-              </Animated.View>
-              {summaryTruncated && (
-                <TouchableOpacity onPress={toggleSummary} activeOpacity={0.7}>
-                  <Text style={vc.showMore}>{summaryExpanded ? t('object.showLess') : t('object.showMore')}</Text>
-                </TouchableOpacity>
-              )}
-            </>
-          ) : null}
-          {sources?.sources && sources.sources.length > 0 && (
-            <View style={vc.sourcesRow}>
-              {sources.sources.slice(0, 3).map((src, i) => (
-                <View key={i} style={vc.sourceChip}>
-                  <Text style={vc.sourceChipText}>{src.site} · {src.price} {currSym}</Text>
-                </View>
-              ))}
+            {sources?.value_min != null && sources?.value_max != null && (
+              <Text style={vc.range}>
+                {t('object.value.range', { min: sources.value_min.toLocaleString(i18n.language), max: sources.value_max.toLocaleString(i18n.language), sym: currSym })}
+              </Text>
+            )}
+            {sources?.summary ? <Text style={vc.summary}>{sources.summary}</Text> : null}
+            {sources?.sources && sources.sources.length > 0 && (
+              <View style={vc.sourcesRow}>
+                {sources.sources.slice(0, 3).map((src, i) => (
+                  <View key={i} style={vc.sourceChip}>
+                    <Text style={vc.sourceChipText}>{src.site} · {src.price} {currSym}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            <View style={vc.infoActions}>
+              <TouchableOpacity
+                style={[vc.marketActionBtn, vc.marketActionRefresh]}
+                onPress={() => { setInfoOpen(false); onEstimate() }}
+                activeOpacity={0.75}
+              >
+                <Text style={[vc.marketActionText, { color: '#15803D' }]}>{t('object.value.refresh')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[vc.marketActionBtn, vc.marketActionDelete]}
+                onPress={() => { setInfoOpen(false); onClearMarketValue() }}
+                activeOpacity={0.75}
+              >
+                <Text style={[vc.marketActionText, { color: '#DC2626' }]}>{t('object.value.delete')}</Text>
+              </TouchableOpacity>
             </View>
-          )}
-          <View style={vc.marketActions}>
-            <TouchableOpacity
-              style={[vc.marketActionBtn, vc.marketActionEdit]}
-              onPress={() => { setMarketValueDraft(String(object.market_value)); setEditingMarketValue(true) }}
-              activeOpacity={0.75}
-            >
-              <Text style={[vc.marketActionText, { color: '#2563EB' }]}>{t('object.value.edit')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[vc.marketActionBtn, vc.marketActionRefresh]}
-              onPress={onEstimate}
-              activeOpacity={0.75}
-            >
-              <Text style={[vc.marketActionText, { color: '#15803D' }]}>{t('object.value.refresh')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[vc.marketActionBtn, vc.marketActionDelete]}
-              onPress={onClearMarketValue}
-              activeOpacity={0.75}
-            >
-              <Text style={[vc.marketActionText, { color: '#DC2626' }]}>{t('object.value.delete')}</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      ) : (
-        <TouchableOpacity style={vc.estimateBtn} onPress={onEstimate} activeOpacity={0.8}>
-          <Text style={vc.estimateBtnText}>{t('object.value.estimateAi')}</Text>
-        </TouchableOpacity>
-      )}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   )
-}
-
-interface InsuranceDraft {
-  purchase_price: string
-  purchase_currency: string
-  purchase_date: string
-  insured: boolean
-  insurance_type: string
-  insurance_coverage: string
-  insurance_policy_ref: string
-  insurance_provider: string
-  insurance_expires_at: string
 }
 
 interface ValeurCardProps {
@@ -1256,15 +1161,22 @@ interface ValeurCardProps {
   onEditUserValue: () => void
   onUserValueChange: (v: string) => void
   onUserValueCommit: () => void
-  onSaveInsurance: (draft: InsuranceDraft) => Promise<void>
   onClearMarketValue: () => void
   onUpdateMarketValue: (newValue: number) => Promise<void>
+  onUpdatePurchasePrice: (newValue: number | null) => Promise<void>
+  onUpdateSalePrice: (newValue: number | null) => Promise<void>
+  onUpdateDeposit: (newValue: number | null) => Promise<void>
+  onToggleInsured: (v: boolean) => void
+  documents: ObjectDocument[]
+  onDocumentsChange: (docs: ObjectDocument[]) => void
 }
 
 function ValeurCard({
   object, estimating, editingUserValue, userValueDraft,
   onEstimate, onEditUserValue, onUserValueChange, onUserValueCommit,
-  onSaveInsurance, onClearMarketValue, onUpdateMarketValue,
+  onClearMarketValue, onUpdateMarketValue,
+  onUpdatePurchasePrice, onUpdateSalePrice, onUpdateDeposit, onToggleInsured,
+  documents, onDocumentsChange,
 }: ValeurCardProps) {
   const { t, i18n } = useTranslation()
   const currency = object.value_currency ?? 'EUR'
@@ -1272,43 +1184,50 @@ function ValeurCard({
   const sources = object.value_sources
   const confidence = sources?.confidence ?? 'medium'
 
-  const [insuranceEditing, setInsuranceEditing] = useState(false)
-  const [insuranceSaving, setInsuranceSaving] = useState(false)
-  const [draft, setDraft] = useState<InsuranceDraft>({
-    purchase_price: object.purchase_price != null ? String(object.purchase_price) : '',
-    purchase_currency: object.purchase_currency ?? 'EUR',
-    purchase_date: object.purchase_date ?? '',
-    insured: object.insured ?? false,
-    insurance_type: object.insurance_type ?? '',
-    insurance_coverage: object.insurance_coverage != null ? String(object.insurance_coverage) : '',
-    insurance_policy_ref: object.insurance_policy_ref ?? '',
-    insurance_provider: object.insurance_provider ?? '',
-    insurance_expires_at: object.insurance_expires_at ?? '',
-  })
+  // Prix d'achat / vente / caution (champs libres persistés)
+  const [editingPurchase, setEditingPurchase] = useState(false)
+  const [purchaseDraft, setPurchaseDraft] = useState('')
+  const [savingPurchase, setSavingPurchase] = useState(false)
+  const [editingSale, setEditingSale] = useState(false)
+  const [saleDraft, setSaleDraft] = useState('')
+  const [savingSale, setSavingSale] = useState(false)
+  const [editingDeposit, setEditingDeposit] = useState(false)
+  const [depositDraft, setDepositDraft] = useState('')
+  const [savingDeposit, setSavingDeposit] = useState(false)
 
-  function openInsuranceEdit() {
-    setDraft({
-      purchase_price: object.purchase_price != null ? String(object.purchase_price) : '',
-      purchase_currency: object.purchase_currency ?? 'EUR',
-      purchase_date: object.purchase_date ?? '',
-      insured: object.insured ?? false,
-      insurance_type: object.insurance_type ?? '',
-      insurance_coverage: object.insurance_coverage != null ? String(object.insurance_coverage) : '',
-      insurance_policy_ref: object.insurance_policy_ref ?? '',
-      insurance_provider: object.insurance_provider ?? '',
-      insurance_expires_at: object.insurance_expires_at ?? '',
-    })
-    setInsuranceEditing(true)
+  async function commitPurchase() {
+    setEditingPurchase(false)
+    const raw = purchaseDraft.trim()
+    const parsed = raw === '' ? null : parseFloat(raw.replace(',', '.'))
+    if (parsed !== null && (isNaN(parsed) || parsed < 0)) return
+    if (parsed === (object.purchase_price ?? null)) return
+    setSavingPurchase(true)
+    await onUpdatePurchasePrice(parsed)
+    setSavingPurchase(false)
   }
 
-  async function commitInsurance() {
-    setInsuranceSaving(true)
-    await onSaveInsurance(draft)
-    setInsuranceSaving(false)
-    setInsuranceEditing(false)
+  async function commitSale() {
+    setEditingSale(false)
+    const raw = saleDraft.trim()
+    const parsed = raw === '' ? null : parseFloat(raw.replace(',', '.'))
+    if (parsed !== null && (isNaN(parsed) || parsed < 0)) return
+    if (parsed === (object.sale_price ?? null)) return
+    setSavingSale(true)
+    await onUpdateSalePrice(parsed)
+    setSavingSale(false)
   }
 
-  const hasInsuranceData = object.purchase_price != null || object.insured
+  async function commitDeposit() {
+    setEditingDeposit(false)
+    const raw = depositDraft.trim()
+    const parsed = raw === '' ? null : parseFloat(raw.replace(',', '.'))
+    if (parsed !== null && (isNaN(parsed) || parsed < 0)) return
+    if (parsed === (object.deposit_amount ?? null)) return
+    setSavingDeposit(true)
+    await onUpdateDeposit(parsed)
+    setSavingDeposit(false)
+  }
+
   const depreciation = (object.user_value != null && object.purchase_price != null && object.purchase_price > 0)
     ? Math.round(((object.user_value - object.purchase_price) / object.purchase_price) * 100)
     : null
@@ -1378,130 +1297,118 @@ function ValeurCard({
           onUpdateMarketValue={onUpdateMarketValue}
         />
 
+        {/* ── Section 3 : Prix d'achat + vente + Caution ── */}
+        <View style={[vc.section, { gap: 0 }]}>
+          {/* Prix d'achat */}
+          <TouchableOpacity
+            style={vc.amountRow}
+            onPress={() => { setPurchaseDraft(object.purchase_price != null ? String(object.purchase_price) : ''); setEditingPurchase(true) }}
+            activeOpacity={0.7}
+          >
+            <View style={vc.amountLabelWrap}>
+              <Text style={vc.amountLabel}>{t('object.value.purchasePrice')}</Text>
+            </View>
+            {editingPurchase ? (
+              <TextInput
+                style={vc.amountInput}
+                value={purchaseDraft}
+                onChangeText={setPurchaseDraft}
+                onBlur={commitPurchase}
+                onSubmitEditing={commitPurchase}
+                keyboardType="decimal-pad"
+                autoFocus
+                returnKeyType="done"
+                placeholder="0"
+                placeholderTextColor={Colors.textTertiary}
+                selectTextOnFocus
+              />
+            ) : savingPurchase ? (
+              <ActivityIndicator size="small" color={Colors.accent} />
+            ) : object.purchase_price != null ? (
+              <Text style={vc.amountValue}>{object.purchase_price.toLocaleString(i18n.language)} {currSym}</Text>
+            ) : (
+              <Text style={vc.amountPlaceholder}>{t('object.value.enter')}</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Prix de vente */}
+          <TouchableOpacity
+            style={vc.amountRow}
+            onPress={() => { setSaleDraft(object.sale_price != null ? String(object.sale_price) : ''); setEditingSale(true) }}
+            activeOpacity={0.7}
+          >
+            <View style={vc.amountLabelWrap}>
+              <Text style={vc.amountLabel}>{t('object.value.salePrice')}</Text>
+            </View>
+            {editingSale ? (
+              <TextInput
+                style={vc.amountInput}
+                value={saleDraft}
+                onChangeText={setSaleDraft}
+                onBlur={commitSale}
+                onSubmitEditing={commitSale}
+                keyboardType="decimal-pad"
+                autoFocus
+                returnKeyType="done"
+                placeholder="0"
+                placeholderTextColor={Colors.textTertiary}
+                selectTextOnFocus
+              />
+            ) : savingSale ? (
+              <ActivityIndicator size="small" color={Colors.accent} />
+            ) : object.sale_price != null ? (
+              <Text style={vc.amountValue}>{object.sale_price.toLocaleString(i18n.language)} {currSym}</Text>
+            ) : (
+              <Text style={vc.amountPlaceholder}>{t('object.value.enter')}</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Caution */}
+          <TouchableOpacity
+            style={vc.amountRow}
+            onPress={() => { setDepositDraft(object.deposit_amount != null ? String(object.deposit_amount) : ''); setEditingDeposit(true) }}
+            activeOpacity={0.7}
+          >
+            <View style={vc.amountLabelWrap}>
+              <Text style={vc.amountLabel}>{t('object.value.deposit')}</Text>
+              <Text style={vc.amountHint}>{t('object.value.depositHint')}</Text>
+            </View>
+            {editingDeposit ? (
+              <TextInput
+                style={vc.amountInput}
+                value={depositDraft}
+                onChangeText={setDepositDraft}
+                onBlur={commitDeposit}
+                onSubmitEditing={commitDeposit}
+                keyboardType="decimal-pad"
+                autoFocus
+                returnKeyType="done"
+                placeholder="0"
+                placeholderTextColor={Colors.textTertiary}
+                selectTextOnFocus
+              />
+            ) : savingDeposit ? (
+              <ActivityIndicator size="small" color={Colors.accent} />
+            ) : object.deposit_amount != null ? (
+              <Text style={vc.amountValue}>{object.deposit_amount.toLocaleString(i18n.language)} {currSym}</Text>
+            ) : (
+              <Text style={vc.amountPlaceholder}>{t('object.value.enter')}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
         <View style={vc.divider} />
 
-        {/* ── Section 3 : Assurance ── */}
-        <View style={vc.section}>
-          <Text style={vc.sectionLabel}>{t('object.insurance.title')}</Text>
-          {!hasInsuranceData ? (
-            <TouchableOpacity onPress={openInsuranceEdit} activeOpacity={0.8} style={vc.estimateBtn}>
-              <Text style={vc.estimateBtnText}>{t('object.insurance.addCta')}</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={vc.rows}>
-              {object.purchase_price != null && (
-                <View style={vc.row}>
-                  <Text style={vc.rowLabel}>{t('object.insurance.purchasePrice')}</Text>
-                  <Text style={vc.rowValue}>{currSym} {object.purchase_price.toLocaleString(i18n.language, { minimumFractionDigits: 2 })}</Text>
-                </View>
-              )}
-              {object.purchase_date && (
-                <View style={vc.row}>
-                  <Text style={vc.rowLabel}>{t('object.insurance.purchaseDate')}</Text>
-                  <Text style={vc.rowValue}>{new Date(object.purchase_date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-                </View>
-              )}
-              <View style={vc.row}>
-                <Text style={vc.rowLabel}>{t('object.insurance.insured')}</Text>
-                <Text style={[vc.rowValue, { color: object.insured ? '#16A34A' : Colors.textTertiary }]}>
-                  {object.insured ? `${t('object.insurance.yes')}${object.insurance_type ? ` — ${object.insurance_type}` : ''}` : t('object.insurance.no')}
-                </Text>
-              </View>
-              {object.insured && object.insurance_coverage != null && (
-                <View style={vc.row}>
-                  <Text style={vc.rowLabel}>{t('object.insurance.coverage')}</Text>
-                  <Text style={vc.rowValue}>{t('object.insurance.coverageUpTo', { sym: currSym, value: object.insurance_coverage.toLocaleString(i18n.language) })}</Text>
-                </View>
-              )}
-              {object.insured && object.insurance_expires_at && (
-                <View style={vc.row}>
-                  <Text style={vc.rowLabel}>{t('object.insurance.expiration')}</Text>
-                  <Text style={vc.rowValue}>{new Date(object.insurance_expires_at).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-                </View>
-              )}
-            </View>
-          )}
-          {hasInsuranceData && (
-            <TouchableOpacity onPress={openInsuranceEdit} activeOpacity={0.7} style={{ marginTop: Spacing.xs }}>
-              <Text style={vc.refreshText}>{t('object.insurance.edit')}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* ── Section 4 : Assurance (multi + contrats PDF) ── */}
+        <InsurancesSection
+          objectId={object.id}
+          insured={object.insured}
+          currencySymbol={currSym}
+          documents={documents}
+          onDocumentsChange={onDocumentsChange}
+          onToggleInsured={onToggleInsured}
+        />
       </View>
-
-      {/* Feuille d'édition assurance */}
-      <Modal visible={insuranceEditing} transparent animationType="slide" onRequestClose={() => setInsuranceEditing(false)}>
-        <TouchableOpacity style={vc.backdrop} activeOpacity={1} onPress={() => setInsuranceEditing(false)} />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={vc.sheet}>
-          <View style={vc.sheetHandle} />
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={vc.sheetContent}>
-            <Text style={vc.sheetTitle}>{t('object.insurance.sheetTitle')}</Text>
-
-            <Text style={vc.fieldLabel}>{t('object.insurance.purchasePrice')}</Text>
-            <TextInput
-              style={vc.input}
-              value={draft.purchase_price}
-              onChangeText={v => setDraft(d => ({ ...d, purchase_price: v }))}
-              keyboardType="decimal-pad"
-              placeholder="149.00"
-              placeholderTextColor={Colors.textTertiary}
-            />
-
-            <DatePickerField
-              label={t('object.insurance.purchaseDate')}
-              value={draft.purchase_date}
-              onChange={v => setDraft(d => ({ ...d, purchase_date: v }))}
-            />
-
-            <View style={vc.switchRow}>
-              <Text style={vc.fieldLabel}>{t('object.insurance.objectInsured')}</Text>
-              <Switch
-                value={draft.insured}
-                onValueChange={v => setDraft(d => ({ ...d, insured: v }))}
-                trackColor={{ true: Colors.accent }}
-              />
-            </View>
-
-            {draft.insured && (
-              <>
-                <Text style={vc.fieldLabel}>{t('object.insurance.type')}</Text>
-                <TextInput style={vc.input} value={draft.insurance_type}
-                  onChangeText={v => setDraft(d => ({ ...d, insurance_type: v }))}
-                  placeholder={t('object.insurance.typePlaceholder')} placeholderTextColor={Colors.textTertiary} />
-
-                <Text style={vc.fieldLabel}>{t('object.insurance.provider')}</Text>
-                <TextInput style={vc.input} value={draft.insurance_provider}
-                  onChangeText={v => setDraft(d => ({ ...d, insurance_provider: v }))}
-                  placeholder="MMA, AXA…" placeholderTextColor={Colors.textTertiary} />
-
-                <Text style={vc.fieldLabel}>{t('object.insurance.coverageAmount')}</Text>
-                <TextInput style={vc.input} value={draft.insurance_coverage}
-                  onChangeText={v => setDraft(d => ({ ...d, insurance_coverage: v }))}
-                  keyboardType="decimal-pad" placeholder="200.00" placeholderTextColor={Colors.textTertiary} />
-
-                <Text style={vc.fieldLabel}>{t('object.insurance.policyRef')}</Text>
-                <TextInput style={vc.input} value={draft.insurance_policy_ref}
-                  onChangeText={v => setDraft(d => ({ ...d, insurance_policy_ref: v }))}
-                  placeholder="MMA-2024-447812" placeholderTextColor={Colors.textTertiary}
-                  autoCapitalize="characters" />
-
-                <DatePickerField
-                  label={t('object.insurance.expirationField')}
-                  value={draft.insurance_expires_at}
-                  onChange={v => setDraft(d => ({ ...d, insurance_expires_at: v }))}
-                />
-              </>
-            )}
-
-            <TouchableOpacity style={vc.saveBtn} onPress={commitInsurance} activeOpacity={0.85} disabled={insuranceSaving}>
-              {insuranceSaving
-                ? <ActivityIndicator color="white" />
-                : <Text style={vc.saveBtnText}>{t('object.insurance.save')}</Text>
-              }
-            </TouchableOpacity>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </Modal>
     </>
   )
 }
@@ -1594,6 +1501,36 @@ const vc = StyleSheet.create({
   marketActionDelete: { backgroundColor: '#FEE2E2' },
   marketActionText: { fontSize: Typography.xs, fontWeight: Typography.semibold },
 
+  // Valeur marché — compacte + drawer
+  marketLabelWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  infoBtn: { padding: 2 },
+  marketEstimateLink: { fontSize: Typography.sm, color: Colors.accent, fontWeight: Typography.semibold },
+  infoDrawer: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    backgroundColor: Colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    padding: Spacing.lg, paddingBottom: 40, maxHeight: '80%',
+  },
+  infoHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  infoTitle: { fontSize: Typography.md, fontWeight: Typography.bold, color: Colors.textPrimary },
+  infoValue: { fontSize: Typography.xxl, fontWeight: Typography.bold, color: Colors.textPrimary },
+  infoActions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
+
+  // Prix de vente / caution
+  amountRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    gap: Spacing.sm, paddingVertical: Spacing.sm,
+  },
+  amountLabelWrap: { flex: 1 },
+  amountLabel: { fontSize: Typography.sm, color: Colors.textSecondary, fontWeight: Typography.medium },
+  amountHint: { fontSize: Typography.xs, color: Colors.textTertiary, marginTop: 2 },
+  amountValue: { fontSize: Typography.lg, fontWeight: Typography.bold, color: Colors.textPrimary },
+  amountPlaceholder: { fontSize: Typography.base, color: Colors.textTertiary, fontStyle: 'italic' },
+  amountInput: {
+    fontSize: Typography.lg, fontWeight: Typography.bold, color: Colors.textPrimary,
+    borderBottomWidth: 1.5, borderBottomColor: Colors.accent,
+    minWidth: 80, paddingVertical: 2, textAlign: 'right',
+  },
+
   // CTA
   estimateBtn: {
     backgroundColor: Colors.accentLight, borderRadius: Radius.md,
@@ -1645,6 +1582,10 @@ export default function ObjectScreen() {
   const [allCollections, setAllCollections] = useState<Collection[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+
+  // Titre
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleDraft, setTitleDraft] = useState('')
 
   // Description
   const [editingDesc, setEditingDesc] = useState(false)
@@ -1740,6 +1681,18 @@ export default function ObjectScreen() {
   }
 
   // ── Description ─────────────────────────────────────────────────────────────
+
+  function startEditTitle() {
+    setTitleDraft(object?.title ?? '')
+    setEditingTitle(true)
+  }
+
+  function commitTitle() {
+    setEditingTitle(false)
+    const val = titleDraft.trim()
+    if (!val || val === object?.title) return // titre obligatoire : on ignore le vide
+    saveField({ title: val })
+  }
 
   function startEditDesc() {
     setDescDraft(object?.description ?? '')
@@ -1869,35 +1822,20 @@ export default function ObjectScreen() {
     if (!error) setObject(prev => prev ? { ...prev, user_value: num } : prev)
   }
 
-  // ── Assurance ────────────────────────────────────────────────────────────────
+  // ── Prix d'achat / assurance ─────────────────────────────────────────────────
 
-  async function saveInsurance(draft: InsuranceDraft) {
+  async function updatePurchasePrice(newValue: number | null) {
     if (!object) return
-    const { error } = await supabase.rpc('patch_insurance', {
-      p_object_id:            object.id,
-      p_purchase_price:       draft.purchase_price ? parseFloat(draft.purchase_price.replace(',', '.')) : null,
-      p_purchase_currency:    draft.purchase_currency || 'EUR',
-      p_purchase_date:        draft.purchase_date || null,
-      p_insured:              draft.insured,
-      p_insurance_type:       draft.insured && draft.insurance_type ? draft.insurance_type : null,
-      p_insurance_coverage:   draft.insured && draft.insurance_coverage ? parseFloat(draft.insurance_coverage.replace(',', '.')) : null,
-      p_insurance_policy_ref: draft.insured && draft.insurance_policy_ref ? draft.insurance_policy_ref : null,
-      p_insurance_provider:   draft.insured && draft.insurance_provider ? draft.insurance_provider : null,
-      p_insurance_expires_at: draft.insured && draft.insurance_expires_at ? draft.insurance_expires_at : null,
-    })
+    const { error } = await supabase.from('objects').update({ purchase_price: newValue }).eq('id', object.id)
     if (error) { Alert.alert(t('common.error'), error.message); return }
-    setObject(prev => prev ? {
-      ...prev,
-      purchase_price:       draft.purchase_price ? parseFloat(draft.purchase_price.replace(',', '.')) : null,
-      purchase_currency:    draft.purchase_currency || 'EUR',
-      purchase_date:        draft.purchase_date || null,
-      insured:              draft.insured,
-      insurance_type:       draft.insured ? (draft.insurance_type || null) : null,
-      insurance_coverage:   draft.insured && draft.insurance_coverage ? parseFloat(draft.insurance_coverage.replace(',', '.')) : null,
-      insurance_policy_ref: draft.insured ? (draft.insurance_policy_ref || null) : null,
-      insurance_provider:   draft.insured ? (draft.insurance_provider || null) : null,
-      insurance_expires_at: draft.insured ? (draft.insurance_expires_at || null) : null,
-    } : prev)
+    setObject(prev => prev ? ({ ...prev, purchase_price: newValue } as TiroirObject) : prev)
+  }
+
+  async function toggleInsured(value: boolean) {
+    if (!object) return
+    const { error } = await supabase.from('objects').update({ insured: value }).eq('id', object.id)
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+    setObject(prev => prev ? ({ ...prev, insured: value } as TiroirObject) : prev)
   }
 
   // ── Effacer valeur marché ────────────────────────────────────────────────────
@@ -1917,10 +1855,25 @@ export default function ObjectScreen() {
     setObject(prev => prev ? ({ ...prev, market_value: newValue, value_sources: updatedSources } as TiroirObject) : prev)
   }
 
+  async function updateSalePrice(newValue: number | null) {
+    if (!object) return
+    const { error } = await supabase.from('objects').update({ sale_price: newValue }).eq('id', object.id)
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+    setObject(prev => prev ? ({ ...prev, sale_price: newValue } as TiroirObject) : prev)
+  }
+
+  async function updateDeposit(newValue: number | null) {
+    if (!object) return
+    const { error } = await supabase.from('objects').update({ deposit_amount: newValue }).eq('id', object.id)
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+    setObject(prev => prev ? ({ ...prev, deposit_amount: newValue } as TiroirObject) : prev)
+  }
+
   async function clearMarketValue() {
     if (!object) return
+    // NB : value_currency est NOT NULL en base → ne pas la mettre à null.
     const { error } = await supabase.from('objects')
-      .update({ market_value: null, value_currency: null, value_estimated_at: null, value_sources: null })
+      .update({ market_value: null, value_estimated_at: null, value_sources: null })
       .eq('id', object.id)
     if (error) { Alert.alert(t('common.error'), error.message); return }
     setObject(prev => prev ? ({ ...prev, market_value: null, value_estimated_at: null, value_sources: null } as TiroirObject) : prev)
@@ -2018,7 +1971,25 @@ export default function ObjectScreen() {
 
             {/* ── Titre + méta ── */}
             <View style={s.titleBlock}>
-              <Text style={s.title}>{object.title}</Text>
+              {editingTitle ? (
+                <TextInput
+                  style={s.titleInput}
+                  value={titleDraft}
+                  onChangeText={setTitleDraft}
+                  onBlur={commitTitle}
+                  onSubmitEditing={commitTitle}
+                  autoFocus
+                  multiline
+                  returnKeyType="done"
+                  blurOnSubmit
+                  placeholder={t('objectEdit.titlePlaceholder')}
+                  placeholderTextColor={Colors.textTertiary}
+                />
+              ) : (
+                <TouchableOpacity onPress={startEditTitle} activeOpacity={0.6}>
+                  <Text style={s.title}>{object.title}</Text>
+                </TouchableOpacity>
+              )}
               <View style={s.metaRow}>
                 {category ? (
                   <View style={s.badgeCat}>
@@ -2171,29 +2142,37 @@ export default function ObjectScreen() {
               />
             </View>
 
-            {/* ── Valeur ── */}
-            <ValeurCard
-              object={object}
-              estimating={estimating}
-              editingUserValue={editingUserValue}
-              userValueDraft={userValueDraft}
-              onEstimate={requestEstimate}
-              onEditUserValue={() => {
-                setUserValueDraft(String(object.user_value ?? object.market_value ?? ''))
-                setEditingUserValue(true)
-              }}
-              onUserValueChange={setUserValueDraft}
-              onUserValueCommit={commitUserValue}
-              onSaveInsurance={saveInsurance}
-              onClearMarketValue={clearMarketValue}
-              onUpdateMarketValue={updateMarketValue}
-            />
-
             {/* ── Caractéristiques ── */}
             <AttributesSection
               attributes={Object.entries(object.attributes ?? {}).filter(([, v]) => v !== null && v !== '')}
               onSave={attrs => saveField({ attributes: attrs })}
             />
+
+            {/* ── Valeur ── */}
+            <View>
+              <SectionTitle label={t('object.value.sectionTitle')} />
+              <ValeurCard
+                object={object}
+                estimating={estimating}
+                editingUserValue={editingUserValue}
+                userValueDraft={userValueDraft}
+                onEstimate={requestEstimate}
+                onEditUserValue={() => {
+                  setUserValueDraft(String(object.user_value ?? object.market_value ?? ''))
+                  setEditingUserValue(true)
+                }}
+                onUserValueChange={setUserValueDraft}
+                onUserValueCommit={commitUserValue}
+                onClearMarketValue={clearMarketValue}
+                onUpdateMarketValue={updateMarketValue}
+                onUpdatePurchasePrice={updatePurchasePrice}
+                onUpdateSalePrice={updateSalePrice}
+                onUpdateDeposit={updateDeposit}
+                onToggleInsured={toggleInsured}
+                documents={documents}
+                onDocumentsChange={setDocuments}
+              />
+            </View>
 
             {/* ── Documents ── */}
             <DocumentsSection
@@ -2318,6 +2297,17 @@ const s = StyleSheet.create({
     color: Colors.textPrimary,
     letterSpacing: -0.4,
     lineHeight: Typography.xxl * 1.15,
+  },
+  titleInput: {
+    fontSize: Typography.xxl,
+    fontWeight: Typography.bold,
+    color: Colors.textPrimary,
+    letterSpacing: -0.4,
+    lineHeight: Typography.xxl * 1.15,
+    padding: 0,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.accent,
+    textAlignVertical: 'top',
   },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, flexWrap: 'wrap' },
   badgeCat: {
