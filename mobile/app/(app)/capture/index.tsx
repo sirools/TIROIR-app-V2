@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View, Text, StyleSheet, Image, TouchableOpacity,
   ScrollView, Alert, Animated, ActivityIndicator, Platform,
 } from 'react-native'
-import { Camera, Images } from 'lucide-react-native'
+import { Camera, Images, Layers, ChevronRight } from 'lucide-react-native'
 import * as ImagePicker from 'expo-image-picker'
 import * as ImageManipulator from 'expo-image-manipulator'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -20,6 +20,14 @@ interface PickedImage {
   fileName: string
 }
 
+/**
+ * Plafonds du mode « plusieurs objets ». Une photo = un objet, donc
+ * ces plafonds bornent aussi la consommation de quota IA d'un lot.
+ * À déplacer dans app_settings quand le mode sortira de la V1.
+ */
+const BATCH_MAX_FREE = 10
+const BATCH_MAX_PREMIUM = 10
+
 export default function CaptureScreen() {
   const router = useRouter()
   const { t } = useTranslation()
@@ -30,6 +38,8 @@ export default function CaptureScreen() {
   const [quotaUsed, setQuotaUsed] = useState(0)
   const [quotaLimit, setQuotaLimit] = useState<number | null>(null)
   const [quotaExhausted, setQuotaExhausted] = useState(false)
+  const [quotaRemaining, setQuotaRemaining] = useState<number | null>(null)
+  const [plan, setPlan] = useState<'free' | 'premium'>('free')
 
   useFocusEffect(useCallback(() => {
     setImages([])
@@ -44,9 +54,37 @@ export default function CaptureScreen() {
         setQuotaUsed(used)
         setQuotaLimit(quota)
         setQuotaExhausted(quota !== null && used >= quota)
+        setQuotaRemaining(quota === null ? null : Math.max(0, quota - used))
       }
     })
-  }, [])
+    supabase
+      .from('profiles')
+      .select('plan')
+      .eq('id', user!.id)
+      .single()
+      .then(({ data }) => { if (data?.plan) setPlan(data.plan) })
+  }, [user])
+
+  /**
+   * Taille maximale d'un lot : plafond du plan, borné par le quota IA
+   * réellement restant. Vérifié ici, à l'entrée du mode, plutôt qu'au
+   * milieu de l'analyse — l'utilisateur ne doit pas découvrir une
+   * limite après avoir fait le travail.
+   */
+  const batchMax = useMemo(() => {
+    const planMax = plan === 'premium' ? BATCH_MAX_PREMIUM : BATCH_MAX_FREE
+    return quotaRemaining === null ? planMax : Math.min(planMax, quotaRemaining)
+  }, [plan, quotaRemaining])
+
+  /** Un lot n'a de sens qu'à partir de 2 objets. */
+  const batchAvailable = batchMax >= 2
+
+  function explainBatchBlocked() {
+    Alert.alert(
+      t('batch.blockedTitle'),
+      t('batch.blockedMessage', { remaining: quotaRemaining ?? 0 }),
+    )
+  }
 
   async function pickFromLibrary() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -94,6 +132,53 @@ export default function CaptureScreen() {
 
   function removeImage(index: number) {
     setImages(prev => prev.filter((_, i) => i !== index))
+  }
+
+  /**
+   * Mode « plusieurs objets » depuis la photothèque : chaque photo
+   * sélectionnée devient un objet distinct, pas une photo de plus
+   * sur le même objet.
+   */
+  async function pickMultipleObjects() {
+    if (batchMax < 2) {
+      Alert.alert(t('capture.quotaExhausted', { used: quotaUsed, limit: quotaLimit }))
+      return
+    }
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (status !== 'granted') {
+      Alert.alert(t('capture.permissionDeniedTitle'), t('capture.permissionLibrary'))
+      return
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      quality: 0.9,
+      selectionLimit: batchMax,
+    })
+    if (result.canceled) return
+
+    const picked = await compressAll(result.assets)
+    goToBatchReview(picked)
+  }
+
+  /** Bascule la sélection courante en lot : une photo = un objet. */
+  function convertSelectionToBatch() {
+    goToBatchReview(images.slice(0, batchMax))
+  }
+
+  function goToBatchReview(picked: PickedImage[]) {
+    if (picked.length === 0) return
+    // runId distinct à chaque lancement : l'écran de review réutilise
+    // la même route, c'est ce jeton qui lui dit qu'il s'agit d'un
+    // nouveau lot et non du précédent, déjà confirmé.
+    router.push({
+      pathname: '/capture/review',
+      params: {
+        images: JSON.stringify(picked),
+        runId: String(Date.now()),
+        batchMax: String(batchMax),
+      },
+    })
   }
 
   async function handleNext() {
@@ -191,16 +276,19 @@ export default function CaptureScreen() {
           </Text>
         </View>
 
-        {/* Zone hero — visible uniquement sans photos */}
-        {!hasImages && (
-          <TouchableOpacity style={styles.heroZone} onPress={pickFromCamera} activeOpacity={0.8}>
-            <View style={styles.heroIconBg}>
-              <CameraDrawing />
-            </View>
-            <Text style={styles.heroLabel}>{t('capture.heroTap')}</Text>
-            <Text style={styles.heroSub}>{t('capture.heroOr')}</Text>
+        {/* Deux sources de photo, à parité, en tête d'écran : elles
+            remplacent l'ancienne zone hero. Position stable qu'il y ait
+            des photos ou non. */}
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.btnAction} onPress={pickFromCamera} activeOpacity={0.8}>
+            <Camera size={28} color={Colors.textPrimary} strokeWidth={1.5} />
+            <Text style={styles.btnActionLabel}>{t('capture.takePhoto')}</Text>
           </TouchableOpacity>
-        )}
+          <TouchableOpacity style={styles.btnAction} onPress={pickFromLibrary} activeOpacity={0.8}>
+            <Images size={28} color={Colors.textPrimary} strokeWidth={1.5} />
+            <Text style={styles.btnActionLabel}>{t('capture.library')}</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Grille de thumbnails */}
         {hasImages && (
@@ -223,25 +311,38 @@ export default function CaptureScreen() {
 
         {/* Tip contextuel — visible seulement si pas encore de photos */}
         {!hasImages && (
-          <View style={styles.tip}>
-            <Text style={styles.tipIcon}>💡</Text>
-            <Text style={styles.tipText}>
-              {t('capture.tip')}
-            </Text>
-          </View>
+          <>
+            <View style={styles.tip}>
+              <Text style={styles.tipIcon}>💡</Text>
+              <Text style={styles.tipText}>
+                {t('capture.tip')}
+              </Text>
+            </View>
+
+            {/* Entrée « plusieurs objets » — formulée comme une question
+                sur la situation de l'utilisateur, pas comme un nom de
+                fonctionnalité. Toujours visible : une affordance qui
+                disparaît en silence est introuvable et inexplicable. */}
+            <BatchEntry
+              title={t('batch.entryTitle')}
+              subtitle={batchAvailable ? t('batch.entrySub', { max: batchMax }) : t('batch.entryBlocked')}
+              enabled={batchAvailable}
+              onPress={batchAvailable ? pickMultipleObjects : explainBatchBlocked}
+            />
+          </>
         )}
 
-        {/* Actions secondaires */}
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.btnAction} onPress={pickFromCamera} activeOpacity={0.8}>
-            <Camera size={28} color={Colors.textPrimary} strokeWidth={1.5} />
-            <Text style={styles.btnActionLabel}>{t('capture.takePhoto')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.btnAction} onPress={pickFromLibrary} activeOpacity={0.8}>
-            <Images size={28} color={Colors.textPrimary} strokeWidth={1.5} />
-            <Text style={styles.btnActionLabel}>{t('capture.library')}</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Dès la 2e photo, l'ambiguïté « photo de plus / objet de plus »
+            devient réelle : on la lève ici, dans un bloc distinct de la
+            grille de photos. */}
+        {images.length >= 2 && (
+          <BatchEntry
+            title={t('batch.addAnotherTitle')}
+            subtitle={batchAvailable ? t('batch.addAnotherSub') : t('batch.entryBlocked')}
+            enabled={batchAvailable}
+            onPress={batchAvailable ? convertSelectionToBatch : explainBatchBlocked}
+          />
+        )}
 
         {/* Séparateur */}
         {hasImages && <View style={styles.sep} />}
@@ -292,16 +393,38 @@ export default function CaptureScreen() {
   )
 }
 
-// ── Icône caméra dessinée en View ─────────────────────────────────────────────
+// ── Entrée « plusieurs objets » ───────────────────────────────────────────────
+// Poids secondaire : visible sans concurrencer le CTA d'analyse, et surtout
+// jamais masquée — quand elle est indisponible elle le dit au lieu de
+// disparaître.
 
-function CameraDrawing({ size = 24, color = Colors.accent }: { size?: number; color?: string }) {
-  const s = size / 24
+function BatchEntry({
+  title, subtitle, enabled, onPress,
+}: {
+  title: string
+  subtitle: string
+  enabled: boolean
+  onPress: () => void
+}) {
   return (
-    <View style={{ width: size + 4, height: size, position: 'relative' }}>
-      <View style={{ position: 'absolute', top: 0, left: (size + 4) / 2 - 5 * s, width: 10 * s, height: 6 * s, borderRadius: 3 * s, backgroundColor: color }} />
-      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 16 * s, borderRadius: 5 * s, backgroundColor: color }} />
-      <View style={{ position: 'absolute', bottom: 3 * s, left: (size + 4) / 2 - 5 * s, width: 10 * s, height: 10 * s, borderRadius: 5 * s, borderWidth: 1.5 * s, borderColor: Colors.background }} />
-    </View>
+    <TouchableOpacity
+      style={[styles.batchEntry, !enabled && styles.batchEntryDisabled]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Layers
+        size={20}
+        color={enabled ? Colors.accent : Colors.textTertiary}
+        strokeWidth={1.6}
+      />
+      <View style={styles.batchEntryText}>
+        <Text style={[styles.batchEntryTitle, !enabled && styles.batchEntryTitleDisabled]}>
+          {title}
+        </Text>
+        <Text style={styles.batchEntrySub}>{subtitle}</Text>
+      </View>
+      <ChevronRight size={18} color={Colors.textTertiary} strokeWidth={1.6} />
+    </TouchableOpacity>
   )
 }
 
@@ -340,38 +463,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   subtitle: { fontSize: Typography.base, color: Colors.textSecondary },
-
-  heroZone: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.xl,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    borderStyle: 'dashed',
-    paddingVertical: Spacing.xl,
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  heroZoneSmall: {
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.lg,
-    borderStyle: 'dashed',
-  },
-  heroIconBg: {
-    width: 64, height: 64,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.accentLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroLabel: {
-    fontSize: Typography.md,
-    fontWeight: Typography.semibold,
-    color: Colors.textPrimary,
-    marginTop: Spacing.xs,
-  },
-  heroSub: { fontSize: Typography.sm, color: Colors.textTertiary },
-  heroCompact: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  heroCompactText: { fontSize: Typography.base, color: Colors.accent, fontWeight: Typography.medium },
 
   thumbGrid: {
     flexDirection: 'row',
@@ -413,6 +504,31 @@ const styles = StyleSheet.create({
   },
   tipIcon: { fontSize: 16, lineHeight: 22 },
   tipText: { flex: 1, fontSize: Typography.sm, color: Colors.accent, lineHeight: 20 },
+
+  batchEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+  },
+  batchEntryDisabled: { opacity: 0.55 },
+  batchEntryText: { flex: 1 },
+  batchEntryTitle: {
+    fontSize: Typography.base,
+    fontWeight: Typography.semibold,
+    color: Colors.textPrimary,
+  },
+  batchEntryTitleDisabled: { color: Colors.textSecondary },
+  batchEntrySub: {
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
 
   actions: { flexDirection: 'row', gap: Spacing.sm },
   btnAction: {
