@@ -104,6 +104,11 @@ export default function Login() {
           </button>
         </form>
 
+        <p style={s.switch}>
+          Pas encore de compte ?{' '}
+          <a href="/inscription" style={s.switchLink}>Créer un compte</a>
+        </p>
+
         <p style={s.cgu}>
           En continuant, tu acceptes les{' '}
           <a href="/cgu" style={s.cguLink}>Conditions Générales d&apos;Utilisation</a>.
@@ -129,6 +134,8 @@ const s: Record<string, React.CSSProperties> = {
   input:       { padding: '10px 14px', borderRadius: 10, border: '1px solid #e0e0e0', fontSize: 15, outline: 'none', transition: 'border-color 0.15s' },
   error:       { fontSize: 13, color: '#c0392b', background: '#fdf0ef', borderRadius: 8, padding: '8px 12px', marginTop: 4 },
   btn:         { marginTop: 12, padding: '13px 0', borderRadius: 12, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', textAlign: 'center' },
-  cgu:         { fontSize: 12, color: '#999', marginTop: 20, textAlign: 'center', lineHeight: 1.5 },
+  switch:      { fontSize: 14, color: '#5b5b5b', marginTop: 20, textAlign: 'center' },
+  switchLink:  { color: '#F26900', fontWeight: 600, textDecoration: 'none' },
+  cgu:         { fontSize: 12, color: '#999', marginTop: 14, textAlign: 'center', lineHeight: 1.5 },
   cguLink:     { color: '#F26900' },
 }

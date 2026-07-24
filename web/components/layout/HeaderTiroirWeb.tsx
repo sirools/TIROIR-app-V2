@@ -211,9 +211,19 @@ export default function HeaderTiroirWeb() {
                 )}
               </div>
             ) : (
-              <button className="btn btn-primary" type="button" onClick={handleAuthClick}>
-                {isEn ? 'Sign in' : 'Se connecter'}
-              </button>
+              <>
+                <a className="appstore-nav-btn" href="/login" onClick={() => setMenuOpen(false)}>
+                  {isEn ? 'Sign in' : 'Se connecter'}
+                </a>
+                <a
+                  className="btn btn-primary"
+                  href="/inscription"
+                  style={{ textDecoration: 'none' }}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {isEn ? 'Sign up' : 'Créer un compte'}
+                </a>
+              </>
             )}
           </nav>
 
@@ -285,9 +295,19 @@ export default function HeaderTiroirWeb() {
                 </button>
               </>
             ) : (
-              <button className="btn btn-primary" type="button" onClick={handleAuthClick}>
-                {isEn ? 'Sign in' : 'Se connecter'}
-              </button>
+              <>
+                <a className="appstore-nav-btn" href="/login" onClick={() => setMenuOpen(false)}>
+                  {isEn ? 'Sign in' : 'Se connecter'}
+                </a>
+                <a
+                  className="btn btn-primary"
+                  href="/inscription"
+                  style={{ textDecoration: 'none' }}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {isEn ? 'Sign up' : 'Créer un compte'}
+                </a>
+              </>
             )}
           </nav>
         </div>
