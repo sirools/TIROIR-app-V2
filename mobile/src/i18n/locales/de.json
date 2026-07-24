@@ -453,8 +453,8 @@
     "chooseDate": "Datum auswählen…",
     "estimateFailed": "Schätzung fehlgeschlagen",
     "statusOptions": {
-      "owned": "In Gebrauch",
       "stored": "Eingelagert",
+      "owned": "In Gebrauch",
       "loaned": "Verliehen",
       "lost": "Verloren",
       "sold": "Zu verkaufen",
@@ -572,6 +572,11 @@
       "unlink": "Trennen",
       "deleteTitle": "Diese Versicherung löschen?",
       "deleteBody": "Verknüpfte Verträge werden getrennt (in Dokumenten behalten)."
+    },
+    "loan": {
+      "toLabel": "Verliehen an…",
+      "toPlaceholder": "Name der Person",
+      "returnLabel": "Rückgabedatum"
     }
   },
   "objectEdit": {

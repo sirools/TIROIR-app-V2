@@ -23,7 +23,8 @@ import i18n from 'i18next'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { decode } from 'base64-arraybuffer'
-import { Plus, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, MapPin, Share2, Sparkles, Star, Info } from 'lucide-react-native'
+import { Plus, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, MapPin, Share2, Sparkles, Star, Info, CalendarDays, UserRound } from 'lucide-react-native'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { Screen, Colors, Typography, Spacing, Radius, ActionSheet } from '@/components/ui'
@@ -39,8 +40,8 @@ const THUMB_SIZE = 52
 // ── Labels ───────────────────────────────────────────────────────────────────
 
 const STATUS_OPTIONS: { value: string; labelKey: string }[] = [
-  { value: 'owned',  labelKey: 'object.statusOptions.owned' },
   { value: 'stored', labelKey: 'object.statusOptions.stored' },
+  { value: 'owned',  labelKey: 'object.statusOptions.owned' },
   { value: 'loaned', labelKey: 'object.statusOptions.loaned' },
   { value: 'lost',   labelKey: 'object.statusOptions.lost' },
   { value: 'sold',   labelKey: 'object.statusOptions.sold' },
@@ -48,13 +49,16 @@ const STATUS_OPTIONS: { value: string; labelKey: string }[] = [
 ]
 
 const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = {
-  owned:   { bg: '#F0FDF4', text: '#16A34A', dot: '#22C55E' }, // vert
-  stored:  { bg: '#F0F9FF', text: '#0284C7', dot: '#38BDF8' }, // bleu ciel
+  stored:  { bg: '#F0FDF4', text: '#16A34A', dot: '#22C55E' }, // vert
+  owned:   { bg: '#F0F9FF', text: '#0284C7', dot: '#38BDF8' }, // bleu ciel
   loaned:  { bg: '#FDF2F8', text: '#C026D3', dot: '#E879F9' }, // rose
   lost:    { bg: '#F3F4F6', text: '#6B7280', dot: '#9CA3AF' }, // gris
   sold:    { bg: '#FFFBEB', text: '#D97706', dot: '#FBBF24' }, // ambre
   given:   { bg: '#FFF1F2', text: '#E11D48', dot: '#FB7185' }, // rouge
 }
+
+// Attributs pilotés par le statut « prêté » — masqués de la section Caractéristiques.
+const LOAN_ATTR_KEYS = ['loaned_to', 'loan_return_date'] as const
 
 // Attributs connus → clé i18n du libellé (sert aussi de filtre de présence).
 const ATTR_LABELS: Record<string, string> = {
@@ -1013,6 +1017,105 @@ function DescriptionBlock({ text, onEdit }: { text: string | null; onEdit: () =>
   )
 }
 
+// ── LoanCard — visible uniquement quand le statut est « prêté » ───────────────
+
+interface LoanCardProps {
+  loanedTo: string
+  returnDate: string        // ISO yyyy-mm-dd, '' si non renseignée
+  onSave: (patch: { loanedTo?: string; returnDate?: string }) => void
+}
+
+function LoanCard({ loanedTo, returnDate, onSave }: LoanCardProps) {
+  const { t } = useTranslation()
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState(loanedTo)
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
+
+  // Resynchronise le brouillon si l'objet est rechargé pendant l'édition.
+  useEffect(() => { if (!editingName) setNameDraft(loanedTo) }, [loanedTo, editingName])
+
+  const c = STATUS_COLOR.loaned
+
+  function commitName() {
+    setEditingName(false)
+    const next = nameDraft.trim()
+    if (next !== loanedTo) onSave({ loanedTo: next })
+  }
+
+  const isOverdue = returnDate !== '' && new Date(returnDate) < new Date(new Date().toDateString())
+
+  return (
+    <View style={[s.loanCard, { backgroundColor: c.bg }]}>
+      {/* Prêté à… — libellé ferré à gauche, valeur ferrée à droite */}
+      <View style={s.loanRow}>
+        <View style={s.loanLabelWrap}>
+          <UserRound size={16} color={c.text} strokeWidth={1.75} />
+          <Text style={[s.loanLabel, { color: c.text }]}>{t('object.loan.toLabel')}</Text>
+        </View>
+        {editingName ? (
+          <TextInput
+            style={s.loanInput}
+            value={nameDraft}
+            onChangeText={setNameDraft}
+            onBlur={commitName}
+            onSubmitEditing={commitName}
+            placeholder={t('object.loan.toPlaceholder')}
+            placeholderTextColor={Colors.textTertiary}
+            autoFocus
+            returnKeyType="done"
+          />
+        ) : (
+          <TouchableOpacity style={s.loanValueBtn} onPress={() => setEditingName(true)} activeOpacity={0.7}>
+            <Text style={[s.loanValue, !loanedTo && s.loanValueEmpty]} numberOfLines={1}>
+              {loanedTo || t('object.loan.toPlaceholder')}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Date de retour */}
+      <View style={s.loanRow}>
+        <View style={s.loanLabelWrap}>
+          <CalendarDays size={16} color={c.text} strokeWidth={1.75} />
+          <Text style={[s.loanLabel, { color: c.text }]}>{t('object.loan.returnLabel')}</Text>
+        </View>
+        <TouchableOpacity
+          style={s.loanValueBtn}
+          // Le tap n'enlève pas le focus du champ nom : on valide sa saisie en cours
+          // avant d'ouvrir le picker, sinon elle serait perdue.
+          onPress={() => { if (editingName) commitName(); setDatePickerOpen(true) }}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[s.loanValue, !returnDate && s.loanValueEmpty, isOverdue && s.loanValueOverdue]}
+            numberOfLines={1}
+          >
+            {returnDate ? formatDate(returnDate, i18n.language) : t('object.chooseDate')}
+          </Text>
+        </TouchableOpacity>
+        {returnDate ? (
+          <TouchableOpacity onPress={() => onSave({ returnDate: '' })} hitSlop={10}>
+            <Text style={s.loanClear}>×</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      {datePickerOpen && (
+        <DateTimePicker
+          value={returnDate ? new Date(returnDate) : new Date()}
+          mode="date"
+          display="spinner"
+          locale={i18n.language}
+          onChange={(_, selected) => {
+            setDatePickerOpen(false)
+            if (selected) onSave({ returnDate: selected.toISOString().split('T')[0] })
+          }}
+        />
+      )}
+    </View>
+  )
+}
+
 // ── ValeurCard (fusion Valeur + Assurance) ────────────────────────────────────
 
 const CONFIDENCE_LABEL_KEY = { low: 'object.value.confidenceLow', medium: 'object.value.confidenceMedium', high: 'object.value.confidenceHigh' }
@@ -1577,6 +1680,10 @@ export default function ObjectScreen() {
   const { t, i18n } = useTranslation()
 
   const [object, setObject] = useState<TiroirObject | null>(null)
+  // Miroir de `object` — voir saveField. Resynchronisé après chaque rendu pour couvrir
+  // les setObject qui ne passent pas par saveField (chargement, valeur, assurance…).
+  const objectRef = useRef<TiroirObject | null>(null)
+  useEffect(() => { objectRef.current = object }, [object])
   const [images, setImages] = useState<ObjectImage[]>([])
   const [documents, setDocuments] = useState<ObjectDocument[]>([])
   const [allCollections, setAllCollections] = useState<Collection[]>([])
@@ -1605,28 +1712,42 @@ export default function ObjectScreen() {
   // Statut / Collection
   const [showStatusPicker, setShowStatusPicker] = useState(false)
   const [showCollectionPicker, setShowCollectionPicker] = useState(false)
+  const [statusPickerMounted, setStatusPickerMounted] = useState(false)
+  const [collectionPickerMounted, setCollectionPickerMounted] = useState(false)
   const statusPickerAnim = useRef(new Animated.Value(0)).current
   const collectionPickerAnim = useRef(new Animated.Value(0)).current
   const [metricsRowHeight, setMetricsRowHeight] = useState(0)
 
-  function animatePicker(anim: Animated.Value, opening: boolean) {
-    Animated.spring(anim, { toValue: opening ? 1 : 0, useNativeDriver: true, damping: 22, mass: 0.8 }).start()
+  // Les dropdowns sont en position absolue et débordent sous la rangée : tant qu'ils sont
+  // montés ils captent les taps des cartes du dessous. On les démonte en fin de fermeture.
+  function animatePicker(
+    anim: Animated.Value,
+    opening: boolean,
+    setMounted: (v: boolean) => void,
+  ) {
+    if (opening) setMounted(true)
+    Animated.spring(anim, { toValue: opening ? 1 : 0, useNativeDriver: true, damping: 22, mass: 0.8 })
+      .start(({ finished }) => { if (!opening && finished) setMounted(false) })
   }
 
   function toggleStatusPicker() {
     const opening = !showStatusPicker
     setShowStatusPicker(opening)
-    if (opening) setShowCollectionPicker(false)
-    animatePicker(statusPickerAnim, opening)
-    if (opening) animatePicker(collectionPickerAnim, false)
+    animatePicker(statusPickerAnim, opening, setStatusPickerMounted)
+    if (opening) {
+      setShowCollectionPicker(false)
+      animatePicker(collectionPickerAnim, false, setCollectionPickerMounted)
+    }
   }
 
   function toggleCollectionPicker() {
     const opening = !showCollectionPicker
     setShowCollectionPicker(opening)
-    if (opening) setShowStatusPicker(false)
-    animatePicker(collectionPickerAnim, opening)
-    if (opening) animatePicker(statusPickerAnim, false)
+    animatePicker(collectionPickerAnim, opening, setCollectionPickerMounted)
+    if (opening) {
+      setShowStatusPicker(false)
+      animatePicker(statusPickerAnim, false, setStatusPickerMounted)
+    }
   }
 
   // Emplacement
@@ -1662,9 +1783,13 @@ export default function ObjectScreen() {
   // ── Save helper ─────────────────────────────────────────────────────────────
 
   async function saveField(updates: Partial<TiroirObject>, silentObj?: TiroirObject) {
-    const base = silentObj ?? object
+    // objectRef, tenu à jour de façon synchrone, sert de base : deux saveField enchaînés
+    // avant le retour du RPC (ex. nom du prêt puis date de retour) partageraient sinon
+    // le même `object` périmé, et le second écraserait le premier.
+    const base = silentObj ?? objectRef.current ?? object
     if (!base) return
     const merged: TiroirObject = { ...base, ...updates }
+    objectRef.current = merged
     setSaving(true)
     const { error } = await supabase.rpc('patch_object', {
       p_object_id: merged.id,
@@ -2038,7 +2163,12 @@ export default function ObjectScreen() {
             >
               {/* Statut */}
               <TouchableOpacity
-                style={[s.metricCard, { flex: 1 }, { backgroundColor: STATUS_COLOR[object.status]?.bg ?? Colors.surface }]}
+                style={[
+                  s.metricCard,
+                  { flex: 1, backgroundColor: STATUS_COLOR[object.status]?.bg ?? Colors.surface },
+                  // Statut « prêté » : la carte se prolonge dans la carte de prêt juste dessous.
+                  object.status === 'loaned' && s.metricCardConnected,
+                ]}
                 onPress={toggleStatusPicker}
                 activeOpacity={0.7}
               >
@@ -2069,13 +2199,15 @@ export default function ObjectScreen() {
                 </View>
               </TouchableOpacity>
 
-              {/* Dropdown statut — absolu pleine largeur */}
-              <Animated.View style={[s.dropdownAbsolute, {
-                top: metricsRowHeight,
-                opacity: statusPickerAnim,
-                transform: [{ translateY: statusPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) }],
-                pointerEvents: showStatusPicker ? 'auto' : 'none',
-              }]}>
+              {/* Dropdown statut — absolu pleine largeur, monté seulement le temps de l'ouverture */}
+              {statusPickerMounted && (
+              <Animated.View
+                pointerEvents={showStatusPicker ? 'auto' : 'none'}
+                style={[s.dropdownAbsolute, {
+                  top: metricsRowHeight,
+                  opacity: statusPickerAnim,
+                  transform: [{ translateY: statusPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) }],
+                }]}>
                 <View style={s.chipRow}>
                   {STATUS_OPTIONS.map(opt => {
                     const c = STATUS_COLOR[opt.value]
@@ -2096,14 +2228,17 @@ export default function ObjectScreen() {
                   })}
                 </View>
               </Animated.View>
+              )}
 
-              {/* Dropdown collection — absolu pleine largeur */}
-              <Animated.View style={[s.dropdownAbsolute, {
-                top: metricsRowHeight,
-                opacity: collectionPickerAnim,
-                transform: [{ translateY: collectionPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) }],
-                pointerEvents: showCollectionPicker ? 'auto' : 'none',
-              }]}>
+              {/* Dropdown collection — absolu pleine largeur, monté seulement le temps de l'ouverture */}
+              {collectionPickerMounted && (
+              <Animated.View
+                pointerEvents={showCollectionPicker ? 'auto' : 'none'}
+                style={[s.dropdownAbsolute, {
+                  top: metricsRowHeight,
+                  opacity: collectionPickerAnim,
+                  transform: [{ translateY: collectionPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) }],
+                }]}>
                 <View style={s.chipRow}>
                   <TouchableOpacity
                     style={[s.chip, !object.collection_id && s.chipActive]}
@@ -2124,8 +2259,29 @@ export default function ObjectScreen() {
                   ))}
                 </View>
               </Animated.View>
+              )}
 
             </View>
+
+            {/* ── Prêt (statut « prêté ») ── */}
+            {object.status === 'loaned' && (
+              <LoanCard
+                loanedTo={String(object.attributes?.loaned_to ?? '')}
+                returnDate={String(object.attributes?.loan_return_date ?? '')}
+                onSave={patch => {
+                  const attrs = { ...(object.attributes ?? {}) }
+                  if (patch.loanedTo !== undefined) {
+                    if (patch.loanedTo) attrs.loaned_to = patch.loanedTo
+                    else delete attrs.loaned_to
+                  }
+                  if (patch.returnDate !== undefined) {
+                    if (patch.returnDate) attrs.loan_return_date = patch.returnDate
+                    else delete attrs.loan_return_date
+                  }
+                  saveField({ attributes: attrs })
+                }}
+              />
+            )}
 
             {/* ── Emplacement ── */}
             <View style={s.metricCard}>
@@ -2144,8 +2300,18 @@ export default function ObjectScreen() {
 
             {/* ── Caractéristiques ── */}
             <AttributesSection
-              attributes={Object.entries(object.attributes ?? {}).filter(([, v]) => v !== null && v !== '')}
-              onSave={attrs => saveField({ attributes: attrs })}
+              attributes={Object.entries(object.attributes ?? {}).filter(
+                ([k, v]) => v !== null && v !== '' && !LOAN_ATTR_KEYS.includes(k as typeof LOAN_ATTR_KEYS[number])
+              )}
+              // Les clés de prêt sont pilotées par LoanCard : on les réinjecte pour ne pas les perdre.
+              onSave={attrs => {
+                const preserved: Record<string, string | number | boolean | null> = {}
+                for (const k of LOAN_ATTR_KEYS) {
+                  const v = object.attributes?.[k]
+                  if (v !== undefined && v !== null && v !== '') preserved[k] = v
+                }
+                saveField({ attributes: { ...attrs, ...preserved } })
+              }}
             />
 
             {/* ── Valeur ── */}
@@ -2355,6 +2521,7 @@ const s = StyleSheet.create({
     borderColor: Colors.border,
     gap: 4,
   },
+  metricCardConnected: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomWidth: 0 },
   metricLabel: { fontSize: Typography.xs, color: Colors.textTertiary, marginBottom: 4 },
   metricValue: { fontSize: Typography.md, fontWeight: Typography.bold, color: Colors.textPrimary },
   metricValueAccent: { fontSize: Typography.md, color: Colors.accent },
@@ -2362,7 +2529,37 @@ const s = StyleSheet.create({
   statusValueRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   statusDot: { width: 8, height: 8, borderRadius: 4, flexShrink: 0 },
   statusChevron: { fontSize: 14, lineHeight: 18 },
-  chipDot: { width: 7, height: 7, borderRadius: 3.5 },
+  chipDot: { width: 10, height: 10, borderRadius: 5, flexShrink: 0 },
+
+  loanCard: {
+    borderRadius: Radius.lg,
+    borderWidth: 0.5, borderColor: Colors.border,   // même trait que metricCard
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+    // Soudée à la carte Statut : on annule le `gap` de `body` (Spacing.lg) puis on
+    // superpose les traits (0.5) pour ne laisser qu'une seule ligne de séparation.
+    marginTop: -(Spacing.lg + 0.5),
+    borderTopLeftRadius: 0,
+  },
+  // Libellé ferré à gauche, valeur ferrée à droite.
+  loanRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    gap: Spacing.sm, minHeight: 36,
+  },
+  loanLabelWrap: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 },
+  loanLabel: { fontSize: Typography.sm, fontWeight: Typography.semibold },
+  loanValueBtn: { flex: 1, alignItems: 'flex-end' },
+  loanValue: {
+    fontSize: Typography.base, color: Colors.textPrimary,
+    fontWeight: Typography.medium, textAlign: 'right',
+  },
+  loanValueEmpty: { color: Colors.textTertiary, fontWeight: Typography.regular },
+  loanValueOverdue: { color: '#E11D48', fontWeight: Typography.semibold },
+  loanInput: {
+    flex: 1, fontSize: Typography.base, color: Colors.textPrimary,
+    fontWeight: Typography.medium, textAlign: 'right', padding: 0,
+  },
+  loanClear: { fontSize: 20, color: Colors.textTertiary, lineHeight: 22 },
 
   dropdownAbsolute: {
     position: 'absolute',
@@ -2387,15 +2584,16 @@ const s = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: Colors.border,
   },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   chip: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: Spacing.sm + 2, paddingVertical: Spacing.xs + 1,
+    flexDirection: 'row', alignItems: 'center', gap: 7,
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
+    minHeight: 44,
     borderRadius: Radius.full, borderWidth: 1.5,
     borderColor: Colors.border, backgroundColor: Colors.background,
   },
   chipActive: { borderColor: Colors.accent, backgroundColor: Colors.accentLight },
-  chipText: { fontSize: Typography.sm, color: Colors.textSecondary, fontWeight: Typography.medium },
+  chipText: { fontSize: Typography.base, color: Colors.textSecondary, fontWeight: Typography.medium },
   chipTextActive: { color: Colors.accent, fontWeight: Typography.semibold },
 
   sectionTitle: {

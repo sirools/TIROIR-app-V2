@@ -453,8 +453,8 @@
     "chooseDate": "Elegir una fecha…",
     "estimateFailed": "No se pudo estimar",
     "statusOptions": {
-      "owned": "En uso",
       "stored": "Guardado",
+      "owned": "En uso",
       "loaned": "Prestado",
       "lost": "Perdido",
       "sold": "En venta",
@@ -572,6 +572,11 @@
       "unlink": "Desvincular",
       "deleteTitle": "¿Eliminar este seguro?",
       "deleteBody": "Los contratos vinculados se desvincularán (se conservan en Documentos)."
+    },
+    "loan": {
+      "toLabel": "Prestado a…",
+      "toPlaceholder": "Nombre de la persona",
+      "returnLabel": "Fecha de devolución"
     }
   },
   "objectEdit": {

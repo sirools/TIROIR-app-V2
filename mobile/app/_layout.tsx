@@ -7,11 +7,16 @@ import Purchases, { LOG_LEVEL } from 'react-native-purchases'
 import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
 import { loadStoredLanguage } from '@/i18n'
 
-const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY
+// Clés SDK publiques RevenueCat, une par plateforme (iOS = appl_…, Android = goog_…).
+// Safe dans le bundle mobile : ce sont les clés publiques, pas les secrets.
+const RC_API_KEY = Platform.select({
+  ios: process.env.EXPO_PUBLIC_REVENUECAT_API_KEY,
+  android: process.env.EXPO_PUBLIC_REVENUECAT_API_KEY_ANDROID,
+})
 
-// Initialisation RevenueCat au démarrage de l'app
+// Initialisation RevenueCat au démarrage de l'app (iOS + Android)
 try {
-  if (Platform.OS === 'ios' && RC_API_KEY) {
+  if (RC_API_KEY) {
     Purchases.setLogLevel(LOG_LEVEL.DEBUG)
     Purchases.configure({ apiKey: RC_API_KEY })
   }

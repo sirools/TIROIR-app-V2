@@ -453,8 +453,8 @@
     "chooseDate": "Choose a date…",
     "estimateFailed": "Estimation failed",
     "statusOptions": {
-      "owned": "In use",
       "stored": "Stored",
+      "owned": "In use",
       "loaned": "Loaned",
       "lost": "Lost",
       "sold": "For sale",
@@ -572,6 +572,11 @@
       "unlink": "Unlink",
       "deleteTitle": "Delete this insurance?",
       "deleteBody": "Linked contracts will be unlinked (kept in Documents)."
+    },
+    "loan": {
+      "toLabel": "Loaned to…",
+      "toPlaceholder": "Person's name",
+      "returnLabel": "Return date"
     }
   },
   "objectEdit": {

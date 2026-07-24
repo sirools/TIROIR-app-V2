@@ -277,7 +277,7 @@
   },
   "status": {
     "owned": "Possédé",
-    "stored": "Stocké",
+    "stored": "Rangé",
     "loaned": "Prêté",
     "sold": "Vendu",
     "given": "Donné",
@@ -453,8 +453,8 @@
     "chooseDate": "Choisir une date…",
     "estimateFailed": "Estimation impossible",
     "statusOptions": {
+      "stored": "Rangé",
       "owned": "Utilisé",
-      "stored": "Stocké",
       "loaned": "Prêté",
       "lost": "Perdu",
       "sold": "À vendre",
@@ -572,6 +572,11 @@
       "unlink": "Détacher",
       "deleteTitle": "Supprimer cette assurance ?",
       "deleteBody": "Les contrats liés seront détachés (conservés dans Documents)."
+    },
+    "loan": {
+      "toLabel": "Prêté à…",
+      "toPlaceholder": "Nom de la personne",
+      "returnLabel": "Date de retour"
     }
   },
   "objectEdit": {

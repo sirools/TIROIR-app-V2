@@ -14,12 +14,14 @@
     "preview": {
       "distribution": "store",
       "autoIncrement": true,
+      "environment": "preview",
       "ios": {
         "simulator": false
       }
     },
     "production": {
       "autoIncrement": true,
+      "environment": "production",
       "ios": {
         "resourceClass": "m-medium"
       }
