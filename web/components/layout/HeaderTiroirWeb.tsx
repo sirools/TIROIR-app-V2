@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import React from 'react'
 import { supabase, signOutEverywhere } from '../../lib/supabase'
+import { appStoreUrl, playStoreUrl } from '../../lib/appLinks'
 
 function UserIcon({ size = 18 }: { size?: number }) {
   return (
@@ -134,12 +135,21 @@ export default function HeaderTiroirWeb() {
       </a>
       <a
         className="appstore-nav-btn"
-        href={isEn ? 'https://apps.apple.com/us/app/tiroir/id6751784101' : 'https://apps.apple.com/fr/app/tiroir/id6751784101'}
+        href={appStoreUrl(isEn)}
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => setMenuOpen(false)}
       >
         App Store
+      </a>
+      <a
+        className="appstore-nav-btn"
+        href={playStoreUrl(isEn)}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => setMenuOpen(false)}
+      >
+        Google Play
       </a>
     </>
   )

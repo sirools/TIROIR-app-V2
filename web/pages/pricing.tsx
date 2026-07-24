@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
+import StoreButtons from '../components/StoreButtons'
 
 const FREE_FEATURES = [
   '30 objets',
@@ -24,7 +25,7 @@ const PREMIUM_FEATURES = [
 const FAQ = [
   {
     q: 'Puis-je annuler à tout moment ?',
-    a: 'Oui. L\'abonnement se gère directement depuis les Réglages iOS → Apple ID → Abonnements. Aucun engagement, aucun frais après annulation.',
+    a: 'Oui. L\'abonnement se gère depuis les Réglages iOS (Apple ID → Abonnements) sur iPhone, ou depuis le Play Store (menu → Abonnements) sur Android. Aucun engagement, aucun frais après annulation.',
   },
   {
     q: 'Qu\'est-ce qu\'une "analyse IA" ?',
@@ -91,15 +92,9 @@ export default function Pricing() {
                     </li>
                   ))}
                 </ul>
-                <a
-                  href="https://apps.apple.com/fr/app/tiroir/id6751784101"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn"
-                  style={{ background: 'white', border: '1.5px solid rgba(0,0,0,0.12)', color: 'var(--ink)', textDecoration: 'none', width: '100%', justifyContent: 'center', marginTop: 'auto' }}
-                >
-                  Télécharger gratuitement
-                </a>
+                <div style={{ marginTop: 'auto' }}>
+                  <StoreButtons variant="card" full />
+                </div>
               </div>
 
               {/* Premium */}
@@ -123,15 +118,12 @@ export default function Pricing() {
                     </li>
                   ))}
                 </ul>
-                <a
-                  href="https://apps.apple.com/fr/app/tiroir/id6751784101"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary"
-                  style={{ textDecoration: 'none', width: '100%', justifyContent: 'center', marginTop: 'auto' }}
-                >
-                  Essayer 7 jours gratuits
-                </a>
+                <div style={{ marginTop: 'auto' }}>
+                  <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 8, textAlign: 'center' }}>
+                    7 jours d'essai gratuit, sur les deux stores
+                  </div>
+                  <StoreButtons variant="cardPrimary" full />
+                </div>
               </div>
 
             </div>
@@ -177,17 +169,9 @@ export default function Pricing() {
               <p style={{ opacity: 0.85, marginTop: 8 }}>
                 Aucune carte bancaire requise pour commencer. Annulable à tout moment.
               </p>
-              <a
-                href="https://apps.apple.com/fr/app/tiroir/id6751784101"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: 'var(--orange)', padding: '12px 24px', borderRadius: 12, fontSize: 15, fontWeight: 700, textDecoration: 'none', marginTop: 16 }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                </svg>
-                Télécharger sur l'App Store
-              </a>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+                <StoreButtons variant="onColor" />
+              </div>
             </div>
           </div>
         </section>

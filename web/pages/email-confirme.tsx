@@ -1,7 +1,6 @@
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
-
-const APP_STORE_URL = 'https://apps.apple.com/fr/app/tiroir/id6751784101'
+import { APP_STORE_URL_FR, PLAY_STORE_URL } from '../lib/appLinks'
 
 export default function EmailConfirme() {
   const [errorCode, setErrorCode] = useState<string | null>(null)
@@ -65,8 +64,11 @@ export default function EmailConfirme() {
           <a href="tiroir://" style={s.btnPrimary}>
             Ouvrir l&apos;app Tiroir
           </a>
-          <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" style={s.btnSecondary}>
+          <a href={APP_STORE_URL_FR} target="_blank" rel="noopener noreferrer" style={s.btnSecondary}>
             Télécharger sur l&apos;App Store
+          </a>
+          <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" style={s.btnSecondary}>
+            Télécharger sur Google Play
           </a>
 
           <a href="/" style={s.homeLink}>
@@ -86,6 +88,6 @@ const s: Record<string, React.CSSProperties> = {
   title:        { fontSize: 22, fontWeight: 800, color: '#121212', marginBottom: 12 },
   text:         { fontSize: 15, color: '#5b5b5b', lineHeight: 1.6, marginBottom: 28 },
   btnPrimary:   { display: 'block', padding: '13px 0', borderRadius: 12, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 15, textDecoration: 'none', marginBottom: 10 },
-  btnSecondary: { display: 'block', padding: '13px 0', borderRadius: 12, background: 'white', color: '#121212', fontWeight: 700, fontSize: 15, textDecoration: 'none', border: '1px solid rgba(0,0,0,0.12)' },
+  btnSecondary: { display: 'block', padding: '13px 0', borderRadius: 12, background: 'white', color: '#121212', fontWeight: 700, fontSize: 15, textDecoration: 'none', border: '1px solid rgba(0,0,0,0.12)', marginBottom: 10 },
   homeLink:     { display: 'inline-block', marginTop: 24, fontSize: 13, color: '#5b5b5b', textDecoration: 'none' },
 }
