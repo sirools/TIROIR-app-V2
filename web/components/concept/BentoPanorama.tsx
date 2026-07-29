@@ -60,15 +60,15 @@ function Tile({
              remplies se creusaient d'un grand vide au milieu. */
           gap: clamp(6px, 0.8vw, 12px);
           transform: translateY(26px) rotateX(7deg) scale(0.975);
-        }
-        .tile.is-bleed {
-          padding: 0;
-          gap: 0;
           opacity: 0;
           transition:
             opacity 0.7s cubic-bezier(0.22, 0.68, 0.32, 1),
             transform 0.7s cubic-bezier(0.22, 0.68, 0.32, 1);
           will-change: transform, opacity;
+        }
+        .tile.is-bleed {
+          padding: 0;
+          gap: 0;
         }
         :global(.is-in) .tile { opacity: 1; transform: translateY(0) rotateX(0) scale(1); }
 
@@ -298,7 +298,7 @@ export default function BentoPanorama() {
                   <div className="studio-fill" />
                   <div className="studio-shadow" />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="studio-prod" src="/screens/mannequin-couture.png" alt="" />
+                  <img className="studio-prod" src="/screens/mannequin-veste-jean.png" alt="" />
                 </div>
                 <div className="studio-retic">
                   <i className="tl" /><i className="tr" /><i className="bl" /><i className="br" />
@@ -310,7 +310,7 @@ export default function BentoPanorama() {
                   <div className="sp-body">
                     <div className="sp-screen">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/screens/mannequin-couture.png" alt="" />
+                      <img src="/screens/mannequin-veste-jean.png" alt="" />
                       <div className="sp-grid" />
                       <div className="sp-flash" />
                     </div>
@@ -769,15 +769,17 @@ export default function BentoPanorama() {
           mix-blend-mode: screen;
         }
         .tile .studio-shadow {
-          position: absolute; left: 50%; bottom: 5%;
-          width: 26%; height: 5%;
+          position: absolute; left: 42%; bottom: 5%;
+          width: 22%; height: 5%;
           transform: translateX(-50%);
           background: radial-gradient(closest-side, rgba(40,32,24,0.5), transparent);
           filter: blur(5px);
           animation: prodFloat 9s ease-in-out infinite;
         }
+        /* Sujet décentré vers la gauche : la veste ouverte est bien plus
+           large que le buste nu, il faut dégager la zone du téléphone. */
         .tile .studio-prod {
-          position: absolute; left: 50%; top: 50%;
+          position: absolute; left: 42%; top: 50%;
           transform: translate(-50%, -50%);
           /* Le sujet est centré dans un PNG carré : on cale sur la hauteur,
              la largeur suit et reste bien en deçà du cadre. */
