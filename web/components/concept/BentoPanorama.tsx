@@ -25,7 +25,7 @@ const DESKTOP = '(min-width: 861px)'
 
 /** Tuile bento. `span` = colonnes, `rows` = lignes, `i` = ordre d'apparition. */
 function Tile({
-  children, span = 1, rows = 1, i = 0, tone = 'dark', className = '',
+  children, span = 1, rows = 1, i = 0, tone = 'dark', className = '', bleed = false,
 }: {
   children: React.ReactNode
   span?: number
@@ -33,10 +33,12 @@ function Tile({
   i?: number
   tone?: 'dark' | 'cream' | 'accent' | 'glass'
   className?: string
+  /** Supprime le padding : le contenu occupe la tuile bord à bord. */
+  bleed?: boolean
 }) {
   return (
     <div
-      className={`tile tone-${tone} ${className}`}
+      className={`tile tone-${tone} ${bleed ? 'is-bleed' : ''} ${className}`}
       style={{
         gridColumn: `span ${span}`,
         gridRow: `span ${rows}`,
@@ -58,6 +60,10 @@ function Tile({
              remplies se creusaient d'un grand vide au milieu. */
           gap: clamp(6px, 0.8vw, 12px);
           transform: translateY(26px) rotateX(7deg) scale(0.975);
+        }
+        .tile.is-bleed {
+          padding: 0;
+          gap: 0;
           opacity: 0;
           transition:
             opacity 0.7s cubic-bezier(0.22, 0.68, 0.32, 1),
@@ -281,17 +287,55 @@ export default function BentoPanorama() {
         <div className="pan-track" ref={trackRef}>
           {/* 01 — Capture */}
           <Panel panel={PANELS[0]} shown={active >= 0}>
-            <Tile span={2} rows={2} tone="dark" i={0}>
-              <div className="shot">
-                <div className="shot-sub">🧥</div>
-                <div className="shot-ring" />
+            <Tile span={2} rows={2} tone="dark" i={0} bleed>
+              {/* Plateau de studio : fond blanc cassé, deux sources de
+                  lumière, produit au centre. Noir et blanc jusqu'au flash,
+                  puis la couleur revient pendant le chargement dans l'app. */}
+              <div className="studio">
+                <div className="studio-scene">
+                  <div className="studio-cyc" />
+                  <div className="studio-key" />
+                  <div className="studio-fill" />
+                  <div className="studio-shadow" />
+                  <div className="studio-prod">🧥</div>
+                </div>
+                <div className="studio-retic">
+                  <i className="tl" /><i className="tr" /><i className="bl" /><i className="br" />
+                </div>
+                <div className="studio-scan" />
+                <div className="studio-flash" />
+                <div className="studio-state">
+                  <span className="s-aim">Cadrage · f/8 · 1/125</span>
+                  <span className="s-load">Analyse de l’image…</span>
+                  <span className="s-done">Fiche créée ✓</span>
+                </div>
+                <span className="studio-cap">Viseur · une pression</span>
               </div>
-              <span className="tile-cap">Viseur · une pression</span>
             </Tile>
             <Tile span={2} tone="accent" i={1}>
-              <strong className="big">2,4 s</strong>
-              <div className="steps">
-                <span>Vision</span><em>→</em><span>Structuration</span><em>→</em><span>Fiche</span>
+              <div className="chainHead">
+                <strong className="big">2,4 s</strong>
+                <div className="chainStat">
+                  <b>25</b><span>objets / heure</span>
+                </div>
+              </div>
+              {/* Chaîne de production : les objets défilent, la cadence est
+                  le sujet. */}
+              <div className="chain">
+                <div className="chain-ticks">
+                  {Array.from({ length: 14 }).map((_, n) => <i key={n} />)}
+                </div>
+                {/* Séquence répétée trois fois : on translate d'un motif
+                    (480 px) et il reste toujours de quoi couvrir la largeur
+                    visible, sans saut ni trou au rebouclage. */}
+                <div className="chain-belt">
+                  {Array.from({ length: 3 }).flatMap((_, copy) =>
+                    ['🧥', '👟', '⌚', '📸', '👖', '🧢', '🎸', '📚'].map((e, n) => (
+                      <span key={`${copy}-${n}`}>{e}</span>
+                    ))
+                  )}
+                </div>
+                <div className="chain-rail" />
               </div>
               <span className="tile-cap light">de la photo à la fiche enregistrée</span>
             </Tile>
@@ -300,6 +344,7 @@ export default function BentoPanorama() {
               <span className="val">Veste en jean délavé</span>
               <div className="specs">
                 <div><span>Marque</span><strong>Levi’s</strong></div>
+                <div><span>Modèle</span><strong>Type III</strong></div>
                 <div><span>Taille</span><strong>M</strong></div>
                 <div><span>Catégorie</span><strong>Veste</strong></div>
               </div>
@@ -309,6 +354,7 @@ export default function BentoPanorama() {
               <span className="val">Denim de coton</span>
               <div className="specs light">
                 <div><span>Couleur</span><strong>Bleu délavé</strong></div>
+                <div><span>Matière</span><strong>Denim 12 oz</strong></div>
                 <div><span>État</span><strong>Bon, usure légère</strong></div>
                 <div><span>Époque</span><strong>Années 90</strong></div>
               </div>
@@ -631,23 +677,220 @@ export default function BentoPanorama() {
           font-weight: 600; margin: 0; letter-spacing: -0.01em;
         }
 
-        .tile .shot {
-          position: relative; flex: 1;
-          border-radius: 16px;
-          background: linear-gradient(160deg, #3a3129, #1c1712);
-          display: grid; place-items: center;
-          margin-bottom: 12px;
+        /* ── Plateau studio (panneau 01) ──────────────────────────────
+           Cycle de 9 s : cadrage en noir et blanc → flash → chargement
+           dans l'app, la couleur revient → fiche créée → retour au N&B. */
+        .tile .studio { position: absolute; inset: 0; overflow: hidden; }
+
+        .tile .studio-scene {
+          position: absolute; inset: 0;
+          filter: grayscale(1) contrast(1.08);
+          animation: studioGrade 9s infinite;
         }
-        .tile .shot-sub { font-size: clamp(44px, 6vw, 84px); animation: breathe 4s ease-in-out infinite; }
-        .tile .shot-ring {
-          position: absolute; width: 62%; aspect-ratio: 1;
-          border: 2px solid rgba(242,105,0,0.55); border-radius: 20px;
-          animation: ring 4s ease-in-out infinite;
+        /* Fond continu type cyclorama : mur clair qui se raccorde au sol. */
+        .tile .studio-cyc {
+          position: absolute; inset: 0;
+          background:
+            radial-gradient(120% 80% at 50% 22%, #f2ede6 0%, #ded5c9 45%, #b9ad9e 100%),
+            linear-gradient(#cfc5b7, #cfc5b7);
         }
-        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
-        @keyframes ring {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 1; transform: scale(0.94); }
+        .tile .studio-cyc::after {
+          content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 34%;
+          background: linear-gradient(#00000000, rgba(60, 50, 40, 0.22));
+        }
+        /* Boîtes à lumière : une clé en haut à gauche, une douce à droite. */
+        .tile .studio-key {
+          position: absolute; inset: 0;
+          background: radial-gradient(46% 40% at 22% 6%, rgba(255,255,255,0.85), transparent 70%);
+          mix-blend-mode: screen;
+        }
+        .tile .studio-fill {
+          position: absolute; inset: 0;
+          background: radial-gradient(40% 46% at 92% 42%, rgba(255,255,255,0.5), transparent 72%);
+          mix-blend-mode: screen;
+        }
+        .tile .studio-shadow {
+          position: absolute; left: 50%; bottom: 21%;
+          width: 46%; height: 7%;
+          transform: translateX(-50%);
+          background: radial-gradient(closest-side, rgba(40,32,24,0.5), transparent);
+          filter: blur(5px);
+          animation: prodFloat 9s ease-in-out infinite;
+        }
+        .tile .studio-prod {
+          position: absolute; left: 50%; top: 46%;
+          transform: translate(-50%, -50%);
+          font-size: clamp(74px, 9.5vw, 132px);
+          filter: drop-shadow(0 18px 26px rgba(40, 32, 24, 0.35));
+          animation: prodBreathe 9s ease-in-out infinite;
+        }
+
+        /* Repères de cadrage, présents seulement avant le déclenchement. */
+        .tile .studio-retic { position: absolute; inset: 0; animation: reticFade 9s infinite; }
+        .tile .studio-retic i {
+          position: absolute; width: 26px; height: 26px;
+          border: 2px solid rgba(255,255,255,0.9);
+          filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+        }
+        .tile .studio-retic .tl { top: 14%; left: 11%; border-right: 0; border-bottom: 0; border-radius: 6px 0 0 0; }
+        .tile .studio-retic .tr { top: 14%; right: 11%; border-left: 0; border-bottom: 0; border-radius: 0 6px 0 0; }
+        .tile .studio-retic .bl { bottom: 22%; left: 11%; border-right: 0; border-top: 0; border-radius: 0 0 0 6px; }
+        .tile .studio-retic .br { bottom: 22%; right: 11%; border-left: 0; border-top: 0; border-radius: 0 0 6px 0; }
+
+        .tile .studio-flash {
+          position: absolute; inset: 0; background: #fff;
+          opacity: 0; animation: flashPop 9s infinite;
+        }
+        /* Balayage d'analyse, une fois l'image chargée dans l'app. */
+        .tile .studio-scan {
+          position: absolute; left: 0; right: 0; height: 32%;
+          background: linear-gradient(#F2690000, rgba(242,105,0,0.28), #F2690000);
+          border-bottom: 1px solid rgba(242,105,0,0.85);
+          opacity: 0; animation: scanSweep 9s infinite;
+        }
+
+        .tile .studio-state { position: absolute; left: 16px; top: 16px; height: 24px; }
+        .tile .studio-state span {
+          position: absolute; left: 0; top: 0; white-space: nowrap;
+          font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+          padding: 5px 11px; border-radius: 999px;
+          background: rgba(20, 16, 13, 0.55);
+          border: 1px solid rgba(255,255,255,0.14);
+          backdrop-filter: blur(6px);
+          color: #F7F3EE; opacity: 0;
+          animation: 9s infinite;
+        }
+        .tile .studio-state .s-aim  { animation-name: stAim; }
+        .tile .studio-state .s-load { animation-name: stLoad; }
+        .tile .studio-state .s-done {
+          animation-name: stDone;
+          background: rgba(45, 80, 22, 0.7); border-color: rgba(184, 224, 178, 0.45);
+        }
+
+        .tile .studio-cap {
+          position: absolute; left: 0; right: 0; bottom: 0;
+          padding: 34px 16px 14px;
+          font-size: 12px; font-weight: 600;
+          color: rgba(247, 243, 238, 0.86);
+          background: linear-gradient(#00000000, rgba(12, 9, 7, 0.72));
+        }
+
+        @keyframes studioGrade {
+          0%, 34% { filter: grayscale(1) contrast(1.08); }
+          40%, 92% { filter: grayscale(0) contrast(1); }
+          100% { filter: grayscale(1) contrast(1.08); }
+        }
+        @keyframes prodBreathe {
+          0%, 32% { transform: translate(-50%, -50%) scale(1); }
+          36% { transform: translate(-50%, -50%) scale(0.965); }
+          46%, 100% { transform: translate(-50%, -50%) scale(1.015); }
+        }
+        @keyframes prodFloat {
+          0%, 32% { opacity: 0.55; transform: translateX(-50%) scaleX(1); }
+          36% { opacity: 0.75; transform: translateX(-50%) scaleX(1.08); }
+          46%, 100% { opacity: 0.5; transform: translateX(-50%) scaleX(0.98); }
+        }
+        @keyframes reticFade {
+          0%, 30% { opacity: 1; }
+          34%, 96% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        @keyframes flashPop {
+          0%, 32% { opacity: 0; }
+          34% { opacity: 0.95; }
+          40%, 100% { opacity: 0; }
+        }
+        @keyframes scanSweep {
+          0%, 40% { opacity: 0; top: -32%; }
+          44% { opacity: 1; }
+          62% { opacity: 1; top: 100%; }
+          64%, 100% { opacity: 0; top: 100%; }
+        }
+        /* Les trois étiquettes se relaient sans trou, hormis pendant le
+           flash — où l'image est blanche de toute façon. */
+        @keyframes stAim {
+          0%, 28% { opacity: 1; }
+          32%, 97% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        @keyframes stLoad {
+          0%, 38% { opacity: 0; }
+          42%, 62% { opacity: 1; }
+          66%, 100% { opacity: 0; }
+        }
+        @keyframes stDone {
+          0%, 62% { opacity: 0; }
+          66%, 96% { opacity: 1; }
+          99%, 100% { opacity: 0; }
+        }
+
+        /* ── Chaîne de production (panneau 01, tuile orange) ────────── */
+        .tile .chainHead {
+          width: 100%;
+          display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+        }
+        .tile .chainStat { text-align: right; line-height: 1.1; }
+        .tile .chainStat b { font-size: clamp(16px, 1.7vw, 22px); font-weight: 800; }
+        .tile .chainStat span {
+          display: block; font-size: 10px; font-weight: 700;
+          text-transform: uppercase; letter-spacing: 0.07em;
+          color: rgba(255,255,255,0.75);
+        }
+
+        .tile .chain {
+          position: relative; width: 100%; flex: 1;
+          min-height: 62px;
+          display: flex; flex-direction: column; justify-content: center;
+          overflow: hidden;
+        }
+        .tile .chain-ticks {
+          display: flex; justify-content: space-between;
+          margin-bottom: 8px; opacity: 0.5;
+        }
+        .tile .chain-ticks i {
+          width: 1px; height: 7px; background: rgba(255,255,255,0.85);
+        }
+        .tile .chain-ticks i:nth-child(4n + 1) { height: 12px; }
+        .tile .chain-belt {
+          display: flex; gap: 18px; width: max-content;
+          animation: beltRun 7s linear infinite;
+        }
+        .tile .chain-belt span {
+          width: 42px; height: 42px; flex-shrink: 0;
+          border-radius: 11px;
+          background: rgba(255,255,255,0.2);
+          border: 1px solid rgba(255,255,255,0.3);
+          display: grid; place-items: center; font-size: 20px;
+        }
+        .tile .chain-rail {
+          height: 3px; margin-top: 8px; border-radius: 99px;
+          background: repeating-linear-gradient(
+            90deg,
+            rgba(255,255,255,0.55) 0 8px,
+            rgba(255,255,255,0.15) 8px 16px
+          );
+          animation: railRun 0.9s linear infinite;
+        }
+        /* Pas de 60 px (42 + 18) × 8 objets = 480 px : on translate d'un
+           motif complet, la séquence dupliquée prend le relais. */
+        @keyframes beltRun {
+          from { transform: translateX(0); }
+          to { transform: translateX(-480px); }
+        }
+        @keyframes railRun {
+          from { background-position: 0 0; }
+          to { background-position: -16px 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .tile .studio-scene, .tile .studio-prod, .tile .studio-shadow,
+          .tile .studio-retic, .tile .studio-flash, .tile .studio-scan,
+          .tile .studio-state span, .tile .chain-belt, .tile .chain-rail {
+            animation: none;
+          }
+          .tile .studio-scene { filter: grayscale(0); }
+          .tile .studio-flash, .tile .studio-scan { opacity: 0; }
+          .tile .studio-state .s-done { opacity: 1; }
         }
 
         .tile .fields { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; }
