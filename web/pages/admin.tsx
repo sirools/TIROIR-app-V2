@@ -12,9 +12,22 @@ interface AppSettings {
   premium_photo_enhance_quota_monthly: number
   supabase_db_limit_mb: number
   supabase_storage_limit_mb: number
+  supabase_plan_monthly_usd: number
+  supabase_egress_limit_gb: number
+  supabase_egress_used_gb: number
+  supabase_egress_reading_date: string | null
   estimated_cost_per_ai_analysis_usd: number
   estimated_cost_per_photo_enhance_usd: number
   monthly_ai_spend_alert_usd: number
+}
+
+// Prix Supabase au-delà du quota inclus dans le plan (tarifs publics, juillet 2026).
+// Constantes de code plutôt que réglages : ce sont des prix Supabase, pas des
+// hypothèses produit — ils ne bougent qu'à un changement de grille tarifaire.
+const SUPABASE_OVERAGE_USD_PER_GB = {
+  db: 0.125,
+  storage: 0.021,
+  egress: 0.09,
 }
 
 interface KPIs {
@@ -113,6 +126,31 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
 
   const dbPct = settings.supabase_db_limit_mb > 0 ? (kpis.dbSizeMb / settings.supabase_db_limit_mb) * 100 : 0
   const storagePct = settings.supabase_storage_limit_mb > 0 ? (kpis.storageSizeMb / settings.supabase_storage_limit_mb) * 100 : 0
+  // L'Egress n'est pas lisible depuis Postgres : c'est un relevé manuel saisi
+  // dans l'onglet Quotas depuis la page Usage de l'organisation Supabase.
+  const egressPct = settings.supabase_egress_limit_gb > 0
+    ? (settings.supabase_egress_used_gb / settings.supabase_egress_limit_gb) * 100 : 0
+
+  // Quota le plus sollicité — dit d'un coup d'œil lequel des trois cassera en premier.
+  const quotaWatch = [
+    { label: 'Egress', pct: egressPct },
+    { label: 'Storage', pct: storagePct },
+    { label: 'Base de données', pct: dbPct },
+  ].sort((a, b) => b.pct - a.pct)[0]
+
+  // Capacité restante : au poids moyen constaté (photos + documents), combien
+  // d'objets supplémentaires tiennent dans le storage inclus du plan.
+  const mbPerObject = kpis.totalObjects > 0 ? kpis.storageSizeMb / kpis.totalObjects : 0
+  const storageLeftMb = Math.max(0, settings.supabase_storage_limit_mb - kpis.storageSizeMb)
+  const objectsBeforeStorageLimit = mbPerObject > 0 ? Math.floor(storageLeftMb / mbPerObject) : null
+
+  // Coût Supabase = abonnement fixe + dépassements facturés des quotas inclus.
+  const dbOverageUsd = (Math.max(0, kpis.dbSizeMb - settings.supabase_db_limit_mb) / 1024) * SUPABASE_OVERAGE_USD_PER_GB.db
+  const storageOverageUsd = (Math.max(0, kpis.storageSizeMb - settings.supabase_storage_limit_mb) / 1024) * SUPABASE_OVERAGE_USD_PER_GB.storage
+  const egressOverageUsd = Math.max(0, settings.supabase_egress_used_gb - settings.supabase_egress_limit_gb) * SUPABASE_OVERAGE_USD_PER_GB.egress
+  const supabaseOverageUsd = dbOverageUsd + storageOverageUsd + egressOverageUsd
+  const supabaseMonthlyCost = settings.supabase_plan_monthly_usd + supabaseOverageUsd
+  const totalMonthlyCost = supabaseMonthlyCost + monthlyAiCost
 
   return (
     <main style={s.root}>
@@ -159,31 +197,66 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
         {/* ── Infrastructure & coûts IA ── */}
         <h2 style={s.sectionTitle}>Infrastructure & coûts IA</h2>
         <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
-          Les coûts IA sont des <strong>estimations</strong> basées sur un coût moyen configurable par appel (pas un total exact issu de la facturation Anthropic/Google — aucun tracking de tokens réel pour l&apos;instant).
+          Quotas du plan <strong>Supabase Pro</strong> ({settings.supabase_plan_monthly_usd} $/mois). Base de données et Storage sont mesurés en direct ;
+          l&apos;Egress est un relevé manuel à reporter depuis la page Usage de l&apos;organisation. Les coûts IA restent des <strong>estimations</strong> basées
+          sur un coût moyen configurable par appel (pas un total exact issu de la facturation Anthropic/Google — aucun tracking de tokens réel pour l&apos;instant).
         </p>
 
         <div style={s.grid}>
-          <div style={s.gaugeCard}>
-            <div style={s.gaugeHeader}>
-              <span style={s.gaugeLabel}>Base de données</span>
-              <span style={s.gaugeValue}>{kpis.dbSizeMb.toFixed(1)} / {settings.supabase_db_limit_mb} Mo</span>
-            </div>
-            <GaugeBar pct={dbPct} />
-          </div>
-          <div style={s.gaugeCard}>
-            <div style={s.gaugeHeader}>
-              <span style={s.gaugeLabel}>Storage</span>
-              <span style={s.gaugeValue}>{kpis.storageSizeMb.toFixed(1)} / {settings.supabase_storage_limit_mb} Mo</span>
-            </div>
-            <GaugeBar pct={storagePct} />
-          </div>
+          <GaugeCard
+            label="Base de données"
+            value={`${fmtSizeMb(kpis.dbSizeMb)} / ${fmtSizeMb(settings.supabase_db_limit_mb)}`}
+            pct={dbPct}
+            hint={`${fmtPct1(dbPct)} du disque inclus · au-delà ${fmtUsdPerGb(SUPABASE_OVERAGE_USD_PER_GB.db)}`}
+          />
+          <GaugeCard
+            label="Storage"
+            value={`${fmtSizeMb(kpis.storageSizeMb)} / ${fmtSizeMb(settings.supabase_storage_limit_mb)}`}
+            pct={storagePct}
+            hint={`${fmtPct1(storagePct)} du quota inclus · au-delà ${fmtUsdPerGb(SUPABASE_OVERAGE_USD_PER_GB.storage)}`}
+          />
+          <GaugeCard
+            label="Egress (relevé)"
+            value={`${fmtGb(settings.supabase_egress_used_gb)} / ${fmtGb(settings.supabase_egress_limit_gb)}`}
+            pct={egressPct}
+            hint={settings.supabase_egress_reading_date
+              ? `Relevé le ${fmtDate(settings.supabase_egress_reading_date)} · au-delà ${fmtUsdPerGb(SUPABASE_OVERAGE_USD_PER_GB.egress)}`
+              : 'Jamais relevé — à saisir dans l’onglet Quotas'}
+          />
+          <Kpi
+            label="Objets avant saturation du Storage"
+            value={objectsBeforeStorageLimit === null ? '—' : fmtInt(objectsBeforeStorageLimit)}
+          />
+        </div>
+
+        <div style={s.grid}>
+          <Kpi
+            label="Poids moyen / objet (photos + docs)"
+            value={mbPerObject > 0 ? fmtSizeMb(mbPerObject) : '—'}
+          />
           <div style={{ ...s.kpiCard, ...(costAlert ? s.kpiCardAlert : {}) }}>
             <span style={s.kpiValue}>{monthlyAiCost.toFixed(2)} $</span>
             <span style={s.kpiLabel}>Coût IA estimé (ce mois)</span>
             {costAlert && <span style={s.alertText}>⚠ Dépasse le seuil de {settings.monthly_ai_spend_alert_usd} $</span>}
           </div>
+          <div style={s.kpiCard}>
+            <span style={s.kpiValue}>{supabaseMonthlyCost.toFixed(2)} $</span>
+            <span style={s.kpiLabel}>Coût Supabase estimé (ce mois)</span>
+            <span style={s.kpiSub}>
+              {supabaseOverageUsd > 0
+                ? `Abonnement ${settings.supabase_plan_monthly_usd} $ + ${supabaseOverageUsd.toFixed(2)} $ de dépassement`
+                : 'Abonnement seul — aucun quota dépassé'}
+            </span>
+          </div>
+          <Kpi label="Coût total infra + IA (ce mois)" value={`${totalMonthlyCost.toFixed(2)} $`} />
           <Kpi label="Coût IA estimé (depuis le lancement)" value={`${lifetimeAiCost.toFixed(2)} $`} />
         </div>
+
+        <p style={{ ...s.footnote, marginTop: -24, marginBottom: 40 }}>
+          Quota le plus sollicité : <strong>{quotaWatch.label}</strong> ({fmtPct1(quotaWatch.pct)}).
+          Sur une app photo, c&apos;est l&apos;Egress qui sature avant le Storage : chaque consultation d&apos;une fiche objet retélécharge ses images.
+          Les 100 000 MAU et les 2 M d&apos;invocations Edge Functions du plan Pro sont hors de portée à ce stade et ne sont pas suivis ici.
+        </p>
 
         {/* ── Activité ── */}
         <h2 style={s.sectionTitle}>Activité (30 derniers jours)</h2>
@@ -267,17 +340,47 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
         </p>
         <div style={s.settingsCard}>
           <QuotaField
+            label="Abonnement Supabase ($/mois)"
+            hint="25 $ = plan Pro (500 Mo/1 Go = Free, 599 $ = Team)"
+            value={settings.supabase_plan_monthly_usd}
+            step={1}
+            onChange={v => setSettings(s => ({ ...s, supabase_plan_monthly_usd: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <QuotaField
             label="Limite base de données (Mo)"
-            hint="500 Mo = plan Supabase Free"
+            hint="8192 Mo = disque inclus par projet sur le plan Pro (500 Mo sur le Free)"
             value={settings.supabase_db_limit_mb}
             onChange={v => setSettings(s => ({ ...s, supabase_db_limit_mb: v }))}
           />
           <div style={s.settingsDivider} />
           <QuotaField
             label="Limite Storage (Mo)"
-            hint="1024 Mo = plan Supabase Free"
+            hint="102400 Mo = 100 Go inclus sur le plan Pro (1024 Mo sur le Free)"
             value={settings.supabase_storage_limit_mb}
             onChange={v => setSettings(s => ({ ...s, supabase_storage_limit_mb: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <QuotaField
+            label="Limite Egress (Go/mois)"
+            hint="250 Go inclus sur le plan Pro (5 Go sur le Free)"
+            value={settings.supabase_egress_limit_gb}
+            onChange={v => setSettings(s => ({ ...s, supabase_egress_limit_gb: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <QuotaField
+            label="Egress consommé — relevé (Go)"
+            hint="Non lisible depuis Postgres : à recopier depuis la page Usage de l'organisation Supabase"
+            value={settings.supabase_egress_used_gb}
+            step={0.1}
+            onChange={v => setSettings(s => ({ ...s, supabase_egress_used_gb: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <DateField
+            label="Date du relevé Egress"
+            hint="Affichée sur la jauge pour repérer un relevé périmé"
+            value={settings.supabase_egress_reading_date}
+            onChange={v => setSettings(s => ({ ...s, supabase_egress_reading_date: v }))}
           />
           <div style={s.settingsDivider} />
           <QuotaField
@@ -642,6 +745,19 @@ function Kpi({ label, value, highlight }: { label: string; value: string | numbe
   )
 }
 
+function GaugeCard({ label, value, pct, hint }: { label: string; value: string; pct: number; hint?: string }) {
+  return (
+    <div style={s.gaugeCard}>
+      <div style={s.gaugeHeader}>
+        <span style={s.gaugeLabel}>{label}</span>
+        <span style={s.gaugeValue}>{value}</span>
+      </div>
+      <GaugeBar pct={pct} />
+      {hint && <span style={s.gaugeHint}>{hint}</span>}
+    </div>
+  )
+}
+
 function GaugeBar({ pct }: { pct: number }) {
   const clamped = Math.min(pct, 100)
   const color = pct >= 90 ? '#C0392B' : pct >= 70 ? '#D97706' : '#2e7d32'
@@ -668,6 +784,25 @@ function QuotaField({ label, hint, value, onChange, step = 1 }: {
         value={value}
         onChange={e => onChange(Number(e.target.value))}
         style={s.settingsInput}
+      />
+    </div>
+  )
+}
+
+function DateField({ label, hint, value, onChange }: {
+  label: string; hint: string; value: string | null; onChange: (v: string | null) => void
+}) {
+  return (
+    <div style={s.settingsRow}>
+      <div>
+        <div style={s.settingsLabel}>{label}</div>
+        <div style={s.settingsHint}>{hint}</div>
+      </div>
+      <input
+        type="date"
+        value={value ?? ''}
+        onChange={e => onChange(e.target.value || null)}
+        style={{ ...s.settingsInput, width: 150, textAlign: 'left', fontSize: 14 }}
       />
     </div>
   )
@@ -1076,6 +1211,26 @@ function fmtMoney(n: number) {
 function fmtPct(n: number) {
   return `${n.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} %`
 }
+// Sous le pour-cent, un arrondi à l'entier afficherait « 0 % » partout : on garde une décimale.
+function fmtPct1(n: number) {
+  if (n > 0 && n < 0.1) return '< 0,1 %'
+  return `${n.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} %`
+}
+function fmtSizeMb(mb: number) {
+  return mb >= 1024
+    ? `${(mb / 1024).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} Go`
+    : `${mb.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} Mo`
+}
+function fmtUsdPerGb(usd: number) {
+  return `${usd.toLocaleString('fr-FR', { maximumFractionDigits: 3 })} $/Go`
+}
+function fmtGb(gb: number) {
+  return `${gb.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} Go`
+}
+function fmtDate(iso: string) {
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('fr-FR')
+}
 
 function healthLabel(status: HealthStatus) {
   return status === 'rentable' ? '✓ Rentable' : status === 'fragile' ? '~ Fragile' : '✗ Déficitaire'
@@ -1243,7 +1398,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     admin.from('activity_log').select('*', { count: 'exact', head: true }).eq('action', 'quota.exceeded').gte('created_at', since30d),
     admin.from('activity_log').select('action').gte('created_at', since30d),
     admin.from('app_settings')
-      .select('free_ai_quota_monthly,free_objects_max,free_photos_per_object,premium_ai_quota_monthly,premium_photo_enhance_quota_monthly,supabase_db_limit_mb,supabase_storage_limit_mb,estimated_cost_per_ai_analysis_usd,estimated_cost_per_photo_enhance_usd,monthly_ai_spend_alert_usd')
+      .select('free_ai_quota_monthly,free_objects_max,free_photos_per_object,premium_ai_quota_monthly,premium_photo_enhance_quota_monthly,supabase_db_limit_mb,supabase_storage_limit_mb,supabase_plan_monthly_usd,supabase_egress_limit_gb,supabase_egress_used_gb,supabase_egress_reading_date,estimated_cost_per_ai_analysis_usd,estimated_cost_per_photo_enhance_usd,monthly_ai_spend_alert_usd')
       .eq('id', 1).single(),
     admin.rpc('get_admin_infra_stats').single(),
   ])
@@ -1279,6 +1434,30 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     photo_enhance_lifetime: number
   } | null
 
+  // PostgREST renvoie les colonnes NUMERIC en chaînes : sans cette normalisation,
+  // une addition côté page concaténerait au lieu d'additionner.
+  const raw = (appSettings ?? {}) as Record<string, unknown>
+  const num = (key: string, fallback: number) => {
+    const v = Number(raw[key])
+    return Number.isFinite(v) ? v : fallback
+  }
+  const settings: AppSettings = {
+    free_ai_quota_monthly: num('free_ai_quota_monthly', 30),
+    free_objects_max: num('free_objects_max', 30),
+    free_photos_per_object: num('free_photos_per_object', 1),
+    premium_ai_quota_monthly: num('premium_ai_quota_monthly', 150),
+    premium_photo_enhance_quota_monthly: num('premium_photo_enhance_quota_monthly', 50),
+    supabase_db_limit_mb: num('supabase_db_limit_mb', 8192),
+    supabase_storage_limit_mb: num('supabase_storage_limit_mb', 102400),
+    supabase_plan_monthly_usd: num('supabase_plan_monthly_usd', 25),
+    supabase_egress_limit_gb: num('supabase_egress_limit_gb', 250),
+    supabase_egress_used_gb: num('supabase_egress_used_gb', 0),
+    supabase_egress_reading_date: (raw.supabase_egress_reading_date as string | null) ?? null,
+    estimated_cost_per_ai_analysis_usd: num('estimated_cost_per_ai_analysis_usd', 0.01),
+    estimated_cost_per_photo_enhance_usd: num('estimated_cost_per_photo_enhance_usd', 0.039),
+    monthly_ai_spend_alert_usd: num('monthly_ai_spend_alert_usd', 50),
+  }
+
   return {
     props: {
       kpis: {
@@ -1300,18 +1479,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         aiAnalysesLifetime: infra?.ai_analyses_lifetime ?? 0,
         photoEnhanceLifetime: infra?.photo_enhance_lifetime ?? 0,
       },
-      settings: appSettings ?? {
-        free_ai_quota_monthly: 30,
-        free_objects_max: 30,
-        free_photos_per_object: 1,
-        premium_ai_quota_monthly: 150,
-        premium_photo_enhance_quota_monthly: 50,
-        supabase_db_limit_mb: 500,
-        supabase_storage_limit_mb: 1024,
-        estimated_cost_per_ai_analysis_usd: 0.01,
-        estimated_cost_per_photo_enhance_usd: 0.039,
-        monthly_ai_spend_alert_usd: 50,
-      },
+      settings,
     },
   }
 }
@@ -1328,11 +1496,13 @@ const s: Record<string, React.CSSProperties> = {
   alertText:         { fontSize: 12, color: '#C0392B', fontWeight: 700 },
   kpiValue:          { fontSize: 28, fontWeight: 800, color: '#121212' },
   kpiLabel:          { fontSize: 13, color: '#5b5b5b', fontWeight: 600 },
+  kpiSub:            { fontSize: 12, color: '#8a8a8a', fontWeight: 600 },
   sectionTitle:      { fontSize: 18, fontWeight: 700, color: '#121212', marginBottom: 8 },
   gaugeCard:         { background: 'white', borderRadius: 16, padding: '20px 24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 10 },
   gaugeHeader:       { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' },
   gaugeLabel:        { fontSize: 13, color: '#5b5b5b', fontWeight: 600 },
   gaugeValue:        { fontSize: 13, color: '#121212', fontWeight: 700 },
+  gaugeHint:         { fontSize: 12, color: '#8a8a8a', fontWeight: 600 },
   gaugeTrack:        { height: 8, borderRadius: 99, background: '#F0EBE3', overflow: 'hidden' },
   gaugeFill:         { height: '100%', borderRadius: 99, transition: 'width 200ms ease' },
   settingsCard:      { background: 'white', borderRadius: 16, padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 40 },
@@ -1340,7 +1510,7 @@ const s: Record<string, React.CSSProperties> = {
   settingsDivider:   { height: 1, background: 'rgba(0,0,0,0.04)', margin: '16px 0' },
   settingsLabel:     { fontSize: 15, fontWeight: 600, color: '#121212' },
   settingsHint:      { fontSize: 13, color: '#5b5b5b', marginTop: 2 },
-  settingsInput:     { width: 80, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #e0e0e0', fontSize: 16, fontWeight: 700, textAlign: 'right', outline: 'none' },
+  settingsInput:     { width: 110, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #e0e0e0', fontSize: 16, fontWeight: 700, textAlign: 'right', outline: 'none' },
   settingsLocked:    { width: 80, padding: '8px 12px', fontSize: 16, fontWeight: 700, textAlign: 'right', color: '#999' },
   saveBtn:           { padding: '10px 24px', borderRadius: 10, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer' },
   savedBadge:        { fontSize: 14, color: '#2e7d32', fontWeight: 600 },

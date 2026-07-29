@@ -22,6 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     free_ai_quota_monthly, free_objects_max, free_photos_per_object,
     premium_ai_quota_monthly, premium_photo_enhance_quota_monthly,
     supabase_db_limit_mb, supabase_storage_limit_mb,
+    supabase_plan_monthly_usd, supabase_egress_limit_gb,
+    supabase_egress_used_gb, supabase_egress_reading_date,
     estimated_cost_per_ai_analysis_usd, estimated_cost_per_photo_enhance_usd,
     monthly_ai_spend_alert_usd,
   } = req.body
@@ -32,6 +34,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       free_ai_quota_monthly, free_objects_max, free_photos_per_object,
       premium_ai_quota_monthly, premium_photo_enhance_quota_monthly,
       supabase_db_limit_mb, supabase_storage_limit_mb,
+      supabase_plan_monthly_usd, supabase_egress_limit_gb,
+      supabase_egress_used_gb,
+      // Champ date nullable : une chaîne vide ferait échouer le cast Postgres.
+      supabase_egress_reading_date: supabase_egress_reading_date || null,
       estimated_cost_per_ai_analysis_usd, estimated_cost_per_photo_enhance_usd,
       monthly_ai_spend_alert_usd,
     })

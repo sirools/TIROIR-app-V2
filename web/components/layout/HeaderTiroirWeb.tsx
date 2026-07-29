@@ -28,6 +28,7 @@ export default function HeaderTiroirWeb() {
   const [userName, setUserName] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [downloadOpen, setDownloadOpen] = useState(false)
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40)
@@ -86,6 +87,7 @@ export default function HeaderTiroirWeb() {
     const close = () => {
       setMenuOpen(false)
       setUserMenuOpen(false)
+      setDownloadOpen(false)
     }
     router.events.on('routeChangeStart', close)
     return () => router.events.off('routeChangeStart', close)
@@ -100,6 +102,16 @@ export default function HeaderTiroirWeb() {
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
   }, [userMenuOpen])
+
+  // Idem pour le dropdown de téléchargement
+  useEffect(() => {
+    if (!downloadOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.ti-download')) setDownloadOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [downloadOpen])
 
   async function handleAuthClick() {
     setMenuOpen(false)
@@ -119,6 +131,11 @@ export default function HeaderTiroirWeb() {
     router.push(path)
   }
 
+  function closeMenus() {
+    setMenuOpen(false)
+    setDownloadOpen(false)
+  }
+
   const navItems = (
     <>
       {isAdmin && (
@@ -133,24 +150,52 @@ export default function HeaderTiroirWeb() {
       <a className="appstore-nav-btn" href="/pricing">
         {isEn ? 'Pricing' : 'Tarifs'}
       </a>
-      <a
-        className="appstore-nav-btn"
-        href={appStoreUrl(isEn)}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => setMenuOpen(false)}
-      >
-        App Store
-      </a>
-      <a
-        className="appstore-nav-btn"
-        href={playStoreUrl(isEn)}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => setMenuOpen(false)}
-      >
-        Google Play
-      </a>
+      {/* App Store + Google Play réunis sous un seul bouton */}
+      <div className="ti-download">
+        <button
+          className="appstore-nav-btn ti-download__btn"
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={downloadOpen}
+          onClick={() => setDownloadOpen(v => !v)}
+        >
+          {isEn ? 'Download the app' : 'Télécharger l’app'}
+          <svg
+            className={`ti-download__chevron ${downloadOpen ? 'open' : ''}`}
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        {downloadOpen && (
+          <div className="ti-download__dropdown" role="menu">
+            <a
+              className="ti-download__item"
+              role="menuitem"
+              href={appStoreUrl(isEn)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={closeMenus}
+            >
+              App Store
+            </a>
+            <a
+              className="ti-download__item"
+              role="menuitem"
+              href={playStoreUrl(isEn)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={closeMenus}
+            >
+              Google Play
+            </a>
+          </div>
+        )}
+      </div>
     </>
   )
 
@@ -407,6 +452,82 @@ export default function HeaderTiroirWeb() {
         }
         .ti-actions :global(.appstore-nav-btn:hover),
         .ti-mobile-menu__nav :global(.appstore-nav-btn:hover) { background: #f5f5f5; }
+
+        /* Bouton « Télécharger l'app » + dropdown (rendu via navItems : :global) */
+        .ti-actions :global(.ti-download),
+        .ti-mobile-menu__nav :global(.ti-download) {
+          position: relative;
+        }
+        .ti-actions :global(.ti-download__btn),
+        .ti-mobile-menu__nav :global(.ti-download__btn) {
+          gap: 6px;
+        }
+        .ti-actions :global(.ti-download__chevron),
+        .ti-mobile-menu__nav :global(.ti-download__chevron) {
+          transition: transform 0.15s;
+          flex-shrink: 0;
+        }
+        .ti-actions :global(.ti-download__chevron.open),
+        .ti-mobile-menu__nav :global(.ti-download__chevron.open) {
+          transform: rotate(180deg);
+        }
+        .ti-actions :global(.ti-download__dropdown),
+        .ti-mobile-menu__nav :global(.ti-download__dropdown) {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          min-width: 180px;
+          background: #fff;
+          border: 1px solid rgba(0,0,0,0.08);
+          border-radius: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+          padding: 6px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          z-index: 60;
+          animation: ti-menu-in 0.15s ease;
+        }
+        .ti-actions :global(.ti-download__item),
+        .ti-mobile-menu__nav :global(.ti-download__item) {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 12px;
+          border-radius: 8px;
+          border: 0;
+          background: none;
+          font-size: 14px;
+          font-weight: 600;
+          color: #121212;
+          text-decoration: none;
+          text-align: left;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+        .ti-actions :global(.ti-download__item:hover),
+        .ti-mobile-menu__nav :global(.ti-download__item:hover) { background: #f5f5f5; }
+        /* Dans le menu plein écran, le dropdown devient un accordéon : il pousse
+           les items suivants au lieu de les recouvrir. */
+        .ti-mobile-menu__nav :global(.ti-download__btn) {
+          width: 100%;
+        }
+        .ti-mobile-menu__nav :global(.ti-download__dropdown) {
+          position: static;
+          margin-top: 12px;
+          padding: 0;
+          gap: 12px;
+          border: 0;
+          box-shadow: none;
+          background: none;
+        }
+        .ti-mobile-menu__nav :global(.ti-download__item) {
+          justify-content: center;
+          padding: 14px 16px;
+          font-size: 16px;
+          border: 1px solid rgba(0,0,0,0.12);
+          border-radius: 10px;
+        }
 
         /* Chip utilisateur + dropdown */
         .ti-user {
