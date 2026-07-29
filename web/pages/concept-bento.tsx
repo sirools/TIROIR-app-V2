@@ -101,6 +101,16 @@ function Panel({
           gap: clamp(10px, 1.4vw, 18px);
           perspective: 1400px;
         }
+        /* Desktop : la grille occupe toute la hauteur restante du panneau,
+           les lignes se partagent l'espace. Sans ça, les tuiles gardaient
+           leur hauteur minimale et flottaient au milieu d'un grand écran. */
+        @media (min-width: 861px) {
+          .bx-bento {
+            flex: 1;
+            min-height: 0;
+            grid-auto-rows: minmax(120px, 1fr);
+          }
+        }
         @media (max-width: 860px) {
           .bx-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }

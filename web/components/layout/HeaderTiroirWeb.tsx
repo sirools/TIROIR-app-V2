@@ -136,17 +136,10 @@ export default function HeaderTiroirWeb() {
     setDownloadOpen(false)
   }
 
+  // L'accès Admin vit dans le menu utilisateur, pas dans la nav publique :
+  // c'est une entrée de compte, pas une destination du site.
   const navItems = (
     <>
-      {isAdmin && (
-        <button
-          className="appstore-nav-btn"
-          type="button"
-          onClick={() => navigate('/admin')}
-        >
-          Admin
-        </button>
-      )}
       <a className="appstore-nav-btn" href="/concept">
         Concept
       </a>
@@ -250,6 +243,11 @@ export default function HeaderTiroirWeb() {
                     <a className="ti-user__item" href="/mes-partages" role="menuitem">
                       {isEn ? 'My shares' : 'Mes partages'}
                     </a>
+                    {isAdmin && (
+                      <a className="ti-user__item" href="/admin" role="menuitem">
+                        Admin
+                      </a>
+                    )}
                     <button
                       className="ti-user__item ti-user__item--danger"
                       type="button"
@@ -344,6 +342,15 @@ export default function HeaderTiroirWeb() {
                 >
                   {isEn ? 'My shares' : 'Mes partages'}
                 </button>
+                {isAdmin && (
+                  <button
+                    className="appstore-nav-btn"
+                    type="button"
+                    onClick={() => navigate('/admin')}
+                  >
+                    Admin
+                  </button>
+                )}
                 <button
                   className="appstore-nav-btn ti-mobile-menu__logout"
                   type="button"
