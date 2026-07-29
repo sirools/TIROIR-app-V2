@@ -1,6 +1,7 @@
 import Head from "next/head"
 import { useRouter } from "next/router"
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
+import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import Hero from "../components/landing/Hero"
 import FlowSteps from "../components/landing/FlowSteps"
 import StoryScroll from "../components/landing/StoryScroll"
@@ -33,18 +34,7 @@ export default function Landing() {
         <FinalCTA />
       </main>
 
-      <footer className="footer">
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, background: 'var(--orange)', borderRadius: 8 }} />
-            <span>© {new Date().getFullYear()} Tiroir</span>
-          </div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <a href="mailto:hello@tiroir.app">Contact</a>
-            <a href={isEn ? '/en/privacy' : '/privacy'}>{isEn ? 'Privacy' : 'Confidentialité'}</a>
-          </div>
-        </div>
-      </footer>
+      <FooterTiroirWeb />
 
       <SurveyInvite />
     </>
