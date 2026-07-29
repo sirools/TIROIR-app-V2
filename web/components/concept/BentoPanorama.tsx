@@ -297,11 +297,31 @@ export default function BentoPanorama() {
                   <div className="studio-key" />
                   <div className="studio-fill" />
                   <div className="studio-shadow" />
-                  <div className="studio-prod">🧥</div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="studio-prod" src="/screens/mannequin-couture.png" alt="" />
                 </div>
                 <div className="studio-retic">
                   <i className="tl" /><i className="tr" /><i className="bl" /><i className="br" />
                 </div>
+
+                {/* Le téléphone entre en scène et déclenche : c'est le geste
+                    d'ajout d'un objet qu'il faut rendre lisible. */}
+                <div className="studio-phone">
+                  <div className="sp-body">
+                    <div className="sp-screen">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/screens/mannequin-couture.png" alt="" />
+                      <div className="sp-grid" />
+                      <div className="sp-flash" />
+                    </div>
+                    <div className="sp-bar">
+                      <span className="sp-mode">Photo</span>
+                      <span className="sp-shutter"><i /></span>
+                      <span className="sp-count">1 / 20</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="studio-scan" />
                 <div className="studio-flash" />
                 <div className="studio-state">
@@ -710,18 +730,21 @@ export default function BentoPanorama() {
           mix-blend-mode: screen;
         }
         .tile .studio-shadow {
-          position: absolute; left: 50%; bottom: 21%;
-          width: 46%; height: 7%;
+          position: absolute; left: 50%; bottom: 5%;
+          width: 26%; height: 5%;
           transform: translateX(-50%);
           background: radial-gradient(closest-side, rgba(40,32,24,0.5), transparent);
           filter: blur(5px);
           animation: prodFloat 9s ease-in-out infinite;
         }
         .tile .studio-prod {
-          position: absolute; left: 50%; top: 46%;
+          position: absolute; left: 50%; top: 50%;
           transform: translate(-50%, -50%);
-          font-size: clamp(74px, 9.5vw, 132px);
-          filter: drop-shadow(0 18px 26px rgba(40, 32, 24, 0.35));
+          /* Le sujet est centré dans un PNG carré : on cale sur la hauteur,
+             la largeur suit et reste bien en deçà du cadre. */
+          height: 92%; width: auto;
+          object-fit: contain;
+          filter: drop-shadow(0 22px 30px rgba(40, 32, 24, 0.32));
           animation: prodBreathe 9s ease-in-out infinite;
         }
 
@@ -741,11 +764,12 @@ export default function BentoPanorama() {
           position: absolute; inset: 0; background: #fff;
           opacity: 0; animation: flashPop 9s infinite;
         }
-        /* Balayage d'analyse, une fois l'image chargée dans l'app. */
+        /* Balayage d'analyse, du bas vers le haut : le regard remonte le
+           long de l'objet, comme quand on le cadre depuis les pieds. */
         .tile .studio-scan {
           position: absolute; left: 0; right: 0; height: 32%;
           background: linear-gradient(#F2690000, rgba(242,105,0,0.28), #F2690000);
-          border-bottom: 1px solid rgba(242,105,0,0.85);
+          border-top: 1px solid rgba(242,105,0,0.85);
           opacity: 0; animation: scanSweep 9s infinite;
         }
 
@@ -765,6 +789,78 @@ export default function BentoPanorama() {
         .tile .studio-state .s-done {
           animation-name: stDone;
           background: rgba(45, 80, 22, 0.7); border-color: rgba(184, 224, 178, 0.45);
+        }
+
+        /* ── Téléphone en surimpression ─────────────────────────────── */
+        .tile .studio-phone {
+          position: absolute; right: 6%; bottom: 8%;
+          width: clamp(128px, 15vw, 176px);
+          opacity: 0;
+          animation: phoneIn 9s cubic-bezier(0.22, 0.68, 0.32, 1) infinite;
+        }
+        .tile .sp-body {
+          border-radius: 22px;
+          background: #14100d;
+          border: 1px solid rgba(255,255,255,0.16);
+          padding: 7px 7px 0;
+          box-shadow: 0 24px 50px rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.35);
+        }
+        .tile .sp-screen {
+          position: relative;
+          aspect-ratio: 3 / 4.4;
+          border-radius: 16px;
+          overflow: hidden;
+          background: radial-gradient(80% 70% at 50% 30%, #e9e2d8, #b9ad9e);
+        }
+        .tile .sp-screen img {
+          position: absolute; left: 50%; top: 52%;
+          transform: translate(-50%, -50%);
+          height: 86%; width: auto; object-fit: contain;
+        }
+        /* Règle des tiers, comme dans le viseur de l'app. */
+        .tile .sp-grid {
+          position: absolute; inset: 0;
+          background:
+            linear-gradient(rgba(255,255,255,0.28) 1px, transparent 1px) 0 33.3% / 100% 33.3%,
+            linear-gradient(90deg, rgba(255,255,255,0.28) 1px, transparent 1px) 33.3% 0 / 33.3% 100%;
+        }
+        .tile .sp-flash {
+          position: absolute; inset: 0; background: #fff;
+          opacity: 0; animation: spFlash 9s infinite;
+        }
+        .tile .sp-bar {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 9px 4px 10px;
+        }
+        .tile .sp-mode, .tile .sp-count {
+          font-size: 8px; font-weight: 700; letter-spacing: 0.05em;
+          color: rgba(247,243,238,0.6); text-transform: uppercase;
+        }
+        .tile .sp-shutter {
+          width: 26px; height: 26px; border-radius: 50%;
+          border: 2px solid rgba(247,243,238,0.9);
+          display: grid; place-items: center;
+        }
+        .tile .sp-shutter i {
+          width: 18px; height: 18px; border-radius: 50%;
+          background: #F7F3EE;
+          animation: spPress 9s infinite;
+        }
+
+        @keyframes phoneIn {
+          0%, 8% { opacity: 0; transform: translateY(26px) scale(0.94); }
+          18%, 84% { opacity: 1; transform: translateY(0) scale(1); }
+          92%, 100% { opacity: 0; transform: translateY(18px) scale(0.96); }
+        }
+        @keyframes spPress {
+          0%, 30% { transform: scale(1); }
+          33% { transform: scale(0.72); }
+          37%, 100% { transform: scale(1); }
+        }
+        @keyframes spFlash {
+          0%, 32% { opacity: 0; }
+          34% { opacity: 0.9; }
+          40%, 100% { opacity: 0; }
         }
 
         .tile .studio-cap {
@@ -801,10 +897,10 @@ export default function BentoPanorama() {
           40%, 100% { opacity: 0; }
         }
         @keyframes scanSweep {
-          0%, 40% { opacity: 0; top: -32%; }
+          0%, 40% { opacity: 0; top: 100%; }
           44% { opacity: 1; }
-          62% { opacity: 1; top: 100%; }
-          64%, 100% { opacity: 0; top: 100%; }
+          62% { opacity: 1; top: -32%; }
+          64%, 100% { opacity: 0; top: -32%; }
         }
         /* Les trois étiquettes se relaient sans trou, hormis pendant le
            flash — où l'image est blanche de toute façon. */
@@ -885,11 +981,13 @@ export default function BentoPanorama() {
         @media (prefers-reduced-motion: reduce) {
           .tile .studio-scene, .tile .studio-prod, .tile .studio-shadow,
           .tile .studio-retic, .tile .studio-flash, .tile .studio-scan,
-          .tile .studio-state span, .tile .chain-belt, .tile .chain-rail {
+          .tile .studio-state span, .tile .chain-belt, .tile .chain-rail,
+          .tile .studio-phone, .tile .sp-shutter i, .tile .sp-flash {
             animation: none;
           }
           .tile .studio-scene { filter: grayscale(0); }
-          .tile .studio-flash, .tile .studio-scan { opacity: 0; }
+          .tile .studio-flash, .tile .studio-scan, .tile .sp-flash { opacity: 0; }
+          .tile .studio-phone { opacity: 1; transform: none; }
           .tile .studio-state .s-done { opacity: 1; }
         }
 
