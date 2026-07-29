@@ -52,7 +52,11 @@ function Tile({
           overflow: hidden;
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
+          align-items: flex-start;
+          /* Le contenu s'empile depuis le haut, la légende est poussée en bas
+             par son margin-top: auto. Avec space-between, les tuiles peu
+             remplies se creusaient d'un grand vide au milieu. */
+          gap: clamp(6px, 0.8vw, 12px);
           transform: translateY(26px) rotateX(7deg) scale(0.975);
           opacity: 0;
           transition:
@@ -286,15 +290,28 @@ export default function BentoPanorama() {
             </Tile>
             <Tile span={2} tone="accent" i={1}>
               <strong className="big">2,4 s</strong>
-              <span className="tile-cap">de la photo à la fiche</span>
+              <div className="steps">
+                <span>Vision</span><em>→</em><span>Structuration</span><em>→</em><span>Fiche</span>
+              </div>
+              <span className="tile-cap light">de la photo à la fiche enregistrée</span>
             </Tile>
             <Tile tone="cream" i={2}>
-              <span className="lab">Titre</span>
-              <span className="val">Veste en jean</span>
+              <span className="lab">Titre généré</span>
+              <span className="val">Veste en jean délavé</span>
+              <div className="specs">
+                <div><span>Marque</span><strong>Levi’s</strong></div>
+                <div><span>Taille</span><strong>M</strong></div>
+                <div><span>Catégorie</span><strong>Veste</strong></div>
+              </div>
             </Tile>
             <Tile tone="glass" i={3}>
-              <span className="lab">Matière</span>
-              <span className="val">Denim</span>
+              <span className="lab">Caractéristiques</span>
+              <span className="val">Denim de coton</span>
+              <div className="specs light">
+                <div><span>Couleur</span><strong>Bleu délavé</strong></div>
+                <div><span>État</span><strong>Bon, usure légère</strong></div>
+                <div><span>Époque</span><strong>Années 90</strong></div>
+              </div>
             </Tile>
           </Panel>
 
@@ -302,9 +319,15 @@ export default function BentoPanorama() {
           <Panel panel={PANELS[1]} shown={active >= 1}>
             <Tile span={2} rows={2} tone="cream" i={0}>
               <div className="fields">
-                {['Catégorie', 'Matière', 'Couleur', 'État', 'Époque'].map((f, n) => (
+                {[
+                  ['Catégorie', 'Veste'],
+                  ['Matière', 'Denim'],
+                  ['Couleur', 'Bleu délavé'],
+                  ['État', 'Bon'],
+                  ['Époque', 'Années 90'],
+                ].map(([f, v], n) => (
                   <div className="frow" key={f} style={{ animationDelay: `${n * 0.35}s` }}>
-                    <span>{f}</span><i />
+                    <span>{f}</span><i /><b>{v}</b>
                   </div>
                 ))}
               </div>
@@ -312,14 +335,23 @@ export default function BentoPanorama() {
             </Tile>
             <Tile span={2} tone="dark" i={1}>
               <p className="quote">« L’IA remplit la colonne de gauche. Vous complétez celle de droite. »</p>
+              <div className="tags">
+                <span>Prix d’achat</span>
+                <span>Lieu de rangement</span>
+                <span>Authenticité</span>
+                <span>Valeur sentimentale</span>
+              </div>
+              <span className="tile-cap">Ce qu’elle ne peut pas deviner</span>
             </Tile>
             <Tile tone="glass" i={2}>
               <strong className="big sm">✓</strong>
-              <span className="tile-cap">Toujours modifiable</span>
+              <span className="val">Toujours modifiable</span>
+              <span className="tile-cap">Vos corrections priment sur la suggestion.</span>
             </Tile>
             <Tile tone="accent" i={3}>
               <strong className="big sm">0</strong>
-              <span className="tile-cap">formulaire vide</span>
+              <span className="val">formulaire vide</span>
+              <span className="tile-cap light">Aucun champ obligatoire à remplir.</span>
             </Tile>
           </Panel>
 
@@ -335,10 +367,16 @@ export default function BentoPanorama() {
             </Tile>
             <Tile tone="accent" i={1}>
               <strong className="big">×20</strong>
-              <span className="tile-cap">objets par lot</span>
+              <span className="val">objets par lot</span>
+              <span className="tile-cap light">1 photo = 1 objet = 1 analyse</span>
             </Tile>
             <Tile tone="cream" i={2}>
               <span className="val">Sans attendre</span>
+              <div className="specs">
+                <div><span>Analysées</span><strong>12 / 20</strong></div>
+                <div><span>Corrigées</span><strong>5</strong></div>
+                <div><span>Enregistrées</span><strong>5</strong></div>
+              </div>
               <span className="tile-cap dark">corrigez pendant que ça tourne</span>
             </Tile>
           </Panel>
@@ -346,26 +384,33 @@ export default function BentoPanorama() {
           {/* 04 — Cycle de vie */}
           <Panel panel={PANELS[3]} shown={active >= 3}>
             <Tile span={2} rows={2} tone="cream" i={0}>
-              <div className="chips">
+              <div className="timeline">
                 {[
-                  { l: 'Possédé', c: '#2D5016', b: '#E8F0E0' },
-                  { l: 'Rangé', c: '#1A3A6B', b: '#E0EAF8' },
-                  { l: 'Prêté', c: '#7A3B10', b: '#FDE8D0' },
-                  { l: 'Vendu · 45 €', c: '#5E1A2F', b: '#FCE0E8' },
-                ].map((s, n) => (
-                  <span key={s.l} style={{ color: s.c, background: s.b, animationDelay: `${n * 0.55}s` }}>
-                    {s.l}
-                  </span>
+                  { l: 'Possédé', d: '12 mars', c: '#2D5016', b: '#E8F0E0' },
+                  { l: 'Rangé — carton grenier', d: '4 mai', c: '#1A3A6B', b: '#E0EAF8' },
+                  { l: 'Prêté à Marie', d: '18 juin', c: '#7A3B10', b: '#FDE8D0' },
+                  { l: 'Vendu · 45 €', d: '2 août', c: '#5E1A2F', b: '#FCE0E8' },
+                ].map(s => (
+                  <div className="tl" key={s.l}>
+                    <i style={{ background: s.c }} />
+                    <span className="tlChip" style={{ color: s.c, background: s.b }}>{s.l}</span>
+                    <em>{s.d}</em>
+                  </div>
                 ))}
               </div>
               <span className="tile-cap dark">Le statut, pas la suppression</span>
             </Tile>
             <Tile span={2} tone="dark" i={1}>
               <p className="quote">« Un inventaire meurt le jour où il devient faux. »</p>
+              <span className="tile-cap">Six états : possédé, rangé, prêté, vendu, donné, perdu.</span>
             </Tile>
             <Tile span={2} tone="glass" i={2}>
               <span className="val">Historique conservé</span>
-              <span className="tile-cap">prix réel, date, destinataire</span>
+              <div className="specs light">
+                <div><span>Prix de vente réel</span><strong>45 €</strong></div>
+                <div><span>Acheteur</span><strong>Marie L.</strong></div>
+                <div><span>Vendu le</span><strong>2 août 2026</strong></div>
+              </div>
             </Tile>
           </Panel>
 
@@ -377,17 +422,27 @@ export default function BentoPanorama() {
                 <div className="gbounds"><span>950 €</span><span>1 400 €</span></div>
                 <strong className="gmid">≈ 1 200 €</strong>
               </div>
+              <div className="specs light">
+                <div><span>Objet</span><strong>Leica M6</strong></div>
+                <div><span>Payé en 2019</span><strong>1 450 €</strong></div>
+                <div><span>Écart</span><strong>− 250 €</strong></div>
+              </div>
               <span className="tile-cap">Fourchette issue d’annonces réelles</span>
             </Tile>
             <Tile span={2} tone="cream" i={1}>
+              <span className="lab">Annonces comparables</span>
               <div className="ads">
-                <div><span>leboncoin</span><strong>1 150 €</strong></div>
-                <div><span>eBay</span><strong>1 240 €</strong></div>
-                <div><span>Marketplace</span><strong>1 190 €</strong></div>
+                <div><span>leboncoin · très bon état</span><strong>1 150 €</strong></div>
+                <div><span>eBay · avec objectif</span><strong>1 240 €</strong></div>
+                <div><span>Marketplace · boîtier nu</span><strong>1 190 €</strong></div>
               </div>
             </Tile>
             <Tile span={2} tone="glass" i={2}>
-              <span className="tile-cap">Une fourchette large est une information : marché peu liquide.</span>
+              <span className="val">Lire la fourchette</span>
+              <div className="specs light">
+                <div><span>Serrée</span><strong>modèle courant, prix fiable</strong></div>
+                <div><span>Large</span><strong>marché peu liquide</strong></div>
+              </div>
             </Tile>
           </Panel>
 
@@ -395,16 +450,24 @@ export default function BentoPanorama() {
           <Panel panel={PANELS[5]} shown={active >= 5}>
             <Tile span={2} rows={2} tone="accent" i={0}>
               <div className="linkbox">tiroir.app/s/8f2c…</div>
-              <span className="tile-cap light">Public, révocable, expirable</span>
+              <div className="specs light">
+                <div><span>Visibilité</span><strong>Publique</strong></div>
+                <div><span>Expire le</span><strong>28 août 2026</strong></div>
+                <div><span>Vues</span><strong>14</strong></div>
+              </div>
+              <span className="tile-cap light">Révocable à tout moment</span>
             </Tile>
             <Tile span={2} tone="dark" i={1}>
               <p className="quote">« Pas de compte. Pas d’installation. Rien à accepter. »</p>
+              <span className="tile-cap">Une page web, ouverte depuis n’importe quel appareil.</span>
             </Tile>
             <Tile tone="cream" i={2}>
               <span className="val">Acheteur</span>
+              <span className="tile-cap dark">Voit la fiche, les photos et l’état. Pas vos prix d’achat.</span>
             </Tile>
             <Tile tone="glass" i={3}>
               <span className="val">Assureur</span>
+              <span className="tile-cap">Reçoit la collection entière, avec factures jointes.</span>
             </Tile>
           </Panel>
         </div>
@@ -491,6 +554,68 @@ export default function BentoPanorama() {
         .tile .tile-cap {
           font-size: 12px; font-weight: 600; line-height: 1.4;
           color: rgba(247, 243, 238, 0.62);
+          margin-top: auto;   /* colle la légende au bas de la tuile */
+        }
+
+        /* Lignes clé / valeur : l'ossature des tuiles « fiche ». */
+        .tile .specs {
+          width: 100%;
+          display: flex; flex-direction: column;
+          border-top: 1px solid rgba(26, 22, 18, 0.1);
+        }
+        .tile .specs.light { border-top-color: rgba(247, 243, 238, 0.14); }
+        .tile .specs div {
+          display: flex; align-items: baseline; justify-content: space-between;
+          gap: 12px; padding: 6px 0;
+          border-bottom: 1px solid rgba(26, 22, 18, 0.07);
+          font-size: clamp(11px, 1.05vw, 13px);
+        }
+        .tile .specs.light div { border-bottom-color: rgba(247, 243, 238, 0.09); }
+        .tile .specs div:last-child { border-bottom: 0; }
+        .tile .specs span { opacity: 0.6; font-weight: 600; }
+        .tile .specs strong { font-weight: 800; text-align: right; }
+
+        /* Chaîne de traitement (panneau 01) */
+        .tile .steps {
+          display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+          font-size: clamp(10px, 1vw, 12px); font-weight: 700;
+        }
+        .tile .steps span {
+          background: rgba(255, 255, 255, 0.22);
+          border-radius: 999px; padding: 4px 10px;
+        }
+        .tile .steps em { font-style: normal; opacity: 0.7; }
+
+        /* Étiquettes « ce que l'IA ne devine pas » (panneau 02) */
+        .tile .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .tile .tags span {
+          font-size: clamp(10px, 1vw, 12px); font-weight: 700;
+          color: rgba(247, 243, 238, 0.82);
+          background: rgba(247, 243, 238, 0.08);
+          border: 1px solid rgba(247, 243, 238, 0.12);
+          border-radius: 999px; padding: 4px 10px;
+        }
+
+        /* Frise des statuts (panneau 04) — toujours visible, plus de cycle
+           d'apparition qui laissait la tuile vide une partie du temps. */
+        .tile .timeline {
+          width: 100%; flex: 1;
+          display: flex; flex-direction: column; justify-content: center;
+          gap: clamp(8px, 2.2vh, 24px);
+        }
+        .tile .tl {
+          display: flex; align-items: center; gap: 10px;
+        }
+        .tile .tl i {
+          width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .tile .tlChip {
+          font-size: clamp(11px, 1.15vw, 14px); font-weight: 800;
+          padding: 5px 12px; border-radius: 999px; white-space: nowrap;
+        }
+        .tile .tl em {
+          font-style: normal; margin-left: auto;
+          font-size: 11px; font-weight: 700; opacity: 0.45;
         }
         .tile .tile-cap.dark { color: #6B6158; }
         .tile .tile-cap.light { color: rgba(255,255,255,0.85); }
@@ -528,7 +653,12 @@ export default function BentoPanorama() {
         .tile .fields { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; }
         .tile .frow {
           display: flex; align-items: center; justify-content: space-between; gap: 12px;
-          font-size: 12px; font-weight: 700; color: #6B6158;
+          font-size: clamp(11px, 1.05vw, 13px); font-weight: 700; color: #6B6158;
+        }
+        .tile .frow > span { min-width: 74px; }
+        .tile .frow b {
+          min-width: 92px; text-align: right;
+          color: #1A1612; font-weight: 800;
         }
         .tile .frow i {
           flex: 1; height: 8px; border-radius: 99px;
@@ -564,20 +694,6 @@ export default function BentoPanorama() {
           0%, 6% { opacity: 0.15; transform: scale(0.88); }
           26%, 84% { opacity: 1; transform: scale(1); }
           100% { opacity: 0.15; transform: scale(0.88); }
-        }
-
-        .tile .chips { position: relative; flex: 1; min-height: 54px; }
-        .tile .chips span {
-          position: absolute; top: 50%; left: 0;
-          transform: translateY(-50%);
-          font-size: clamp(13px, 1.4vw, 17px); font-weight: 800;
-          padding: 9px 16px; border-radius: 999px; white-space: nowrap;
-          opacity: 0; animation: chipCycle 4.4s ease-in-out infinite;
-        }
-        @keyframes chipCycle {
-          0% { opacity: 0; transform: translateY(calc(-50% + 8px)); }
-          6%, 22% { opacity: 1; transform: translateY(-50%); }
-          28%, 100% { opacity: 0; transform: translateY(calc(-50% - 8px)); }
         }
 
         .tile .gauge { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
