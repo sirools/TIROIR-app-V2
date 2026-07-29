@@ -13,9 +13,13 @@
  *
  * Les fichiers atterrissent dans web/public/screens/chain/.
  */
-import { mkdir, writeFile, access } from 'node:fs/promises'
+import { mkdir, writeFile, access, stat } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
+import { execFile as execFileCb } from 'node:child_process'
+
+const execFile = promisify(execFileCb)
 
 const MODEL = 'gemini-2.5-flash-image'
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'web', 'public', 'screens', 'chain')
@@ -33,16 +37,33 @@ const PRODUCTS = [
   { slug: 'livres',          subject: 'a small stack of five hardcover books' },
 ]
 
+// Ne jamais écrire de code hexadécimal ici : le modèle l'a déjà rendu
+// littéralement en coin d'image. La couleur se décrit avec des mots.
 const prompt = subject => [
   `Product photo of ${subject}, centered, alone.`,
-  'Plain warm cream-beige background (#F0E8DC), edge to edge, no vignette.',
+  'Plain warm cream beige background, edge to edge, no vignette.',
   'Soft diffused studio lighting, gentle contact shadow beneath the object.',
-  'No props, no text, no watermark, no hands, no background objects.',
+  'Absolutely no text, no letters, no numbers, no watermark, no colour code,',
+  'no props, no hands, no background objects.',
   'Minimal 3D product render style, matte materials, muted natural colours.',
   'Square 1:1 composition, subject filling about 70% of the frame.',
 ].join(' ')
 
 const exists = async p => access(p).then(() => true, () => false)
+
+/**
+ * Réduit l'image à 256 px de côté via sips (macOS). Ailleurs, on laisse
+ * le fichier tel quel plutôt que d'imposer une dépendance : le message
+ * signale simplement qu'il faudra le redimensionner à la main.
+ */
+async function shrink(path) {
+  try {
+    await execFile('sips', ['-Z', '256', path])
+  } catch {
+    console.warn('  (sips indisponible — image laissée en 1024 px)')
+  }
+  return (await stat(path)).size
+}
 
 async function generate(product) {
   const body = JSON.stringify({
@@ -110,7 +131,10 @@ async function main() {
       process.stdout.write(`…  ${product.slug} `)
       const bytes = await generate(product)
       await writeFile(out, bytes)
-      console.log(`✓ ${(bytes.length / 1024).toFixed(0)} Ko`)
+      // Le modèle rend du 1024², soit ~1,2 Mo pour une vignette affichée
+      // à 64 px. On redescend à 256², largement suffisant en écran retina.
+      const resized = await shrink(out)
+      console.log(`✓ ${(resized / 1024).toFixed(0)} Ko`)
       created++
     } catch (e) {
       console.log(`✗ ${e.message}`)

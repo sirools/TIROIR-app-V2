@@ -23,6 +23,18 @@ const PANELS = [
 
 const DESKTOP = '(min-width: 861px)'
 
+/** Objets qui défilent sur le convoyeur du panneau 01. */
+const CHAIN_ITEMS = [
+  { slug: 'veste', label: 'Veste' },
+  { slug: 'baskets', label: 'Baskets' },
+  { slug: 'montre', label: 'Montre' },
+  { slug: 'appareil-photo', label: 'Appareil' },
+  { slug: 'jean', label: 'Jean' },
+  { slug: 'casquette', label: 'Casquette' },
+  { slug: 'guitare', label: 'Guitare' },
+  { slug: 'livres', label: 'Livres' },
+]
+
 /** Tuile bento. `span` = colonnes, `rows` = lignes, `i` = ordre d'apparition. */
 function Tile({
   children, span = 1, rows = 1, i = 0, tone = 'dark', className = '', bleed = false,
@@ -346,12 +358,16 @@ export default function BentoPanorama() {
                   {Array.from({ length: 14 }).map((_, n) => <i key={n} />)}
                 </div>
                 {/* Séquence répétée trois fois : on translate d'un motif
-                    (480 px) et il reste toujours de quoi couvrir la largeur
+                    (656 px) et il reste toujours de quoi couvrir la largeur
                     visible, sans saut ni trou au rebouclage. */}
                 <div className="chain-belt">
                   {Array.from({ length: 3 }).flatMap((_, copy) =>
-                    ['🧥', '👟', '⌚', '📸', '👖', '🧢', '🎸', '📚'].map((e, n) => (
-                      <span key={`${copy}-${n}`}>{e}</span>
+                    CHAIN_ITEMS.map(item => (
+                      <span className="chain-cell" key={`${copy}-${item.slug}`}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`/screens/chain/${item.slug}.png`} alt="" loading="lazy" />
+                        <em>{item.label}</em>
+                      </span>
                     ))
                   )}
                 </div>
@@ -976,7 +992,7 @@ export default function BentoPanorama() {
 
         .tile .chain {
           position: relative; width: 100%; flex: 1;
-          min-height: 62px;
+          min-height: 78px;
           display: flex; flex-direction: column; justify-content: center;
           overflow: hidden;
         }
@@ -992,12 +1008,24 @@ export default function BentoPanorama() {
           display: flex; gap: 18px; width: max-content;
           animation: beltRun 7s linear infinite;
         }
-        .tile .chain-belt span {
-          width: 42px; height: 42px; flex-shrink: 0;
-          border-radius: 11px;
-          background: rgba(255,255,255,0.2);
-          border: 1px solid rgba(255,255,255,0.3);
-          display: grid; place-items: center; font-size: 20px;
+        .tile .chain-cell {
+          width: 64px; flex-shrink: 0;
+          display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+        .tile .chain-cell img {
+          width: 64px; height: 48px;
+          object-fit: cover;
+          border-radius: 10px;
+          background: rgba(255,255,255,0.22);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.16);
+          display: block;
+        }
+        .tile .chain-cell em {
+          font-style: normal;
+          font-size: 9px; font-weight: 700; letter-spacing: 0.03em;
+          color: rgba(255,255,255,0.88);
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          max-width: 100%;
         }
         .tile .chain-rail {
           height: 3px; margin-top: 8px; border-radius: 99px;
@@ -1008,11 +1036,11 @@ export default function BentoPanorama() {
           );
           animation: railRun 0.9s linear infinite;
         }
-        /* Pas de 60 px (42 + 18) × 8 objets = 480 px : on translate d'un
+        /* Pas de 82 px (64 + 18) × 8 objets = 656 px : on translate d'un
            motif complet, la séquence dupliquée prend le relais. */
         @keyframes beltRun {
           from { transform: translateX(0); }
-          to { transform: translateX(-480px); }
+          to { transform: translateX(-656px); }
         }
         @keyframes railRun {
           from { background-position: 0 0; }
