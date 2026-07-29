@@ -9,6 +9,7 @@ import { ArrowLeft, User, Edit3, Check, Package, FolderOpen, TrendingUp, Link2, 
 import Purchases from 'react-native-purchases'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
+import { isPaidPlan, isProPlan, planLabelKey } from '@/lib/plan'
 import { Screen, Input, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 interface Stats {
@@ -38,7 +39,9 @@ export default function ProfileScreen() {
   const [stats, setStats] = useState<Stats | null>(null)
 
   const plan: string = (profile as any)?.plan ?? 'free'
-  const isPremium = plan === 'premium'
+  const isPaid = isPaidPlan(plan)
+  // Le Professionnel est facturé en direct : pas d'abonnement store à gérer.
+  const isPro = isProPlan(plan)
 
   // Recharge les stats au montage et à chaque retour en foreground
   useEffect(() => {
@@ -144,10 +147,18 @@ export default function ProfileScreen() {
           {profile?.display_name && (
             <Text style={styles.avatarName}>{profile.display_name}</Text>
           )}
-          <View style={[styles.planBadge, isPremium && styles.planBadgePremium]}>
-            <Zap size={11} color={isPremium ? '#7c3aed' : Colors.accent} strokeWidth={2.2} />
-            <Text style={[styles.planBadgeText, isPremium && styles.planBadgeTextPremium]}>
-              {isPremium ? t('profile.premium') : t('profile.free')}
+          <View style={[
+            styles.planBadge,
+            isPaid && styles.planBadgePremium,
+            isPro && styles.planBadgePro,
+          ]}>
+            <Zap size={11} color={isPro ? '#B4690E' : isPaid ? '#7c3aed' : Colors.accent} strokeWidth={2.2} />
+            <Text style={[
+              styles.planBadgeText,
+              isPaid && styles.planBadgeTextPremium,
+              isPro && styles.planBadgeTextPro,
+            ]}>
+              {t(planLabelKey(plan))}
             </Text>
           </View>
         </View>
@@ -257,7 +268,7 @@ export default function ProfileScreen() {
               )}
             </View>
 
-            {!isPremium && (
+            {!isPaid && (
               <TouchableOpacity style={styles.upgradeBtn} activeOpacity={0.85} onPress={() => router.push('/paywall')}>
                 <Zap size={14} color="white" strokeWidth={2.2} />
                 <Text style={styles.upgradeBtnText}>{t('profile.upgrade')}</Text>
@@ -296,11 +307,13 @@ export default function ProfileScreen() {
           {t('profile.emailHint')}
         </Text>
 
-        {isPremium && (
+        {isPro ? (
+          <Text style={styles.hint}>{t('profile.proBilling')}</Text>
+        ) : isPaid ? (
           <TouchableOpacity onPress={handleManageSubscription} hitSlop={8} style={styles.manageSubBtn}>
             <Text style={styles.manageSubText}>{t('profile.manageSubscription')}</Text>
           </TouchableOpacity>
-        )}
+        ) : null}
       </ScrollView>
     </Screen>
   )
@@ -353,8 +366,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999,
   },
   planBadgePremium: { backgroundColor: '#F3EEFF', borderColor: '#D4BBFF' },
+  planBadgePro: { backgroundColor: '#FFF4E6', borderColor: '#F2C879' },
   planBadgeText: { fontSize: 12, fontWeight: Typography.semibold, color: Colors.accent },
   planBadgeTextPremium: { color: '#7c3aed' },
+  planBadgeTextPro: { color: '#B4690E' },
 
   sectionTitle: {
     fontSize: Typography.sm, fontWeight: Typography.semibold,

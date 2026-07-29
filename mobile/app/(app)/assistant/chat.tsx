@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Send, Package } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
+import { isPaidPlan } from '@/lib/plan'
 import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 interface ReferencedObject {
@@ -43,7 +44,7 @@ export default function AssistantScreen() {
   // Accès direct par deep-link sans passer par l'écran d'accueil (qui
   // affiche déjà l'upsell) : on redirige les comptes non premium.
   useEffect(() => {
-    if (profile && profile.plan !== 'premium') {
+    if (profile && !isPaidPlan(profile.plan)) {
       router.replace('/assistant')
     }
   }, [profile])

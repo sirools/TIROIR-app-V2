@@ -27,6 +27,7 @@ import { Plus, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, MapPin, Share2, 
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
+import { isPaidPlan } from '@/lib/plan'
 import { Screen, Colors, Typography, Spacing, Radius, ActionSheet } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
 import { DocumentsSection, ObjectDocument } from '@/components/DocumentsSection'
@@ -360,7 +361,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
     const img = images[safeIndex]
     if (!img) return
 
-    if (profile?.plan !== 'premium') {
+    if (!isPaidPlan(profile?.plan)) {
       crossAlert(
         t('object.photo.enhancePremiumTitle'),
         t('object.photo.enhancePremiumMessage'),

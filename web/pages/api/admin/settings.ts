@@ -21,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const {
     free_ai_quota_monthly, free_objects_max, free_photos_per_object,
     premium_ai_quota_monthly, premium_photo_enhance_quota_monthly,
+    pro_ai_quota_monthly, pro_photo_enhance_quota_monthly,
     supabase_db_limit_mb, supabase_storage_limit_mb,
     supabase_plan_monthly_usd, supabase_egress_limit_gb,
     supabase_egress_used_gb, supabase_egress_reading_date,
@@ -33,6 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .update({
       free_ai_quota_monthly, free_objects_max, free_photos_per_object,
       premium_ai_quota_monthly, premium_photo_enhance_quota_monthly,
+      pro_ai_quota_monthly, pro_photo_enhance_quota_monthly,
       supabase_db_limit_mb, supabase_storage_limit_mb,
       supabase_plan_monthly_usd, supabase_egress_limit_gb,
       supabase_egress_used_gb,

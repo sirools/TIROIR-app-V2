@@ -12,6 +12,7 @@ import { useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
+import { isPaidPlan, Plan } from '@/lib/plan'
 import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 interface PickedImage {
@@ -39,7 +40,7 @@ export default function CaptureScreen() {
   const [quotaLimit, setQuotaLimit] = useState<number | null>(null)
   const [quotaExhausted, setQuotaExhausted] = useState(false)
   const [quotaRemaining, setQuotaRemaining] = useState<number | null>(null)
-  const [plan, setPlan] = useState<'free' | 'premium'>('free')
+  const [plan, setPlan] = useState<Plan>('free')
 
   useFocusEffect(useCallback(() => {
     setImages([])
@@ -72,7 +73,7 @@ export default function CaptureScreen() {
    * limite après avoir fait le travail.
    */
   const batchMax = useMemo(() => {
-    const planMax = plan === 'premium' ? BATCH_MAX_PREMIUM : BATCH_MAX_FREE
+    const planMax = isPaidPlan(plan) ? BATCH_MAX_PREMIUM : BATCH_MAX_FREE
     return quotaRemaining === null ? planMax : Math.min(planMax, quotaRemaining)
   }, [plan, quotaRemaining])
 

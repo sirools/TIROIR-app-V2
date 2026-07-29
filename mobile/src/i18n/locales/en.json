@@ -113,6 +113,8 @@
   "profile": {
     "title": "My Profile",
     "premium": "Premium",
+    "pro": "Professional",
+    "proBilling": "Professional plan billed directly. Email us at hello@tiroir.app for any change.",
     "free": "Free plan",
     "statsTitle": "Statistics",
     "statObjects": "items",

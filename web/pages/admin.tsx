@@ -10,6 +10,8 @@ interface AppSettings {
   free_photos_per_object: number
   premium_ai_quota_monthly: number
   premium_photo_enhance_quota_monthly: number
+  pro_ai_quota_monthly: number
+  pro_photo_enhance_quota_monthly: number
   supabase_db_limit_mb: number
   supabase_storage_limit_mb: number
   supabase_plan_monthly_usd: number
@@ -333,6 +335,27 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
           />
         </div>
 
+        {/* ── Quotas professionnels pilotables ── */}
+        <h2 style={s.sectionTitle}>Quotas plan professionnel</h2>
+        <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
+          Palier vendu en direct sur facture, attribué depuis l&apos;onglet « Comptes Pro ». Mêmes fonctionnalités que le premium, objets et photos illimités.
+        </p>
+        <div style={s.settingsCard}>
+          <QuotaField
+            label="Analyses IA / mois"
+            hint="Volume métier — c'est le principal argument du forfait à 29 €"
+            value={settings.pro_ai_quota_monthly}
+            onChange={v => setSettings(s => ({ ...s, pro_ai_quota_monthly: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <QuotaField
+            label="Améliorations photo IA / mois"
+            hint="Le poste le plus cher (Gemini) : à surveiller avant de le monter"
+            value={settings.pro_photo_enhance_quota_monthly}
+            onChange={v => setSettings(s => ({ ...s, pro_photo_enhance_quota_monthly: v }))}
+          />
+        </div>
+
         {/* ── Infra & coûts pilotables ── */}
         <h2 style={s.sectionTitle}>Limites infra & hypothèses de coût</h2>
         <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
@@ -419,6 +442,8 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
           </div>
         </div>
         </>)}
+
+        {tab === 'pro' && <ProAccountsPanel settings={settings} />}
 
         {tab === 'simulation' && (<>
         <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
@@ -808,12 +833,232 @@ function DateField({ label, hint, value, onChange }: {
   )
 }
 
+// ── Comptes Professionnels ──────────────────────────────────────────────
+// Le palier Pro est vendu sur facture, hors stores : il n'y a donc pas de
+// webhook pour l'attribuer. Cet écran est le seul point d'entrée.
+interface ProAccount {
+  id: string
+  email: string
+  display_name: string | null
+  plan: string
+  pro_since: string | null
+  pro_expires_at: string | null
+  pro_invoice_ref: string | null
+  pro_company: string | null
+  created_at: string
+}
+
+const EMPTY_PRO_FORM = { pro_expires_at: '', pro_invoice_ref: '', pro_company: '' }
+
+function ProAccountsPanel({ settings }: { settings: AppSettings }) {
+  const [query, setQuery] = useState('')
+  const [accounts, setAccounts] = useState<ProAccount[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [openId, setOpenId] = useState<string | null>(null)
+  const [form, setForm] = useState(EMPTY_PRO_FORM)
+  const [busy, setBusy] = useState(false)
+
+  // q vide → l'API renvoie la liste des clients Pro actuels.
+  async function load(q: string) {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/pro-accounts?q=${encodeURIComponent(q)}`)
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Erreur inconnue')
+      setAccounts(json.accounts ?? [])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur inconnue')
+      setAccounts([])
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => { load('') }, [])
+
+  function openForm(a: ProAccount) {
+    setOpenId(a.id)
+    setForm({
+      pro_expires_at: a.pro_expires_at ?? '',
+      pro_invoice_ref: a.pro_invoice_ref ?? '',
+      pro_company: a.pro_company ?? '',
+    })
+  }
+
+  async function submit(a: ProAccount, action: 'grant' | 'revoke') {
+    if (action === 'revoke' && !window.confirm(`Repasser ${a.email} en gratuit ?`)) return
+    setBusy(true)
+    setError(null)
+    const res = await fetch('/api/admin/pro-accounts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: a.id, action, ...form }),
+    })
+    setBusy(false)
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}))
+      setError(j.error ?? 'Échec de la mise à jour')
+      return
+    }
+    setOpenId(null)
+    setForm(EMPTY_PRO_FORM)
+    load(query)
+  }
+
+  const isSearch = query.trim().length >= 2
+
+  return (
+    <>
+      <div style={s.settingsCard}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') load(query) }}
+            placeholder="Rechercher un compte par e-mail ou nom…"
+            style={{ ...s.settingsInput, width: 340, textAlign: 'left', fontSize: 14, fontWeight: 500 }}
+          />
+          <button style={s.saveBtn} onClick={() => load(query)} disabled={loading}>
+            {loading ? 'Recherche…' : 'Rechercher'}
+          </button>
+          {isSearch && (
+            <button
+              style={{ ...s.scenarioBtn }}
+              onClick={() => { setQuery(''); load('') }}
+            >
+              Voir les clients Pro
+            </button>
+          )}
+        </div>
+        <div style={{ ...s.settingsHint, marginTop: 10 }}>
+          Quotas appliqués au palier Pro : {settings.pro_ai_quota_monthly} analyses IA et{' '}
+          {settings.pro_photo_enhance_quota_monthly} améliorations photo par mois — modifiables dans l&apos;onglet Quotas.
+        </div>
+      </div>
+
+      {error && (
+        <div style={{ ...s.settingsCard, borderColor: '#C0392B' }}>
+          <span style={s.alertText}>{error}</span>
+        </div>
+      )}
+
+      <h2 style={s.sectionTitle}>
+        {isSearch ? 'Résultats de recherche' : 'Clients Professionnels'}
+      </h2>
+      <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
+        {isSearch
+          ? 'Sélectionne un compte pour lui attribuer le palier Professionnel.'
+          : 'Comptes actuellement au palier Professionnel. Une date de fin dépassée les fait retomber automatiquement en gratuit.'}
+      </p>
+
+      <div style={s.eventsTable}>
+        {loading && <div style={{ ...s.eventRow, borderBottom: 'none' }}>Chargement…</div>}
+
+        {!loading && accounts.length === 0 && (
+          <div style={{ ...s.eventRow, borderBottom: 'none', color: '#8a8a8a' }}>
+            {isSearch ? 'Aucun compte trouvé.' : 'Aucun client Professionnel pour le moment.'}
+          </div>
+        )}
+
+        {!loading && accounts.map(a => {
+          const expired = !!a.pro_expires_at && a.pro_expires_at < new Date().toISOString().slice(0, 10)
+          const isPro = a.plan === 'pro'
+          return (
+            <div key={a.id} style={{ padding: '14px 0', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+                <div>
+                  <div style={s.eventAction}>
+                    {a.email}
+                    <span style={{
+                      marginLeft: 8, padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+                      background: isPro ? '#FFF4E6' : '#F4F4F2',
+                      color: isPro ? '#B4690E' : '#8a8a8a',
+                    }}>
+                      {isPro ? 'Professionnel' : a.plan === 'premium' ? 'Premium' : 'Gratuit'}
+                    </span>
+                    {expired && isPro && (
+                      <span style={{ ...s.alertText, marginLeft: 8 }}>période échue</span>
+                    )}
+                  </div>
+                  <div style={s.settingsHint}>
+                    {a.display_name ?? '—'}
+                    {a.pro_company ? ` · ${a.pro_company}` : ''}
+                    {a.pro_since ? ` · client depuis le ${a.pro_since}` : ''}
+                    {a.pro_expires_at ? ` · jusqu'au ${a.pro_expires_at}` : isPro ? ' · sans date de fin' : ''}
+                    {a.pro_invoice_ref ? ` · facture ${a.pro_invoice_ref}` : ''}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button style={s.scenarioBtn} onClick={() => (openId === a.id ? setOpenId(null) : openForm(a))}>
+                    {openId === a.id ? 'Fermer' : isPro ? 'Modifier' : 'Passer en Pro'}
+                  </button>
+                  {isPro && (
+                    <button
+                      style={{ ...s.scenarioBtn, borderColor: '#C0392B', color: '#C0392B' }}
+                      disabled={busy}
+                      onClick={() => submit(a, 'revoke')}
+                    >
+                      Révoquer
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {openId === a.id && (
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end', marginTop: 14 }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={s.settingsHint}>Fin de période facturée</span>
+                    <input
+                      type="date"
+                      value={form.pro_expires_at}
+                      onChange={e => setForm(f => ({ ...f, pro_expires_at: e.target.value }))}
+                      style={{ ...s.settingsInput, width: 170, textAlign: 'left', fontSize: 14, fontWeight: 500 }}
+                    />
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={s.settingsHint}>Référence facture</span>
+                    <input
+                      value={form.pro_invoice_ref}
+                      onChange={e => setForm(f => ({ ...f, pro_invoice_ref: e.target.value }))}
+                      placeholder="F-2026-001"
+                      style={{ ...s.settingsInput, width: 170, textAlign: 'left', fontSize: 14, fontWeight: 500 }}
+                    />
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={s.settingsHint}>Société</span>
+                    <input
+                      value={form.pro_company}
+                      onChange={e => setForm(f => ({ ...f, pro_company: e.target.value }))}
+                      placeholder="Brocante Untel"
+                      style={{ ...s.settingsInput, width: 200, textAlign: 'left', fontSize: 14, fontWeight: 500 }}
+                    />
+                  </label>
+                  <button style={s.saveBtn} disabled={busy} onClick={() => submit(a, 'grant')}>
+                    {busy ? 'Enregistrement…' : isPro ? 'Mettre à jour' : 'Activer le Professionnel'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <p style={s.footnote}>
+        Laisser la date de fin vide = abonnement ouvert, sans échéance. La révocation repasse le compte en gratuit :
+        elle n&apos;affecte aucun abonnement store, puisque le Professionnel n&apos;en utilise pas.
+      </p>
+    </>
+  )
+}
+
 // ── Onglets ─────────────────────────────────────────────────────────────
-type TabKey = 'dashboard' | 'quotas' | 'simulation'
-const TABS: TabKey[] = ['dashboard', 'quotas', 'simulation']
+type TabKey = 'dashboard' | 'quotas' | 'pro' | 'simulation'
+const TABS: TabKey[] = ['dashboard', 'quotas', 'pro', 'simulation']
 const TAB_META: Record<TabKey, { label: string; title: string; subtitle: string }> = {
   dashboard: { label: 'Tableau de bord', title: 'Tableau de bord', subtitle: 'Données en temps réel depuis Supabase' },
   quotas: { label: 'Quotas', title: 'Quotas & coûts', subtitle: 'Modifie les valeurs et enregistre — appliqué instantanément sans déploiement.' },
+  pro: { label: 'Comptes Pro', title: 'Comptes Professionnels', subtitle: 'Palier vendu en direct sur facture : attribution et révocation manuelles, effet immédiat.' },
   simulation: { label: 'Simulation économique', title: 'Simulation économique', subtitle: 'Simule l’impact d’un lancement sur les coûts infra/IA et les revenus premium.' },
 }
 
@@ -1398,7 +1643,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     admin.from('activity_log').select('*', { count: 'exact', head: true }).eq('action', 'quota.exceeded').gte('created_at', since30d),
     admin.from('activity_log').select('action').gte('created_at', since30d),
     admin.from('app_settings')
-      .select('free_ai_quota_monthly,free_objects_max,free_photos_per_object,premium_ai_quota_monthly,premium_photo_enhance_quota_monthly,supabase_db_limit_mb,supabase_storage_limit_mb,supabase_plan_monthly_usd,supabase_egress_limit_gb,supabase_egress_used_gb,supabase_egress_reading_date,estimated_cost_per_ai_analysis_usd,estimated_cost_per_photo_enhance_usd,monthly_ai_spend_alert_usd')
+      .select('free_ai_quota_monthly,free_objects_max,free_photos_per_object,premium_ai_quota_monthly,premium_photo_enhance_quota_monthly,pro_ai_quota_monthly,pro_photo_enhance_quota_monthly,supabase_db_limit_mb,supabase_storage_limit_mb,supabase_plan_monthly_usd,supabase_egress_limit_gb,supabase_egress_used_gb,supabase_egress_reading_date,estimated_cost_per_ai_analysis_usd,estimated_cost_per_photo_enhance_usd,monthly_ai_spend_alert_usd')
       .eq('id', 1).single(),
     admin.rpc('get_admin_infra_stats').single(),
   ])
@@ -1445,8 +1690,10 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     free_ai_quota_monthly: num('free_ai_quota_monthly', 30),
     free_objects_max: num('free_objects_max', 30),
     free_photos_per_object: num('free_photos_per_object', 1),
-    premium_ai_quota_monthly: num('premium_ai_quota_monthly', 150),
-    premium_photo_enhance_quota_monthly: num('premium_photo_enhance_quota_monthly', 50),
+    premium_ai_quota_monthly: num('premium_ai_quota_monthly', 60),
+    premium_photo_enhance_quota_monthly: num('premium_photo_enhance_quota_monthly', 20),
+    pro_ai_quota_monthly: num('pro_ai_quota_monthly', 300),
+    pro_photo_enhance_quota_monthly: num('pro_photo_enhance_quota_monthly', 100),
     supabase_db_limit_mb: num('supabase_db_limit_mb', 8192),
     supabase_storage_limit_mb: num('supabase_storage_limit_mb', 102400),
     supabase_plan_monthly_usd: num('supabase_plan_monthly_usd', 25),

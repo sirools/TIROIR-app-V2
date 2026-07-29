@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { User, Settings, LogOut, Link, Zap, MessageCircle } from 'lucide-react-native'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthContext'
+import { isPaidPlan } from '@/lib/plan'
 
 const MENU_WIDTH = Dimensions.get('window').width * 0.78
 
@@ -22,7 +23,7 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
   const router = useRouter()
   const { t } = useTranslation()
   const { profile, signOut } = useAuth()
-  const isPremium = (profile as any)?.plan === 'premium'
+  const isPremium = isPaidPlan((profile as any)?.plan)
   const translateX = useRef(new Animated.Value(-MENU_WIDTH)).current
   const opacity = useRef(new Animated.Value(0)).current
 

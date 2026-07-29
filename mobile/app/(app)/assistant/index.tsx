@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, MessageCircle, Sparkles, MapPin, Search, ListChecks, Zap } from 'lucide-react-native'
 import { useAuth } from '@/features/auth/AuthContext'
+import { isPaidPlan } from '@/lib/plan'
 import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 const TIPS = [
@@ -25,7 +26,7 @@ export default function AssistantLandingScreen() {
   const router = useRouter()
   const { t } = useTranslation()
   const { profile } = useAuth()
-  const isPremium = profile?.plan === 'premium'
+  const isPremium = isPaidPlan(profile?.plan)
 
   function openChat(prompt?: string) {
     router.push({ pathname: '/assistant/chat', params: prompt ? { prompt } : undefined })

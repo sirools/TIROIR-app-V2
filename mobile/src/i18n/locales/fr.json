@@ -113,6 +113,8 @@
   "profile": {
     "title": "Mon Profil",
     "premium": "Premium",
+    "pro": "Professionnel",
+    "proBilling": "Abonnement Professionnel facturé en direct. Écrivez-nous à hello@tiroir.app pour toute modification.",
     "free": "Version gratuite",
     "statsTitle": "Statistiques",
     "statObjects": "objets",

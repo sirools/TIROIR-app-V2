@@ -56,17 +56,21 @@ Deno.serve(async (req) => {
   }
 
   if (newPlan) {
+    // Le palier Professionnel est vendu en direct sur facture : RevenueCat
+    // n'en sait rien. Sans ce garde-fou, un EXPIRATION ou un TRANSFER
+    // rétrograderait un client Pro en gratuit.
     const { error } = await admin
       .from('profiles')
       .update({ plan: newPlan })
       .eq('id', appUserId)
+      .neq('plan', 'pro')
 
     if (error) {
       console.error(`[revenuecat-webhook] Failed to update plan:`, error.message)
       return new Response('Internal error', { status: 500 })
     }
 
-    console.log(`[revenuecat-webhook] plan → ${newPlan} for ${appUserId}`)
+    console.log(`[revenuecat-webhook] plan → ${newPlan} for ${appUserId} (comptes Pro exclus)`)
   }
 
   return new Response('OK', { status: 200 })

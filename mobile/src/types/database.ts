@@ -10,7 +10,11 @@ export interface Profile {
   id: string
   display_name: string | null
   avatar_url: string | null
-  plan: 'free' | 'premium'
+  plan: 'free' | 'premium' | 'pro'
+  pro_since: string | null
+  pro_expires_at: string | null
+  pro_invoice_ref: string | null
+  pro_company: string | null
   created_at: string
   updated_at: string
 }
