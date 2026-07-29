@@ -60,22 +60,40 @@ function Panel({
   const { ref, shown } = useReveal<HTMLElement>()
   return (
     <section ref={ref} id={panel.id} className={`bx-panel ${shown ? 'is-in' : ''}`}>
-      <header className="bx-head">
-        <span className="bx-kicker">{panel.kicker}</span>
-        <h2 className="bx-title">{panel.title}</h2>
-      </header>
-      <div className="bx-bento">{children}</div>
+      {/* Le panneau fait toute la largeur (scroll-snap), son contenu est
+          borné à la largeur de contenu du site pour garder des marges
+          généreuses sur grand écran. */}
+      <div className="bx-inner">
+        <header className="bx-head">
+          <span className="bx-kicker">{panel.kicker}</span>
+          <h2 className="bx-title">{panel.title}</h2>
+        </header>
+        <div className="bx-bento">{children}</div>
+      </div>
 
       <style jsx>{`
         .bx-panel {
           flex: 0 0 100%;
           scroll-snap-align: center;
           display: flex;
+          /* Le bas réserve la place de la nav (progression + pastilles +
+             mention de défilement), qui est en position absolue au-dessus. */
+          padding:
+            clamp(16px, 3.5vh, 40px)
+            clamp(20px, 6vw, 96px)
+            clamp(92px, 11vh, 108px);
+          min-width: 0;
+        }
+        .bx-inner {
+          width: 100%;
+          max-width: var(--max);
+          margin: 0 auto;
+          min-width: 0;
+          min-height: 0;
+          display: flex;
           flex-direction: column;
           justify-content: center;
           gap: clamp(18px, 3vh, 34px);
-          padding: clamp(20px, 4vw, 56px) clamp(20px, 5vw, 72px);
-          min-width: 0;
         }
         .bx-kicker {
           display: block;
@@ -108,7 +126,11 @@ function Panel({
           .bx-bento {
             flex: 1;
             min-height: 0;
-            grid-auto-rows: minmax(120px, 1fr);
+            /* Les lignes se partagent la place disponible, mais restent
+               plafonnées : au-delà, les tuiles deviennent des panneaux
+               vides plutôt que des cartes. */
+            max-height: 560px;
+            grid-auto-rows: minmax(110px, 1fr);
           }
         }
         @media (max-width: 860px) {
