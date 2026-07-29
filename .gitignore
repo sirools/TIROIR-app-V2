@@ -32,3 +32,8 @@ npm-debug.log*
 
 # EAS
 00_BUILDS-IPA/
+
+# Sorties de travail locales (jamais versionnées)
+/tmp/
+/output/
+/candidatures/
