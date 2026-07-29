@@ -11,6 +11,10 @@ interface Story {
   video?: string
   screenshot?: string
   illustration?: string
+  /** Maquette animée en CSS plutôt qu'un visuel figé. */
+  motion?: 'sale'
+  /** Lien complémentaire affiché à la suite du paragraphe. */
+  link?: { href: string; label: string }
   placeholder?: { emoji: string; label: string; hint: string }
   bg: string
   textColor: string
@@ -85,7 +89,8 @@ const STORIES: Story[] = [
     tag: 'Vente',
     headline: 'Vendez au bon prix. Du premier coup.',
     sub: "Données de marché en temps réel, fiche produit prête à partager, historique du prix d'achat. Vous négociez avec des arguments. L'acheteur reçoit une fiche professionnelle.",
-    illustration: '/screens/vente-phones.webp',
+    motion: 'sale',
+    link: { href: '/concept', label: 'Comment ça marche, en détail' },
     bg: '#FCE0E8',
     textColor: '#5E1A2F',
     tagBg: '#F4B0C8',
@@ -442,6 +447,194 @@ function PlaceholderFrame({ data, tilt, bg, textColor }: {
   )
 }
 
+/**
+ * Suivi de vente animé, en CSS pur (autoplay, boucle de 10 s).
+ *
+ * Trois objets passent de « En vente » à « Vendu » l'un après l'autre, et
+ * le total encaissé suit. Le tableau de bord vaut mieux qu'une photo de
+ * téléphone ici : c'est le suivi dans le temps qu'on veut montrer, pas
+ * l'écran d'un seul objet.
+ */
+const SALE_ROWS = [
+  { emoji: '🧥', name: 'Veste en jean', price: '45 €', delay: '1.4s' },
+  { emoji: '👟', name: 'Nike Air Max 90', price: '80 €', delay: '3.4s' },
+  { emoji: '📸', name: 'Leica M6', price: '85 €', delay: '5.4s' },
+]
+
+const SALE_TOTALS = ['0 €', '45 €', '125 €', '210 €']
+
+function SaleMotion({ tilt }: { tilt: string }) {
+  return (
+    <div className="sale-wrap">
+      <div className="sale-card" style={{ transform: tilt }}>
+        <div className="sale-head">
+          <div>
+            <span className="sale-kicker">Collection</span>
+            <strong className="sale-title">À vendre</strong>
+          </div>
+          <span className="sale-badge">3 objets</span>
+        </div>
+
+        <div className="sale-rows">
+          {SALE_ROWS.map(r => (
+            <div className="sale-row" key={r.name}>
+              <span className="sale-emoji">{r.emoji}</span>
+              <div className="sale-meta">
+                <strong>{r.name}</strong>
+                <span className="sale-price">{r.price}</span>
+              </div>
+              <span className="sale-chips">
+                <em className="c-live" style={{ animationDelay: r.delay }}>En vente</em>
+                <em className="c-sold" style={{ animationDelay: r.delay }}>Vendu ✓</em>
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="sale-foot">
+          <span className="sale-footLab">Total encaissé</span>
+          <span className="sale-totals">
+            {SALE_TOTALS.map(t => <b key={t}>{t}</b>)}
+          </span>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .sale-wrap {
+          display: flex; align-items: center; justify-content: center;
+          padding: 32px 0;
+        }
+        .sale-card {
+          width: min(380px, 100%);
+          background: #fff;
+          border-radius: 24px;
+          padding: 22px;
+          box-shadow: 0 32px 80px rgba(94, 26, 47, 0.18), 0 8px 20px rgba(94, 26, 47, 0.1);
+          transition: transform 0.45s cubic-bezier(0.34, 1.26, 0.64, 1);
+        }
+        .sale-card:hover {
+          transform: perspective(900px) rotateY(0deg) rotateX(0deg) scale(1.03) !important;
+        }
+
+        .sale-head {
+          display: flex; align-items: flex-start; justify-content: space-between;
+          margin-bottom: 18px;
+        }
+        .sale-kicker {
+          display: block; font-size: 10px; font-weight: 700;
+          letter-spacing: 0.1em; text-transform: uppercase; color: #C08098;
+        }
+        .sale-title { font-size: 20px; font-weight: 800; color: #5E1A2F; letter-spacing: -0.3px; }
+        .sale-badge {
+          font-size: 11px; font-weight: 700; color: #5E1A2F;
+          background: #FCE0E8; border-radius: 999px; padding: 5px 11px;
+        }
+
+        .sale-rows { display: flex; flex-direction: column; gap: 10px; }
+        .sale-row {
+          display: flex; align-items: center; gap: 12px;
+          background: #FBF7F4;
+          border: 1px solid rgba(94, 26, 47, 0.07);
+          border-radius: 14px;
+          padding: 11px 13px;
+        }
+        .sale-emoji {
+          width: 38px; height: 38px; flex-shrink: 0;
+          border-radius: 10px; background: #fff;
+          display: grid; place-items: center; font-size: 20px;
+        }
+        .sale-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+        .sale-meta strong {
+          font-size: 14px; font-weight: 700; color: #3A2028;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .sale-price { font-size: 12px; font-weight: 700; color: #C08098; }
+
+        /* Les deux étiquettes se superposent et se relaient. */
+        .sale-chips { position: relative; width: 74px; height: 24px; flex-shrink: 0; }
+        .sale-chips em {
+          position: absolute; inset: 0;
+          display: grid; place-items: center;
+          font-style: normal; font-size: 11px; font-weight: 800;
+          border-radius: 999px;
+          animation: 10s infinite;
+        }
+        .c-live {
+          background: #F0EBE3; color: #8a7a80;
+          animation-name: chipLive;
+        }
+        .c-sold {
+          background: #DCEFD8; color: #1E4D1A;
+          opacity: 0;
+          animation-name: chipSold;
+        }
+        /* Avant son délai, chaque étiquette garde son état de base :
+           « En vente » visible, « Vendu » masqué. La bascule a donc lieu
+           juste après le démarrage de l'animation. */
+        @keyframes chipLive {
+          0%, 2% { opacity: 1; transform: scale(1); }
+          6%, 92% { opacity: 0; transform: scale(0.9); }
+          96%, 100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes chipSold {
+          0%, 2% { opacity: 0; transform: scale(0.9); }
+          7%, 92% { opacity: 1; transform: scale(1); }
+          96%, 100% { opacity: 0; transform: scale(0.9); }
+        }
+
+        .sale-foot {
+          display: flex; align-items: center; justify-content: space-between;
+          margin-top: 18px; padding-top: 14px;
+          border-top: 1px solid rgba(94, 26, 47, 0.1);
+        }
+        .sale-footLab { font-size: 12px; font-weight: 700; color: #C08098; }
+        .sale-totals { position: relative; width: 90px; height: 30px; }
+        .sale-totals b {
+          position: absolute; inset: 0;
+          display: grid; place-items: end center;
+          font-size: 24px; font-weight: 800; color: #5E1A2F; letter-spacing: -0.5px;
+          opacity: 0;
+          animation: 10s infinite;
+        }
+        /* Un palier par vente, calé sur la bascule des étiquettes. Le
+           dernier montant tient jusqu'à la fin du cycle, pour ne jamais
+           laisser le total vide. */
+        .sale-totals b:nth-child(1) { animation-name: total0; }
+        .sale-totals b:nth-child(2) { animation-name: total1; }
+        .sale-totals b:nth-child(3) { animation-name: total2; }
+        .sale-totals b:nth-child(4) { animation-name: total3; }
+        @keyframes total0 {
+          0%, 14% { opacity: 1; transform: translateY(0); }
+          17%, 97% { opacity: 0; transform: translateY(-6px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes total1 {
+          0%, 14% { opacity: 0; transform: translateY(6px); }
+          17%, 34% { opacity: 1; transform: translateY(0); }
+          37%, 100% { opacity: 0; transform: translateY(-6px); }
+        }
+        @keyframes total2 {
+          0%, 34% { opacity: 0; transform: translateY(6px); }
+          37%, 54% { opacity: 1; transform: translateY(0); }
+          57%, 100% { opacity: 0; transform: translateY(-6px); }
+        }
+        @keyframes total3 {
+          0%, 54% { opacity: 0; transform: translateY(6px); }
+          57%, 97% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .sale-chips em, .sale-totals b { animation: none; }
+          .c-live { opacity: 0; }
+          .c-sold { opacity: 1; }
+          .sale-totals b:last-child { opacity: 1; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
 function StoryBlock({ story }: { story: Story }) {
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
@@ -457,7 +650,9 @@ function StoryBlock({ story }: { story: Story }) {
     return () => obs.disconnect()
   }, [])
 
-  const visualEl = story.placeholder
+  const visualEl = story.motion === 'sale'
+    ? <SaleMotion tilt={story.tilt} />
+    : story.placeholder
     ? <PlaceholderFrame data={story.placeholder} tilt={story.tilt} bg={story.bg} textColor={story.textColor} />
     : story.illustration
       ? <IllustrationFrame src={story.illustration} tilt={story.tilt} />
@@ -469,8 +664,34 @@ function StoryBlock({ story }: { story: Story }) {
       <span className="tag">{story.tag}</span>
       <h2 className="headline">{story.headline}</h2>
       <p className="sub">{story.sub}</p>
+      {story.link && (
+        <a className="story-link" href={story.link.href}>
+          {story.link.label}
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h13M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2"
+              strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
+      )}
       <style jsx>{`
         .text-col { display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+        .story-link {
+          display: inline-flex; align-items: center; gap: 8px;
+          width: fit-content;
+          padding: 11px 20px;
+          border-radius: 100px;
+          background: ${story.textColor};
+          color: ${story.bg};
+          font-size: 14px; font-weight: 700;
+          text-decoration: none;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .story-link:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 20px ${story.textColor}33;
+        }
+        .story-link svg { transition: transform 0.2s ease; }
+        .story-link:hover svg { transform: translateX(3px); }
         .tag {
           display: inline-block;
           width: fit-content;
