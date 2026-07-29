@@ -6,6 +6,9 @@ Usage :
   # Mission pour un agent unique
   python main.py --agent bob --mission "Implémenter l'écran d'édition d'objet (phase 1.3)"
 
+  # War room growth J+7
+  python main.py --growth
+
   # Mission parallèle pour toute l'équipe
   python main.py --team
 
@@ -95,6 +98,23 @@ def team_mission():
         print()
 
 
+def growth_war_room():
+    from tiroir_crew.crew import run_growth_war_room
+
+    print("\n📈 WAR ROOM GROWTH J+7 — Tiroir")
+    print("Mina, Omar et Bob travaillent en parallèle sur acquisition, mesure et boucles produit.\n")
+
+    results = run_growth_war_room()
+
+    print("\n" + "="*60)
+    print("📊 RAPPORT WAR ROOM J+7")
+    print("="*60)
+    for name, result in results.items():
+        print(f"\n👤 {name.capitalize()} :")
+        print(result[:1200] + "..." if len(result) > 1200 else result)
+        print()
+
+
 def interactive_chat(agent: str):
     from tiroir_crew.crew import run_mission
 
@@ -118,18 +138,22 @@ def interactive_chat(agent: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Interface PDG — Équipe Tiroir V2")
-    parser.add_argument("--agent", choices=["alice", "bob", "sofia"],
+    parser.add_argument("--agent", choices=["alice", "bob", "sofia", "mina", "omar"],
                         help="Nom de l'agent à solliciter")
     parser.add_argument("--mission", type=str,
                         help="Mission à confier à l'agent")
     parser.add_argument("--team", action="store_true",
                         help="Lancer une mission d'équipe (tous les agents en parallèle)")
-    parser.add_argument("--chat", choices=["alice", "bob", "sofia"],
+    parser.add_argument("--growth", action="store_true",
+                        help="Lancer la war room growth J+7")
+    parser.add_argument("--chat", choices=["alice", "bob", "sofia", "mina", "omar"],
                         help="Mode interactif avec un agent")
 
     args = parser.parse_args()
 
-    if args.team:
+    if args.growth:
+        growth_war_room()
+    elif args.team:
         team_mission()
     elif args.chat:
         interactive_chat(args.chat)
@@ -139,7 +163,9 @@ def main():
         parser.print_help()
         print("\n📖 Exemples :")
         print('  python main.py --agent alice --mission "Déploie chat-turn"')
+        print('  python main.py --agent mina --mission "Prépare 5 posts de lancement"')
         print('  python main.py --agent bob --mission "Crée l\'écran d\'édition objet"')
+        print('  python main.py --growth')
         print('  python main.py --chat sofia')
         print('  python main.py --team')
 

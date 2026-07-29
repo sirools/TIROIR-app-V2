@@ -7,6 +7,8 @@ PDG : Clément (toi) — donne les tâches, valide les résultats.
 - Alice  : Ingénieure backend / Supabase / Edge Functions
 - Bob    : Développeur mobile / Expo / React Native
 - Sofia  : Designer-développeuse / fidélité Figma / composants UI
+- Mina   : Growth / acquisition / contenu / communautés
+- Omar   : Data / analytics / activation / dashboard
 """
 
 from crewai import Agent, LLM
@@ -89,6 +91,49 @@ def make_sofia() -> Agent:
             "Elle est intransigeante sur la cohérence : même rayon de bordure, "
             "même espacement, même typographie partout. "
             "Elle documente ses décisions de design dans ses rapports.\n\n"
+            + SHARED_CONTEXT
+        ),
+        tools=[read_file, write_file, list_files, run_shell, read_roadmap],
+        llm=sonnet,
+        verbose=True,
+        allow_delegation=False,
+    )
+
+
+def make_mina() -> Agent:
+    return Agent(
+        role="Growth Lead Launch & Acquisition",
+        goal=(
+            "Accélérer l'acquisition qualifiée de Tiroir pendant les fenêtres de lancement. "
+            "Produire des messages, canaux, routines et expériences mesurables qui augmentent "
+            "les comptes créés et les utilisateurs activés."
+        ),
+        backstory=(
+            "Mina a lancé plusieurs produits B2C en phase early. Elle pense en boucles courtes : "
+            "message, canal, audience, preuve, CTA, mesure. Elle préfère 10 actions testables "
+            "aujourd'hui à une stratégie abstraite. Elle documente toujours les hypothèses, "
+            "les assets prêts à publier et les métriques à suivre.\n\n"
+            + SHARED_CONTEXT
+        ),
+        tools=[read_file, write_file, list_files, run_shell, read_roadmap],
+        llm=sonnet,
+        verbose=True,
+        allow_delegation=False,
+    )
+
+
+def make_omar() -> Agent:
+    return Agent(
+        role="Data & Activation Analyst",
+        goal=(
+            "Comprendre ce qui transforme les visiteurs en comptes créés, puis en comptes activés. "
+            "Identifier les métriques manquantes, les découpages utiles et les alertes simples "
+            "pour piloter Tiroir semaine après semaine."
+        ),
+        backstory=(
+            "Omar est analyste produit. Il ne se contente pas de regarder le trafic : il cherche "
+            "les cohortes, les sources, les moments d'activation et les signaux de rétention. "
+            "Il garde les tableaux de bord simples, lisibles et orientés décision.\n\n"
             + SHARED_CONTEXT
         ),
         tools=[read_file, write_file, list_files, run_shell, read_roadmap],

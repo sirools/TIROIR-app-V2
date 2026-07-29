@@ -4,7 +4,7 @@ Orchestrateur principal — assemble agents et tâches en un Crew.
 
 from datetime import datetime
 from crewai import Crew, Task, Process
-from .agents import make_alice, make_bob, make_sofia
+from .agents import make_alice, make_bob, make_sofia, make_mina, make_omar
 
 
 def run_mission(mission: str, agent_name: str = "bob") -> str:
@@ -13,7 +13,7 @@ def run_mission(mission: str, agent_name: str = "bob") -> str:
 
     Args:
         mission : description de la tâche à accomplir
-        agent_name : "alice", "bob" ou "sofia"
+        agent_name : "alice", "bob", "sofia", "mina" ou "omar"
 
     Returns:
         Résultat de l'agent sous forme de texte
@@ -22,10 +22,12 @@ def run_mission(mission: str, agent_name: str = "bob") -> str:
         "alice": make_alice,
         "bob": make_bob,
         "sofia": make_sofia,
+        "mina": make_mina,
+        "omar": make_omar,
     }
 
     if agent_name not in agents_map:
-        return f"Agent inconnu : {agent_name}. Choisir parmi : alice, bob, sofia"
+        return f"Agent inconnu : {agent_name}. Choisir parmi : alice, bob, sofia, mina, omar"
 
     agent = agents_map[agent_name]()
 
@@ -82,3 +84,32 @@ def run_team_mission(missions: dict[str, str]) -> dict[str, str]:
         results = dict(executor.map(run_one, missions.items()))
 
     return results
+
+
+def run_growth_war_room() -> dict[str, str]:
+    """
+    Lance la war room J+7 : growth, data et produit en parallèle.
+    """
+    missions = {
+        "mina": (
+            "Prépare le plan growth J+7 de Tiroir à partir des chiffres actuels : "
+            "83 visiteurs uniques, 133 visites 24h, 214 visites 7j/30j, 12 comptes créés, "
+            "292 objets créés, 10 comptes avec au moins 1 objet. "
+            "Livre des posts prêts à publier, messages de relance, canaux à tester, "
+            "et un calendrier d'actions sur 7 jours."
+        ),
+        "omar": (
+            "Analyse les métriques de lancement et le code du dashboard. "
+            "Propose les découpages à ajouter pour comprendre les sources qui créent "
+            "des comptes activés : source, campagne, device, pays, landing, inscription, "
+            "premier objet, deuxième session. "
+            "Livre un plan de tracking J+7 très simple et actionnable."
+        ),
+        "bob": (
+            "Explore l'application mobile et identifie les petites boucles produit "
+            "implémentables rapidement pour aider la croissance : partage, invitation, "
+            "CTA après création du premier ou troisième objet, export partageable. "
+            "Ne modifie pas le code. Priorise par impact, effort et risque."
+        ),
+    }
+    return run_team_mission(missions)
