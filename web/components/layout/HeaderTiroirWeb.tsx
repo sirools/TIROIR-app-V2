@@ -147,6 +147,9 @@ export default function HeaderTiroirWeb() {
           Admin
         </button>
       )}
+      <a className="appstore-nav-btn" href="/concept">
+        Concept
+      </a>
       <a className="appstore-nav-btn" href="/pricing">
         {isEn ? 'Pricing' : 'Tarifs'}
       </a>
