@@ -241,6 +241,9 @@ export default function HeaderTiroirWeb() {
                     <a className="ti-user__item" href="/profil" role="menuitem">
                       {isEn ? 'My profile' : 'Mon profil'}
                     </a>
+                    <a className="ti-user__item" href="/mon-compte" role="menuitem">
+                      {isEn ? 'My account' : 'Mon compte'}
+                    </a>
                     <a className="ti-user__item" href="/mes-partages" role="menuitem">
                       {isEn ? 'My shares' : 'Mes partages'}
                     </a>
@@ -323,6 +326,13 @@ export default function HeaderTiroirWeb() {
                   onClick={() => navigate('/profil')}
                 >
                   {isEn ? 'My profile' : 'Mon profil'}
+                </button>
+                <button
+                  className="appstore-nav-btn"
+                  type="button"
+                  onClick={() => navigate('/mon-compte')}
+                >
+                  {isEn ? 'My account' : 'Mon compte'}
                 </button>
                 <button
                   className="appstore-nav-btn"

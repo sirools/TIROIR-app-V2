@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { User, Settings, LogOut, Link, Zap, MessageCircle } from 'lucide-react-native'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthContext'
-import { isPaidPlan } from '@/lib/plan'
+import { isPaidPlan, isProPlan, planLabelKey } from '@/lib/plan'
 
 const MENU_WIDTH = Dimensions.get('window').width * 0.78
 
@@ -23,7 +23,9 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
   const router = useRouter()
   const { t } = useTranslation()
   const { profile, signOut } = useAuth()
-  const isPremium = isPaidPlan((profile as any)?.plan)
+  const plan = (profile as any)?.plan
+  const isPremium = isPaidPlan(plan)
+  const isPro = isProPlan(plan)
   const translateX = useRef(new Animated.Value(-MENU_WIDTH)).current
   const opacity = useRef(new Animated.Value(0)).current
 
@@ -90,10 +92,18 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.profileName}>{profile?.display_name ?? t('menu.profileDefault')}</Text>
-            <View style={[styles.planBadge, isPremium && styles.planBadgePremium]}>
-              <Zap size={9} color={isPremium ? '#7c3aed' : Colors.accent} strokeWidth={2.5} />
-              <Text style={[styles.planBadgeText, isPremium && styles.planBadgeTextPremium]}>
-                {isPremium ? t('profile.premium') : t('profile.free')}
+            <View style={[
+              styles.planBadge,
+              isPremium && styles.planBadgePremium,
+              isPro && styles.planBadgePro,
+            ]}>
+              <Zap size={9} color={isPro ? '#B4690E' : isPremium ? '#7c3aed' : Colors.accent} strokeWidth={2.5} />
+              <Text style={[
+                styles.planBadgeText,
+                isPremium && styles.planBadgeTextPremium,
+                isPro && styles.planBadgeTextPro,
+              ]}>
+                {t(planLabelKey(plan))}
               </Text>
             </View>
           </View>
@@ -122,9 +132,11 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
         />
 
         {isPremium ? (
-          <View style={styles.premiumActive}>
-            <Zap size={14} color="#7c3aed" strokeWidth={2} />
-            <Text style={styles.premiumActiveText}>{t('menu.premiumActive')}</Text>
+          <View style={[styles.premiumActive, isPro && styles.proActive]}>
+            <Zap size={14} color={isPro ? '#B4690E' : '#7c3aed'} strokeWidth={2} />
+            <Text style={[styles.premiumActiveText, isPro && styles.proActiveText]}>
+              {isPro ? t('menu.proActive') : t('menu.premiumActive')}
+            </Text>
           </View>
         ) : (
           <TouchableOpacity style={styles.upgradeRow} onPress={() => navigate('/paywall')} activeOpacity={0.85}>
@@ -252,8 +264,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, marginTop: 3,
   },
   planBadgePremium: { backgroundColor: '#F3EEFF', borderColor: '#D4BBFF' },
+  planBadgePro: { backgroundColor: '#FFF4E6', borderColor: '#F2C879' },
   planBadgeText: { fontSize: 11, fontWeight: Typography.semibold, color: Colors.accent },
   planBadgeTextPremium: { color: '#7c3aed' },
+  planBadgeTextPro: { color: '#B4690E' },
 
   // Upgrade CTA
   upgradeRow: {
@@ -272,6 +286,10 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
   },
   premiumActiveText: { fontSize: Typography.sm, fontWeight: Typography.semibold, color: '#7c3aed' },
+
+  // Professionnel actif — même bloc, palette ambre du palier Pro
+  proActive: { backgroundColor: '#FFF4E6', borderColor: '#F2C879' },
+  proActiveText: { color: '#B4690E' },
 
   spacer: { flex: 1 },
 
