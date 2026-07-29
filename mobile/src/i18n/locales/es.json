@@ -59,6 +59,23 @@
       "successText": "Revisa tu correo y haz clic en el enlace para crear una nueva contraseña.",
       "backToLogin": "Volver al inicio de sesión",
       "errorMissingEmail": "Introduce tu dirección de correo."
+    },
+    "reset": {
+      "title": "Nueva contraseña",
+      "subtitle": "Elige una contraseña para tu cuenta de Tiroir.",
+      "invalidSubtitle": "Este enlace ya no es válido. Los enlaces de restablecimiento caducan en una hora y solo sirven una vez.",
+      "opening": "Abriendo el enlace…",
+      "newPasswordLabel": "Nueva contraseña",
+      "newPasswordPlaceholder": "8 caracteres como mínimo",
+      "confirmLabel": "Confirmar",
+      "confirmPlaceholder": "Escribe la contraseña otra vez",
+      "submit": "Guardar",
+      "errorTooShort": "La contraseña debe tener al menos {{count}} caracteres.",
+      "errorMismatch": "Las dos contraseñas no coinciden.",
+      "askNewLink": "Pedir un enlace nuevo",
+      "successTitle": "Contraseña guardada",
+      "successText": "Has iniciado sesión. Esta contraseña también funcionará en el sitio web.",
+      "continue": "Continuar"
     }
   },
   "settings": {
@@ -85,7 +102,11 @@
     "deleteLastTitle": "Última confirmación",
     "deleteLastMessage": "Escribe \"ELIMINAR\" para confirmar.",
     "deleteLastConfirm": "Confirmo",
-    "deleteFailed": "La eliminación falló. Inténtalo de nuevo o contacta con soporte."
+    "deleteFailed": "La eliminación falló. Inténtalo de nuevo o contacta con soporte.",
+    "newPasswordLabel": "Nueva contraseña",
+    "confirmPasswordLabel": "Confirmar",
+    "savePassword": "Guardar",
+    "passwordMismatch": "Las dos contraseñas no coinciden."
   },
   "language": {
     "title": "Idioma de la aplicación",

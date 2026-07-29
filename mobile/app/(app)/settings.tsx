@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, ActivityIndicator, Linking,
+  Modal, KeyboardAvoidingView, Platform,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -9,35 +10,55 @@ import { ArrowLeft, ChevronRight, Lock, FileText, Shield, Trash2, Check } from '
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { setAppLanguage, SUPPORTED_LANGUAGES, LANGUAGE_LABELS, type AppLanguage } from '@/i18n'
-import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { Screen, Button, Input, Colors, Typography, Spacing, Radius } from '@/components/ui'
+
+const MIN_PASSWORD_LENGTH = 8
 
 export default function SettingsScreen() {
   const router = useRouter()
   const { t, i18n } = useTranslation()
   const { signOut } = useAuth()
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
   const currentLang = i18n.language as AppLanguage
 
   // ── Changer le mot de passe ──────────────────────────────────────────────
 
-  async function handleChangePassword() {
-    Alert.prompt(
-      t('settings.changePasswordTitle'),
-      t('settings.changePasswordMessage'),
-      async (password) => {
-        if (!password || password.length < 8) {
-          Alert.alert(t('settings.passwordTooShortTitle'), t('settings.passwordTooShortMessage'))
-          return
-        }
-        const { error } = await supabase.auth.updateUser({ password })
-        if (error) {
-          Alert.alert(t('common.error'), error.message)
-        } else {
-          Alert.alert(t('settings.passwordUpdatedTitle'), t('settings.passwordUpdatedMessage'))
-        }
-      },
-      'secure-text'
-    )
+  // Alert.prompt n'existe que sur iOS : sur Android l'appel ne faisait
+  // strictement rien. D'où cette modale, identique sur les deux plateformes.
+  async function submitNewPassword() {
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      setPasswordError(t('settings.passwordTooShortMessage'))
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError(t('settings.passwordMismatch'))
+      return
+    }
+
+    setSavingPassword(true)
+    setPasswordError(null)
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    setSavingPassword(false)
+
+    if (error) {
+      setPasswordError(error.message)
+      return
+    }
+
+    closePasswordModal()
+    Alert.alert(t('settings.passwordUpdatedTitle'), t('settings.passwordUpdatedMessage'))
+  }
+
+  function closePasswordModal() {
+    setPasswordModalVisible(false)
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordError(null)
   }
 
   // ── Supprimer le compte ──────────────────────────────────────────────────
@@ -107,7 +128,7 @@ export default function SettingsScreen() {
           <SettingsRow
             icon={<Lock size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
             label={t('settings.changePassword')}
-            onPress={handleChangePassword}
+            onPress={() => setPasswordModalVisible(true)}
           />
         </View>
 
@@ -173,6 +194,62 @@ export default function SettingsScreen() {
         </Text>
 
       </ScrollView>
+
+      {/* Changement de mot de passe — modale plutôt qu'Alert.prompt (iOS only) */}
+      <Modal
+        visible={passwordModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closePasswordModal}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalBackdrop}
+        >
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={closePasswordModal}
+          />
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{t('settings.changePasswordTitle')}</Text>
+            <Text style={styles.modalMessage}>{t('settings.changePasswordMessage')}</Text>
+
+            <Input
+              label={t('settings.newPasswordLabel')}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="new-password"
+              autoFocus
+            />
+            <Input
+              label={t('settings.confirmPasswordLabel')}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="new-password"
+              containerStyle={{ marginTop: Spacing.md }}
+            />
+
+            {passwordError && <Text style={styles.modalError}>{passwordError}</Text>}
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity onPress={closePasswordModal} style={styles.modalCancel}>
+                <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <Button
+                label={t('settings.savePassword')}
+                onPress={submitNewPassword}
+                loading={savingPassword}
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </Screen>
   )
 }
@@ -270,5 +347,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xs,
     lineHeight: 18,
     marginTop: Spacing.xs,
+  },
+
+  // Modale « changer le mot de passe »
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  modalCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+  },
+  modalTitle: {
+    fontSize: Typography.md,
+    fontWeight: Typography.bold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+  },
+  modalMessage: {
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: Spacing.md,
+  },
+  modalError: {
+    fontSize: Typography.sm,
+    color: Colors.error,
+    marginTop: Spacing.sm,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+  modalCancel: { paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md },
+  modalCancelText: {
+    fontSize: Typography.base,
+    color: Colors.textSecondary,
+    fontWeight: Typography.medium,
   },
 })

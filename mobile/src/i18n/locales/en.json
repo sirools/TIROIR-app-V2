@@ -59,6 +59,23 @@
       "successText": "Check your inbox and click the link to create a new password.",
       "backToLogin": "Back to sign in",
       "errorMissingEmail": "Enter your email address."
+    },
+    "reset": {
+      "title": "New password",
+      "subtitle": "Choose a password for your Tiroir account.",
+      "invalidSubtitle": "This link is no longer valid. Reset links expire after one hour and can only be used once.",
+      "opening": "Opening the link…",
+      "newPasswordLabel": "New password",
+      "newPasswordPlaceholder": "8 characters minimum",
+      "confirmLabel": "Confirm",
+      "confirmPlaceholder": "Type the password again",
+      "submit": "Save",
+      "errorTooShort": "Password must be at least {{count}} characters.",
+      "errorMismatch": "The two passwords don't match.",
+      "askNewLink": "Request a new link",
+      "successTitle": "Password saved",
+      "successText": "You're signed in. This password will work on the website too.",
+      "continue": "Continue"
     }
   },
   "settings": {
@@ -85,7 +102,11 @@
     "deleteLastTitle": "Final confirmation",
     "deleteLastMessage": "Type \"DELETE\" to confirm.",
     "deleteLastConfirm": "I confirm",
-    "deleteFailed": "Deletion failed. Try again or contact support."
+    "deleteFailed": "Deletion failed. Try again or contact support.",
+    "newPasswordLabel": "New password",
+    "confirmPasswordLabel": "Confirm",
+    "savePassword": "Save",
+    "passwordMismatch": "The two passwords don't match."
   },
   "language": {
     "title": "App language",

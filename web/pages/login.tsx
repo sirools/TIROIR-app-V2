@@ -87,7 +87,10 @@ export default function Login() {
             placeholder="exemple@gmail.com"
           />
 
-          <label style={s.label}>Mot de passe</label>
+          <div style={s.labelRow}>
+            <label style={s.label}>Mot de passe</label>
+            <a href="/mot-de-passe-oublie" style={s.forgotLink}>Mot de passe oublié ?</a>
+          </div>
           <input
             type="password"
             value={password}
@@ -131,6 +134,8 @@ const s: Record<string, React.CSSProperties> = {
   dividerText: { fontSize: 13, color: '#999' },
   form:        { display: 'flex', flexDirection: 'column', gap: 8 },
   label:       { fontSize: 13, fontWeight: 600, color: '#555', marginTop: 8 },
+  labelRow:    { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
+  forgotLink:  { fontSize: 13, color: '#F26900', fontWeight: 600, textDecoration: 'none', marginTop: 8 },
   input:       { padding: '10px 14px', borderRadius: 10, border: '1px solid #e0e0e0', fontSize: 15, outline: 'none', transition: 'border-color 0.15s' },
   error:       { fontSize: 13, color: '#c0392b', background: '#fdf0ef', borderRadius: 8, padding: '8px 12px', marginTop: 4 },
   btn:         { marginTop: 12, padding: '13px 0', borderRadius: 12, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', textAlign: 'center' },

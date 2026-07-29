@@ -48,7 +48,10 @@ function RootGuard() {
     if (loading) return
 
     const inAuth    = segments[0] === '(auth)'
-  const isPublic  = segments[0] === 's' || segments[0] === 'privacy'
+    // reset-password ouvre une session de récupération : sans exception ici,
+    // le garde renverrait vers l'app avant que le mot de passe soit changé.
+    const isPublic  = segments[0] === 's' || segments[0] === 'privacy'
+      || segments[0] === 'reset-password'
 
     if (isPublic) return
     if (!session && !inAuth) {
@@ -64,6 +67,7 @@ function RootGuard() {
       <Stack.Screen name="(app)" />
       <Stack.Screen name="s/[token]" />
       <Stack.Screen name="privacy" />
+      <Stack.Screen name="reset-password" />
     </Stack>
   )
 }

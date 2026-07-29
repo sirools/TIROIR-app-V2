@@ -59,6 +59,23 @@
       "successText": "Vérifie ta boîte mail et clique sur le lien pour créer un nouveau mot de passe.",
       "backToLogin": "Retour à la connexion",
       "errorMissingEmail": "Renseigne ton adresse email."
+    },
+    "reset": {
+      "title": "Nouveau mot de passe",
+      "subtitle": "Choisis un mot de passe pour ton compte Tiroir.",
+      "invalidSubtitle": "Ce lien n'est plus valable. Les liens de réinitialisation expirent au bout d'une heure et ne servent qu'une fois.",
+      "opening": "Ouverture du lien…",
+      "newPasswordLabel": "Nouveau mot de passe",
+      "newPasswordPlaceholder": "8 caractères minimum",
+      "confirmLabel": "Confirmer",
+      "confirmPlaceholder": "Retape le mot de passe",
+      "submit": "Enregistrer",
+      "errorTooShort": "Le mot de passe doit faire au moins {{count}} caractères.",
+      "errorMismatch": "Les deux mots de passe ne correspondent pas.",
+      "askNewLink": "Demander un nouveau lien",
+      "successTitle": "Mot de passe enregistré",
+      "successText": "Tu es connecté. Ce mot de passe fonctionnera aussi sur le site.",
+      "continue": "Continuer"
     }
   },
   "settings": {
@@ -85,7 +102,11 @@
     "deleteLastTitle": "Dernière confirmation",
     "deleteLastMessage": "Tape \"SUPPRIMER\" pour confirmer.",
     "deleteLastConfirm": "Je confirme",
-    "deleteFailed": "La suppression a échoué. Réessaie ou contacte le support."
+    "deleteFailed": "La suppression a échoué. Réessaie ou contacte le support.",
+    "newPasswordLabel": "Nouveau mot de passe",
+    "confirmPasswordLabel": "Confirmer",
+    "savePassword": "Enregistrer",
+    "passwordMismatch": "Les deux mots de passe ne correspondent pas."
   },
   "language": {
     "title": "Langue de l'application",

@@ -59,6 +59,23 @@
       "successText": "Prüfe deinen Posteingang und klicke auf den Link, um ein neues Passwort zu erstellen.",
       "backToLogin": "Zurück zur Anmeldung",
       "errorMissingEmail": "Gib deine E-Mail-Adresse ein."
+    },
+    "reset": {
+      "title": "Neues Passwort",
+      "subtitle": "Wähle ein Passwort für dein Tiroir-Konto.",
+      "invalidSubtitle": "Dieser Link ist nicht mehr gültig. Zurücksetz-Links laufen nach einer Stunde ab und funktionieren nur einmal.",
+      "opening": "Link wird geöffnet…",
+      "newPasswordLabel": "Neues Passwort",
+      "newPasswordPlaceholder": "Mindestens 8 Zeichen",
+      "confirmLabel": "Bestätigen",
+      "confirmPlaceholder": "Passwort erneut eingeben",
+      "submit": "Speichern",
+      "errorTooShort": "Das Passwort muss mindestens {{count}} Zeichen haben.",
+      "errorMismatch": "Die beiden Passwörter stimmen nicht überein.",
+      "askNewLink": "Neuen Link anfordern",
+      "successTitle": "Passwort gespeichert",
+      "successText": "Du bist angemeldet. Dieses Passwort funktioniert auch auf der Website.",
+      "continue": "Weiter"
     }
   },
   "settings": {
@@ -85,7 +102,11 @@
     "deleteLastTitle": "Letzte Bestätigung",
     "deleteLastMessage": "Tippe \"LÖSCHEN\", um zu bestätigen.",
     "deleteLastConfirm": "Ich bestätige",
-    "deleteFailed": "Löschung fehlgeschlagen. Versuche es erneut oder kontaktiere den Support."
+    "deleteFailed": "Löschung fehlgeschlagen. Versuche es erneut oder kontaktiere den Support.",
+    "newPasswordLabel": "Neues Passwort",
+    "confirmPasswordLabel": "Bestätigen",
+    "savePassword": "Speichern",
+    "passwordMismatch": "Die beiden Passwörter stimmen nicht überein."
   },
   "language": {
     "title": "App-Sprache",
