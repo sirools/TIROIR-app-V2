@@ -7,6 +7,7 @@
 import Head from 'next/head'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
+import BentoPanorama from '../components/concept/BentoPanorama'
 import {
   CaptureLoop, BatchLoop, CollectionLoop,
   StatusLoop, ValueLoop, ShareLoop,
@@ -81,17 +82,21 @@ export default function Concept() {
       <HeaderTiroirWeb />
 
       <main>
-        {/* ── Hero éditorial ── */}
+        {/* ── Panorama bento : le scroll vertical pilote le défilement latéral ── */}
+        <BentoPanorama />
+
+        {/* ── Bascule vers la partie rédactionnelle ── */}
         <section className="cx-hero">
           <div className="container">
-            <span className="badge">Concept</span>
+            <span className="badge">La doc</span>
             <h1 className="h1" style={{ maxWidth: 720, marginBottom: 16 }}>
-              Comment Tiroir fonctionne, pour de vrai.
+              Maintenant, le détail.
             </h1>
             <p className="p" style={{ fontSize: 18, maxWidth: 620 }}>
-              La page d’accueil vous dit ce que fait Tiroir. Celle-ci vous dit <em>comment</em> :
-              ce que l’IA regarde sur une photo, ce qu’elle ne devine pas, comment un objet vit
-              après sa création, et ce qui se passe exactement quand vous partagez un lien.
+              Vous venez de voir les six mécaniques en vitesse. La suite les reprend une par une,
+              avec ce que l’IA regarde vraiment sur une photo, ce qu’elle ne devine pas, comment
+              un objet vit après sa création, et ce qui se passe exactement quand vous partagez
+              un lien.
             </p>
             <p className="p" style={{ maxWidth: 620 }}>
               Chaque mécanique est expliquée à côté d’une démo animée de l’écran concerné.
