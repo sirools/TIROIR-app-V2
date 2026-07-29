@@ -286,10 +286,10 @@
   "paywall": {
     "title": "Tiroir Premium",
     "featUnlimitedObjects": "Unbegrenzte Objekte",
-    "featAiAnalyses": "150 KI-Analysen pro Monat",
+    "featAiAnalyses": "60 KI-Analysen pro Monat",
     "featMultiPhotos": "Mehrere Fotos pro Objekt",
-    "featPhotoEnhance": "50 KI-Fotoverbesserungen / Monat",
-    "heroTitle": "Unbegrenztes Inventar,\n150 KI-Analysen pro Monat.",
+    "featPhotoEnhance": "20 KI-Fotoverbesserungen / Monat",
+    "heroTitle": "Unbegrenztes Inventar,\n60 KI-Analysen pro Monat.",
     "monthly": "Monatlich",
     "annual": "Jährlich",
     "unavailable": "Abos derzeit nicht verfügbar.",

@@ -286,10 +286,10 @@
   "paywall": {
     "title": "Tiroir Premium",
     "featUnlimitedObjects": "Objets illimités",
-    "featAiAnalyses": "150 analyses IA par mois",
+    "featAiAnalyses": "60 analyses IA par mois",
     "featMultiPhotos": "Photos multiples par objet",
-    "featPhotoEnhance": "50 améliorations photo IA / mois",
-    "heroTitle": "Inventaire illimité,\n150 analyses IA par mois.",
+    "featPhotoEnhance": "20 améliorations photo IA / mois",
+    "heroTitle": "Inventaire illimité,\n60 analyses IA par mois.",
     "monthly": "Mensuel",
     "annual": "Annuel",
     "unavailable": "Abonnements indisponibles pour le moment.",
