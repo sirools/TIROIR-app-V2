@@ -359,14 +359,22 @@ export default function BentoPanorama() {
               </div>
               <span className="tile-cap light">de la photo à la fiche enregistrée</span>
             </Tile>
-            <Tile tone="cream" i={2}>
-              <span className="lab">Titre généré</span>
-              <span className="val">Veste en jean délavé</span>
-              <div className="specs">
-                <div><span>Marque</span><strong>Levi’s</strong></div>
-                <div><span>Modèle</span><strong>Type III</strong></div>
-                <div><span>Taille</span><strong>M</strong></div>
-                <div><span>Catégorie</span><strong>Veste</strong></div>
+            {/* Mise en page volontairement différente de la tuile
+                « Caractéristiques » : ici le titre est le produit de l'IA,
+                il porte la tuile ; les attributs viennent en pastilles. */}
+            <Tile tone="cream" i={2} className="t-title">
+              <span className="tc-lab">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2l2.1 6.4L20.5 10l-6.4 2.1L12 18.5l-2.1-6.4L3.5 10l6.4-1.6L12 2z" />
+                </svg>
+                Titre généré
+              </span>
+              <h3 className="tc-title">Veste en jean délavé</h3>
+              <div className="tc-chips">
+                <span className="strong">Levi’s</span>
+                <span>Type III</span>
+                <span>Taille M</span>
+                <span>Veste</span>
               </div>
             </Tile>
             <Tile tone="glass" i={3}>
@@ -621,6 +629,37 @@ export default function BentoPanorama() {
           font-size: 12px; font-weight: 600; line-height: 1.4;
           color: rgba(247, 243, 238, 0.62);
           margin-top: auto;   /* colle la légende au bas de la tuile */
+        }
+
+        /* ── Tuile « Titre généré » ──────────────────────────────────
+           Hiérarchie inversée par rapport aux tuiles à lignes : le titre
+           domine, les attributs passent en pastilles. */
+        .tile.t-title { justify-content: center; }
+        .tile .tc-lab {
+          display: inline-flex; align-items: center; gap: 5px;
+          font-size: 10px; font-weight: 800;
+          letter-spacing: 0.09em; text-transform: uppercase;
+          color: #F26900;
+        }
+        .tile .tc-title {
+          width: 100%;
+          margin: 2px 0 4px;
+          font-size: clamp(21px, 2.5vw, 34px);
+          font-weight: 800; line-height: 1.12;
+          letter-spacing: -0.03em;
+          color: #1A1612;
+          text-wrap: balance;
+        }
+        .tile .tc-chips { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+        .tile .tc-chips span {
+          font-size: clamp(10px, 1vw, 12px); font-weight: 700;
+          color: #6B6158;
+          background: rgba(26, 22, 18, 0.05);
+          border: 1px solid rgba(26, 22, 18, 0.09);
+          border-radius: 999px; padding: 5px 11px;
+        }
+        .tile .tc-chips .strong {
+          background: #1A1612; border-color: #1A1612; color: #F7F3EE;
         }
 
         /* Lignes clé / valeur : l'ossature des tuiles « fiche ». */
