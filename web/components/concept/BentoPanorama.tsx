@@ -408,6 +408,16 @@ export default function BentoPanorama() {
           {/* 02 — Analyse */}
           <Panel panel={PANELS[1]} shown={active >= 1}>
             <Tile span={2} rows={2} tone="cream" i={0}>
+              {/* En-tête d'objet : la tuile devient une fiche, pas une
+                  série de barres abstraites. */}
+              <div className="objHead">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/screens/chain/veste.png" alt="" loading="lazy" />
+                <div>
+                  <strong>Veste en jean délavé</strong>
+                  <span>Analysée il y a 2 s</span>
+                </div>
+              </div>
               <div className="fields">
                 {[
                   ['Catégorie', 'Veste'],
@@ -448,9 +458,14 @@ export default function BentoPanorama() {
           {/* 03 — Volume */}
           <Panel panel={PANELS[2]} shown={active >= 2}>
             <Tile span={3} rows={2} tone="dark" i={0}>
+              {/* Planche-contact : les mêmes visuels que le convoyeur, en
+                  grille, pour dire le volume d'un lot. */}
               <div className="mosaic">
-                {['👟','⌚','📸','🎸','🧥','📚','🧢','👖','🥾','🧣','👕','🎽'].map((e, n) => (
-                  <span key={n} style={{ animationDelay: `${n * 0.09}s` }}>{e}</span>
+                {[...CHAIN_ITEMS, ...CHAIN_ITEMS.slice(0, 4)].map((item, n) => (
+                  <span key={n} style={{ animationDelay: `${n * 0.09}s` }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`/screens/chain/${item.slug}.png`} alt="" loading="lazy" />
+                  </span>
                 ))}
               </div>
               <span className="tile-cap">Mode rafale · analyses en parallèle</span>
@@ -474,6 +489,14 @@ export default function BentoPanorama() {
           {/* 04 — Cycle de vie */}
           <Panel panel={PANELS[3]} shown={active >= 3}>
             <Tile span={2} rows={2} tone="cream" i={0}>
+              <div className="objHead">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/screens/chain/veste.png" alt="" loading="lazy" />
+                <div>
+                  <strong>Veste en jean délavé</strong>
+                  <span>Quatre états en cinq mois</span>
+                </div>
+              </div>
               <div className="timeline">
                 {[
                   { l: 'Possédé', d: '12 mars', c: '#2D5016', b: '#E8F0E0' },
@@ -507,6 +530,14 @@ export default function BentoPanorama() {
           {/* 05 — Valeur */}
           <Panel panel={PANELS[4]} shown={active >= 4}>
             <Tile span={2} rows={2} tone="dark" i={0}>
+              <div className="objHead onDark">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/screens/chain/appareil-photo.png" alt="" loading="lazy" />
+                <div>
+                  <strong>Leica M6 argentique</strong>
+                  <span>Estimation mise à jour ce matin</span>
+                </div>
+              </div>
               <div className="gauge">
                 <div className="gtrack"><div className="gfill" /></div>
                 <div className="gbounds"><span>950 €</span><span>1 400 €</span></div>
@@ -539,7 +570,18 @@ export default function BentoPanorama() {
           {/* 06 — Partage */}
           <Panel panel={PANELS[5]} shown={active >= 5}>
             <Tile span={2} rows={2} tone="accent" i={0}>
-              <div className="linkbox">tiroir.app/s/8f2c…</div>
+              {/* Aperçu du lien tel que le destinataire le reçoit. */}
+              <div className="linkcard">
+                <div className="lc-thumbs">
+                  {['veste', 'baskets', 'montre'].map(s => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={s} src={`/screens/chain/${s}.png`} alt="" loading="lazy" />
+                  ))}
+                  <span className="lc-more">+101</span>
+                </div>
+                <strong className="lc-title">Dressing</strong>
+                <span className="lc-url">tiroir.app/s/8f2c…</span>
+              </div>
               <div className="specs light">
                 <div><span>Visibilité</span><strong>Publique</strong></div>
                 <div><span>Expire le</span><strong>28 août 2026</strong></div>
@@ -1060,6 +1102,29 @@ export default function BentoPanorama() {
           .tile .studio-state .s-done { opacity: 1; }
         }
 
+        /* En-tête d'objet, commun aux tuiles fiche / cycle de vie / valeur :
+           une vignette réelle plutôt qu'un bloc abstrait. */
+        .tile .objHead {
+          width: 100%;
+          display: flex; align-items: center; gap: 10px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid rgba(26, 22, 18, 0.1);
+        }
+        .tile .objHead img {
+          width: 46px; height: 46px; flex-shrink: 0;
+          border-radius: 10px; object-fit: cover;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+        }
+        .tile .objHead strong {
+          display: block;
+          font-size: clamp(13px, 1.35vw, 16px); font-weight: 800;
+          letter-spacing: -0.01em; line-height: 1.2;
+        }
+        .tile .objHead span {
+          font-size: 11px; font-weight: 600; opacity: 0.55;
+        }
+        .tile .objHead.onDark { border-bottom-color: rgba(247, 243, 238, 0.14); }
+
         .tile .fields { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; }
         .tile .frow {
           display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -1094,11 +1159,13 @@ export default function BentoPanorama() {
         }
         .tile .mosaic span {
           aspect-ratio: 1; border-radius: 12px;
+          overflow: hidden;
           background: rgba(247,243,238,0.06);
           border: 1px solid rgba(255,255,255,0.07);
-          display: grid; place-items: center;
-          font-size: clamp(15px, 1.7vw, 24px);
           animation: pop 4.4s ease-in-out infinite;
+        }
+        .tile .mosaic img {
+          width: 100%; height: 100%; object-fit: cover; display: block;
         }
         @keyframes pop {
           0%, 6% { opacity: 0.15; transform: scale(0.88); }
@@ -1127,12 +1194,36 @@ export default function BentoPanorama() {
         .tile .ads div:last-child { border-bottom: 0; padding-bottom: 0; }
         .tile .ads strong { color: #1A1612; font-weight: 800; }
 
-        .tile .linkbox {
-          flex: 1; display: grid; place-items: center;
-          font-size: clamp(14px, 1.7vw, 22px); font-weight: 800; letter-spacing: -0.01em;
-          background: rgba(255,255,255,0.16);
-          border: 1px dashed rgba(255,255,255,0.4);
-          border-radius: 16px; margin-bottom: 12px;
+        /* Carte d'aperçu du lien partagé */
+        .tile .linkcard {
+          width: 100%; flex: 1;
+          display: flex; flex-direction: column; justify-content: center; gap: 10px;
+          background: rgba(255,255,255,0.18);
+          border: 1px solid rgba(255,255,255,0.34);
+          border-radius: 16px;
+          padding: clamp(12px, 1.4vw, 18px);
+          margin-bottom: 12px;
+        }
+        .tile .lc-thumbs { display: flex; align-items: center; gap: 6px; }
+        .tile .lc-thumbs img {
+          width: 44px; height: 44px; border-radius: 9px;
+          object-fit: cover; display: block;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        }
+        .tile .lc-more {
+          font-size: 12px; font-weight: 800;
+          color: rgba(255,255,255,0.92);
+          background: rgba(0,0,0,0.16);
+          border-radius: 9px; padding: 0 10px; line-height: 44px;
+        }
+        .tile .lc-title {
+          font-size: clamp(15px, 1.7vw, 21px); font-weight: 800;
+          letter-spacing: -0.02em; line-height: 1.1;
+        }
+        .tile .lc-url {
+          font-size: 12px; font-weight: 700;
+          color: rgba(255,255,255,0.82);
+          word-break: break-all;
         }
       `}</style>
     </div>
