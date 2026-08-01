@@ -125,6 +125,12 @@ function Tile({
           color: #F7F3EE;
         }
 
+        /* En pile, rien ne pilote plus l'apparition : les tuiles sont
+           visibles d'emblée plutôt que suspendues à un observateur. */
+        @media (max-width: 860px) {
+          .tile { opacity: 1; transform: none; transition: none; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .tile { transition: none; transform: none; opacity: 1; }
         }
@@ -141,7 +147,10 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <section id={panel.id} className={`pan-panel ${shown ? 'is-in' : ''}`}>
+    // Préfixe `pan-` : « valeur » et « partage » sont aussi des chapitres
+    // de la partie rédactionnelle, et les ancres du sommaire tombaient
+    // sur le panorama au lieu de la section correspondante.
+    <section id={`pan-${panel.id}`} className={`pan-panel ${shown ? 'is-in' : ''}`}>
       <div className="pan-inner">
         <header>
           <span className="pan-kicker">{panel.kicker}</span>
@@ -152,8 +161,13 @@ function Panel({
 
       <style jsx>{`
         .pan-panel {
-          flex: 0 0 100vw;
-          width: 100vw;
+          /* 100 % du conteneur, pas 100vw : vw inclut la barre de
+             défilement, ce qui décalait chaque panneau d'une quinzaine de
+             pixels de plus que le précédent. La piste ne rétrécit pas
+             (flex-shrink: 0), les six panneaux débordent et c'est ce
+             débordement que la translation parcourt. */
+          flex: 0 0 100%;
+          width: 100%;
           height: 100%;
           display: flex;
           padding:
@@ -190,6 +204,14 @@ function Panel({
         }
         .is-in .pan-kicker, .is-in .pan-title { opacity: 1; transform: translateY(0); }
 
+        /* Sans animation, les titres doivent être là d'emblée : la règle
+           de secours des tuiles ne les couvrait pas. */
+        @media (prefers-reduced-motion: reduce) {
+          .pan-kicker, .pan-title {
+            opacity: 1; transform: none; transition: none;
+          }
+        }
+
         .bx-bento {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -213,6 +235,10 @@ function Panel({
             padding: 40px 20px;
           }
           .bx-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          /* Titres visibles sans dépendre de la progression horizontale. */
+          .pan-kicker, .pan-title {
+            opacity: 1; transform: none; transition: none;
+          }
         }
       `}</style>
     </section>
@@ -224,6 +250,14 @@ export default function BentoPanorama() {
   const trackRef = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0)
   const [active, setActive] = useState(0)
+  /**
+   * L'apparition des panneaux est pilotée par la progression horizontale.
+   * Sous 861 px cette progression n'existe plus : les cinq derniers
+   * panneaux restaient donc à opacity 0, soit trois mille pixels de noir
+   * à traverser. En pile, la visibilité est rendue en CSS (voir les
+   * media queries de Tile et Panel) — le contenu ne dépend d'aucun JS.
+   */
+  const isShown = (i: number) => active >= i
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -243,7 +277,9 @@ export default function BentoPanorama() {
       const travel = wrap.offsetHeight - window.innerHeight
       const scrolled = -wrap.getBoundingClientRect().top
       const p = travel > 0 ? Math.min(1, Math.max(0, scrolled / travel)) : 0
-      const maxX = track.scrollWidth - window.innerWidth
+      // Largeur du conteneur, pas du viewport : innerWidth compte la
+      // barre de défilement, la piste non.
+      const maxX = track.scrollWidth - wrap.clientWidth
       track.style.transform = `translate3d(${-(p * maxX).toFixed(2)}px, 0, 0)`
       setProgress(p)
       setActive(Math.round(p * (PANELS.length - 1)))
@@ -298,7 +334,7 @@ export default function BentoPanorama() {
       <div className="pan-sticky">
         <div className="pan-track" ref={trackRef}>
           {/* 01 — Capture */}
-          <Panel panel={PANELS[0]} shown={active >= 0}>
+          <Panel panel={PANELS[0]} shown={isShown(0)}>
             <Tile span={2} rows={2} tone="dark" i={0} bleed>
               {/* Plateau de studio : fond blanc cassé, deux sources de
                   lumière, produit au centre. Noir et blanc jusqu'au flash,
@@ -406,7 +442,7 @@ export default function BentoPanorama() {
           </Panel>
 
           {/* 02 — Analyse */}
-          <Panel panel={PANELS[1]} shown={active >= 1}>
+          <Panel panel={PANELS[1]} shown={isShown(1)}>
             <Tile span={2} rows={2} tone="cream" i={0}>
               {/* En-tête d'objet : la tuile devient une fiche, pas une
                   série de barres abstraites. */}
@@ -456,7 +492,7 @@ export default function BentoPanorama() {
           </Panel>
 
           {/* 03 — Volume */}
-          <Panel panel={PANELS[2]} shown={active >= 2}>
+          <Panel panel={PANELS[2]} shown={isShown(2)}>
             <Tile span={3} rows={2} tone="dark" i={0}>
               {/* Planche-contact : les mêmes visuels que le convoyeur, en
                   grille, pour dire le volume d'un lot. */}
@@ -487,7 +523,7 @@ export default function BentoPanorama() {
           </Panel>
 
           {/* 04 — Cycle de vie */}
-          <Panel panel={PANELS[3]} shown={active >= 3}>
+          <Panel panel={PANELS[3]} shown={isShown(3)}>
             <Tile span={2} rows={2} tone="cream" i={0}>
               <div className="objHead">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -528,7 +564,7 @@ export default function BentoPanorama() {
           </Panel>
 
           {/* 05 — Valeur */}
-          <Panel panel={PANELS[4]} shown={active >= 4}>
+          <Panel panel={PANELS[4]} shown={isShown(4)}>
             <Tile span={2} rows={2} tone="dark" i={0}>
               <div className="objHead onDark">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -568,7 +604,7 @@ export default function BentoPanorama() {
           </Panel>
 
           {/* 06 — Partage */}
-          <Panel panel={PANELS[5]} shown={active >= 5}>
+          <Panel panel={PANELS[5]} shown={isShown(5)}>
             <Tile span={2} rows={2} tone="accent" i={0}>
               {/* Aperçu du lien tel que le destinataire le reçoit. */}
               <div className="linkcard">
@@ -640,7 +676,7 @@ export default function BentoPanorama() {
         .pan-track {
           display: flex;
           height: 100%;
-          width: max-content;
+          width: 100%;
           will-change: transform;
         }
 
@@ -1187,10 +1223,15 @@ export default function BentoPanorama() {
         .tile .gmid { font-size: clamp(22px, 2.6vw, 36px); font-weight: 800; letter-spacing: -0.02em; }
         .tile .ads { display: flex; flex-direction: column; gap: 8px; justify-content: center; flex: 1; }
         .tile .ads div {
-          display: flex; align-items: center; justify-content: space-between;
+          display: flex; align-items: baseline; justify-content: space-between;
+          /* Sans gouttière, le prix venait toucher le libellé sur les
+             largeurs étroites. */
+          gap: 12px;
           font-size: 13px; color: #6B6158;
           padding-bottom: 8px; border-bottom: 1px solid rgba(26,22,18,0.08);
         }
+        .tile .ads div span { min-width: 0; }
+        .tile .ads div strong { white-space: nowrap; }
         .tile .ads div:last-child { border-bottom: 0; padding-bottom: 0; }
         .tile .ads strong { color: #1A1612; font-weight: 800; }
 
