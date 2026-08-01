@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import StoreButtons from '../StoreButtons'
 
@@ -5,10 +6,12 @@ const COPY = {
   fr: {
     badge: 'Disponible sur iOS et Android',
     how: 'Voir comment ça marche',
+    concept: 'Le concept en détail',
   },
   en: {
     badge: 'Available on iOS & Android',
     how: 'See how it works',
+    concept: 'The concept in detail',
   },
 }
 
@@ -48,6 +51,16 @@ export default function Hero() {
           <div className="hero-ctas">
             <StoreButtons isEn={isEn} variant="dark" />
             <a className="btn btn-ghost" href="#ranger">{t.how}</a>
+            {/* Le lien précédent descend dans la page ; celui-ci sort vers
+                la doc — d'où le chevron qui distingue les deux.
+                `legacyBehavior` : styled-jsx ne scope ses classes que sur
+                les éléments natifs, il faut donc lui donner un vrai <a>. */}
+            <Link href="/concept" legacyBehavior passHref>
+              <a className="btn btn-ghost">
+                {t.concept}
+                <span aria-hidden="true" className="btn-arrow">›</span>
+              </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -140,6 +153,7 @@ export default function Hero() {
         .btn-ghost {
           display: inline-flex;
           align-items: center;
+          gap: 7px;
           padding: 13px 24px;
           border-radius: 14px;
           font-size: 15px;
@@ -152,6 +166,13 @@ export default function Hero() {
           background: rgba(255,255,255,0.06);
         }
         .btn-ghost:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+        .btn-arrow {
+          font-size: 19px;
+          line-height: 1;
+          opacity: 0.7;
+          transition: transform 0.15s;
+        }
+        .btn-ghost:hover .btn-arrow { transform: translateX(2px); opacity: 1; }
 
         @media (max-width: 640px) {
           .hero { min-height: 100svh; }
