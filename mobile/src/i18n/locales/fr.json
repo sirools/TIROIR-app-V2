@@ -698,5 +698,23 @@
     "name_asc": "A → Z",
     "count_desc": "Plus fournies",
     "count_asc": "Moins fournies"
+  },
+  "groups": {
+    "action": "Grouper",
+    "pickTitle_one": "Grouper {{count}} objet",
+    "pickTitle_other": "Grouper {{count}} objets",
+    "newGroup": "Nouveau groupe…",
+    "newGroupTitle": "Nouveau groupe",
+    "renameTitle": "Renommer le groupe",
+    "namePlaceholder": "ex : vestes d'hiver",
+    "create": "Créer le groupe",
+    "noGroup": "Sans groupe",
+    "dissolve": "Dissoudre le groupe",
+    "deleteTitle": "Dissoudre « {{name}} » ?",
+    "deleteBody": "Les objets restent dans la collection, ils perdent seulement leur groupe.",
+    "inThisCollection": "Dans cette collection",
+    "otherCollection": "Vers une autre collection",
+    "moveInto": "Dans « {{name}} »",
+    "selectGroup": "Sélectionner le groupe"
   }
 }

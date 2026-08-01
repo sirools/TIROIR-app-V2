@@ -698,5 +698,23 @@
     "name_asc": "A → Z",
     "count_desc": "Más objetos",
     "count_asc": "Menos objetos"
+  },
+  "groups": {
+    "action": "Agrupar",
+    "pickTitle_one": "Agrupar {{count}} objeto",
+    "pickTitle_other": "Agrupar {{count}} objetos",
+    "newGroup": "Nuevo grupo…",
+    "newGroupTitle": "Nuevo grupo",
+    "renameTitle": "Renombrar el grupo",
+    "namePlaceholder": "ej.: chaquetas de invierno",
+    "create": "Crear el grupo",
+    "noGroup": "Sin grupo",
+    "dissolve": "Disolver el grupo",
+    "deleteTitle": "¿Disolver «{{name}}»?",
+    "deleteBody": "Los objetos siguen en la colección, solo pierden su grupo.",
+    "inThisCollection": "En esta colección",
+    "otherCollection": "A otra colección",
+    "moveInto": "En «{{name}}»",
+    "selectGroup": "Seleccionar el grupo"
   }
 }

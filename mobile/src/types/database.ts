@@ -50,10 +50,23 @@ export interface ValueSource {
   title?: string
 }
 
+/** Sous-niveau de rangement à l'intérieur d'une collection. */
+export interface ObjectGroup {
+  id: string
+  user_id: string
+  collection_id: string
+  name: string
+  position: number
+  created_at: string
+  updated_at: string
+}
+
 export interface TiroirObject {
   id: string
   user_id: string
   collection_id: string | null
+  /** Groupe au sein de la collection ; détaché automatiquement au déplacement. */
+  group_id: string | null
   title: string
   description: string | null
   status: ObjectStatus

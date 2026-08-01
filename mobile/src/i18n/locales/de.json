@@ -698,5 +698,23 @@
     "name_asc": "A → Z",
     "count_desc": "Meiste Objekte",
     "count_asc": "Wenigste Objekte"
+  },
+  "groups": {
+    "action": "Gruppieren",
+    "pickTitle_one": "{{count}} Gegenstand gruppieren",
+    "pickTitle_other": "{{count}} Gegenstände gruppieren",
+    "newGroup": "Neue Gruppe…",
+    "newGroupTitle": "Neue Gruppe",
+    "renameTitle": "Gruppe umbenennen",
+    "namePlaceholder": "z. B. Winterjacken",
+    "create": "Gruppe erstellen",
+    "noGroup": "Ohne Gruppe",
+    "dissolve": "Gruppe auflösen",
+    "deleteTitle": "„{{name}}“ auflösen?",
+    "deleteBody": "Die Gegenstände bleiben in der Sammlung, sie verlieren nur ihre Gruppe.",
+    "inThisCollection": "In dieser Sammlung",
+    "otherCollection": "In eine andere Sammlung",
+    "moveInto": "In „{{name}}“",
+    "selectGroup": "Gruppe auswählen"
   }
 }

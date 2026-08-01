@@ -7,13 +7,16 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft, MoreHorizontal, Eye, Minus, Plus,
-  CheckSquare, Trash2, MoveRight, Tag, Share2, CheckCircle,
-  Camera, Images, Layers, ChevronRight,
+  CheckSquare, Square, Trash2, MoveRight, Tag, Share2, CheckCircle,
+  Camera, Images, Layers, ChevronRight, ChevronDown, FolderPlus,
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
-import { Screen, EmptyState, IconPicker, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import {
+  Screen, EmptyState, IconPicker, ActionSheet, PromptDialog,
+  Colors, Typography, Spacing, Radius,
+} from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
-import { Collection, TiroirObject } from '@/types/database'
+import { Collection, TiroirObject, ObjectGroup } from '@/types/database'
 import { setIconOverride } from '@/utils/collectionIconCache'
 
 // ── Zoom levels ───────────────────────────────────────────────────────────────
@@ -70,11 +73,31 @@ const DISPLAY_FIELDS: { key: keyof DisplayConfig; labelKey: string; icon: string
 // ── Calcul taille carte ───────────────────────────────────────────────────────
 
 const SCREEN_WIDTH = Dimensions.get('window').width
-const GRID_GAP = 1   // séparateur 1 px entre cartes, style galerie photo
-const TAB_BAR_H = 64 // hauteur CustomTabBar (ICON_AREA_H dans _layout)
+const GRID_PADDING = Spacing.md // marge latérale de la grille
+const TAB_BAR_H = 64            // hauteur CustomTabBar (ICON_AREA_H dans _layout)
+
+/**
+ * Gouttière entre cartes. Elle se resserre à mesure qu'on dézoome :
+ * à cinq colonnes, un écart trop large mangerait la vignette ; à deux,
+ * un écart trop serré ferait bloc.
+ */
+function gridGap(cols: number) {
+  if (cols >= 5) return 6
+  if (cols === 4) return 8
+  if (cols === 3) return 10
+  return 12
+}
 
 function cardSize(cols: number) {
-  return (SCREEN_WIDTH - GRID_GAP * (cols - 1)) / cols
+  const gap = gridGap(cols)
+  return (SCREEN_WIDTH - GRID_PADDING * 2 - gap * (cols - 1)) / cols
+}
+
+/** Découpe une liste d'objets en rangées de `cols` cartes. */
+function chunk<T>(items: T[], cols: number): T[][] {
+  const rows: T[][] = []
+  for (let i = 0; i < items.length; i += cols) rows.push(items.slice(i, i + cols))
+  return rows
 }
 
 // ── Composant carte objet ─────────────────────────────────────────────────────
@@ -100,7 +123,9 @@ function ObjectCard({ object, coverUrl, onPress, onLongPress, cols, display, isS
     display.showName || display.showStatus || display.showBrand || display.showValue ||
     display.showSize || display.showColor || display.showEra || display.showCondition
   )
-
+  // La photo occupe toute la largeur de la carte ; le texte vit dessous,
+  // dans le même bloc, pour qu'on lise une carte et non une image suivie
+  // d'une légende flottante.
   return (
     <TouchableOpacity
       style={[cardStyles.card, { width: size }, isSelected && cardStyles.cardSelected]}
@@ -161,8 +186,14 @@ function ObjectCard({ object, coverUrl, onPress, onLongPress, cols, display, isS
 }
 
 const cardStyles = StyleSheet.create({
+  // Un seul bloc : fond, arrondi et bordure enveloppent la photo *et* le
+  // texte. C'est ce qui rattache la légende à sa vignette quand les
+  // cartes sont espacées les unes des autres.
   card: {
     backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
     overflow: 'hidden',
   },
   cardSelected: {
@@ -194,12 +225,105 @@ const cardStyles = StyleSheet.create({
   image: { width: '100%', height: '100%' },
   imagePlaceholder: { flex: 1, backgroundColor: Colors.surfaceWarm, alignItems: 'center', justifyContent: 'center' },
   placeholderEmoji: { fontSize: 24, opacity: 0.4 },
-  info: { padding: Spacing.xs, gap: 2 },
-  infoLarge: { padding: Spacing.sm, gap: 4 },
+  info: { paddingHorizontal: 6, paddingVertical: 6, gap: 2 },
+  infoLarge: { paddingHorizontal: Spacing.sm, paddingVertical: Spacing.sm, gap: 4 },
   title: { fontSize: Typography.sm, fontWeight: Typography.semibold, color: Colors.textPrimary },
   titleSm: { fontSize: Typography.xs },
   tag: { fontSize: Typography.xs, color: Colors.accent, fontWeight: Typography.medium },
   meta: { fontSize: Typography.xs, color: Colors.textSecondary },
+})
+
+/** Une ligne de la liste : en-tête de groupe, rangée de cartes, ou filet. */
+type GridRow =
+  | { type: 'group'; key: string; group: ObjectGroup; count: number; collapsed: boolean }
+  | { type: 'items'; key: string; items: TiroirObject[] }
+  | { type: 'divider'; key: string }
+
+// ── En-tête de groupe ─────────────────────────────────────────────────────────
+
+interface GroupHeaderProps {
+  group: ObjectGroup
+  count: number
+  collapsed: boolean
+  onToggle: () => void
+  onLongPress: () => void
+  selectMode: boolean
+  allSelected: boolean
+  onSelectGroup: () => void
+}
+
+/**
+ * Une ligne au-dessus des objets du groupe. Les objets sans groupe n'en
+ * ont pas : ils suivent la liste, sans catégorie fourre-tout.
+ *
+ * En sélection, la case prend le groupe entier — et rien d'autre : c'est
+ * le raccourci pour agir sur un groupe sans le cocher objet par objet.
+ */
+function GroupHeader({
+  group, count, collapsed, onToggle, onLongPress,
+  selectMode, allSelected, onSelectGroup,
+}: GroupHeaderProps) {
+  const { t } = useTranslation()
+  return (
+    <View style={groupStyles.header}>
+      <TouchableOpacity
+        style={groupStyles.headerMain}
+        onPress={onToggle}
+        onLongPress={onLongPress}
+        delayLongPress={300}
+        activeOpacity={0.6}
+      >
+        <Text style={groupStyles.name} numberOfLines={1}>{group.name}</Text>
+        <Text style={groupStyles.count}>{t('common.objects', { count })}</Text>
+      </TouchableOpacity>
+
+      {selectMode && count > 0 && (
+        <TouchableOpacity
+          onPress={onSelectGroup}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.7}
+          accessibilityLabel={t('groups.selectGroup')}
+        >
+          {allSelected
+            ? <CheckSquare size={19} color={Colors.accent} strokeWidth={2} />
+            : <Square size={19} color={Colors.textTertiary} strokeWidth={2} />
+          }
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity onPress={onToggle} hitSlop={10} activeOpacity={0.7}>
+        {collapsed
+          ? <ChevronRight size={18} color={Colors.textSecondary} strokeWidth={2} />
+          : <ChevronDown size={18} color={Colors.textSecondary} strokeWidth={2} />
+        }
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+const groupStyles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: GRID_PADDING,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
+  },
+  headerMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  name: {
+    fontSize: Typography.base,
+    fontWeight: Typography.bold,
+    color: Colors.textPrimary,
+    letterSpacing: -0.2,
+    flexShrink: 1,
+  },
+  count: { fontSize: Typography.xs, color: Colors.textTertiary, fontWeight: Typography.medium },
 })
 
 // ── Panneau "Personnaliser l'affichage" ───────────────────────────────────────
@@ -442,15 +566,29 @@ export default function CollectionDetailScreen() {
   const [bulkActionLoading, setBulkActionLoading] = useState(false)
   const isSelectMode = selectModeEnabled
 
+  // Groupes
+  const [groups, setGroups] = useState<ObjectGroup[]>([])
+  // Repli local : c'est un état de lecture, pas une donnée à conserver.
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const [groupActionTarget, setGroupActionTarget] = useState<ObjectGroup | null>(null)
+  const [groupRenameTarget, setGroupRenameTarget] = useState<ObjectGroup | null>(null)
+  const [groupPickerVisible, setGroupPickerVisible] = useState(false)
+  const [newGroupVisible, setNewGroupVisible] = useState(false)
+  /** Collection choisie à l'étape 1 du déplacement, en attente de son groupe. */
+  const [moveTarget, setMoveTarget] = useState<{ collection: Collection; groups: ObjectGroup[] } | null>(null)
+
   const zoom = ZOOM_LEVELS[zoomIndex]
 
   const load = useCallback(async () => {
     if (!id) return
-    const [colRes, objRes] = await Promise.all([
+    const [colRes, objRes, grpRes] = await Promise.all([
       supabase.from('collections').select('*').eq('id', id).single(),
       supabase.from('objects').select('*').eq('collection_id', id).order('created_at', { ascending: false }),
+      supabase.from('object_groups').select('*').eq('collection_id', id)
+        .order('position').order('created_at'),
     ])
     if (!colRes.error) setCollection(colRes.data as Collection)
+    if (!grpRes.error) setGroups((grpRes.data ?? []) as ObjectGroup[])
     const objs: TiroirObject[] = objRes.error ? [] : (objRes.data as TiroirObject[])
     setObjects(objs)
 
@@ -546,7 +684,43 @@ export default function CollectionDetailScreen() {
     : objects
 
   const cols = zoom.cols
+  const gap = gridGap(cols)
   const allObjectsSelected = objects.length > 0 && selectedIds.size === objects.length
+
+  /**
+   * La grille est aplatie en rangées plutôt que confiée à `numColumns` :
+   * c'est ce qui permet d'intercaler les en-têtes de groupe et de maîtriser
+   * les gouttières, que `numColumns` ne sait pas espacer proprement.
+   */
+  const rows: GridRow[] = []
+  const loose = filtered.filter(o => !o.group_id)
+  // Pendant une recherche, un groupe sans résultat n'a rien à annoncer.
+  const shownGroups = filter.trim()
+    ? groups.filter(g => filtered.some(o => o.group_id === g.id))
+    : groups
+
+  shownGroups.forEach((group, gi) => {
+    const items = filtered.filter(o => o.group_id === group.id)
+    const isCollapsed = collapsed.has(group.id)
+    rows.push({ type: 'group', key: `g-${group.id}`, group, count: items.length, collapsed: isCollapsed })
+    if (!isCollapsed) {
+      chunk(items, cols).forEach((r, i) => rows.push({ type: 'items', key: `g-${group.id}-${i}`, items: r }))
+    }
+    // Un filet ferme le groupe — sauf s'il n'y a plus rien derrière lui.
+    const hasMore = gi < shownGroups.length - 1 || loose.length > 0
+    if (hasMore) rows.push({ type: 'divider', key: `d-${group.id}` })
+  })
+
+  // Les objets sans groupe suivent, sans en-tête ni catégorie fourre-tout.
+  chunk(loose, cols).forEach((r, i) => rows.push({ type: 'items', key: `loose-${i}`, items: r }))
+
+  function toggleGroup(groupId: string) {
+    setCollapsed(prev => {
+      const next = new Set(prev)
+      next.has(groupId) ? next.delete(groupId) : next.add(groupId)
+      return next
+    })
+  }
 
   // ── Multi-select handlers ─────────────────────────────────────────────────
 
@@ -572,6 +746,31 @@ export default function CollectionDetailScreen() {
     if (objects.length === 0) return
     setSelectModeEnabled(true)
     setSelectedIds(allObjectsSelected ? new Set() : new Set(objects.map(o => o.id)))
+  }
+
+  /** Les objets du groupe actuellement visibles (une recherche peut en masquer). */
+  function groupObjectIds(groupId: string) {
+    return filtered.filter(o => o.group_id === groupId).map(o => o.id)
+  }
+
+  function isGroupFullySelected(groupId: string) {
+    const ids = groupObjectIds(groupId)
+    return ids.length > 0 && ids.every(i => selectedIds.has(i))
+  }
+
+  /**
+   * Raccourci : la sélection devient exactement ce groupe. On remplace au
+   * lieu d'ajouter — « statuer sur ce groupe » veut dire ce groupe et rien
+   * d'autre. Un second appui vide la sélection.
+   */
+  function selectOnlyGroup(groupId: string) {
+    const ids = groupObjectIds(groupId)
+    if (ids.length === 0) return
+    setSelectModeEnabled(true)
+    setSelectedIds(prev => {
+      const isExactly = prev.size === ids.length && ids.every(i => prev.has(i))
+      return isExactly ? new Set() : new Set(ids)
+    })
   }
 
   async function deleteSelected() {
@@ -602,6 +801,64 @@ export default function CollectionDetailScreen() {
     exitSelectMode()
   }
 
+  // ── Grouper ────────────────────────────────────────────────────────────────
+
+  /** Range la sélection dans un groupe existant, ou l'en sort si null. */
+  async function applyGroup(groupId: string | null) {
+    setBulkActionLoading(true)
+    const ids = Array.from(selectedIds)
+    const { error } = await supabase.from('objects').update({ group_id: groupId }).in('id', ids)
+    setBulkActionLoading(false)
+    setGroupPickerVisible(false)
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+    setObjects(prev => prev.map(o => selectedIds.has(o.id) ? { ...o, group_id: groupId } : o))
+    exitSelectMode()
+  }
+
+  /** Création et rattachement en une passe côté serveur. */
+  async function createGroupFromSelection(name: string) {
+    setNewGroupVisible(false)
+    const ids = Array.from(selectedIds)
+    const { data: groupId, error } = await supabase.rpc('create_object_group', {
+      p_collection_id: id,
+      p_name: name,
+      p_object_ids: ids,
+    })
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+    setObjects(prev => prev.map(o => selectedIds.has(o.id) ? { ...o, group_id: groupId as string } : o))
+    exitSelectMode()
+    load()
+  }
+
+  async function renameGroup(group: ObjectGroup, name: string) {
+    setGroupRenameTarget(null)
+    if (name === group.name) return
+    const { error } = await supabase.from('object_groups').update({ name }).eq('id', group.id)
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+    setGroups(prev => prev.map(g => g.id === group.id ? { ...g, name } : g))
+  }
+
+  function confirmDeleteGroup(group: ObjectGroup) {
+    Alert.alert(
+      t('groups.deleteTitle', { name: group.name }),
+      t('groups.deleteBody'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await supabase.from('object_groups').delete().eq('id', group.id)
+            if (error) { Alert.alert(t('common.error'), error.message); return }
+            setGroups(prev => prev.filter(g => g.id !== group.id))
+            // Les objets restent dans la collection, sans groupe.
+            setObjects(prev => prev.map(o => o.group_id === group.id ? { ...o, group_id: null } : o))
+          },
+        },
+      ],
+    )
+  }
+
   // ── Déplacer ───────────────────────────────────────────────────────────────
 
   async function loadAllCollections() {
@@ -609,16 +866,43 @@ export default function CollectionDetailScreen() {
     setAllCollections((data as Collection[]) ?? [])
   }
 
-  async function applyBulkMove(targetCollectionId: string | null) {
+  /**
+   * Étape 1 : choisir la collection de destination. Si elle a des groupes,
+   * on demande lequel plutôt que de déposer les objets en vrac.
+   */
+  async function pickMoveCollection(target: Collection) {
+    if (target.id === id) { setMoveTarget({ collection: target, groups }); return }
+    const { data } = await supabase.from('object_groups').select('*')
+      .eq('collection_id', target.id).order('position').order('created_at')
+    const targetGroups = (data ?? []) as ObjectGroup[]
+    if (targetGroups.length === 0) { applyBulkMove(target.id, null); return }
+    setMoveTarget({ collection: target, groups: targetGroups })
+  }
+
+  async function applyBulkMove(targetCollectionId: string | null, groupId: string | null) {
     setBulkActionLoading(true)
     const ids = Array.from(selectedIds)
-    await supabase.from('objects').update({ collection_id: targetCollectionId }).in('id', ids)
-    // Retirer les objets déplacés de la vue courante si on les déplace ailleurs
+
+    // RPC plutôt que deux updates : côté base, changer la collection
+    // détache du groupe, il faut donc écrire les deux ensemble.
+    const { error } = targetCollectionId
+      ? await supabase.rpc('move_objects', {
+          p_object_ids: ids,
+          p_collection_id: targetCollectionId,
+          p_group_id: groupId,
+        })
+      : await supabase.from('objects').update({ collection_id: null, group_id: null }).in('id', ids)
+
+    setBulkActionLoading(false)
+    setMoveTarget(null)
+    setDeplacerVisible(false)
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+
     if (targetCollectionId !== id) {
       setObjects(prev => prev.filter(o => !selectedIds.has(o.id)))
+    } else {
+      setObjects(prev => prev.map(o => selectedIds.has(o.id) ? { ...o, group_id: groupId } : o))
     }
-    setBulkActionLoading(false)
-    setDeplacerVisible(false)
     exitSelectMode()
   }
 
@@ -652,8 +936,8 @@ export default function CollectionDetailScreen() {
           )}
         </View>
         {isSelectMode ? (
-          <TouchableOpacity onPress={exitSelectMode} style={styles.headerBtn} hitSlop={12}>
-            <Text style={styles.cancelSelectText}>{t('common.cancel')}</Text>
+          <TouchableOpacity onPress={exitSelectMode} style={styles.headerCancelBtn} hitSlop={12}>
+            <Text style={styles.cancelSelectText} numberOfLines={1}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={openMenu} style={styles.headerBtn} hitSlop={12}>
@@ -796,11 +1080,8 @@ export default function CollectionDetailScreen() {
 
       {/* Grille objets */}
       <FlatList
-        key={cols}
-        data={filtered}
-        keyExtractor={o => o.id}
-        numColumns={cols}
-        columnWrapperStyle={cols > 1 ? styles.row : undefined}
+        data={rows}
+        keyExtractor={r => r.key}
         contentContainerStyle={[styles.grid, { paddingBottom: isSelectMode ? TAB_BAR_H + 80 : TAB_BAR_H + 16 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />}
@@ -812,21 +1093,43 @@ export default function CollectionDetailScreen() {
               />
             : <FirstObjectInvite collectionId={collection.id} collectionName={collection.name} />
         }
-        renderItem={({ item }) => (
-          <ObjectCard
-            object={item}
-            coverUrl={coverUrls[item.id] ?? null}
-            onPress={() => isSelectMode
-              ? toggleSelect(item.id)
-              : router.push({ pathname: '/objects/[id]', params: { id: item.id } })
-            }
-            onLongPress={() => enterSelectMode(item.id)}
-            cols={cols}
-            display={displayConfig}
-            isSelectMode={isSelectMode}
-            isSelected={selectedIds.has(item.id)}
-          />
-        )}
+        renderItem={({ item: row }) => {
+          if (row.type === 'divider') return <View style={styles.groupDivider} />
+          if (row.type === 'group') {
+            return (
+              <GroupHeader
+                group={row.group}
+                count={row.count}
+                collapsed={row.collapsed}
+                onToggle={() => toggleGroup(row.group.id)}
+                onLongPress={() => setGroupActionTarget(row.group)}
+                selectMode={isSelectMode}
+                allSelected={isGroupFullySelected(row.group.id)}
+                onSelectGroup={() => selectOnlyGroup(row.group.id)}
+              />
+            )
+          }
+          return (
+            <View style={[styles.gridRow, { gap, marginBottom: gap }]}>
+              {row.items.map(item => (
+                <ObjectCard
+                  key={item.id}
+                  object={item}
+                  coverUrl={coverUrls[item.id] ?? null}
+                  onPress={() => isSelectMode
+                    ? toggleSelect(item.id)
+                    : router.push({ pathname: '/objects/[id]', params: { id: item.id } })
+                  }
+                  onLongPress={() => enterSelectMode(item.id)}
+                  cols={cols}
+                  display={displayConfig}
+                  isSelectMode={isSelectMode}
+                  isSelected={selectedIds.has(item.id)}
+                />
+              ))}
+            </View>
+          )
+        }}
       />
 
       {/* Bottom action bar (multi-select) */}
@@ -835,6 +1138,12 @@ export default function CollectionDetailScreen() {
           <TouchableOpacity style={styles.actionBtn} onPress={() => setStatuerVisible(true)} activeOpacity={0.7} disabled={selectedIds.size === 0}>
             <Tag size={22} color={selectedIds.size === 0 ? Colors.textTertiary : Colors.textPrimary} strokeWidth={1.8} />
             <Text style={[styles.actionLabel, selectedIds.size === 0 && styles.actionLabelDisabled]}>{t('collectionDetail.actionStatus')}</Text>
+          </TouchableOpacity>
+          {/* Grouper s'ajoute aux actions, sans prendre la place de
+              Statuer : marquer plusieurs objets vendus reste courant. */}
+          <TouchableOpacity style={styles.actionBtn} onPress={() => setGroupPickerVisible(true)} activeOpacity={0.7} disabled={selectedIds.size === 0}>
+            <FolderPlus size={22} color={selectedIds.size === 0 ? Colors.textTertiary : Colors.textPrimary} strokeWidth={1.8} />
+            <Text style={[styles.actionLabel, selectedIds.size === 0 && styles.actionLabelDisabled]}>{t('groups.action')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => { loadAllCollections(); setDeplacerVisible(true) }} activeOpacity={0.7} disabled={selectedIds.size === 0}>
             <MoveRight size={22} color={selectedIds.size === 0 ? Colors.textTertiary : Colors.textPrimary} strokeWidth={1.8} />
@@ -878,36 +1187,207 @@ export default function CollectionDetailScreen() {
         </View>
       </Modal>
 
-      {/* ── Modal Déplacer ── */}
-      <Modal visible={deplacerVisible} transparent animationType="slide" onRequestClose={() => setDeplacerVisible(false)}>
-        <TouchableOpacity style={styles.bulkBackdrop} activeOpacity={1} onPress={() => setDeplacerVisible(false)} />
+      {/* ── Modal Grouper ── */}
+      <Modal visible={groupPickerVisible} transparent animationType="slide" onRequestClose={() => setGroupPickerVisible(false)}>
+        <TouchableOpacity style={styles.bulkBackdrop} activeOpacity={1} onPress={() => setGroupPickerVisible(false)} />
         <View style={styles.bulkSheet}>
           <View style={styles.bulkHandle} />
-          <Text style={styles.bulkTitle}>{t('collectionDetail.moveTo')}</Text>
+          <Text style={styles.bulkTitle}>{t('groups.pickTitle', { count: selectedIds.size })}</Text>
           <ScrollView showsVerticalScrollIndicator={false}>
-            <TouchableOpacity style={styles.bulkOptionRow} onPress={() => applyBulkMove(null)} activeOpacity={0.7} disabled={bulkActionLoading}>
-              <View style={[styles.bulkStatusDot, { backgroundColor: Colors.textTertiary }]} />
-              <Text style={styles.bulkOptionLabel}>{t('capture.noCollection')}</Text>
+            <TouchableOpacity
+              style={styles.bulkOptionRow}
+              onPress={() => { setGroupPickerVisible(false); setTimeout(() => setNewGroupVisible(true), 220) }}
+              activeOpacity={0.7}
+              disabled={bulkActionLoading}
+            >
+              <FolderPlus size={18} color={Colors.accent} strokeWidth={1.8} />
+              <Text style={[styles.bulkOptionLabel, styles.bulkOptionAccent]}>{t('groups.newGroup')}</Text>
             </TouchableOpacity>
-            {allCollections.filter(c => c.id !== id).map(col => (
+
+            {groups.map(g => (
               <TouchableOpacity
-                key={col.id}
+                key={g.id}
                 style={styles.bulkOptionRow}
-                onPress={() => applyBulkMove(col.id)}
+                onPress={() => applyGroup(g.id)}
                 activeOpacity={0.7}
                 disabled={bulkActionLoading}
               >
-                <Text style={styles.bulkColEmoji}>{col.emoji ?? '📦'}</Text>
-                <Text style={styles.bulkOptionLabel}>{col.name}</Text>
+                <View style={[styles.bulkStatusDot, { backgroundColor: Colors.sage }]} />
+                <Text style={styles.bulkOptionLabel}>{g.name}</Text>
                 {bulkActionLoading
                   ? <ActivityIndicator size="small" color={Colors.accent} />
-                  : <MoveRight size={16} color={Colors.textTertiary} strokeWidth={1.5} />
+                  : <CheckCircle size={18} color={Colors.borderLight} strokeWidth={1.5} />
                 }
               </TouchableOpacity>
             ))}
+
+            {groups.length > 0 && (
+              <TouchableOpacity
+                style={styles.bulkOptionRow}
+                onPress={() => applyGroup(null)}
+                activeOpacity={0.7}
+                disabled={bulkActionLoading}
+              >
+                <View style={[styles.bulkStatusDot, { backgroundColor: Colors.textTertiary }]} />
+                <Text style={styles.bulkOptionLabel}>{t('groups.noGroup')}</Text>
+              </TouchableOpacity>
+            )}
           </ScrollView>
         </View>
       </Modal>
+
+      {/* ── Modal Déplacer ── */}
+      <Modal
+        visible={deplacerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => { setDeplacerVisible(false); setMoveTarget(null) }}
+      >
+        <TouchableOpacity
+          style={styles.bulkBackdrop}
+          activeOpacity={1}
+          onPress={() => { setDeplacerVisible(false); setMoveTarget(null) }}
+        />
+        <View style={styles.bulkSheet}>
+          <View style={styles.bulkHandle} />
+
+          {moveTarget ? (
+            /* Étape 2 : la collection est choisie, reste le groupe. */
+            <>
+              <Text style={styles.bulkTitle}>
+                {t('groups.moveInto', { name: moveTarget.collection.name })}
+              </Text>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <TouchableOpacity
+                  style={styles.bulkOptionRow}
+                  onPress={() => applyBulkMove(moveTarget.collection.id, null)}
+                  activeOpacity={0.7}
+                  disabled={bulkActionLoading}
+                >
+                  <View style={[styles.bulkStatusDot, { backgroundColor: Colors.textTertiary }]} />
+                  <Text style={styles.bulkOptionLabel}>{t('groups.noGroup')}</Text>
+                </TouchableOpacity>
+                {moveTarget.groups.map(g => (
+                  <TouchableOpacity
+                    key={g.id}
+                    style={styles.bulkOptionRow}
+                    onPress={() => applyBulkMove(moveTarget.collection.id, g.id)}
+                    activeOpacity={0.7}
+                    disabled={bulkActionLoading}
+                  >
+                    <View style={[styles.bulkStatusDot, { backgroundColor: Colors.sage }]} />
+                    <Text style={styles.bulkOptionLabel}>{g.name}</Text>
+                    {bulkActionLoading
+                      ? <ActivityIndicator size="small" color={Colors.accent} />
+                      : <MoveRight size={16} color={Colors.textTertiary} strokeWidth={1.5} />
+                    }
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity style={styles.bulkBackBtn} onPress={() => setMoveTarget(null)} activeOpacity={0.7}>
+                <Text style={styles.bulkBackText}>← {t('common.back')}</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            /* Étape 1 : rester ici en changeant de groupe, ou partir ailleurs. */
+            <>
+              <Text style={styles.bulkTitle}>{t('collectionDetail.moveTo')}</Text>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {groups.length > 0 && (
+                  <>
+                    <Text style={styles.bulkSectionLabel}>{t('groups.inThisCollection')}</Text>
+                    {groups.map(g => (
+                      <TouchableOpacity
+                        key={g.id}
+                        style={styles.bulkOptionRow}
+                        onPress={() => applyBulkMove(id, g.id)}
+                        activeOpacity={0.7}
+                        disabled={bulkActionLoading}
+                      >
+                        <View style={[styles.bulkStatusDot, { backgroundColor: Colors.sage }]} />
+                        <Text style={styles.bulkOptionLabel}>{g.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                    <TouchableOpacity
+                      style={styles.bulkOptionRow}
+                      onPress={() => applyBulkMove(id, null)}
+                      activeOpacity={0.7}
+                      disabled={bulkActionLoading}
+                    >
+                      <View style={[styles.bulkStatusDot, { backgroundColor: Colors.textTertiary }]} />
+                      <Text style={styles.bulkOptionLabel}>{t('groups.noGroup')}</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                <Text style={styles.bulkSectionLabel}>{t('groups.otherCollection')}</Text>
+                <TouchableOpacity
+                  style={styles.bulkOptionRow}
+                  onPress={() => applyBulkMove(null, null)}
+                  activeOpacity={0.7}
+                  disabled={bulkActionLoading}
+                >
+                  <View style={[styles.bulkStatusDot, { backgroundColor: Colors.textTertiary }]} />
+                  <Text style={styles.bulkOptionLabel}>{t('capture.noCollection')}</Text>
+                </TouchableOpacity>
+                {allCollections.filter(c => c.id !== id).map(col => (
+                  <TouchableOpacity
+                    key={col.id}
+                    style={styles.bulkOptionRow}
+                    onPress={() => pickMoveCollection(col)}
+                    activeOpacity={0.7}
+                    disabled={bulkActionLoading}
+                  >
+                    <Text style={styles.bulkColEmoji}>{col.emoji ?? '📦'}</Text>
+                    <Text style={styles.bulkOptionLabel}>{col.name}</Text>
+                    {bulkActionLoading
+                      ? <ActivityIndicator size="small" color={Colors.accent} />
+                      : <MoveRight size={16} color={Colors.textTertiary} strokeWidth={1.5} />
+                    }
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </>
+          )}
+        </View>
+      </Modal>
+
+      {/* Actions sur un groupe (appui long sur son en-tête) */}
+      <ActionSheet
+        visible={!!groupActionTarget}
+        onClose={() => setGroupActionTarget(null)}
+        options={groupActionTarget ? [
+          {
+            label: t('collections.rename'),
+            onPress: () => setTimeout(() => setGroupRenameTarget(groupActionTarget), 220),
+          },
+          {
+            label: t('groups.dissolve'),
+            destructive: true,
+            onPress: () => setTimeout(() => confirmDeleteGroup(groupActionTarget), 220),
+          },
+          { label: t('common.cancel'), cancel: true, onPress: () => {} },
+        ] : []}
+      />
+
+      <PromptDialog
+        visible={newGroupVisible}
+        title={t('groups.newGroupTitle')}
+        placeholder={t('groups.namePlaceholder')}
+        confirmLabel={t('groups.create')}
+        onConfirm={createGroupFromSelection}
+        onClose={() => setNewGroupVisible(false)}
+      />
+
+      <PromptDialog
+        visible={!!groupRenameTarget}
+        title={t('groups.renameTitle')}
+        placeholder={t('groups.namePlaceholder')}
+        initialValue={groupRenameTarget?.name ?? ''}
+        confirmLabel={t('collections.rename')}
+        onConfirm={name => groupRenameTarget && renameGroup(groupRenameTarget, name)}
+        onClose={() => setGroupRenameTarget(null)}
+      />
 
       {/* ── Modal Supprimer (confirmation) ── */}
       <Modal visible={deleteBulkVisible} transparent animationType="fade" onRequestClose={() => setDeleteBulkVisible(false)}>
@@ -959,6 +1439,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   headerBtn: { width: 44, alignItems: 'center', justifyContent: 'center' },
+  // « Annuler » ne tient pas dans les 44 px des boutons à icône.
+  headerCancelBtn: {
+    minWidth: 44,
+    paddingHorizontal: Spacing.xs,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
   headerCenter: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   headerTitle: {
     fontSize: Typography.md,
@@ -1037,8 +1524,15 @@ const styles = StyleSheet.create({
   zoomIcon: { fontSize: 18, color: Colors.textPrimary },
   zoomLabel: { fontSize: Typography.xs, color: Colors.textSecondary, fontWeight: Typography.medium, minWidth: 30, textAlign: 'center' },
 
-  grid: { gap: GRID_GAP, flexGrow: 1 },
-  row: { gap: GRID_GAP, marginBottom: GRID_GAP },
+  grid: { flexGrow: 1, paddingTop: Spacing.sm },
+  gridRow: { flexDirection: 'row', paddingHorizontal: GRID_PADDING },
+  // Ferme un groupe sans le souligner : un filet, pas une barre.
+  groupDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginHorizontal: GRID_PADDING,
+    marginTop: Spacing.sm,
+  },
 
   renameBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.4)' },
   renameCard: {
@@ -1153,6 +1647,18 @@ const styles = StyleSheet.create({
   },
   bulkColEmoji: { fontSize: 18, width: 22, textAlign: 'center' },
   bulkOptionLabel: { flex: 1, fontSize: Typography.base, color: Colors.textPrimary },
+  bulkOptionAccent: { color: Colors.accent, fontWeight: Typography.semibold },
+  bulkSectionLabel: {
+    fontSize: Typography.xs,
+    fontWeight: Typography.semibold,
+    color: Colors.textTertiary,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xs,
+  },
+  bulkBackBtn: { paddingVertical: Spacing.md, alignItems: 'center' },
+  bulkBackText: { fontSize: Typography.base, color: Colors.accent, fontWeight: Typography.medium },
 
   bulkDeleteIcon: {
     alignSelf: 'center',

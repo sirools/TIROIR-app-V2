@@ -698,5 +698,23 @@
     "name_asc": "A → Z",
     "count_desc": "Most items",
     "count_asc": "Fewest items"
+  },
+  "groups": {
+    "action": "Group",
+    "pickTitle_one": "Group {{count}} item",
+    "pickTitle_other": "Group {{count}} items",
+    "newGroup": "New group…",
+    "newGroupTitle": "New group",
+    "renameTitle": "Rename group",
+    "namePlaceholder": "e.g. winter jackets",
+    "create": "Create group",
+    "noGroup": "No group",
+    "dissolve": "Dissolve group",
+    "deleteTitle": "Dissolve “{{name}}”?",
+    "deleteBody": "The items stay in the collection, they only lose their group.",
+    "inThisCollection": "In this collection",
+    "otherCollection": "To another collection",
+    "moveInto": "Into “{{name}}”",
+    "selectGroup": "Select group"
   }
 }
