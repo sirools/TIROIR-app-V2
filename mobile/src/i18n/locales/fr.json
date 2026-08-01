@@ -119,12 +119,6 @@
     "greetingEvening": "Bonsoir",
     "search": "Rechercher",
     "myCollections": "MES COLLECTIONS",
-    "noCollections": "Aucune collection — crée-en une avec le bouton +",
-    "newCollection": "Nouvelle collection",
-    "collectionNamePlaceholder": "ex : mes vestes préférées du moment",
-    "iconLabel": "Icône",
-    "colorLabel": "Couleur",
-    "create": "Créer",
     "drawerNotFound": "Tiroir introuvable.",
     "deleteCollectionTitle": "Supprimer « {{name}} » ?",
     "deleteCollectionWithObjects_one": "Elle contient {{count}} objet. Les objets resteront dans ton Tiroir.",
@@ -191,14 +185,14 @@
   },
   "collections": {
     "title": "Collections",
-    "emptyTitle": "Aucune collection",
-    "emptySubtitle": "Tes collections apparaîtront ici dès que tu ajoutes un objet.",
     "rename": "Renommer",
     "ok": "OK",
     "deleteTitle": "Supprimer « {{name}} » ?",
     "deleteWithObjects_one": "Cette collection contient {{count}} objet. Les objets ne seront pas supprimés mais perdront leur collection.",
     "deleteWithObjects_other": "Cette collection contient {{count}} objets. Les objets ne seront pas supprimés mais perdront leur collection.",
-    "deleteIrreversible": "Cette action est irréversible."
+    "deleteIrreversible": "Cette action est irréversible.",
+    "pin": "Épingler",
+    "unpin": "Retirer l'épingle"
   },
   "search": {
     "title": "Rechercher",
@@ -378,7 +372,6 @@
     "renamePlaceholder": "Nom de la collection",
     "emptyTitle": "Aucun objet",
     "emptyNoResults": "Aucun résultat pour cette recherche.",
-    "emptySubtitle": "Cette collection ne contient pas encore d'objets.",
     "actionStatus": "Statuer",
     "actionMove": "Déplacer",
     "actionShare": "Partager",
@@ -400,7 +393,15 @@
     "fieldBrand": "Marque",
     "fieldEra": "Époque",
     "fieldCondition": "État",
-    "sizeLabel": "Taille : {{value}}"
+    "sizeLabel": "Taille : {{value}}",
+    "inviteTitle": "« {{name}} » attend son premier objet",
+    "inviteBody": "Photographie-le, l'IA remplit la fiche. Il arrivera directement dans cette collection.",
+    "inviteCamera": "Prendre une photo",
+    "inviteCameraHint": "Un objet, tout de suite",
+    "inviteLibrary": "Depuis la pellicule",
+    "inviteLibraryHint": "Choisis une photo déjà prise",
+    "inviteBatch": "Plusieurs objets d'un coup",
+    "inviteBatchHint": "Une photo = un objet"
   },
   "iconPicker": {
     "preview": "Aperçu",
@@ -670,5 +671,32 @@
     "addMore_one": "Ajouter un autre objet · {{count}} place",
     "addMore_other": "Ajouter d'autres objets · {{count}} places",
     "addMoreFull": "Lot complet · {{max}} objets max"
+  },
+  "collectionComposer": {
+    "inviteTitle": "Crée ta première collection",
+    "inviteBody": "Une collection regroupe les objets qui vont ensemble : tes vestes, tes vinyles, le contenu du garage. C'est ce qui te permettra de retrouver n'importe quoi en trois secondes.",
+    "suggestion1": "Mes vestes",
+    "suggestion2": "Vinyles",
+    "suggestion3": "Garage",
+    "inviteCta": "Créer une collection",
+    "addLabel": "Nouvelle collection",
+    "namePlaceholder": "Nom de la collection…",
+    "iconLabel": "Icône",
+    "colorLabel": "Couleur",
+    "create": "Créer"
+  },
+  "emojiKeyboard": {
+    "title": "Choisir un emoji",
+    "hint": "Ouvre le clavier emoji de ton téléphone (touche 😀 ou 🌐) et tape celui que tu veux.",
+    "placeholder": "Tape un emoji",
+    "notAnEmoji": "Ce n'est pas un emoji — passe par le clavier emoji.",
+    "use": "Utiliser"
+  },
+  "collectionSort": {
+    "created_asc": "Ordre d'ajout",
+    "created_desc": "Plus récentes",
+    "name_asc": "A → Z",
+    "count_desc": "Plus fournies",
+    "count_asc": "Moins fournies"
   }
 }

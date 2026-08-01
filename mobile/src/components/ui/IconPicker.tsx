@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Colors, Typography, Spacing, Radius } from './tokens'
+import { EmojiKeyboardSheet } from './EmojiKeyboardSheet'
 
 export const EMOJI_LIST = [
   '📦','🏠','🎮','💻','📱','🎵','📸','🚗','👕','📚',
@@ -40,6 +41,7 @@ export function IconPicker({ visible, currentEmoji, currentColor, onSave, onClos
   const { t } = useTranslation()
   const [emoji, setEmoji] = useState(currentEmoji)
   const [color, setColor] = useState(currentColor)
+  const [keyboardSheet, setKeyboardSheet] = useState(false)
 
   React.useEffect(() => {
     if (visible) {
@@ -93,7 +95,22 @@ export function IconPicker({ visible, currentEmoji, currentColor, onSave, onClos
               <Text style={s.emojiText}>{e}</Text>
             </TouchableOpacity>
           ))}
+          {/* Sortie vers le clavier système : la grille propose, elle n'enferme pas. */}
+          <TouchableOpacity
+            onPress={() => setKeyboardSheet(true)}
+            style={[s.emojiCell, s.emojiCellMore, !EMOJI_LIST.includes(emoji) && s.emojiCellActive]}
+            activeOpacity={0.7}
+          >
+            <Text style={s.emojiMoreText}>+</Text>
+          </TouchableOpacity>
         </View>
+
+        <EmojiKeyboardSheet
+          visible={keyboardSheet}
+          previewColor={color}
+          onPick={picked => { setEmoji(picked); setKeyboardSheet(false) }}
+          onClose={() => setKeyboardSheet(false)}
+        />
 
         <TouchableOpacity style={s.saveBtn} onPress={() => onSave(emoji, color)} activeOpacity={0.85}>
           <Text style={s.saveBtnText}>{t('iconPicker.apply')}</Text>
@@ -149,6 +166,13 @@ const s = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.accent,
   },
   emojiText: { fontSize: 24 },
+  emojiCellMore: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: Colors.border,
+  },
+  emojiMoreText: { fontSize: 22, lineHeight: 26, color: Colors.accent, fontWeight: Typography.bold },
   saveBtn: {
     backgroundColor: Colors.accent,
     borderRadius: Radius.lg,

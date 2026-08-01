@@ -33,10 +33,17 @@ interface CollectionRow {
 }
 
 export default function BatchReviewScreen() {
-  const { images: imagesParam, runId, batchMax: batchMaxParam } = useLocalSearchParams<{
+  const {
+    images: imagesParam,
+    runId,
+    batchMax: batchMaxParam,
+    collectionId: presetCollectionId,
+  } = useLocalSearchParams<{
     images: string
     runId?: string
     batchMax?: string
+    /** Lot lancé depuis une collection : la destination est déjà connue. */
+    collectionId?: string
   }>()
   const batchMax = Number(batchMaxParam ?? 10)
   const { t } = useTranslation()
@@ -460,7 +467,10 @@ export default function BatchReviewScreen() {
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.btnPrimary, (isBusy || readyCount === 0) && styles.btnDisabled]}
-          onPress={() => setPickerVisible(true)}
+          onPress={() => presetCollectionId
+            ? runConfirm(presetCollectionId)
+            : setPickerVisible(true)
+          }
           disabled={isBusy || readyCount === 0}
           activeOpacity={0.85}
         >

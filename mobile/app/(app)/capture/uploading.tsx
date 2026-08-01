@@ -24,7 +24,12 @@ type StepKey = 'upload' | 'identify' | 'attrs' | 'sheet'
 type StepStatus = 'pending' | 'active' | 'done'
 
 export default function UploadingScreen() {
-  const { draftId, images: imagesParam } = useLocalSearchParams<{ draftId: string; images: string }>()
+  const { draftId, images: imagesParam, collectionId } = useLocalSearchParams<{
+    draftId: string
+    images: string
+    /** Collection d'origine du parcours, le cas échéant. */
+    collectionId?: string
+  }>()
   const { t } = useTranslation()
   const { user } = useAuth()
   const router = useRouter()
@@ -127,7 +132,7 @@ export default function UploadingScreen() {
 
       const { data: objectId, error: confirmError } = await supabase.rpc('confirm_draft', {
         p_draft_id: draftId,
-        p_collection_id: null,
+        p_collection_id: collectionId ?? null,
       })
       if (confirmError) throw new Error(confirmError.message)
 
@@ -162,7 +167,7 @@ export default function UploadingScreen() {
 
       const { data: objectId, error: confirmError } = await supabase.rpc('confirm_draft', {
         p_draft_id: draftId,
-        p_collection_id: null,
+        p_collection_id: collectionId ?? null,
       })
       if (confirmError) throw new Error(confirmError.message)
 

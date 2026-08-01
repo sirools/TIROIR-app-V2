@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   View, Text, StyleSheet, Image, TouchableOpacity,
   ScrollView, Alert, Animated, ActivityIndicator, Platform,
@@ -7,7 +7,7 @@ import { Camera, Images, Layers, ChevronRight } from 'lucide-react-native'
 import * as ImagePicker from 'expo-image-picker'
 import * as ImageManipulator from 'expo-image-manipulator'
 import * as FileSystem from 'expo-file-system/legacy'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
@@ -33,6 +33,16 @@ export default function CaptureScreen() {
   const router = useRouter()
   const { t } = useTranslation()
   const { user } = useAuth()
+  /**
+   * `intent` : la source de photo a déjà été choisie ailleurs (invite d'une
+   * collection vide) — on ouvre directement le bon sélecteur.
+   * `collectionId` : destination imposée, l'objet créé y atterrit sans que
+   * l'utilisateur ait à la re-choisir en fin de parcours.
+   */
+  const { intent, collectionId } = useLocalSearchParams<{
+    intent?: 'camera' | 'library' | 'batch'
+    collectionId?: string
+  }>()
   const [images, setImages] = useState<PickedImage[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingManual, setLoadingManual] = useState(false)
@@ -40,7 +50,9 @@ export default function CaptureScreen() {
   const [quotaLimit, setQuotaLimit] = useState<number | null>(null)
   const [quotaExhausted, setQuotaExhausted] = useState(false)
   const [quotaRemaining, setQuotaRemaining] = useState<number | null>(null)
+  const [quotaLoaded, setQuotaLoaded] = useState(false)
   const [plan, setPlan] = useState<Plan>('free')
+  const autoStarted = useRef(false)
 
   useFocusEffect(useCallback(() => {
     setImages([])
@@ -57,6 +69,7 @@ export default function CaptureScreen() {
         setQuotaExhausted(quota !== null && used >= quota)
         setQuotaRemaining(quota === null ? null : Math.max(0, quota - used))
       }
+      setQuotaLoaded(true)
     })
     supabase
       .from('profiles')
@@ -86,6 +99,19 @@ export default function CaptureScreen() {
       t('batch.blockedMessage', { remaining: quotaRemaining ?? 0 }),
     )
   }
+
+  /**
+   * Ouverture automatique du sélecteur quand la source est déjà décidée.
+   * On attend le quota : sans lui, `batchMax` vaut le plafond du plan et
+   * le mode lot s'ouvrirait alors qu'il ne reste peut-être rien.
+   */
+  useEffect(() => {
+    if (!intent || autoStarted.current || !quotaLoaded) return
+    autoStarted.current = true
+    if (intent === 'camera') pickFromCamera()
+    else if (intent === 'library') pickFromLibrary()
+    else if (intent === 'batch') batchAvailable ? pickMultipleObjects() : explainBatchBlocked()
+  }, [intent, quotaLoaded, batchAvailable])
 
   async function pickFromLibrary() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -178,6 +204,7 @@ export default function CaptureScreen() {
         images: JSON.stringify(picked),
         runId: String(Date.now()),
         batchMax: String(batchMax),
+        ...(collectionId ? { collectionId } : {}),
       },
     })
   }
@@ -194,7 +221,14 @@ export default function CaptureScreen() {
       Alert.alert(t('common.error'), draftError?.message ?? t('capture.startCaptureError'))
       return
     }
-    router.push({ pathname: '/capture/uploading', params: { draftId, images: JSON.stringify(images) } })
+    router.push({
+      pathname: '/capture/uploading',
+      params: {
+        draftId,
+        images: JSON.stringify(images),
+        ...(collectionId ? { collectionId } : {}),
+      },
+    })
   }
 
   async function handleManual() {
@@ -203,6 +237,11 @@ export default function CaptureScreen() {
     try {
       const { data: objectId, error: createError } = await supabase.rpc('create_empty_object')
       if (createError || !objectId) throw new Error(createError?.message ?? t('capture.createError'))
+
+      // Saisie manuelle lancée depuis une collection : elle reste la destination.
+      if (collectionId) {
+        await supabase.from('objects').update({ collection_id: collectionId }).eq('id', objectId)
+      }
 
       for (let i = 0; i < images.length; i++) {
         const img = images[i]

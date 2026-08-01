@@ -1,20 +1,27 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  TextInput,
   Alert,
   ActivityIndicator,
   RefreshControl,
-  Keyboard,
 } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
+import { Pin } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
-import { Screen, EmptyState, IconPicker, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import {
+  Screen, ActionSheet, IconPicker, CollectionComposer, PromptDialog,
+  Colors, Typography, Spacing, Radius,
+} from '@/components/ui'
+import { CollectionSortButton } from '@/components/CollectionSortButton'
+import {
+  CollectionSort, DEFAULT_COLLECTION_SORT,
+  loadCollectionSort, saveCollectionSort, sortCollections,
+} from '@/features/collections/sort'
 import { Collection } from '@/types/database'
 import { setIconOverride, applyIconOverride } from '@/utils/collectionIconCache'
 
@@ -22,6 +29,11 @@ import { setIconOverride, applyIconOverride } from '@/utils/collectionIconCache'
 
 interface CollectionWithCount extends Collection {
   object_count: number
+}
+
+/** iOS refuse d'empiler deux présentations : on laisse la feuille se fermer. */
+function afterSheet(fn: () => void) {
+  setTimeout(fn, 220)
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
@@ -32,15 +44,17 @@ export default function CollectionsScreen() {
   const [collections, setCollections] = useState<CollectionWithCount[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [sort, setSort] = useState<CollectionSort>(DEFAULT_COLLECTION_SORT)
   const [pickerTarget, setPickerTarget] = useState<CollectionWithCount | null>(null)
+  const [actionTarget, setActionTarget] = useState<CollectionWithCount | null>(null)
+  const [renameTarget, setRenameTarget] = useState<CollectionWithCount | null>(null)
 
   const loadRef = useRef<() => Promise<void>>(async () => {})
 
+  useEffect(() => { loadCollectionSort().then(setSort) }, [])
+
   const load = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('collections')
-      .select('*, objects(count)')
-      .order('updated_at', { ascending: false })
+    const { data, error } = await supabase.rpc('list_collections_with_counts')
 
     if (error) {
       console.error('[Collections] load error:', error)
@@ -49,17 +63,10 @@ export default function CollectionsScreen() {
       return
     }
 
-    const mapped: CollectionWithCount[] = (data ?? []).map(
-      (row: Collection & { objects: { count: number }[] }) => {
-        const { emoji, icon_color } = applyIconOverride(row.id, row.emoji ?? '📦', row.icon_color ?? '#E8F0E0')
-        return {
-          ...row,
-          emoji,
-          icon_color,
-          object_count: row.objects?.[0]?.count ?? 0,
-        }
-      }
-    )
+    const mapped: CollectionWithCount[] = ((data ?? []) as CollectionWithCount[]).map(row => {
+      const { emoji, icon_color } = applyIconOverride(row.id, row.emoji ?? '📦', row.icon_color ?? '#E8F0E0')
+      return { ...row, emoji, icon_color }
+    })
 
     setCollections(mapped)
     setLoading(false)
@@ -76,6 +83,51 @@ export default function CollectionsScreen() {
   function onRefresh() {
     setRefreshing(true)
     load()
+  }
+
+  // Épinglées en tête, tri choisi pour le reste.
+  const ordered = useMemo(() => sortCollections(collections, sort), [collections, sort])
+
+  function changeSort(next: CollectionSort) {
+    setSort(next)
+    saveCollectionSort(next)
+  }
+
+  // ── Créer ───────────────────────────────────────────────────────────────────
+
+  async function handleCreate(name: string, emoji: string, color: string): Promise<boolean> {
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: drawer } = await supabase.from('drawers').select('id').single()
+
+    if (!drawer || !user) {
+      Alert.alert(t('common.error'), t('home.drawerNotFound'))
+      return false
+    }
+
+    const { data, error } = await supabase
+      .from('collections')
+      .insert({ name, drawer_id: drawer.id, user_id: user.id, emoji, icon_color: color })
+      .select()
+      .single()
+
+    if (error) { Alert.alert(t('common.error'), error.message); return false }
+
+    // À la suite des autres, pas en tête : la nouvelle collection reste
+    // là où l'utilisateur vient de la saisir.
+    setCollections(prev => [...prev, { ...data, object_count: 0 }])
+    return true
+  }
+
+  // ── Épingler ────────────────────────────────────────────────────────────────
+
+  async function togglePin(collection: CollectionWithCount) {
+    const { data, error } = await supabase.rpc('toggle_collection_pin', {
+      p_collection_id: collection.id,
+    })
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+    setCollections(prev =>
+      prev.map(c => c.id === collection.id ? { ...c, pinned_at: (data as string | null) ?? null } : c)
+    )
   }
 
   // ── Sauvegarde icône ────────────────────────────────────────────────────────
@@ -102,18 +154,18 @@ export default function CollectionsScreen() {
   // ── Renommer ────────────────────────────────────────────────────────────────
 
   async function handleRename(collection: CollectionWithCount, newName: string) {
-    const trimmed = newName.trim()
-    if (!trimmed || trimmed === collection.name) return
+    setRenameTarget(null)
+    if (newName === collection.name) return
 
     const { error } = await supabase
       .from('collections')
-      .update({ name: trimmed, updated_at: new Date().toISOString() })
+      .update({ name: newName, updated_at: new Date().toISOString() })
       .eq('id', collection.id)
 
-    if (error) { Alert.alert('Erreur', error.message); return }
+    if (error) { Alert.alert(t('common.error'), error.message); return }
 
     setCollections(prev =>
-      prev.map(c => c.id === collection.id ? { ...c, name: trimmed } : c)
+      prev.map(c => c.id === collection.id ? { ...c, name: newName } : c)
     )
   }
 
@@ -134,7 +186,7 @@ export default function CollectionsScreen() {
             .from('collections')
             .delete()
             .eq('id', collection.id)
-          if (error) { Alert.alert('Erreur', error.message); return }
+          if (error) { Alert.alert(t('common.error'), error.message); return }
           setCollections(prev => prev.filter(c => c.id !== collection.id))
         },
       },
@@ -155,10 +207,13 @@ export default function CollectionsScreen() {
     <Screen edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('collections.title')}</Text>
+        {collections.length > 1 && (
+          <CollectionSortButton sort={sort} onChange={changeSort} />
+        )}
       </View>
 
       <FlatList
-        data={collections}
+        data={ordered}
         keyExtractor={c => c.id}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
@@ -167,20 +222,63 @@ export default function CollectionsScreen() {
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
-          <EmptyState
-            title={t('collections.emptyTitle')}
-            subtitle={t('collections.emptySubtitle')}
-          />
+          <View style={styles.composerSlot}>
+            <CollectionComposer variant="first" onCreate={handleCreate} />
+          </View>
+        }
+        ListFooterComponent={
+          collections.length > 0
+            ? (
+              <View style={styles.composerSlot}>
+                <CollectionComposer variant="add" onCreate={handleCreate} />
+              </View>
+            )
+            : null
         }
         renderItem={({ item }) => (
           <CollectionRow
             collection={item}
             onPress={() => router.push({ pathname: '/collections/[id]', params: { id: item.id } })}
-            onRename={newName => handleRename(item, newName)}
-            onDelete={() => handleDelete(item)}
+            onLongPress={() => setActionTarget(item)}
             onIconPress={() => setPickerTarget(item)}
           />
         )}
+      />
+
+      {/* Actions rares : appui long, pour garder la liste nue */}
+      <ActionSheet
+        visible={!!actionTarget}
+        onClose={() => setActionTarget(null)}
+        options={actionTarget ? [
+          {
+            label: actionTarget.pinned_at ? t('collections.unpin') : t('collections.pin'),
+            onPress: () => togglePin(actionTarget),
+          },
+          {
+            label: t('collections.rename'),
+            onPress: () => afterSheet(() => setRenameTarget(actionTarget)),
+          },
+          {
+            label: t('collectionDetail.editIcon'),
+            onPress: () => afterSheet(() => setPickerTarget(actionTarget)),
+          },
+          {
+            label: t('common.delete'),
+            destructive: true,
+            onPress: () => afterSheet(() => handleDelete(actionTarget)),
+          },
+          { label: t('common.cancel'), cancel: true, onPress: () => {} },
+        ] : []}
+      />
+
+      <PromptDialog
+        visible={!!renameTarget}
+        title={t('collectionDetail.renameTitle')}
+        placeholder={t('collectionDetail.renamePlaceholder')}
+        initialValue={renameTarget?.name ?? ''}
+        confirmLabel={t('collections.rename')}
+        onConfirm={name => renameTarget && handleRename(renameTarget, name)}
+        onClose={() => setRenameTarget(null)}
       />
 
       <IconPicker
@@ -199,98 +297,45 @@ export default function CollectionsScreen() {
 interface CollectionRowProps {
   collection: CollectionWithCount
   onPress: () => void
-  onRename: (newName: string) => void
-  onDelete: () => void
+  onLongPress: () => void
   onIconPress: () => void
 }
 
-function CollectionRow({ collection, onPress, onRename, onDelete, onIconPress }: CollectionRowProps) {
+function CollectionRow({ collection, onPress, onLongPress, onIconPress }: CollectionRowProps) {
   const { t } = useTranslation()
-  const [editing, setEditing] = useState(false)
-  const [draftName, setDraftName] = useState(collection.name)
-  const inputRef = useRef<TextInput>(null)
-
-  function startEdit() {
-    setDraftName(collection.name)
-    setEditing(true)
-    setTimeout(() => inputRef.current?.focus(), 50)
-  }
-
-  function commitEdit() {
-    Keyboard.dismiss()
-    setEditing(false)
-    onRename(draftName)
-  }
-
-  function cancelEdit() {
-    Keyboard.dismiss()
-    setDraftName(collection.name)
-    setEditing(false)
-  }
 
   return (
     <View style={rowStyles.container}>
-      {/* Ligne principale : icône + contenu côte à côte, mais touchables séparés */}
-      <View style={rowStyles.main}>
-        {/* Icône — touchable indépendant, hors du touchable de navigation */}
-        <TouchableOpacity
-          onPress={onIconPress}
-          activeOpacity={0.75}
-          style={[rowStyles.icon, { backgroundColor: collection.icon_color ?? '#E8F0E0' }]}
-          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-        >
-          <Text style={rowStyles.iconEmoji}>{collection.emoji ?? '📦'}</Text>
-        </TouchableOpacity>
+      {/* Icône — touchable indépendant, hors du touchable de navigation */}
+      <TouchableOpacity
+        onPress={onIconPress}
+        onLongPress={onLongPress}
+        delayLongPress={300}
+        activeOpacity={0.75}
+        style={[rowStyles.icon, { backgroundColor: collection.icon_color ?? '#E8F0E0' }]}
+        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+      >
+        <Text style={rowStyles.iconEmoji}>{collection.emoji ?? '📦'}</Text>
+      </TouchableOpacity>
 
-        {/* Contenu + chevron — touchable de navigation */}
-        <TouchableOpacity
-          onPress={onPress}
-          activeOpacity={0.7}
-          style={rowStyles.mainInner}
-          disabled={editing}
-        >
-          <View style={rowStyles.info}>
-            {editing ? (
-              <TextInput
-                ref={inputRef}
-                value={draftName}
-                onChangeText={setDraftName}
-                onSubmitEditing={commitEdit}
-                onBlur={commitEdit}
-                style={rowStyles.nameInput}
-                returnKeyType="done"
-                selectTextOnFocus
-                maxLength={80}
-              />
-            ) : (
-              <Text style={rowStyles.name} numberOfLines={1}>{collection.name}</Text>
+      <TouchableOpacity
+        onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={300}
+        activeOpacity={0.7}
+        style={rowStyles.mainInner}
+      >
+        <View style={rowStyles.info}>
+          <View style={rowStyles.nameRow}>
+            {collection.pinned_at && (
+              <Pin size={12} color={Colors.accent} strokeWidth={2.2} fill={Colors.accent} />
             )}
-            <Text style={rowStyles.count}>{t('common.objects', { count: collection.object_count })}</Text>
+            <Text style={rowStyles.name} numberOfLines={1}>{collection.name}</Text>
           </View>
-          {!editing && <Text style={rowStyles.chevron}>›</Text>}
-        </TouchableOpacity>
-      </View>
-
-      {/* Actions */}
-      {editing ? (
-        <View style={rowStyles.actions}>
-          <TouchableOpacity onPress={cancelEdit} style={rowStyles.actionBtn} hitSlop={8}>
-            <Text style={rowStyles.actionCancel}>{t('common.cancel')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={commitEdit} style={rowStyles.actionBtn} hitSlop={8}>
-            <Text style={rowStyles.actionSave}>{t('collections.ok')}</Text>
-          </TouchableOpacity>
+          <Text style={rowStyles.count}>{t('common.objects', { count: collection.object_count })}</Text>
         </View>
-      ) : (
-        <View style={rowStyles.actions}>
-          <TouchableOpacity onPress={startEdit} style={rowStyles.actionBtn} hitSlop={8}>
-            <Text style={rowStyles.actionEdit}>{t('collections.rename')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onDelete} style={rowStyles.actionBtn} hitSlop={8}>
-            <Text style={rowStyles.actionDelete}>{t('common.delete')}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        <Text style={rowStyles.chevron}>›</Text>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -300,6 +345,9 @@ function CollectionRow({ collection, onPress, onRename, onDelete, onIconPress }:
 const styles = StyleSheet.create({
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.sm,
@@ -314,24 +362,22 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   list: { paddingBottom: Spacing.xxl, flexGrow: 1 },
+  composerSlot: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md },
   separator: {
     height: 1,
     backgroundColor: Colors.borderLight,
-    marginLeft: Spacing.lg + 44 + Spacing.md,
+    marginLeft: Spacing.lg + 56 + Spacing.md,
   },
 })
 
 const rowStyles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-  },
-  main: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
-    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   mainInner: {
     flex: 1,
@@ -339,39 +385,21 @@ const rowStyles = StyleSheet.create({
     alignItems: 'center',
   },
   icon: {
-    width: 44, height: 44,
-    borderRadius: Radius.md,
+    width: 56, height: 56,
+    borderRadius: Radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  iconEmoji: { fontSize: 22 },
+  iconEmoji: { fontSize: 27, lineHeight: 34 },
   info: { flex: 1, gap: 2 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   name: {
     fontSize: Typography.base,
     fontWeight: Typography.semibold,
     color: Colors.textPrimary,
-  },
-  nameInput: {
-    fontSize: Typography.base,
-    fontWeight: Typography.semibold,
-    color: Colors.textPrimary,
-    borderBottomWidth: 1.5,
-    borderBottomColor: Colors.accent,
-    paddingVertical: 2,
-    paddingHorizontal: 0,
+    flexShrink: 1,
   },
   count: { fontSize: Typography.sm, color: Colors.textTertiary },
   chevron: { fontSize: Typography.lg, color: Colors.textTertiary, marginRight: -Spacing.xs },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: Spacing.md,
-    paddingBottom: Spacing.xs,
-  },
-  actionBtn: { paddingVertical: Spacing.xs },
-  actionEdit: { fontSize: Typography.sm, color: Colors.accent, fontWeight: Typography.medium },
-  actionDelete: { fontSize: Typography.sm, color: Colors.error, fontWeight: Typography.medium },
-  actionSave: { fontSize: Typography.sm, color: Colors.accent, fontWeight: Typography.semibold },
-  actionCancel: { fontSize: Typography.sm, color: Colors.textSecondary, fontWeight: Typography.medium },
 })

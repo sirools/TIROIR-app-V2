@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft, MoreHorizontal, Eye, Minus, Plus,
   CheckSquare, Trash2, MoveRight, Tag, Share2, CheckCircle,
+  Camera, Images, Layers, ChevronRight,
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { Screen, EmptyState, IconPicker, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
@@ -314,6 +315,100 @@ const panelStyles = StyleSheet.create({
   applyText: { fontSize: Typography.base, fontWeight: Typography.bold, color: Colors.textInverse, letterSpacing: 0.8 },
 })
 
+// ── Invite « premier objet » ──────────────────────────────────────────────────
+
+/**
+ * Une collection vide n'est pas un état d'erreur : c'est l'étape suivante.
+ * On propose les trois façons d'ajouter un objet plutôt qu'un simple
+ * « aucun objet », et on emmène l'utilisateur directement dans le bon
+ * sélecteur — la collection courante devient la destination par défaut.
+ */
+function FirstObjectInvite({ collectionId, collectionName }: { collectionId: string; collectionName: string }) {
+  const { t } = useTranslation()
+  const router = useRouter()
+
+  const routes: { intent: string; icon: React.ReactNode; labelKey: string; hintKey: string }[] = [
+    {
+      intent: 'camera',
+      icon: <Camera size={22} color={Colors.accent} strokeWidth={1.7} />,
+      labelKey: 'collectionDetail.inviteCamera',
+      hintKey: 'collectionDetail.inviteCameraHint',
+    },
+    {
+      intent: 'library',
+      icon: <Images size={22} color={Colors.accent} strokeWidth={1.7} />,
+      labelKey: 'collectionDetail.inviteLibrary',
+      hintKey: 'collectionDetail.inviteLibraryHint',
+    },
+    {
+      intent: 'batch',
+      icon: <Layers size={22} color={Colors.accent} strokeWidth={1.7} />,
+      labelKey: 'collectionDetail.inviteBatch',
+      hintKey: 'collectionDetail.inviteBatchHint',
+    },
+  ]
+
+  return (
+    <View style={inviteStyles.wrap}>
+      <Text style={inviteStyles.title}>{t('collectionDetail.inviteTitle', { name: collectionName })}</Text>
+      <Text style={inviteStyles.body}>{t('collectionDetail.inviteBody')}</Text>
+
+      <View style={inviteStyles.list}>
+        {routes.map(r => (
+          <TouchableOpacity
+            key={r.intent}
+            style={inviteStyles.row}
+            activeOpacity={0.75}
+            onPress={() => router.push({
+              pathname: '/capture',
+              params: { intent: r.intent, collectionId },
+            })}
+          >
+            <View style={inviteStyles.rowIcon}>{r.icon}</View>
+            <View style={inviteStyles.rowText}>
+              <Text style={inviteStyles.rowLabel}>{t(r.labelKey)}</Text>
+              <Text style={inviteStyles.rowHint}>{t(r.hintKey)}</Text>
+            </View>
+            <ChevronRight size={18} color={Colors.textTertiary} strokeWidth={1.8} />
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  )
+}
+
+const inviteStyles = StyleSheet.create({
+  wrap: { padding: Spacing.lg, gap: Spacing.sm },
+  title: {
+    fontSize: Typography.lg,
+    fontWeight: Typography.bold,
+    color: Colors.textPrimary,
+    letterSpacing: -0.3,
+  },
+  body: { fontSize: Typography.sm, color: Colors.textSecondary, lineHeight: 21, marginBottom: Spacing.xs },
+  list: { gap: Spacing.sm },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    padding: Spacing.md,
+  },
+  rowIcon: {
+    width: 46, height: 46,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.accentLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowText: { flex: 1, gap: 2 },
+  rowLabel: { fontSize: Typography.base, fontWeight: Typography.semibold, color: Colors.textPrimary },
+  rowHint: { fontSize: Typography.xs, color: Colors.textSecondary },
+})
+
 // ── Écran principal ───────────────────────────────────────────────────────────
 
 export default function CollectionDetailScreen() {
@@ -539,10 +634,19 @@ export default function CollectionDetailScreen() {
             <Text style={styles.headerTitle}>{t('collectionDetail.selectedCount', { count: selectedIds.size })}</Text>
           ) : (
             <>
-              <View style={[styles.headerIcon, { backgroundColor: collection.icon_color ?? '#E8F0E0' }]}>
+              {/* Icône et nom sont modifiables sur place : une fois la
+                  collection ouverte, on la retouche sans passer par le menu. */}
+              <TouchableOpacity
+                onPress={() => setPickerVisible(true)}
+                activeOpacity={0.7}
+                hitSlop={8}
+                style={[styles.headerIcon, { backgroundColor: collection.icon_color ?? '#E8F0E0' }]}
+              >
                 <Text style={styles.headerIconEmoji}>{collection.emoji ?? '📦'}</Text>
-              </View>
-              <Text style={styles.headerTitle} numberOfLines={1}>{collection.name}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={doRename} activeOpacity={0.7} style={styles.headerTitleBtn} hitSlop={6}>
+                <Text style={styles.headerTitle} numberOfLines={1}>{collection.name}</Text>
+              </TouchableOpacity>
               <Text style={styles.headerCount}>({objects.length})</Text>
             </>
           )}
@@ -701,10 +805,12 @@ export default function CollectionDetailScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />}
         ListEmptyComponent={
-          <EmptyState
-            title={t('collectionDetail.emptyTitle')}
-            subtitle={filter ? t('collectionDetail.emptyNoResults') : t('collectionDetail.emptySubtitle')}
-          />
+          filter.trim()
+            ? <EmptyState
+                title={t('collectionDetail.emptyTitle')}
+                subtitle={t('collectionDetail.emptyNoResults')}
+              />
+            : <FirstObjectInvite collectionId={collection.id} collectionName={collection.name} />
         }
         renderItem={({ item }) => (
           <ObjectCard
@@ -860,16 +966,17 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     flexShrink: 1,
   },
+  headerTitleBtn: { flexShrink: 1 },
   headerCount: { fontSize: Typography.sm, color: Colors.textTertiary },
   headerIcon: {
-    width: 26,
-    height: 26,
-    borderRadius: 7,
+    width: 34,
+    height: 34,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  headerIconEmoji: { fontSize: 14, lineHeight: 18 },
+  headerIconEmoji: { fontSize: 18, lineHeight: 24 },
   cancelSelectText: { fontSize: Typography.sm, fontWeight: Typography.semibold, color: Colors.accent },
   backArrow: { fontSize: Typography.xl, color: Colors.accent, lineHeight: Typography.xl * 1.2 },
   menuDots: { fontSize: Typography.xl, color: Colors.textPrimary, letterSpacing: 2, marginBottom: 4 },

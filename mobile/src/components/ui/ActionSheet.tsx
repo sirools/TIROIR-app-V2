@@ -7,6 +7,8 @@ export interface ActionSheetOption {
   onPress: () => void
   destructive?: boolean
   cancel?: boolean
+  /** Option courante d'un choix exclusif (tri, filtre) : marquée d'un ✓. */
+  selected?: boolean
 }
 
 interface ActionSheetProps {
@@ -51,9 +53,16 @@ export function ActionSheet({ visible, options, onClose }: ActionSheetProps) {
                 onPress={() => { onClose(); opt.onPress() }}
                 activeOpacity={0.65}
               >
-                <Text style={[styles.optionText, opt.destructive && styles.optionTextDestructive]}>
+                <Text
+                  style={[
+                    styles.optionText,
+                    opt.destructive && styles.optionTextDestructive,
+                    opt.selected && styles.optionTextSelected,
+                  ]}
+                >
                   {opt.label}
                 </Text>
+                {opt.selected && <Text style={styles.optionCheck}>✓</Text>}
               </TouchableOpacity>
             </React.Fragment>
           ))}
@@ -98,6 +107,9 @@ const styles = StyleSheet.create({
   option: {
     paddingVertical: 17,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: Spacing.sm,
   },
   divider: {
     height: 1,
@@ -111,6 +123,15 @@ const styles = StyleSheet.create({
   },
   optionTextDestructive: {
     color: Colors.error,
+  },
+  optionTextSelected: {
+    color: Colors.accent,
+    fontWeight: Typography.semibold,
+  },
+  optionCheck: {
+    fontSize: Typography.base,
+    color: Colors.accent,
+    fontWeight: Typography.bold,
   },
   cancelText: {
     fontSize: Typography.md,

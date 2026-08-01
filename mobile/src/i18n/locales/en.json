@@ -119,12 +119,6 @@
     "greetingEvening": "Good evening",
     "search": "Search",
     "myCollections": "MY COLLECTIONS",
-    "noCollections": "No collections yet — create one with the + button",
-    "newCollection": "New collection",
-    "collectionNamePlaceholder": "e.g. my favourite jackets right now",
-    "iconLabel": "Icon",
-    "colorLabel": "Colour",
-    "create": "Create",
     "drawerNotFound": "Drawer not found.",
     "deleteCollectionTitle": "Delete \"{{name}}\"?",
     "deleteCollectionWithObjects_one": "It contains {{count}} item. The items will stay in your Tiroir.",
@@ -191,14 +185,14 @@
   },
   "collections": {
     "title": "Collections",
-    "emptyTitle": "No collections",
-    "emptySubtitle": "Your collections will appear here as soon as you add an item.",
     "rename": "Rename",
     "ok": "OK",
     "deleteTitle": "Delete \"{{name}}\"?",
     "deleteWithObjects_one": "This collection contains {{count}} item. The items won't be deleted but will lose their collection.",
     "deleteWithObjects_other": "This collection contains {{count}} items. The items won't be deleted but will lose their collection.",
-    "deleteIrreversible": "This action is irreversible."
+    "deleteIrreversible": "This action is irreversible.",
+    "pin": "Pin",
+    "unpin": "Unpin"
   },
   "search": {
     "title": "Search",
@@ -378,7 +372,6 @@
     "renamePlaceholder": "Collection name",
     "emptyTitle": "No items",
     "emptyNoResults": "No results for this search.",
-    "emptySubtitle": "This collection has no items yet.",
     "actionStatus": "Status",
     "actionMove": "Move",
     "actionShare": "Share",
@@ -400,7 +393,15 @@
     "fieldBrand": "Brand",
     "fieldEra": "Era",
     "fieldCondition": "Condition",
-    "sizeLabel": "Size: {{value}}"
+    "sizeLabel": "Size: {{value}}",
+    "inviteTitle": "“{{name}}” is waiting for its first item",
+    "inviteBody": "Take a photo and the AI fills in the details. It lands straight in this collection.",
+    "inviteCamera": "Take a photo",
+    "inviteCameraHint": "One item, right now",
+    "inviteLibrary": "From your library",
+    "inviteLibraryHint": "Pick a photo you already took",
+    "inviteBatch": "Several items at once",
+    "inviteBatchHint": "One photo = one item"
   },
   "iconPicker": {
     "preview": "Preview",
@@ -670,5 +671,32 @@
     "addMore_one": "Add another item · {{count}} slot left",
     "addMore_other": "Add more items · {{count}} slots left",
     "addMoreFull": "Batch full · {{max}} items max"
+  },
+  "collectionComposer": {
+    "inviteTitle": "Create your first collection",
+    "inviteBody": "A collection groups the things that belong together: your jackets, your records, everything in the garage. That's what lets you find anything in three seconds.",
+    "suggestion1": "My jackets",
+    "suggestion2": "Records",
+    "suggestion3": "Garage",
+    "inviteCta": "Create a collection",
+    "addLabel": "New collection",
+    "namePlaceholder": "Collection name…",
+    "iconLabel": "Icon",
+    "colorLabel": "Color",
+    "create": "Create"
+  },
+  "emojiKeyboard": {
+    "title": "Pick an emoji",
+    "hint": "Open your phone's emoji keyboard (the 😀 or 🌐 key) and type the one you want.",
+    "placeholder": "Type an emoji",
+    "notAnEmoji": "That's not an emoji — use the emoji keyboard.",
+    "use": "Use"
+  },
+  "collectionSort": {
+    "created_asc": "Order added",
+    "created_desc": "Newest first",
+    "name_asc": "A → Z",
+    "count_desc": "Most items",
+    "count_asc": "Fewest items"
   }
 }

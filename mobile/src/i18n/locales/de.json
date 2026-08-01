@@ -119,12 +119,6 @@
     "greetingEvening": "Guten Abend",
     "search": "Suchen",
     "myCollections": "MEINE SAMMLUNGEN",
-    "noCollections": "Keine Sammlung — erstelle eine mit der +-Schaltfläche",
-    "newCollection": "Neue Sammlung",
-    "collectionNamePlaceholder": "z. B. meine aktuellen Lieblingsjacken",
-    "iconLabel": "Symbol",
-    "colorLabel": "Farbe",
-    "create": "Erstellen",
     "drawerNotFound": "Tiroir nicht gefunden.",
     "deleteCollectionTitle": "„{{name}}“ löschen?",
     "deleteCollectionWithObjects_one": "Sie enthält {{count}} Objekt. Die Objekte bleiben in deinem Tiroir.",
@@ -191,14 +185,14 @@
   },
   "collections": {
     "title": "Sammlungen",
-    "emptyTitle": "Keine Sammlung",
-    "emptySubtitle": "Deine Sammlungen erscheinen hier, sobald du ein Objekt hinzufügst.",
     "rename": "Umbenennen",
     "ok": "OK",
     "deleteTitle": "„{{name}}“ löschen?",
     "deleteWithObjects_one": "Diese Sammlung enthält {{count}} Objekt. Die Objekte werden nicht gelöscht, verlieren aber ihre Sammlung.",
     "deleteWithObjects_other": "Diese Sammlung enthält {{count}} Objekte. Die Objekte werden nicht gelöscht, verlieren aber ihre Sammlung.",
-    "deleteIrreversible": "Diese Aktion ist unwiderruflich."
+    "deleteIrreversible": "Diese Aktion ist unwiderruflich.",
+    "pin": "Anheften",
+    "unpin": "Lösen"
   },
   "search": {
     "title": "Suchen",
@@ -378,7 +372,6 @@
     "renamePlaceholder": "Name der Sammlung",
     "emptyTitle": "Keine Objekte",
     "emptyNoResults": "Keine Ergebnisse für diese Suche.",
-    "emptySubtitle": "Diese Sammlung enthält noch keine Objekte.",
     "actionStatus": "Status",
     "actionMove": "Verschieben",
     "actionShare": "Teilen",
@@ -400,7 +393,15 @@
     "fieldBrand": "Marke",
     "fieldEra": "Epoche",
     "fieldCondition": "Zustand",
-    "sizeLabel": "Größe: {{value}}"
+    "sizeLabel": "Größe: {{value}}",
+    "inviteTitle": "„{{name}}“ wartet auf den ersten Gegenstand",
+    "inviteBody": "Fotografiere ihn, die KI füllt die Karte aus. Er landet direkt in dieser Sammlung.",
+    "inviteCamera": "Foto aufnehmen",
+    "inviteCameraHint": "Ein Gegenstand, sofort",
+    "inviteLibrary": "Aus der Galerie",
+    "inviteLibraryHint": "Wähle ein vorhandenes Foto",
+    "inviteBatch": "Mehrere auf einmal",
+    "inviteBatchHint": "Ein Foto = ein Gegenstand"
   },
   "iconPicker": {
     "preview": "Vorschau",
@@ -670,5 +671,32 @@
     "addMore_one": "Weiteres Objekt hinzufügen · {{count}} Platz frei",
     "addMore_other": "Weitere Objekte hinzufügen · {{count}} Plätze frei",
     "addMoreFull": "Stapel voll · max. {{max}} Objekte"
+  },
+  "collectionComposer": {
+    "inviteTitle": "Erstelle deine erste Sammlung",
+    "inviteBody": "Eine Sammlung bündelt, was zusammengehört: deine Jacken, deine Platten, alles aus der Garage. So findest du alles in drei Sekunden wieder.",
+    "suggestion1": "Meine Jacken",
+    "suggestion2": "Schallplatten",
+    "suggestion3": "Garage",
+    "inviteCta": "Sammlung erstellen",
+    "addLabel": "Neue Sammlung",
+    "namePlaceholder": "Name der Sammlung…",
+    "iconLabel": "Symbol",
+    "colorLabel": "Farbe",
+    "create": "Erstellen"
+  },
+  "emojiKeyboard": {
+    "title": "Emoji auswählen",
+    "hint": "Öffne die Emoji-Tastatur deines Handys (Taste 😀 oder 🌐) und tippe das gewünschte Emoji.",
+    "placeholder": "Emoji eingeben",
+    "notAnEmoji": "Das ist kein Emoji – nimm die Emoji-Tastatur.",
+    "use": "Übernehmen"
+  },
+  "collectionSort": {
+    "created_asc": "Älteste zuerst",
+    "created_desc": "Neueste zuerst",
+    "name_asc": "A → Z",
+    "count_desc": "Meiste Objekte",
+    "count_asc": "Wenigste Objekte"
   }
 }

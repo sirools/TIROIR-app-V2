@@ -37,6 +37,8 @@ export interface Collection {
   cover_image_path: string | null
   emoji: string
   icon_color: string
+  /** Horodatage d'épinglage ; null si la collection n'est pas épinglée. */
+  pinned_at: string | null
   created_at: string
   updated_at: string
 }
