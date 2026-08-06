@@ -9,7 +9,8 @@
     "error": "Error",
     "delete": "Eliminar",
     "objects_one": "{{count}} objeto",
-    "objects_other": "{{count}} objetos"
+    "objects_other": "{{count}} objetos",
+    "validate": "Confirmar"
   },
   "auth": {
     "login": {
@@ -450,7 +451,7 @@
     "statusLabel": "Estado",
     "collectionLabel": "Colección",
     "noCollection": "Ninguna",
-    "locationLabel": "Ubicación",
+    "locationLabel": "Ubicación exacta ({{count}}/{{max}})",
     "locationAdd": "Añadir",
     "share": "Compartir",
     "editTitle": "Editar",
@@ -507,8 +508,8 @@
       "coverError": "No se pudo definir esta foto como favorita."
     },
     "value": {
-      "sectionTitle": "Valor",
-      "estimation": "Estimación",
+      "sectionTitle": "Rendimiento",
+      "estimation": "Valor estimado",
       "vsAi": "vs IA",
       "vsPurchase": "vs compra",
       "enter": "Introducir…",
@@ -527,7 +528,25 @@
       "estimateAi": "✦ Estimar con IA",
       "confidenceLow": "Confianza baja",
       "confidenceMedium": "Confianza media",
-      "confidenceHigh": "Confianza alta"
+      "confidenceHigh": "Confianza alta",
+      "quantity": "Cantidad",
+      "lotTotal": "Total del lote: {{total}} {{sym}}",
+      "purchaseDate": "Fecha de compra",
+      "salePriceLot": "Precio del lote",
+      "ageNew": "Nuevo",
+      "ageMonths_one": "{{count}} mes",
+      "ageMonths_other": "{{count}} meses",
+      "ageYears_one": "{{count}} año",
+      "ageYears_other": "{{count}} años",
+      "salePriceLotBase": "{{count}} × {{unit}} {{sym}}",
+      "applyLotDiscount": "Aplicar un descuento al precio del lote",
+      "lotDiscount": "Descuento",
+      "lotDiscountHint": "Importe deducido del precio del lote",
+      "lotFinal": "Precio del lote: {{total}} {{sym}}",
+      "depositPerItem": "Fianza por artículo",
+      "depositLot": "Fianza del lote",
+      "depositLotHint": "{{count}} × {{unit}} {{sym}}",
+      "agePrefix": "Antigüedad: {{age}}"
     },
     "insurance": {
       "title": "Seguro",
@@ -550,8 +569,6 @@
       "policyRef": "Referencia de la póliza",
       "expirationField": "Vencimiento del seguro",
       "save": "Guardar",
-      "toggle": "¿Objeto asegurado?",
-      "emptyOn": "Ningún seguro registrado.",
       "addOne": "Añadir un seguro",
       "labelField": "Aseguradora / etiqueta",
       "labelPlaceholder": "Mapfre, AXA…",
@@ -579,12 +596,21 @@
       "linkUpload": "Subir un nuevo documento",
       "unlink": "Desvincular",
       "deleteTitle": "¿Eliminar este seguro?",
-      "deleteBody": "Los contratos vinculados se desvincularán (se conservan en Documentos)."
+      "deleteBody": "Los contratos vinculados se desvincularán (se conservan en Documentos).",
+      "sectionTitle": "Seguros"
     },
     "loan": {
       "toLabel": "Prestado a…",
       "toPlaceholder": "Nombre de la persona",
       "returnLabel": "Fecha de devolución"
+    },
+    "locationEdit": "Editar",
+    "locationSheet": {
+      "title": "Añadir una ubicación",
+      "help": "Para recordar el lugar exacto donde debe guardarse el objeto.",
+      "placeholder": "Ej.: Garaje, estante superior…",
+      "add": "Añadir un nivel",
+      "full": "Máximo {{max}} niveles"
     }
   },
   "objectEdit": {
@@ -697,7 +723,8 @@
     "inThisCollection": "En esta colección",
     "otherCollection": "A otra colección",
     "moveInto": "En «{{name}}»",
-    "selectGroup": "Seleccionar el grupo"
+    "selectGroup": "Seleccionar el grupo",
+    "ungrouped": "Sin grupo"
   },
   "collectionPicker": {
     "title": "¿Dónde guardar este objeto?",

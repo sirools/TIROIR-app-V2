@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { adminSupabase } from '../../../../lib/supabase'
 import { makeCookieName } from '../../../../lib/shareAuth'
+import { lotTotal } from '../../../../lib/quantity'
 
 type ShareLinkRow = {
   title: string | null
@@ -29,7 +30,9 @@ type ExportObjectRow = {
   purchase_currency: string | null
   purchase_date: string | null
   sale_price: number | null
+  sale_price_lot: number | null
   deposit_amount: number | null
+  quantity: number | null
   insured: boolean | null
   insurance_type: string | null
   insurance_coverage: number | null
@@ -97,6 +100,7 @@ const FIXED_COLUMNS = [
   { key: 'collection', label: 'Collection' },
   { key: 'location_note', label: 'Emplacement' },
   { key: 'description', label: 'Description' },
+  { key: 'quantity', label: 'Quantité' },
   { key: 'estimated_value', label: 'Valeur estimée' },
   { key: 'market_value', label: 'Valeur marché' },
   { key: 'value_currency', label: 'Devise valeur' },
@@ -105,7 +109,13 @@ const FIXED_COLUMNS = [
   { key: 'purchase_currency', label: 'Devise achat' },
   { key: 'purchase_date', label: "Date d'achat" },
   { key: 'sale_price', label: 'Prix de vente' },
+  { key: 'sale_price_lot', label: 'Prix du lot' },
   { key: 'deposit_amount', label: 'Caution' },
+  // Colonnes dérivées : un tableur sert à sommer, et sommer des montants
+  // unitaires sans tenir compte des lots donnerait un total faux.
+  { key: 'estimated_value_total', label: 'Valeur estimée (lot)' },
+  { key: 'purchase_price_total', label: "Prix d'achat (lot)" },
+  { key: 'deposit_amount_total', label: 'Caution (lot)' },
   { key: 'insured', label: 'Assuré' },
   { key: 'insurances', label: 'Assurances' },
   { key: 'insurance_provider', label: 'Assureur' },
@@ -190,7 +200,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       purchase_currency,
       purchase_date,
       sale_price,
+      sale_price_lot,
       deposit_amount,
+      quantity,
       insured,
       insurance_type,
       insurance_coverage,
@@ -270,6 +282,7 @@ function buildCsv(
       collection: object.collection_id ? collectionNames.get(object.collection_id) ?? null : null,
       location_note: object.location_note,
       description: object.description,
+      quantity: object.quantity ?? 1,
       estimated_value: estimatedValue,
       market_value: object.market_value,
       value_currency: estimatedValue === null && object.market_value === null ? null : object.value_currency ?? 'EUR',
@@ -278,7 +291,11 @@ function buildCsv(
       purchase_currency: object.purchase_price === null ? null : object.purchase_currency ?? 'EUR',
       purchase_date: formatDate(object.purchase_date),
       sale_price: object.sale_price,
+      sale_price_lot: object.sale_price_lot ?? lotTotal(object.sale_price, object.quantity),
       deposit_amount: object.deposit_amount,
+      estimated_value_total: lotTotal(estimatedValue, object.quantity),
+      purchase_price_total: lotTotal(object.purchase_price, object.quantity),
+      deposit_amount_total: lotTotal(object.deposit_amount, object.quantity),
       insured: object.insured ? 'Oui' : 'Non',
       insurances: formatInsurances(insurancesByObject.get(object.id) ?? [], object.value_currency),
       insurance_provider: object.insurance_provider,

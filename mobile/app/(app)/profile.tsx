@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan, isProPlan, planLabelKey } from '@/lib/plan'
 import { Screen, Input, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { sumLots } from '@/features/objects/quantity'
 
 interface Stats {
   objects: number
@@ -56,7 +57,7 @@ export default function ProfileScreen() {
     const [objRes, colRes, valRes, shareRes, photoRes, quotaRes, limitsRes, enhanceQuotaRes] = await Promise.all([
       supabase.from('objects').select('id', { count: 'exact', head: true }),
       supabase.from('collections').select('id', { count: 'exact', head: true }),
-      supabase.from('objects').select('market_value, user_value, value_currency').not('market_value', 'is', null),
+      supabase.from('objects').select('market_value, user_value, value_currency, quantity').not('market_value', 'is', null),
       supabase.from('share_links').select('id', { count: 'exact', head: true }),
       supabase.from('object_images').select('id', { count: 'exact', head: true }),
       supabase.rpc('get_ai_quota'),
@@ -67,7 +68,12 @@ export default function ProfileScreen() {
     let totalValue: number | null = null
     let currency = 'EUR'
     if (valRes.data && valRes.data.length > 0) {
-      totalValue = valRes.data.reduce((sum: number, o: any) => sum + (o.user_value ?? o.market_value ?? 0), 0)
+      // Un lot de 6 pèse six fois sa valeur unitaire dans le patrimoine.
+      totalValue = sumLots(
+        valRes.data as any[],
+        o => o.user_value ?? o.market_value,
+        o => o.quantity,
+      )
       const raw = valRes.data[0].value_currency ?? 'EUR'
       currency = raw === '€' ? 'EUR' : raw === '$' ? 'USD' : raw === '£' ? 'GBP' : raw.length === 3 ? raw : 'EUR'
     }

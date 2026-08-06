@@ -9,7 +9,8 @@
     "error": "Erreur",
     "delete": "Supprimer",
     "objects_one": "{{count}} objet",
-    "objects_other": "{{count}} objets"
+    "objects_other": "{{count}} objets",
+    "validate": "Valider"
   },
   "auth": {
     "login": {
@@ -450,7 +451,7 @@
     "statusLabel": "Statut",
     "collectionLabel": "Collection",
     "noCollection": "Aucune",
-    "locationLabel": "Emplacement",
+    "locationLabel": "Emplacement exact ({{count}}/{{max}})",
     "locationAdd": "Ajouter",
     "share": "Partager",
     "editTitle": "Modifier",
@@ -507,8 +508,8 @@
       "coverError": "Impossible de définir cette photo comme favorite."
     },
     "value": {
-      "sectionTitle": "Valeur",
-      "estimation": "Estimation",
+      "sectionTitle": "Performances",
+      "estimation": "Valeur estimée",
       "vsAi": "vs IA",
       "vsPurchase": "vs achat",
       "enter": "Saisir…",
@@ -527,7 +528,25 @@
       "estimateAi": "✦ Estimer avec l'IA",
       "confidenceLow": "Confiance faible",
       "confidenceMedium": "Confiance moyenne",
-      "confidenceHigh": "Confiance élevée"
+      "confidenceHigh": "Confiance élevée",
+      "quantity": "Quantité",
+      "lotTotal": "Total du lot : {{total}} {{sym}}",
+      "purchaseDate": "Date d'achat",
+      "salePriceLot": "Prix du lot",
+      "ageNew": "Neuf",
+      "ageMonths_one": "{{count}} mois",
+      "ageMonths_other": "{{count}} mois",
+      "ageYears_one": "{{count}} an",
+      "ageYears_other": "{{count}} ans",
+      "salePriceLotBase": "{{count}} × {{unit}} {{sym}}",
+      "applyLotDiscount": "Appliquer une remise sur le prix du lot",
+      "lotDiscount": "Remise",
+      "lotDiscountHint": "Montant déduit du prix du lot",
+      "lotFinal": "Prix du lot : {{total}} {{sym}}",
+      "depositPerItem": "Caution par article",
+      "depositLot": "Caution du lot",
+      "depositLotHint": "{{count}} × {{unit}} {{sym}}",
+      "agePrefix": "Ancienneté : {{age}}"
     },
     "insurance": {
       "title": "Assurance",
@@ -550,8 +569,6 @@
       "policyRef": "Référence police",
       "expirationField": "Expiration assurance",
       "save": "Enregistrer",
-      "toggle": "Objet assuré ?",
-      "emptyOn": "Aucune assurance enregistrée.",
       "addOne": "Ajouter une assurance",
       "labelField": "Assureur / libellé",
       "labelPlaceholder": "MMA, AXA…",
@@ -579,12 +596,21 @@
       "linkUpload": "Uploader un nouveau document",
       "unlink": "Détacher",
       "deleteTitle": "Supprimer cette assurance ?",
-      "deleteBody": "Les contrats liés seront détachés (conservés dans Documents)."
+      "deleteBody": "Les contrats liés seront détachés (conservés dans Documents).",
+      "sectionTitle": "Assurances"
     },
     "loan": {
       "toLabel": "Prêté à…",
       "toPlaceholder": "Nom de la personne",
       "returnLabel": "Date de retour"
+    },
+    "locationEdit": "Modifier",
+    "locationSheet": {
+      "title": "Ajouter un emplacement",
+      "help": "Pour vous rappeler de l'endroit exact où l'objet doit être rangé.",
+      "placeholder": "Ex : Garage, étagère du haut…",
+      "add": "Ajouter un niveau",
+      "full": "{{max}} niveaux maximum"
     }
   },
   "objectEdit": {
@@ -697,7 +723,8 @@
     "inThisCollection": "Dans cette collection",
     "otherCollection": "Vers une autre collection",
     "moveInto": "Dans « {{name}} »",
-    "selectGroup": "Sélectionner le groupe"
+    "selectGroup": "Sélectionner le groupe",
+    "ungrouped": "Hors groupes"
   },
   "collectionPicker": {
     "title": "Où ranger cet objet ?",

@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
 import { hasValidCookie } from '../../lib/shareAuth'
+import { isLot, lotTotal } from '../../lib/quantity'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -25,7 +26,9 @@ interface SharedObject {
   purchase_currency: string | null
   purchase_date: string | null
   sale_price: number | null
+  sale_price_lot: number | null
   deposit_amount: number | null
+  quantity: number | null
   insured: boolean | null
   created_at: string | null
 }
@@ -119,7 +122,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   const { data: objData } = await supabase
     .from('objects')
-    .select('id, title, description, status, location_note, attributes, market_value, user_value, value_currency, purchase_price, purchase_currency, purchase_date, sale_price, deposit_amount, insured, created_at')
+    .select('id, title, description, status, location_note, attributes, market_value, user_value, value_currency, purchase_price, purchase_currency, purchase_date, sale_price, sale_price_lot, deposit_amount, quantity, insured, created_at')
     .in('id', ids)
 
   // Covers
@@ -318,23 +321,35 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
   const moneyCols: {
     key: Extract<SortKey, 'value' | 'market_value' | 'purchase_price' | 'sale_price' | 'deposit_amount'>
     label: string
+    /** Montant unitaire, tel qu'il est stocké. */
     get: (o: SharedObject) => number | null
+    /** Ce que pèse la ligne : unitaire × quantité, sauf prix de lot négocié. */
+    total: (o: SharedObject) => number | null
     cur: (o: SharedObject) => string | null
   }[] = [
-    { key: 'value', label: 'Valeur estimée', get: o => o.user_value ?? o.market_value, cur: o => o.value_currency },
-    { key: 'market_value', label: 'Valeur marché', get: o => o.market_value, cur: o => o.value_currency },
-    { key: 'purchase_price', label: "Prix d'achat", get: o => o.purchase_price, cur: o => o.purchase_currency ?? o.value_currency },
-    { key: 'sale_price', label: 'Prix de vente', get: o => o.sale_price, cur: o => o.value_currency },
-    { key: 'deposit_amount', label: 'Caution', get: o => o.deposit_amount, cur: o => o.value_currency },
+    { key: 'value', label: 'Valeur estimée', get: o => o.user_value ?? o.market_value, total: o => lotTotal(o.user_value ?? o.market_value, o.quantity), cur: o => o.value_currency },
+    { key: 'market_value', label: 'Valeur marché', get: o => o.market_value, total: o => lotTotal(o.market_value, o.quantity), cur: o => o.value_currency },
+    { key: 'purchase_price', label: "Prix d'achat", get: o => o.purchase_price, total: o => lotTotal(o.purchase_price, o.quantity), cur: o => o.purchase_currency ?? o.value_currency },
+    // Un prix de lot négocié remplace le produit, il ne s'y ajoute pas.
+    { key: 'sale_price', label: 'Prix de vente', get: o => o.sale_price, total: o => o.sale_price_lot ?? lotTotal(o.sale_price, o.quantity), cur: o => o.value_currency },
+    { key: 'deposit_amount', label: 'Caution', get: o => o.deposit_amount, total: o => lotTotal(o.deposit_amount, o.quantity), cur: o => o.value_currency },
   ]
 
-  // Total par colonne monétaire (EUR — devise dominante du partage)
+  /**
+   * Total par colonne monétaire (EUR — devise dominante du partage).
+   *
+   * Convention comptable : les cellules affichent le montant UNITAIRE, la
+   * colonne Quantité dit combien, et seule la ligne de total multiplie.
+   * C'est l'inverse du mobile, où l'on parcourt un patrimoine et où la
+   * carte montre directement le total du lot — deux lectures différentes
+   * du même modèle, chacune adaptée à sa surface.
+   */
+  // Nombre d'exemplaires réellement partagés, lots compris.
+  const totalUnits = objects.reduce((n, o) => n + (o.quantity ?? 1), 0)
+
   const moneyTotals: Record<string, number> = {}
   for (const col of moneyCols) {
-    moneyTotals[col.key] = objects.reduce((sum, o) => {
-      const v = col.get(o)
-      return sum + (typeof v === 'number' ? v : 0)
-    }, 0)
+    moneyTotals[col.key] = objects.reduce((sum, o) => sum + (col.total(o) ?? 0), 0)
   }
 
   if (gated) {
@@ -437,6 +452,11 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                           ? <img src={obj.cover_url} alt={obj.title} className="cover-img" />
                           : <div className="cover-placeholder">📦</div>
                         }
+                        {/* Même pastille que dans l'app : un lot partagé ne
+                            doit pas se lire comme un exemplaire unique. */}
+                        {isLot(obj.quantity) && (
+                          <span className="qty-badge">×{obj.quantity}</span>
+                        )}
                       </div>
                       <div className="card-body">
                         <h2 className="card-title">{obj.title}</h2>
@@ -491,6 +511,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                           <th key={k} className="th-attr">{attrLabel(k)}</th>
                         ))}
                         <th className="th-desc">Description</th>
+                        <th className="th-center">Qté</th>
                         {moneyCols.map(col => (
                           <th key={col.key} className="th-value th-sortable" onClick={() => toggleSort(col.key)}>
                             {col.label}{sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
@@ -545,6 +566,9 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                             )
                           })}
                           <td className="td-description">{obj.description ?? '—'}</td>
+                          <td className="td-center td-qty">
+                            {isLot(obj.quantity) ? obj.quantity : '—'}
+                          </td>
                           {moneyCols.map(col => (
                             <td key={col.key} className="td-value">
                               {money(col.get(obj), col.cur(obj)) ?? '—'}
@@ -558,6 +582,9 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                     <tfoot>
                       <tr className="total-row">
                         <td colSpan={(exportMode ? 1 : 0) + 4 + attrKeys.length + 1} className="td-total-label">Total</td>
+                        <td className="td-center td-total-value">
+                          {totalUnits > objects.length ? totalUnits : ''}
+                        </td>
                         {moneyCols.map(col => (
                           <td key={col.key} className="td-value td-total-value">
                             {moneyTotals[col.key] > 0 ? money(moneyTotals[col.key], 'EUR') : '—'}
@@ -718,6 +745,8 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .td-center { text-align: center; color: #6B6158; }
+        /* La quantité se lit comme un compte, pas comme un montant. */
+        .td-qty { font-variant-numeric: tabular-nums; font-weight: 600; color: #1A1612; }
         .td-description {
           color: #6B6158; max-width: 280px;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -756,7 +785,13 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
           box-shadow: 0 4px 20px rgba(0,0,0,0.08);
           transform: translateY(-2px);
         }
-        .card-cover { aspect-ratio: 1; overflow: hidden; background: #F0EBE3; }
+        .card-cover { aspect-ratio: 1; overflow: hidden; background: #F0EBE3; position: relative; }
+        .qty-badge {
+          position: absolute; top: 8px; right: 8px;
+          padding: 2px 7px; border-radius: 999px;
+          background: rgba(26, 22, 18, 0.72); color: #fff;
+          font-size: 11px; font-weight: 700; line-height: 1.5;
+        }
         .cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .cover-placeholder {
           width: 100%; height: 100%;

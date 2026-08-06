@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../../components/layout/HeaderTiroirWeb'
 import { hasValidCookie } from '../../../lib/shareAuth'
+import { isLot, lotTotal } from '../../../lib/quantity'
 
 interface ValueSource {
   site: string
@@ -41,7 +42,9 @@ interface ObjectDetail {
   purchase_currency: string | null
   purchase_date: string | null
   sale_price: number | null
+  sale_price_lot: number | null
   deposit_amount: number | null
+  quantity: number | null
   // Assurance (legacy, mono)
   insured: boolean | null
   insurance_type: string | null
@@ -158,7 +161,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   const { data: obj, error: objErr } = await supabase
     .from('objects')
-    .select('id, title, description, status, location_note, attributes, market_value, user_value, value_currency, value_estimated_at, value_sources, purchase_price, purchase_currency, purchase_date, sale_price, deposit_amount, insured, insurance_type, insurance_coverage, insurance_policy_ref, insurance_provider, insurance_expires_at, created_at')
+    .select('id, title, description, status, location_note, attributes, market_value, user_value, value_currency, value_estimated_at, value_sources, purchase_price, purchase_currency, purchase_date, sale_price, sale_price_lot, deposit_amount, quantity, insured, insurance_type, insurance_coverage, insurance_policy_ref, insurance_provider, insurance_expires_at, created_at')
     .eq('id', objectId)
     .single()
 
@@ -277,17 +280,29 @@ export default function SharedObjectDetailPage({ token, object, images, document
   // Détail des valeurs (hors montant mis en avant, pour éviter les doublons)
   type ValueRow = { label: string; sub?: string | null; amount: string }
   const valueRows: ValueRow[] = []
+
+  /** Les montants restent unitaires ; le total du lot les accompagne. */
+  const lotSub = (unit: number | null, override?: number | null) => {
+    if (!isLot(object.quantity)) return null
+    const total = override ?? lotTotal(unit, object.quantity)
+    return total == null ? null : `Total du lot : ${money(total, valCur)}`
+  }
+
   if (object.market_value != null && headlineIsUser) {
-    valueRows.push({ label: 'Valeur marchande (IA)', amount: money(object.market_value, valCur) })
+    valueRows.push({ label: 'Valeur marchande (IA)', sub: lotSub(object.market_value), amount: money(object.market_value, valCur) })
   }
   if (object.purchase_price != null) {
-    valueRows.push({ label: "Prix d'achat", sub: formatDate(object.purchase_date), amount: money(object.purchase_price, object.purchase_currency ?? valCur) })
+    valueRows.push({
+      label: "Prix d'achat",
+      sub: [formatDate(object.purchase_date), lotSub(object.purchase_price)].filter(Boolean).join(' · ') || null,
+      amount: money(object.purchase_price, object.purchase_currency ?? valCur),
+    })
   }
   if (object.sale_price != null) {
-    valueRows.push({ label: 'Prix de vente', amount: money(object.sale_price, valCur) })
+    valueRows.push({ label: 'Prix de vente', sub: lotSub(object.sale_price, object.sale_price_lot), amount: money(object.sale_price, valCur) })
   }
   if (object.deposit_amount != null) {
-    valueRows.push({ label: 'Caution', amount: money(object.deposit_amount, valCur) })
+    valueRows.push({ label: 'Caution', sub: lotSub(object.deposit_amount), amount: money(object.deposit_amount, valCur) })
   }
 
   const vs = object.value_sources
@@ -369,6 +384,11 @@ export default function SharedObjectDetailPage({ token, object, images, document
                   <span className="value-label">{headlineLabel}</span>
                   <div className="value-amount-row">
                     <span className="value-amount">{money(headlineValue, valCur)}</span>
+                    {isLot(object.quantity) && (
+                      <span className="value-lot">
+                        ×{object.quantity} · {money(lotTotal(headlineValue, object.quantity)!, valCur)}
+                      </span>
+                    )}
                     {diffPct !== null && (
                       <span className={`value-diff ${diffPct >= 0 ? 'up' : 'down'}`}>
                         {diffPct >= 0 ? '▲' : '▼'} {Math.abs(diffPct)}% vs IA
@@ -617,6 +637,7 @@ const styles = `
   .value-diff { font-size: 13px; font-weight: 700; }
   .value-diff.up { color: #16A34A; }
   .value-diff.down { color: #DC2626; }
+  .value-lot { font-size: 13px; font-weight: 600; color: #6B6158; }
   .value-meta { font-size: 12px; color: #A89F96; }
 
   /* ── Bento : cartes de détail ── */

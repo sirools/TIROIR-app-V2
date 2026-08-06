@@ -17,6 +17,7 @@ import {
 } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
 import { Collection, TiroirObject, ObjectGroup } from '@/types/database'
+import { isLot, lotTotal } from '@/features/objects/quantity'
 import { setIconOverride } from '@/utils/collectionIconCache'
 
 // ── Zoom levels ───────────────────────────────────────────────────────────────
@@ -117,7 +118,10 @@ function ObjectCard({ object, coverUrl, onPress, onLongPress, cols, display, isS
   const { t, i18n } = useTranslation()
   const size = cardSize(cols)
   const attrs = (object.attributes as Record<string, string> | null) ?? {}
-  const value = object.user_value ?? object.market_value
+  // Dans une liste on lit un patrimoine : c'est le total du lot qui compte,
+  // pas le prix unitaire. La pastille ×N dit d'où vient le montant.
+  const quantity = object.quantity ?? 1
+  const value = lotTotal(object.user_value ?? object.market_value, quantity)
   const currSym = (object.value_currency ?? 'EUR') === 'EUR' ? '€' : (object.value_currency ?? 'EUR')
   const showInfo = cols <= 4 && (
     display.showName || display.showStatus || display.showBrand || display.showValue ||
@@ -146,6 +150,13 @@ function ObjectCard({ object, coverUrl, onPress, onLongPress, cols, display, isS
           {isSelectMode && (
             <View style={[cardStyles.selectOverlay, isSelected && cardStyles.selectOverlayActive]}>
               {isSelected && <Text style={cardStyles.checkmark}>✓</Text>}
+            </View>
+          )}
+          {/* Rien ne s'affiche pour un objet unique : l'ajout unitaire
+              retrouve exactement la carte qu'il connaissait. */}
+          {isLot(quantity) && (
+            <View style={cardStyles.qtyBadge}>
+              <Text style={cardStyles.qtyBadgeText}>×{quantity}</Text>
             </View>
           )}
         </View>
@@ -222,6 +233,24 @@ const cardStyles = StyleSheet.create({
     lineHeight: 22,
     overflow: 'hidden',
   },
+  /** Coin supérieur droit de la photo, opposé au ✓ de sélection. */
+  qtyBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    minWidth: 24,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: Radius.full,
+    backgroundColor: 'rgba(26, 22, 18, 0.72)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qtyBadgeText: {
+    fontSize: Typography.xs,
+    fontWeight: Typography.bold,
+    color: Colors.textInverse,
+  },
   image: { width: '100%', height: '100%' },
   imagePlaceholder: { flex: 1, backgroundColor: Colors.surfaceWarm, alignItems: 'center', justifyContent: 'center' },
   placeholderEmoji: { fontSize: 24, opacity: 0.4 },
@@ -238,6 +267,7 @@ type GridRow =
   | { type: 'group'; key: string; group: ObjectGroup; count: number; collapsed: boolean }
   | { type: 'items'; key: string; items: TiroirObject[] }
   | { type: 'divider'; key: string }
+  | { type: 'loose'; key: string }
 
 // ── En-tête de groupe ─────────────────────────────────────────────────────────
 
@@ -711,7 +741,11 @@ export default function CollectionDetailScreen() {
     if (hasMore) rows.push({ type: 'divider', key: `d-${group.id}` })
   })
 
-  // Les objets sans groupe suivent, sans en-tête ni catégorie fourre-tout.
+  // Les objets sans groupe sont annoncés — mais seulement s'il existe des
+  // groupes au-dessus : sans eux, il n'y a rien dont les distinguer.
+  if (loose.length > 0 && shownGroups.length > 0) {
+    rows.push({ type: 'loose', key: 'loose-label' })
+  }
   chunk(loose, cols).forEach((r, i) => rows.push({ type: 'items', key: `loose-${i}`, items: r }))
 
   function toggleGroup(groupId: string) {
@@ -1095,6 +1129,14 @@ export default function CollectionDetailScreen() {
         }
         renderItem={({ item: row }) => {
           if (row.type === 'divider') return <View style={styles.groupDivider} />
+          if (row.type === 'loose') {
+            return (
+              <View style={styles.looseHeader}>
+                <Text style={styles.looseLabel}>{t('groups.ungrouped')}</Text>
+                <Text style={styles.looseCount}>{loose.length}</Text>
+              </View>
+            )
+          }
           if (row.type === 'group') {
             return (
               <GroupHeader
@@ -1526,6 +1568,27 @@ const styles = StyleSheet.create({
 
   grid: { flexGrow: 1, paddingTop: Spacing.sm },
   gridRow: { flexDirection: 'row', paddingHorizontal: GRID_PADDING },
+  /**
+   * Même rythme vertical qu'un en-tête de groupe, pour que la liste garde
+   * une seule grille. Mais typographie en retrait : « hors groupes » n'est
+   * pas un groupe, c'est ce qui reste.
+   */
+  looseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: GRID_PADDING,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
+  },
+  looseLabel: {
+    fontSize: Typography.xs,
+    fontWeight: Typography.semibold,
+    color: Colors.textTertiary,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  looseCount: { fontSize: Typography.xs, color: Colors.textTertiary, fontWeight: Typography.medium },
   // Ferme un groupe sans le souligner : un filet, pas une barre.
   groupDivider: {
     height: 1,

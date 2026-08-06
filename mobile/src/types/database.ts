@@ -72,6 +72,13 @@ export interface TiroirObject {
   status: ObjectStatus
   location_note: string | null
   attributes: Record<string, string | number | boolean | null>
+  /**
+   * Nombre d'exemplaires identiques décrits par cette fiche.
+   *
+   * Tous les montants ci-dessous restent UNITAIRES : le total d'un lot est
+   * toujours dérivé (valeur × quantity), jamais stocké. Voir `lotTotal()`.
+   */
+  quantity: number
   created_at: string
   updated_at: string
   // Valeur marchande
@@ -89,6 +96,12 @@ export interface TiroirObject {
   } | null
   // Prix de vente / caution
   sale_price: number | null
+  /**
+   * Prix négocié pour le lot entier. NULL = pas de remise, le total se
+   * dérive de sale_price × quantity. Seule exception à la règle des
+   * montants unitaires, et elle est explicite.
+   */
+  sale_price_lot: number | null
   deposit_amount: number | null
   // Prix d'achat
   purchase_price: number | null

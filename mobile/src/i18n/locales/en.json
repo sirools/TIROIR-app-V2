@@ -9,7 +9,8 @@
     "error": "Error",
     "delete": "Delete",
     "objects_one": "{{count}} item",
-    "objects_other": "{{count}} items"
+    "objects_other": "{{count}} items",
+    "validate": "Confirm"
   },
   "auth": {
     "login": {
@@ -450,7 +451,7 @@
     "statusLabel": "Status",
     "collectionLabel": "Collection",
     "noCollection": "None",
-    "locationLabel": "Location",
+    "locationLabel": "Exact location ({{count}}/{{max}})",
     "locationAdd": "Add",
     "share": "Share",
     "editTitle": "Edit",
@@ -507,8 +508,8 @@
       "coverError": "Couldn't set this photo as the favorite."
     },
     "value": {
-      "sectionTitle": "Value",
-      "estimation": "Estimate",
+      "sectionTitle": "Performance",
+      "estimation": "Estimated value",
       "vsAi": "vs AI",
       "vsPurchase": "vs purchase",
       "enter": "Enter…",
@@ -527,7 +528,25 @@
       "estimateAi": "✦ Estimate with AI",
       "confidenceLow": "Low confidence",
       "confidenceMedium": "Medium confidence",
-      "confidenceHigh": "High confidence"
+      "confidenceHigh": "High confidence",
+      "quantity": "Quantity",
+      "lotTotal": "Lot total: {{total}} {{sym}}",
+      "purchaseDate": "Purchase date",
+      "salePriceLot": "Lot price",
+      "ageNew": "New",
+      "ageMonths_one": "{{count}} month",
+      "ageMonths_other": "{{count}} months",
+      "ageYears_one": "{{count}} year",
+      "ageYears_other": "{{count}} years",
+      "salePriceLotBase": "{{count}} × {{unit}} {{sym}}",
+      "applyLotDiscount": "Apply a discount on the lot price",
+      "lotDiscount": "Discount",
+      "lotDiscountHint": "Amount deducted from the lot price",
+      "lotFinal": "Lot price: {{total}} {{sym}}",
+      "depositPerItem": "Deposit per item",
+      "depositLot": "Deposit for the lot",
+      "depositLotHint": "{{count}} × {{unit}} {{sym}}",
+      "agePrefix": "Age: {{age}}"
     },
     "insurance": {
       "title": "Insurance",
@@ -550,8 +569,6 @@
       "policyRef": "Policy reference",
       "expirationField": "Insurance expiration",
       "save": "Save",
-      "toggle": "Item insured?",
-      "emptyOn": "No insurance recorded.",
       "addOne": "Add an insurance",
       "labelField": "Insurer / label",
       "labelPlaceholder": "Allianz, AXA…",
@@ -579,12 +596,21 @@
       "linkUpload": "Upload a new document",
       "unlink": "Unlink",
       "deleteTitle": "Delete this insurance?",
-      "deleteBody": "Linked contracts will be unlinked (kept in Documents)."
+      "deleteBody": "Linked contracts will be unlinked (kept in Documents).",
+      "sectionTitle": "Insurance"
     },
     "loan": {
       "toLabel": "Loaned to…",
       "toPlaceholder": "Person's name",
       "returnLabel": "Return date"
+    },
+    "locationEdit": "Edit",
+    "locationSheet": {
+      "title": "Add a location",
+      "help": "So you remember exactly where this object belongs.",
+      "placeholder": "e.g. Garage, top shelf…",
+      "add": "Add a level",
+      "full": "{{max}} levels maximum"
     }
   },
   "objectEdit": {
@@ -697,7 +723,8 @@
     "inThisCollection": "In this collection",
     "otherCollection": "To another collection",
     "moveInto": "Into “{{name}}”",
-    "selectGroup": "Select group"
+    "selectGroup": "Select group",
+    "ungrouped": "Ungrouped"
   },
   "collectionPicker": {
     "title": "Where should this go?",

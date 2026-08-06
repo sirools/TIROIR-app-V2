@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { Share2, Download, Lock, ExternalLink } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui/tokens'
+import { isLot } from '@/features/objects/quantity'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -17,6 +18,7 @@ interface SharedObject {
   description: string | null
   status: string | null
   location_note: string | null
+  quantity: number
   cover_url: string | null
 }
 
@@ -74,7 +76,7 @@ export default function SharePage() {
       // 2. Charger les objets
       const { data: objData, error: objError } = await supabase
         .from('objects')
-        .select('id, title, description, status, location_note')
+        .select('id, title, description, status, location_note, quantity')
         .in('id', linkData.object_ids)
 
       if (objError || !objData) { setError('server'); return }
@@ -192,6 +194,13 @@ export default function SharePage() {
                       <Text style={styles.coverPlaceholderIcon}>📦</Text>
                     </View>
                 }
+                {/* Un lot partagé doit se lire comme un lot, pas comme
+                    un exemplaire unique. */}
+                {isLot(obj.quantity) && (
+                  <View style={styles.qtyBadge}>
+                    <Text style={styles.qtyBadgeText}>×{obj.quantity}</Text>
+                  </View>
+                )}
               </View>
 
               {/* Infos */}
@@ -305,7 +314,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1, borderColor: Colors.border,
   },
-  cardCover: { width: '100%', aspectRatio: 1 },
+  cardCover: { width: '100%', aspectRatio: 1, position: 'relative' },
+  qtyBadge: {
+    position: 'absolute', top: 6, right: 6,
+    minWidth: 24, paddingHorizontal: 6, paddingVertical: 2,
+    borderRadius: Radius.full,
+    backgroundColor: 'rgba(26, 22, 18, 0.72)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  qtyBadgeText: { fontSize: Typography.xs, fontWeight: Typography.bold, color: Colors.textInverse },
   coverImg: { width: '100%', height: '100%' },
   coverPlaceholder: {
     flex: 1, alignItems: 'center', justifyContent: 'center',

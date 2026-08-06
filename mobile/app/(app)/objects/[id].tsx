@@ -23,16 +23,17 @@ import i18n from 'i18next'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { decode } from 'base64-arraybuffer'
-import { Plus, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, MapPin, Share2, Sparkles, Star, Info, CalendarDays, UserRound } from 'lucide-react-native'
+import { Plus, Minus, Pencil, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, ChevronUp, ChevronDown, MapPin, Share2, Sparkles, Star, Info, CalendarDays, UserRound } from 'lucide-react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan } from '@/lib/plan'
-import { Screen, Colors, Typography, Spacing, Radius, ActionSheet } from '@/components/ui'
+import { Screen, Colors, Typography, Spacing, Radius, ActionSheet, Checkbox } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
 import { DocumentsSection, ObjectDocument } from '@/components/DocumentsSection'
 import { InsurancesSection } from '@/components/InsurancesSection'
 import { TiroirObject, ObjectImage, Collection } from '@/types/database'
+import { isLot, lotTotal, clampQuantity, QUANTITY_MIN, QUANTITY_MAX } from '@/features/objects/quantity'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const HERO_HEIGHT = 240
@@ -59,6 +60,9 @@ const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = 
 }
 
 // Attributs pilotés par le statut « prêté » — masqués de la section Caractéristiques.
+/** Gouttière unique de la grille d'informations (horizontale et verticale). */
+const GRID_GAP = Spacing.sm
+
 const LOAN_ATTR_KEYS = ['loaned_to', 'loan_return_date'] as const
 
 // Attributs connus → clé i18n du libellé (sert aussi de filtre de présence).
@@ -899,84 +903,263 @@ function AttributesSection({ attributes: initialAttrs, onSave }: AttributesSecti
   )
 }
 
-// ── LocationBricks ────────────────────────────────────────────────────────────
+// ── Emplacement ───────────────────────────────────────────────────────────────
+
+/**
+ * Cinq niveaux suffisent à décrire où un objet est rangé (« Garage > Étagère
+ * du haut > Boîte bleue »). Au-delà, on ne se repère plus : on énumère.
+ */
+const LOCATION_MAX = 5
 
 interface LocationBricksProps {
   bricks: string[]
-  editingIdx: number | null
-  draft: string
-  onEditStart: (idx: number) => void
-  onDraftChange: (v: string) => void
-  onEditCommit: () => void
-  onRemove: (idx: number) => void
-  onAdd: () => void
+  onEdit: () => void
 }
 
-function LocationBricks({
-  bricks, editingIdx, draft, onEditStart, onDraftChange, onEditCommit, onRemove, onAdd,
-}: LocationBricksProps) {
+/**
+ * Affichage seul : la modification passe par le tiroir. Les puces défilent
+ * horizontalement sur UNE ligne — un emplacement se lit comme un chemin, et
+ * un chemin qui passe à la ligne cesse d'en être un.
+ */
+function LocationBricks({ bricks, onEdit }: LocationBricksProps) {
   const { t } = useTranslation()
+
+  if (bricks.length === 0) {
+    return (
+      <TouchableOpacity style={[lb.editBadge, lb.addFull]} onPress={onEdit} activeOpacity={0.85}>
+        <Plus size={12} color="#FFFFFF" strokeWidth={2.6} />
+        <Text style={lb.editBadgeText}>{t('object.locationAdd')}</Text>
+      </TouchableOpacity>
+    )
+  }
+
   return (
-    <View style={lb.row}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={lb.row}
+    >
       {bricks.map((brick, i) => (
         <React.Fragment key={i}>
           {i > 0 && <Text style={lb.arrow}>›</Text>}
-          {editingIdx === i ? (
-            <TextInput
-              style={lb.input}
-              value={draft}
-              onChangeText={onDraftChange}
-              onBlur={onEditCommit}
-              onSubmitEditing={onEditCommit}
-              autoFocus
-              returnKeyType="done"
-            />
-          ) : (
-            <TouchableOpacity style={lb.brick} onPress={() => onEditStart(i)} activeOpacity={0.7}>
-              <Text style={lb.brickText} numberOfLines={1}>{brick}</Text>
-              <TouchableOpacity onPress={() => onRemove(i)} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
-                <Text style={lb.remove}>×</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          )}
+          <View style={lb.brick}>
+            <Text style={lb.brickText} numberOfLines={1}>{brick}</Text>
+          </View>
         </React.Fragment>
       ))}
-      <TouchableOpacity style={lb.addBtn} onPress={onAdd} activeOpacity={0.85}>
-        <Plus size={16} color="#FFFFFF" strokeWidth={2.4} />
-        <Text style={lb.addText}>{t('object.locationAdd')}</Text>
+
+      {/* En bout de chaîne plutôt qu'en marge : le badge fait partie du
+          chemin qu'on parcourt, et il libère la largeur que le lien
+          prenait aux puces. */}
+      <TouchableOpacity style={lb.editBadge} onPress={onEdit} activeOpacity={0.85}>
+        <Pencil size={11} color="#FFFFFF" strokeWidth={2.4} />
+        <Text style={lb.editBadgeText}>{t('object.locationEdit')}</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   )
 }
 
-// Puces d'emplacement : typo alignée sur le corps de page (base), avec un
-// bouton d'ajout orange lisible mais harmonisé.
-const LOCATION_FONT = Typography.base
-
 const lb = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: Spacing.sm },
-  arrow: { fontSize: Typography.md, color: Colors.textTertiary, paddingHorizontal: 2 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingRight: 2 },
+  arrow: { fontSize: Typography.sm, color: Colors.textTertiary },
   brick: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: Colors.surfaceWarm, borderRadius: Radius.full,
-    paddingHorizontal: Spacing.sm + 2, paddingVertical: 6,
-    borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: Spacing.sm, paddingVertical: 3,
+    borderWidth: 0.5, borderColor: Colors.border,
   },
-  brickText: { fontSize: LOCATION_FONT, color: Colors.textPrimary, fontWeight: Typography.semibold, maxWidth: 160 },
-  remove: { fontSize: Typography.md, color: Colors.textTertiary, lineHeight: 18, marginLeft: 2 },
-  input: {
-    fontSize: LOCATION_FONT, color: Colors.textPrimary, fontWeight: Typography.semibold,
-    backgroundColor: Colors.surface, borderRadius: Radius.full,
-    paddingHorizontal: Spacing.sm + 2, paddingVertical: 6,
-    borderWidth: 1.5, borderColor: Colors.accent,
-    minWidth: 90,
+  brickText: {
+    fontSize: Typography.sm, color: Colors.textPrimary,
+    fontWeight: Typography.semibold, maxWidth: 130,
   },
-  addBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
+  // Même hauteur que les puces : bordure comprise, c'est ce qui les aligne.
+  editBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: '#EA580C', borderRadius: Radius.full,
-    paddingHorizontal: Spacing.sm + 4, paddingVertical: 6,
+    paddingHorizontal: Spacing.sm, paddingVertical: 3,
+    borderWidth: 0.5, borderColor: '#EA580C',
   },
-  addText: { fontSize: Typography.sm, color: '#FFFFFF', fontWeight: Typography.bold },
+  editBadgeText: { fontSize: Typography.sm, color: '#FFFFFF', fontWeight: Typography.bold },
+  // Carte vide : le bouton occupe la largeur, il n'a rien à côté de lui.
+  addFull: { alignSelf: 'stretch', justifyContent: 'center', paddingVertical: 5 },
+})
+
+// ── Tiroir d'édition de l'emplacement ─────────────────────────────────────────
+
+interface LocationEditorSheetProps {
+  visible: boolean
+  initial: string[]
+  onCancel: () => void
+  onSave: (bricks: string[]) => void
+}
+
+/**
+ * L'ordre porte le sens (du contenant au contenu), il doit donc se
+ * réarranger. Des flèches plutôt qu'un glisser-déposer : sur cinq lignes
+ * au plus, deux taps valent mieux qu'un geste à apprendre.
+ *
+ * Rien n'est écrit avant « Valider » : on peut réorganiser, se tromper et
+ * annuler sans laisser de trace.
+ */
+function LocationEditorSheet({ visible, initial, onCancel, onSave }: LocationEditorSheetProps) {
+  const { t } = useTranslation()
+  const [items, setItems] = useState<string[]>(initial)
+
+  // Rouvrir le tiroir repart toujours de l'état enregistré, jamais du
+  // brouillon abandonné la fois précédente.
+  useEffect(() => {
+    if (visible) setItems(initial.length > 0 ? initial : [''])
+  }, [visible])
+
+  function update(idx: number, value: string) {
+    setItems(prev => prev.map((v, i) => (i === idx ? value : v)))
+  }
+
+  function move(idx: number, delta: number) {
+    const target = idx + delta
+    if (target < 0 || target >= items.length) return
+    setItems(prev => {
+      const next = [...prev]
+      ;[next[idx], next[target]] = [next[target], next[idx]]
+      return next
+    })
+  }
+
+  function remove(idx: number) {
+    setItems(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  function add() {
+    if (items.length >= LOCATION_MAX) return
+    setItems(prev => [...prev, ''])
+  }
+
+  function save() {
+    onSave(items.map(v => v.trim()).filter(Boolean).slice(0, LOCATION_MAX))
+  }
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
+      <TouchableOpacity style={les.backdrop} activeOpacity={1} onPress={onCancel} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={les.sheetWrap}
+      >
+        <View style={les.sheet}>
+          <View style={les.handle} />
+          <Text style={les.title}>{t('object.locationSheet.title')}</Text>
+          <Text style={les.help}>{t('object.locationSheet.help')}</Text>
+
+          <ScrollView style={les.list} keyboardShouldPersistTaps="handled">
+            {items.map((item, i) => (
+              <View key={i} style={les.row}>
+                <Text style={les.rank}>{i + 1}</Text>
+                <TextInput
+                  style={les.input}
+                  value={item}
+                  onChangeText={v => update(i, v)}
+                  placeholder={t('object.locationSheet.placeholder')}
+                  placeholderTextColor={Colors.textTertiary}
+                  returnKeyType="done"
+                />
+                <View style={les.arrows}>
+                  <TouchableOpacity
+                    onPress={() => move(i, -1)}
+                    disabled={i === 0}
+                    hitSlop={{ top: 6, bottom: 2, left: 6, right: 6 }}
+                  >
+                    <ChevronUp size={16} color={i === 0 ? Colors.borderLight : Colors.textSecondary} strokeWidth={2.2} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => move(i, 1)}
+                    disabled={i === items.length - 1}
+                    hitSlop={{ top: 2, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <ChevronDown size={16} color={i === items.length - 1 ? Colors.borderLight : Colors.textSecondary} strokeWidth={2.2} />
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity onPress={() => remove(i)} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                  <Trash2 size={15} color={Colors.textTertiary} strokeWidth={1.8} />
+                </TouchableOpacity>
+              </View>
+            ))}
+
+            <TouchableOpacity
+              style={[les.addRow, items.length >= LOCATION_MAX && les.addRowOff]}
+              onPress={add}
+              disabled={items.length >= LOCATION_MAX}
+              activeOpacity={0.7}
+            >
+              <Plus size={14} color={items.length >= LOCATION_MAX ? Colors.textTertiary : Colors.accent} strokeWidth={2.4} />
+              <Text style={[les.addText, items.length >= LOCATION_MAX && les.addTextOff]}>
+                {items.length >= LOCATION_MAX
+                  ? t('object.locationSheet.full', { max: LOCATION_MAX })
+                  : t('object.locationSheet.add')}
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+
+          <View style={les.footer}>
+            <TouchableOpacity style={les.btnGhost} onPress={onCancel} activeOpacity={0.8}>
+              <Text style={les.btnGhostText}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={les.btnPrimary} onPress={save} activeOpacity={0.85}>
+              <Text style={les.btnPrimaryText}>{t('common.validate')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  )
+}
+
+const les = StyleSheet.create({
+  backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(26, 22, 18, 0.4)' },
+  sheetWrap: { flex: 1, justifyContent: 'flex-end' },
+  sheet: {
+    maxHeight: '82%',
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl,
+    paddingTop: Spacing.sm, paddingBottom: Spacing.lg, paddingHorizontal: Spacing.lg,
+  },
+  handle: {
+    alignSelf: 'center', width: 36, height: 4, borderRadius: 2,
+    backgroundColor: Colors.border, marginBottom: Spacing.md,
+  },
+  title: { fontSize: Typography.lg, fontWeight: Typography.semibold, color: Colors.textPrimary },
+  help: {
+    fontSize: Typography.sm, color: Colors.textSecondary,
+    lineHeight: Typography.sm * Typography.relaxed, marginTop: 4,
+  },
+  list: { marginTop: Spacing.md },
+  row: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    backgroundColor: Colors.surface, borderRadius: Radius.md,
+    borderWidth: 0.5, borderColor: Colors.border,
+    paddingHorizontal: Spacing.sm, paddingVertical: 6,
+    marginBottom: Spacing.sm,
+  },
+  rank: { fontSize: Typography.xs, color: Colors.textTertiary, fontWeight: Typography.bold, width: 12 },
+  input: { flex: 1, fontSize: Typography.base, color: Colors.textPrimary, paddingVertical: 6 },
+  arrows: { alignItems: 'center' },
+  addRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: Spacing.sm + 2, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed',
+  },
+  addRowOff: { borderColor: Colors.borderLight },
+  addText: { fontSize: Typography.sm, color: Colors.accent, fontWeight: Typography.semibold },
+  addTextOff: { color: Colors.textTertiary },
+  footer: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md },
+  btnGhost: {
+    flex: 1, paddingVertical: 13, borderRadius: Radius.md, alignItems: 'center',
+    backgroundColor: Colors.surface, borderWidth: 0.5, borderColor: Colors.border,
+  },
+  btnGhostText: { fontSize: Typography.base, color: Colors.textSecondary, fontWeight: Typography.medium },
+  btnPrimary: {
+    flex: 1, paddingVertical: 13, borderRadius: Radius.md, alignItems: 'center',
+    backgroundColor: Colors.accent,
+  },
+  btnPrimaryText: { fontSize: Typography.base, color: Colors.textInverse, fontWeight: Typography.semibold },
 })
 
 // ── DescriptionBlock ──────────────────────────────────────────────────────────
@@ -1187,8 +1370,23 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
           ) : saving ? (
             <ActivityIndicator size="small" color={Colors.accent} />
           ) : (
-            <TouchableOpacity onPress={() => { setDraft(String(object.market_value)); setEditing(true) }} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={vc.amountValueWrap}
+              onPress={() => { setDraft(String(object.market_value)); setEditing(true) }}
+              activeOpacity={0.7}
+            >
               <Text style={vc.amountValue}>{object.market_value!.toLocaleString(i18n.language)} {currSym}</Text>
+              {/* L'estimation IA porte sur UN exemplaire : le lot s'en déduit. */}
+              {isLot(object.quantity) && (
+                <Text style={vc.lotTotal}>
+                  {t('object.value.lotTotal', {
+                    count: object.quantity,
+                    unit: object.market_value!.toLocaleString(i18n.language),
+                    total: lotTotal(object.market_value, object.quantity)!.toLocaleString(i18n.language),
+                    sym: currSym,
+                  })}
+                </Text>
+              )}
             </TouchableOpacity>
           )
         ) : (
@@ -1256,6 +1454,123 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
   )
 }
 
+/**
+ * Quantité, en tiers de ligne à côté de l'emplacement.
+ *
+ * Même carte que Statut, Collection et Emplacement — mêmes marges, même
+ * libellé, même poids typographique : c'est une information de la fiche,
+ * pas un réglage à part.
+ */
+function QuantityCard({
+  quantity, onChange,
+}: { quantity: number; onChange: (next: number) => void }) {
+  const { t } = useTranslation()
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+
+  function commit() {
+    setEditing(false)
+    const parsed = parseInt(draft.replace(/[^0-9]/g, ''), 10)
+    if (isNaN(parsed)) return
+    onChange(parsed)
+  }
+
+  const atMin = quantity <= QUANTITY_MIN
+  const atMax = quantity >= QUANTITY_MAX
+
+  return (
+    <View style={[s.metricCard, { flex: 1 }]}>
+      <Text style={s.metricLabel}>{t('object.value.quantity')}</Text>
+      <View style={s.qtyStepper}>
+        <TouchableOpacity
+          style={[s.qtyBtn, atMin && s.qtyBtnOff]}
+          onPress={() => onChange(quantity - 1)}
+          disabled={atMin}
+          hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+          activeOpacity={0.6}
+        >
+          <Minus size={14} color={atMin ? Colors.textTertiary : Colors.textPrimary} strokeWidth={2.6} />
+        </TouchableOpacity>
+
+        {/* Saisie directe : « 47 fourchettes » ne se compose pas au + */}
+        {editing ? (
+          <TextInput
+            style={s.qtyInput}
+            value={draft}
+            onChangeText={setDraft}
+            onBlur={commit}
+            onSubmitEditing={commit}
+            keyboardType="number-pad"
+            autoFocus
+            selectTextOnFocus
+            returnKeyType="done"
+            maxLength={3}
+          />
+        ) : (
+          <TouchableOpacity
+            style={s.qtyValueBtn}
+            onPress={() => { setDraft(String(quantity)); setEditing(true) }}
+            activeOpacity={0.6}
+          >
+            <Text style={s.metricValue}>{quantity}</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={[s.qtyBtn, atMax && s.qtyBtnOff]}
+          onPress={() => onChange(quantity + 1)}
+          disabled={atMax}
+          hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+          activeOpacity={0.6}
+        >
+          <Plus size={14} color={atMax ? Colors.textTertiary : Colors.textPrimary} strokeWidth={2.6} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  )
+}
+
+/**
+ * Total d'un lot, sous le montant unitaire dont il découle.
+ *
+ * Dérivé et jamais éditable : un seul sens de calcul. Rendre le total
+ * saisissable imposerait de diviser à l'envers, avec des arrondis qui
+ * dérivent. Invisible tant que la fiche décrit un seul exemplaire — c'est
+ * ce qui garantit que rien ne change pour l'ajout unitaire.
+ */
+function LotTotalHint({
+  unit, quantity, currSym,
+}: { unit: number | null | undefined; quantity: number; currSym: string }) {
+  const { t, i18n } = useTranslation()
+  if (!isLot(quantity) || unit == null) return null
+  const total = lotTotal(unit, quantity)!
+  return (
+    <Text style={vc.lotTotal}>
+      {t('object.value.lotTotal', {
+        total: total.toLocaleString(i18n.language),
+        sym: currSym,
+      })}
+    </Text>
+  )
+}
+
+/**
+ * Écart en pourcentage, vert au-dessus et rouge en dessous. Un seul gabarit
+ * pour « vs estimation IA » et « vs prix d'achat » : ce sont deux lectures
+ * du même chiffre, elles ne doivent pas se présenter différemment.
+ */
+function DiffBadge({ pct, label }: { pct: number; label: string }) {
+  const up = pct >= 0
+  return (
+    <View style={[vc.diffBadge, { backgroundColor: up ? '#DCFCE7' : '#FEE2E2' }]}>
+      <Text style={[vc.diffBadgeText, { color: up ? '#16A34A' : '#DC2626' }]}>
+        {up ? '▲' : '▼'} {Math.abs(pct)}%
+      </Text>
+      <Text style={[vc.diffBadgeSubtext, { color: up ? '#16A34A' : '#DC2626' }]}>{label}</Text>
+    </View>
+  )
+}
+
 interface ValeurCardProps {
   object: TiroirObject
   estimating: boolean
@@ -1270,17 +1585,16 @@ interface ValeurCardProps {
   onUpdatePurchasePrice: (newValue: number | null) => Promise<void>
   onUpdateSalePrice: (newValue: number | null) => Promise<void>
   onUpdateDeposit: (newValue: number | null) => Promise<void>
-  onToggleInsured: (v: boolean) => void
-  documents: ObjectDocument[]
-  onDocumentsChange: (docs: ObjectDocument[]) => void
+  onUpdateSalePriceLot: (newValue: number | null) => Promise<void>
+  onUpdatePurchaseDate: (date: string) => Promise<void>
 }
 
 function ValeurCard({
   object, estimating, editingUserValue, userValueDraft,
   onEstimate, onEditUserValue, onUserValueChange, onUserValueCommit,
   onClearMarketValue, onUpdateMarketValue,
-  onUpdatePurchasePrice, onUpdateSalePrice, onUpdateDeposit, onToggleInsured,
-  documents, onDocumentsChange,
+  onUpdatePurchasePrice, onUpdateSalePrice, onUpdateDeposit,
+  onUpdateSalePriceLot, onUpdatePurchaseDate,
 }: ValeurCardProps) {
   const { t, i18n } = useTranslation()
   const currency = object.value_currency ?? 'EUR'
@@ -1298,6 +1612,10 @@ function ValeurCard({
   const [editingDeposit, setEditingDeposit] = useState(false)
   const [depositDraft, setDepositDraft] = useState('')
   const [savingDeposit, setSavingDeposit] = useState(false)
+  const [editingDiscount, setEditingDiscount] = useState(false)
+  const [discountDraft, setDiscountDraft] = useState('')
+  const [savingLot, setSavingLot] = useState(false)
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
 
   async function commitPurchase() {
     setEditingPurchase(false)
@@ -1321,6 +1639,31 @@ function ValeurCard({
     setSavingSale(false)
   }
 
+  /**
+   * La remise se saisit, mais c'est le PRIX FINAL du lot qui est stocké.
+   * L'unitaire reste intact, et décocher suffit à rendre le total dérivé —
+   * il n'y a jamais deux montants qui peuvent se contredire.
+   */
+  async function commitDiscount() {
+    setEditingDiscount(false)
+    const raw = discountDraft.trim()
+    const parsed = raw === '' ? 0 : parseFloat(raw.replace(',', '.'))
+    if (isNaN(parsed) || parsed < 0) return
+    const base = lotTotal(object.sale_price, quantity) ?? 0
+    const next = Math.max(0, base - parsed)
+    if (next === (object.sale_price_lot ?? null)) return
+    setSavingLot(true)
+    await onUpdateSalePriceLot(next)
+    setSavingLot(false)
+  }
+
+  async function toggleDiscount() {
+    if (object.sale_price == null) return
+    setSavingLot(true)
+    await onUpdateSalePriceLot(hasDiscount ? null : lotTotal(object.sale_price, quantity) ?? 0)
+    setSavingLot(false)
+  }
+
   async function commitDeposit() {
     setEditingDeposit(false)
     const raw = depositDraft.trim()
@@ -1336,6 +1679,32 @@ function ValeurCard({
     ? Math.round(((object.user_value - object.purchase_price) / object.purchase_price) * 100)
     : null
 
+  // La quantité se règle en tête de fiche, dans la grille d'informations ;
+  // ici elle ne sert plus qu'à dériver les totaux sous chaque montant.
+  const quantity = object.quantity ?? 1
+
+  /** Écart à l'estimation IA, en pourcentage. */
+  const vsAi = (object.user_value != null && object.market_value != null && object.market_value > 0)
+    ? Math.round(((object.user_value - object.market_value) / object.market_value) * 100)
+    : null
+
+  /** Prix du lot : dérivé, sauf remise explicite. */
+  const lotSale = object.sale_price_lot ?? lotTotal(object.sale_price, quantity) ?? 0
+  const hasDiscount = object.sale_price_lot != null
+  const discountValue = Math.max(0, (lotTotal(object.sale_price, quantity) ?? 0) - lotSale)
+
+  /** Ancienneté : déduite de la date d'achat, jamais saisie. */
+  const age = (() => {
+    if (!object.purchase_date) return null
+    const months = Math.max(
+      0,
+      Math.round((Date.now() - new Date(object.purchase_date).getTime()) / (1000 * 60 * 60 * 24 * 30.44)),
+    )
+    if (months < 1) return t('object.value.ageNew')
+    if (months < 12) return t('object.value.ageMonths', { count: months })
+    return t('object.value.ageYears', { count: Math.floor(months / 12) })
+  })()
+
   return (
     <>
       <View style={vc.card}>
@@ -1343,17 +1712,15 @@ function ValeurCard({
         <TouchableOpacity style={vc.estimationRow} onPress={onEditUserValue} activeOpacity={0.7}>
           {/* Gauche : label + diff IA */}
           <View style={vc.estimationLeft}>
-            <Text style={vc.sectionLabel}>{t('object.value.estimation')}</Text>
-            {object.user_value != null && object.market_value != null && (() => {
-              const diff = object.user_value - object.market_value
-              const pct = Math.round((diff / object.market_value) * 100)
-              const up = diff >= 0
-              return (
-                <Text style={[vc.estimationIaDiff, { color: up ? '#16A34A' : '#DC2626' }]}>
-                  {up ? '▲' : '▼'} {Math.abs(pct)}% {t('object.value.vsAi')}
-                </Text>
-              )
-            })()}
+            <Text style={vc.amountLabel}>{t('object.value.estimation')}</Text>
+            {/* Les deux comparaisons se lisent ensemble : même gabarit,
+                empilées, alignées à gauche sous le libellé. */}
+            {(vsAi != null || depreciation != null) && (
+              <View style={vc.diffStack}>
+                {vsAi != null && <DiffBadge pct={vsAi} label={t('object.value.vsAi')} />}
+                {depreciation != null && <DiffBadge pct={depreciation} label={t('object.value.vsPurchase')} />}
+              </View>
+            )}
           </View>
 
           {/* Droite : montant + badge achat */}
@@ -1372,38 +1739,23 @@ function ValeurCard({
                 placeholderTextColor={Colors.textTertiary}
               />
             ) : object.user_value != null ? (
-              <Text style={vc.valueText}>{object.user_value.toLocaleString(i18n.language)} {currSym}</Text>
+              <View style={vc.amountValueWrap}>
+                <Text style={vc.valueText}>{object.user_value.toLocaleString(i18n.language)} {currSym}</Text>
+                <LotTotalHint unit={object.user_value} quantity={quantity} currSym={currSym} />
+              </View>
             ) : (
               <Text style={vc.valuePlaceholder}>{t('object.value.enter')}</Text>
-            )}
-            {depreciation != null && (
-              <View style={[vc.diffBadge, { backgroundColor: depreciation >= 0 ? '#DCFCE7' : '#FEE2E2' }]}>
-                <Text style={[vc.diffBadgeText, { color: depreciation >= 0 ? '#16A34A' : '#DC2626' }]}>
-                  {depreciation >= 0 ? '▲' : '▼'} {Math.abs(depreciation)}%{'\n'}
-                  <Text style={vc.diffBadgeSubtext}>{t('object.value.vsPurchase')}</Text>
-                </Text>
-              </View>
             )}
           </View>
         </TouchableOpacity>
 
         <View style={vc.divider} />
 
-        {/* ── Section 2 : Valeur marché (IA) ── */}
-        <MarketValueSection
-          object={object}
-          estimating={estimating}
-          sources={sources}
-          confidence={confidence}
-          currSym={currSym}
-          onEstimate={onEstimate}
-          onClearMarketValue={onClearMarketValue}
-          onUpdateMarketValue={onUpdateMarketValue}
-        />
-
-        {/* ── Section 3 : Prix d'achat + vente + Caution ── */}
+        {/* ── Section 2 : Achat (prix, date, ancienneté) ──
+             Remontée avant la valeur marché : c'est le point de départ
+             chronologique de l'objet, et la référence à laquelle
+             l'estimation se compare. */}
         <View style={[vc.section, { gap: 0 }]}>
-          {/* Prix d'achat */}
           <TouchableOpacity
             style={vc.amountRow}
             onPress={() => { setPurchaseDraft(object.purchase_price != null ? String(object.purchase_price) : ''); setEditingPurchase(true) }}
@@ -1429,12 +1781,52 @@ function ValeurCard({
             ) : savingPurchase ? (
               <ActivityIndicator size="small" color={Colors.accent} />
             ) : object.purchase_price != null ? (
-              <Text style={vc.amountValue}>{object.purchase_price.toLocaleString(i18n.language)} {currSym}</Text>
+              <View style={vc.amountValueWrap}>
+                <Text style={vc.amountValue}>{object.purchase_price.toLocaleString(i18n.language)} {currSym}</Text>
+              </View>
             ) : (
               <Text style={vc.amountPlaceholder}>{t('object.value.enter')}</Text>
             )}
           </TouchableOpacity>
 
+          {/* Date d'achat */}
+          <TouchableOpacity style={vc.amountRow} onPress={() => setDatePickerOpen(true)} activeOpacity={0.7}>
+            <View style={vc.amountLabelWrap}>
+              <Text style={vc.amountLabel}>{t('object.value.purchaseDate')}</Text>
+            </View>
+            <View style={vc.amountValueWrap}>
+              {object.purchase_date ? (
+                <>
+                  <Text style={vc.amountValueSm}>{formatDate(object.purchase_date, i18n.language)}</Text>
+                  {/* L'ancienneté n'est pas une donnée : elle se déduit,
+                      donc elle se lit comme une conséquence de la date. */}
+                  {age && <Text style={vc.lotTotal}>{t('object.value.agePrefix', { age })}</Text>}
+                </>
+              ) : (
+                <Text style={vc.amountPlaceholder}>{t('object.value.enter')}</Text>
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={vc.divider} />
+
+        {/* ── Section 3 : Valeur marché (IA) ── */}
+        <MarketValueSection
+          object={object}
+          estimating={estimating}
+          sources={sources}
+          confidence={confidence}
+          currSym={currSym}
+          onEstimate={onEstimate}
+          onClearMarketValue={onClearMarketValue}
+          onUpdateMarketValue={onUpdateMarketValue}
+        />
+
+        <View style={vc.divider} />
+
+        {/* ── Section 4 : Vente + Caution ── */}
+        <View style={[vc.section, { gap: 0 }]}>
           {/* Prix de vente */}
           <TouchableOpacity
             style={vc.amountRow}
@@ -1461,12 +1853,96 @@ function ValeurCard({
             ) : savingSale ? (
               <ActivityIndicator size="small" color={Colors.accent} />
             ) : object.sale_price != null ? (
-              <Text style={vc.amountValue}>{object.sale_price.toLocaleString(i18n.language)} {currSym}</Text>
+              <View style={vc.amountValueWrap}>
+                <Text style={vc.amountValue}>{object.sale_price.toLocaleString(i18n.language)} {currSym}</Text>
+              </View>
             ) : (
               <Text style={vc.amountPlaceholder}>{t('object.value.enter')}</Text>
             )}
           </TouchableOpacity>
 
+          {/* Prix du lot — dès 2 exemplaires. Calculé par défaut, donc
+              toujours affiché : c'est ce que rapporte la vente, pas une
+              option. La remise ne se saisit que si on la demande. */}
+          {isLot(quantity) && (
+            <>
+              <View style={vc.amountRow}>
+                <View style={vc.amountLabelWrap}>
+                  <Text style={vc.amountLabel}>{t('object.value.salePriceLot')}</Text>
+                  <Text style={vc.amountHint}>
+                    {t('object.value.salePriceLotBase', {
+                      count: quantity,
+                      unit: (object.sale_price ?? 0).toLocaleString(i18n.language),
+                      sym: currSym,
+                    })}
+                  </Text>
+                </View>
+                <Text style={vc.amountValue}>
+                  {lotSale.toLocaleString(i18n.language)} {currSym}
+                </Text>
+              </View>
+
+              {/* La remise est stockée comme prix final du lot : l'unitaire
+                  n'est jamais réécrit, et décocher rend le calcul dérivé. */}
+              <TouchableOpacity
+                style={vc.checkRow}
+                onPress={toggleDiscount}
+                activeOpacity={0.7}
+                disabled={object.sale_price == null}
+              >
+                <Checkbox checked={hasDiscount} onToggle={toggleDiscount} />
+                <Text style={[vc.checkLabel, object.sale_price == null && vc.checkLabelOff]}>
+                  {t('object.value.applyLotDiscount')}
+                </Text>
+              </TouchableOpacity>
+
+              {hasDiscount && (
+                <TouchableOpacity
+                  style={vc.amountRow}
+                  onPress={() => { setDiscountDraft(String(discountValue)); setEditingDiscount(true) }}
+                  activeOpacity={0.7}
+                >
+                  <View style={vc.amountLabelWrap}>
+                    <Text style={vc.amountLabel}>{t('object.value.lotDiscount')}</Text>
+                    <Text style={vc.amountHint}>{t('object.value.lotDiscountHint')}</Text>
+                  </View>
+                  {editingDiscount ? (
+                    <TextInput
+                      style={vc.amountInput}
+                      value={discountDraft}
+                      onChangeText={setDiscountDraft}
+                      onBlur={commitDiscount}
+                      onSubmitEditing={commitDiscount}
+                      keyboardType="decimal-pad"
+                      autoFocus
+                      returnKeyType="done"
+                      placeholder="0"
+                      placeholderTextColor={Colors.textTertiary}
+                      selectTextOnFocus
+                    />
+                  ) : savingLot ? (
+                    <ActivityIndicator size="small" color={Colors.accent} />
+                  ) : (
+                    <View style={vc.amountValueWrap}>
+                      <Text style={vc.amountValue}>− {discountValue.toLocaleString(i18n.language)} {currSym}</Text>
+                      <Text style={vc.lotTotal}>
+                        {t('object.value.lotFinal', {
+                          total: lotSale.toLocaleString(i18n.language),
+                          sym: currSym,
+                        })}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </View>
+
+        <View style={vc.divider} />
+
+        {/* ── Section 5 : Caution ── */}
+        <View style={[vc.section, { gap: 0 }]}>
           {/* Caution */}
           <TouchableOpacity
             style={vc.amountRow}
@@ -1474,7 +1950,9 @@ function ValeurCard({
             activeOpacity={0.7}
           >
             <View style={vc.amountLabelWrap}>
-              <Text style={vc.amountLabel}>{t('object.value.deposit')}</Text>
+              <Text style={vc.amountLabel}>
+                {isLot(quantity) ? t('object.value.depositPerItem') : t('object.value.deposit')}
+              </Text>
               <Text style={vc.amountHint}>{t('object.value.depositHint')}</Text>
             </View>
             {editingDeposit ? (
@@ -1494,28 +1972,54 @@ function ValeurCard({
             ) : savingDeposit ? (
               <ActivityIndicator size="small" color={Colors.accent} />
             ) : object.deposit_amount != null ? (
-              <Text style={vc.amountValue}>{object.deposit_amount.toLocaleString(i18n.language)} {currSym}</Text>
+              <View style={vc.amountValueWrap}>
+                <Text style={vc.amountValue}>{object.deposit_amount.toLocaleString(i18n.language)} {currSym}</Text>
+              </View>
             ) : (
               <Text style={vc.amountPlaceholder}>{t('object.value.enter')}</Text>
             )}
           </TouchableOpacity>
+
+          {/* Caution du lot : dérivée, non saisissable. Personne ne négocie
+              une caution dégressive — si le besoin apparaît, ce sera une
+              colonne dédiée, comme pour le prix du lot. */}
+          {isLot(quantity) && object.deposit_amount != null && (
+            <View style={vc.amountRow}>
+              <View style={vc.amountLabelWrap}>
+                <Text style={vc.amountLabel}>{t('object.value.depositLot')}</Text>
+                <Text style={vc.amountHint}>
+                  {t('object.value.depositLotHint', {
+                    count: quantity,
+                    unit: object.deposit_amount.toLocaleString(i18n.language),
+                    sym: currSym,
+                  })}
+                </Text>
+              </View>
+              <Text style={vc.amountValue}>
+                {lotTotal(object.deposit_amount, quantity)!.toLocaleString(i18n.language)} {currSym}
+              </Text>
+            </View>
+          )}
         </View>
 
-        <View style={vc.divider} />
-
-        {/* ── Section 4 : Assurance (multi + contrats PDF) ── */}
-        <InsurancesSection
-          objectId={object.id}
-          insured={object.insured}
-          currencySymbol={currSym}
-          documents={documents}
-          onDocumentsChange={onDocumentsChange}
-          onToggleInsured={onToggleInsured}
-        />
+        {datePickerOpen && (
+          <DateTimePicker
+            value={object.purchase_date ? new Date(object.purchase_date) : new Date()}
+            mode="date"
+            display="spinner"
+            locale={i18n.language}
+            maximumDate={new Date()}
+            onChange={(_, selected) => {
+              setDatePickerOpen(false)
+              if (selected) onUpdatePurchaseDate(selected.toISOString().split('T')[0])
+            }}
+          />
+        )}
       </View>
     </>
   )
 }
+
 
 const vc = StyleSheet.create({
   card: {
@@ -1538,14 +2042,16 @@ const vc = StyleSheet.create({
 
   // Valeur estimée
   // Estimation row (label gauche / montant droite sur même ligne)
+  // Même rythme vertical que `amountRow` : la ligne d'estimation n'est pas
+  // une section à part, c'est la première ligne de la carte.
   estimationRow: {
     flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md, paddingVertical: Spacing.md,
+    justifyContent: 'space-between', gap: Spacing.sm,
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
   },
-  estimationLeft: { gap: 3 },
+  estimationLeft: { flex: 1, gap: 4 },
   estimationRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  estimationIaDiff: { fontSize: Typography.xs, fontWeight: Typography.medium },
+  diffStack: { alignSelf: 'flex-start', gap: 3 },
 
   manualRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   manualHint: { flex: 1, fontSize: Typography.sm, color: Colors.textSecondary },
@@ -1556,9 +2062,13 @@ const vc = StyleSheet.create({
     borderBottomWidth: 2, borderBottomColor: Colors.accent,
     paddingVertical: 2, minWidth: 80, textAlign: 'right',
   },
-  diffBadge: { borderRadius: Radius.md, paddingHorizontal: 8, paddingVertical: 5, alignItems: 'center' },
-  diffBadgeText: { fontSize: Typography.xs, fontWeight: Typography.bold, textAlign: 'center' },
-  diffBadgeSubtext: { fontSize: 9, fontWeight: Typography.medium, opacity: 0.8 },
+  diffBadge: {
+    flexDirection: 'row', alignItems: 'baseline', gap: 4,
+    alignSelf: 'flex-start',
+    borderRadius: Radius.sm, paddingHorizontal: 6, paddingVertical: 3,
+  },
+  diffBadgeText: { fontSize: Typography.xs, fontWeight: Typography.bold },
+  diffBadgeSubtext: { fontSize: 9, fontWeight: Typography.medium, opacity: 0.75 },
   diffHint: { fontSize: Typography.xs, fontWeight: Typography.medium },
 
   // IA
@@ -1628,6 +2138,23 @@ const vc = StyleSheet.create({
   amountLabel: { fontSize: Typography.sm, color: Colors.textSecondary, fontWeight: Typography.medium },
   amountHint: { fontSize: Typography.xs, color: Colors.textTertiary, marginTop: 2 },
   amountValue: { fontSize: Typography.lg, fontWeight: Typography.bold, color: Colors.textPrimary },
+  amountValueWrap: { alignItems: 'flex-end', gap: 1 },
+  checkRow: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+  },
+  checkLabel: { flex: 1, fontSize: Typography.sm, color: Colors.textSecondary },
+  checkLabelOff: { color: Colors.textTertiary },
+  // Une date n'est pas un montant : même ligne, poids moindre.
+  amountValueSm: { fontSize: Typography.base, fontWeight: Typography.semibold, color: Colors.textPrimary },
+
+  // ── Quantité ──────────────────────────────────────────────────────────────
+  /** Total du lot : dérivé, donc visuellement subordonné au montant unitaire. */
+  lotTotal: {
+    fontSize: Typography.xs,
+    color: Colors.textTertiary,
+    fontWeight: Typography.regular,
+  },
   amountPlaceholder: { fontSize: Typography.base, color: Colors.textTertiary, fontStyle: 'italic' },
   amountInput: {
     fontSize: Typography.lg, fontWeight: Typography.bold, color: Colors.textPrimary,
@@ -1766,8 +2293,7 @@ export default function ObjectScreen() {
 
   // Emplacement
   const [locationBricks, setLocationBricks] = useState<string[]>([])
-  const [editingBrickIdx, setEditingBrickIdx] = useState<number | null>(null)
-  const [brickDraft, setBrickDraft] = useState('')
+  const [locationSheetOpen, setLocationSheetOpen] = useState(false)
 
   useFocusEffect(
     useCallback(() => {
@@ -1891,38 +2417,16 @@ export default function ObjectScreen() {
 
   // ── Emplacement ─────────────────────────────────────────────────────────────
 
-  function startEditBrick(idx: number) {
-    setBrickDraft(locationBricks[idx])
-    setEditingBrickIdx(idx)
-  }
-
-  function commitBrick() {
-    if (editingBrickIdx === null) return
-    const val = brickDraft.trim()
-    let newBricks = [...locationBricks]
-    if (val === '') {
-      newBricks.splice(editingBrickIdx, 1)
-    } else {
-      newBricks[editingBrickIdx] = val
-    }
-    setEditingBrickIdx(null)
-    setLocationBricks(newBricks)
-    const note = joinBricks(newBricks)
+  /**
+   * Une seule écriture, à la validation du tiroir. L'édition puce par puce
+   * enregistrait à chaque frappe : on ne pouvait ni réorganiser ni se
+   * raviser sans laisser de trace en base.
+   */
+  function saveLocation(bricks: string[]) {
+    setLocationSheetOpen(false)
+    setLocationBricks(bricks)
+    const note = joinBricks(bricks)
     if (note !== object?.location_note) saveField({ location_note: note })
-  }
-
-  function removeBrick(idx: number) {
-    const newBricks = locationBricks.filter((_, i) => i !== idx)
-    setLocationBricks(newBricks)
-    const note = joinBricks(newBricks)
-    if (note !== object?.location_note) saveField({ location_note: note })
-  }
-
-  function addBrick() {
-    const newBricks = [...locationBricks, '']
-    setLocationBricks(newBricks)
-    setBrickDraft('')
-    setEditingBrickIdx(newBricks.length - 1)
   }
 
   // ── Estimation valeur ────────────────────────────────────────────────────────
@@ -1976,12 +2480,6 @@ export default function ObjectScreen() {
     setObject(prev => prev ? ({ ...prev, purchase_price: newValue } as TiroirObject) : prev)
   }
 
-  async function toggleInsured(value: boolean) {
-    if (!object) return
-    const { error } = await supabase.from('objects').update({ insured: value }).eq('id', object.id)
-    if (error) { Alert.alert(t('common.error'), error.message); return }
-    setObject(prev => prev ? ({ ...prev, insured: value } as TiroirObject) : prev)
-  }
 
   // ── Effacer valeur marché ────────────────────────────────────────────────────
 
@@ -2012,6 +2510,34 @@ export default function ObjectScreen() {
     const { error } = await supabase.from('objects').update({ deposit_amount: newValue }).eq('id', object.id)
     if (error) { Alert.alert(t('common.error'), error.message); return }
     setObject(prev => prev ? ({ ...prev, deposit_amount: newValue } as TiroirObject) : prev)
+  }
+
+  /**
+   * Écriture directe, comme les autres montants : le RPC patch_object porte
+   * les champs descriptifs (titre, description, emplacement…), la quantité
+   * appartient au bloc valeur.
+   */
+  async function updateQuantity(next: number) {
+    if (!object) return
+    const q = clampQuantity(next)
+    if (q === object.quantity) return
+    const { error } = await supabase.from('objects').update({ quantity: q }).eq('id', object.id)
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+    setObject(prev => prev ? ({ ...prev, quantity: q } as TiroirObject) : prev)
+  }
+
+  async function updateSalePriceLot(newValue: number | null) {
+    if (!object) return
+    const { error } = await supabase.from('objects').update({ sale_price_lot: newValue }).eq('id', object.id)
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+    setObject(prev => prev ? ({ ...prev, sale_price_lot: newValue } as TiroirObject) : prev)
+  }
+
+  async function updatePurchaseDate(date: string) {
+    if (!object) return
+    const { error } = await supabase.from('objects').update({ purchase_date: date }).eq('id', object.id)
+    if (error) { Alert.alert(t('common.error'), error.message); return }
+    setObject(prev => prev ? ({ ...prev, purchase_date: date } as TiroirObject) : prev)
   }
 
   async function clearMarketValue() {
@@ -2144,6 +2670,12 @@ export default function ObjectScreen() {
                 <Text style={s.metaDate}>{t('object.addedOn', { date: formatDate(object.created_at, i18n.language) })}</Text>
               </View>
             </View>
+
+            {/* ── Grille d'informations ──
+                Résumé, Statut/Collection, Emplacement/Quantité forment une
+                seule grille : même gouttière horizontale et verticale, pour
+                qu'on lise un bloc et non quatre cartes posées à la suite. */}
+            <View style={s.infoGrid}>
 
             {/* ── Résumé IA ── */}
             <View style={s.card}>
@@ -2303,20 +2835,24 @@ export default function ObjectScreen() {
               />
             )}
 
-            {/* ── Emplacement ── */}
-            <View style={s.metricCard}>
-              <Text style={s.metricLabel}>{t('object.locationLabel')}</Text>
-              <LocationBricks
-                bricks={locationBricks}
-                editingIdx={editingBrickIdx}
-                draft={brickDraft}
-                onEditStart={startEditBrick}
-                onDraftChange={setBrickDraft}
-                onEditCommit={commitBrick}
-                onRemove={removeBrick}
-                onAdd={addBrick}
-              />
+            {/* ── Quantité (1/3) + Emplacement (2/3) ── */}
+            <View style={s.metricsRow}>
+              <QuantityCard quantity={object.quantity ?? 1} onChange={updateQuantity} />
+
+              {/* Pas de tap sur la carte : il avalait le défilement
+                  horizontal des puces. Seul le badge ouvre le tiroir. */}
+              <View style={[s.metricCard, { flex: 2 }]}>
+                <Text style={s.metricLabel}>
+                  {t('object.locationLabel', { count: locationBricks.length, max: LOCATION_MAX })}
+                </Text>
+                <LocationBricks
+                  bricks={locationBricks}
+                  onEdit={() => setLocationSheetOpen(true)}
+                />
+              </View>
             </View>
+
+            </View>{/* fin de la grille d'informations */}
 
             {/* ── Caractéristiques ── */}
             <AttributesSection
@@ -2354,9 +2890,8 @@ export default function ObjectScreen() {
                 onUpdatePurchasePrice={updatePurchasePrice}
                 onUpdateSalePrice={updateSalePrice}
                 onUpdateDeposit={updateDeposit}
-                onToggleInsured={toggleInsured}
-                documents={documents}
-                onDocumentsChange={setDocuments}
+                onUpdateSalePriceLot={updateSalePriceLot}
+                onUpdatePurchaseDate={updatePurchaseDate}
               />
             </View>
 
@@ -2366,6 +2901,19 @@ export default function ObjectScreen() {
               documents={documents}
               onDocumentsChange={setDocuments}
             />
+
+            {/* ── Assurances ──
+                Sortie de la carte Performances : une assurance n'est pas une
+                valeur de l'objet, c'est un contrat qui s'y rattache. */}
+            <View>
+              <SectionTitle label={t('object.insurance.sectionTitle')} />
+              <InsurancesSection
+                objectId={object.id}
+                currencySymbol={(object.value_currency ?? 'EUR') === 'EUR' ? '€' : (object.value_currency ?? 'EUR')}
+                documents={documents}
+                onDocumentsChange={setDocuments}
+              />
+            </View>
 
             {/* ── Actions bas de page ── */}
             <View style={s.bottomActions}>
@@ -2396,6 +2944,14 @@ export default function ObjectScreen() {
             { label: t('common.delete'), onPress: confirmDelete, destructive: true },
             { label: t('common.cancel'), onPress: () => {}, cancel: true },
           ]}
+        />
+
+        {/* ── Emplacement ── */}
+        <LocationEditorSheet
+          visible={locationSheetOpen}
+          initial={locationBricks}
+          onCancel={() => setLocationSheetOpen(false)}
+          onSave={saveLocation}
         />
 
         {/* ── Partage ── */}
@@ -2532,7 +3088,13 @@ const s = StyleSheet.create({
     padding: 0,
   },
 
-  metricsRow: { flexDirection: 'row', gap: Spacing.sm },
+  /**
+   * Gouttière unique de la grille d'informations : la même verticalement
+   * entre les lignes et horizontalement entre les cartes. `body` garde son
+   * `gap` large pour séparer les grandes sections (Valeur, Caractéristiques).
+   */
+  infoGrid: { gap: GRID_GAP },
+  metricsRow: { flexDirection: 'row', gap: GRID_GAP },
   metricCard: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
@@ -2544,6 +3106,25 @@ const s = StyleSheet.create({
   metricCardConnected: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomWidth: 0 },
   metricLabel: { fontSize: Typography.xs, color: Colors.textTertiary, marginBottom: 4 },
   metricValue: { fontSize: Typography.md, fontWeight: Typography.bold, color: Colors.textPrimary },
+
+  // Stepper de quantité : occupe la largeur de la carte, donc tient dans un
+  // tiers de ligne sans réglage en dur.
+  qtyStepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  qtyBtn: {
+    width: 26, height: 26, borderRadius: 13,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.surfaceWarm,
+  },
+  qtyBtnOff: { backgroundColor: 'transparent' },
+  qtyValueBtn: { flex: 1, alignItems: 'center' },
+  qtyInput: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: Typography.md,
+    fontWeight: Typography.bold,
+    color: Colors.accent,
+    padding: 0,
+  },
   metricValueAccent: { fontSize: Typography.md, color: Colors.accent },
 
   statusValueRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -2556,9 +3137,9 @@ const s = StyleSheet.create({
     borderWidth: 0.5, borderColor: Colors.border,   // même trait que metricCard
     paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
     gap: Spacing.xs,
-    // Soudée à la carte Statut : on annule le `gap` de `body` (Spacing.lg) puis on
+    // Soudée à la carte Statut : on annule la gouttière de la grille puis on
     // superpose les traits (0.5) pour ne laisser qu'une seule ligne de séparation.
-    marginTop: -(Spacing.lg + 0.5),
+    marginTop: -(GRID_GAP + 0.5),
     borderTopLeftRadius: 0,
   },
   // Libellé ferré à gauche, valeur ferrée à droite.
