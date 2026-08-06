@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert, ScrollView, Switch, Platform,
+  ActivityIndicator, Alert, ScrollView, Switch, Platform, Linking,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -211,6 +211,25 @@ export default function PaywallScreen() {
         <Text style={s.legal}>
           {t('paywall.legal')}
         </Text>
+
+        {/* Exigé par la guideline 3.1.2 : un écran d'abonnement doit porter
+            les liens vers les conditions d'utilisation et la confidentialité,
+            pas seulement la mention de reconduction. */}
+        <View style={s.legalLinks}>
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://www.tiroir.app/cgu')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={s.legalLink}>{t('paywall.terms')}</Text>
+          </TouchableOpacity>
+          <Text style={s.legalSep}>·</Text>
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://www.tiroir.app/privacy')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={s.legalLink}>{t('paywall.privacy')}</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   )
@@ -275,4 +294,13 @@ const s = StyleSheet.create({
   restoreBtn:  { alignItems: 'center', paddingVertical: 4 },
   restoreText: { fontSize: Typography.sm, color: Colors.textTertiary },
   legal:       { fontSize: 11, color: Colors.textTertiary, textAlign: 'center', lineHeight: 16 },
+  legalLinks: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 8, marginTop: Spacing.sm, marginBottom: Spacing.md,
+  },
+  legalLink: {
+    fontSize: 12, color: Colors.textSecondary,
+    textDecorationLine: 'underline', fontWeight: Typography.medium,
+  },
+  legalSep: { fontSize: 12, color: Colors.textTertiary },
 })

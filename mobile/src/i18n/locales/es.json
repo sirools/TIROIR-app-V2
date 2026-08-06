@@ -328,7 +328,9 @@
     "restoredTitle": "Suscripción restaurada ✓",
     "noSubTitle": "No se encontró ninguna suscripción",
     "noSubMessage": "No hay ninguna compra anterior que restaurar.",
-    "restoreError": "No se pudo restaurar."
+    "restoreError": "No se pudo restaurar.",
+    "terms": "Condiciones de uso",
+    "privacy": "Política de privacidad"
   },
   "assistant": {
     "title": "Asistente",

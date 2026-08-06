@@ -328,7 +328,9 @@
     "restoredTitle": "Abo wiederhergestellt ✓",
     "noSubTitle": "Kein Abo gefunden",
     "noSubMessage": "Kein früherer Kauf zum Wiederherstellen.",
-    "restoreError": "Wiederherstellung nicht möglich."
+    "restoreError": "Wiederherstellung nicht möglich.",
+    "terms": "Nutzungsbedingungen",
+    "privacy": "Datenschutzerklärung"
   },
   "assistant": {
     "title": "Assistent",

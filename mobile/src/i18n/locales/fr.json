@@ -328,7 +328,9 @@
     "restoredTitle": "Abonnement restauré ✓",
     "noSubTitle": "Aucun abonnement trouvé",
     "noSubMessage": "Aucun achat précédent à restaurer.",
-    "restoreError": "Impossible de restaurer."
+    "restoreError": "Impossible de restaurer.",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité"
   },
   "assistant": {
     "title": "Assistant",

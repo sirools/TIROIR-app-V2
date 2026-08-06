@@ -328,7 +328,9 @@
     "restoredTitle": "Subscription restored ✓",
     "noSubTitle": "No subscription found",
     "noSubMessage": "No previous purchase to restore.",
-    "restoreError": "Couldn't restore."
+    "restoreError": "Couldn't restore.",
+    "terms": "Terms of Use",
+    "privacy": "Privacy Policy"
   },
   "assistant": {
     "title": "Assistant",
