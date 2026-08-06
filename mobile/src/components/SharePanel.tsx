@@ -1,11 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react'
 import {
-  View, Text, StyleSheet, TouchableOpacity, Modal, Animated,
+  View, Text, StyleSheet, TouchableOpacity, Modal, Animated, Image,
   ScrollView, Share, ActivityIndicator, Switch, TextInput,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import { useTranslation } from 'react-i18next'
-import { Eye, EyeOff } from 'lucide-react-native'
+import { Eye, EyeOff, Plus, X, ChevronRight, ChevronLeft } from 'lucide-react-native'
+import { ActionSheet } from '@/components/ui/ActionSheet'
 import { supabase } from '@/lib/supabase'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui/tokens'
 import { TiroirObject } from '@/types/database'
@@ -24,18 +25,92 @@ interface SharePanelProps {
   onDone: () => void
 }
 
+/** Champs de contact ajoutés à la demande, pas imposés d'emblée. */
+type InfoField = 'name' | 'email' | 'phone' | 'duration'
+
+/**
+ * Blocs d'informations que le partage expose ou non.
+ *
+ * Ce qui reste toujours visible — titre, photo, statut, date d'ajout —
+ * n'est pas listé : c'est ce qui identifie l'objet, un partage qui le
+ * masquerait ne montrerait plus rien.
+ */
+interface ShareFields {
+  values: boolean
+  location: boolean
+  attributes: boolean
+  description: boolean
+  insurance: boolean
+}
+
+const DEFAULT_FIELDS: ShareFields = {
+  values: true, location: true, attributes: true, description: true, insurance: true,
+}
+
+/** Durées proposées. `null` = sans expiration. */
+const DURATIONS: { days: number | null; labelKey: string }[] = [
+  { days: 7, labelKey: 'sharePanel.duration7' },
+  { days: 30, labelKey: 'sharePanel.duration30' },
+  { days: 90, labelKey: 'sharePanel.duration90' },
+  { days: null, labelKey: 'sharePanel.durationNever' },
+]
+
+/**
+ * Ligne de saisie ajoutée à la demande, retirable.
+ *
+ * Définie au niveau module et NON dans le corps de SharePanel : un composant
+ * déclaré à l'intérieur change d'identité à chaque rendu, React démonte donc
+ * le TextInput et le remonte — le champ perd le focus après chaque caractère.
+ */
+function InfoInput({
+  value, onChangeText, placeholder, onRemove, ...rest
+}: {
+  value: string
+  onChangeText: (v: string) => void
+  placeholder: string
+  onRemove: () => void
+} & Partial<React.ComponentProps<typeof TextInput>>) {
+  return (
+    <View style={styles.contactField}>
+      <TextInput
+        style={styles.contactInput}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={Colors.textTertiary}
+        autoCorrect={false}
+        {...rest}
+      />
+      <TouchableOpacity onPress={onRemove} hitSlop={10}>
+        <X size={15} color={Colors.textTertiary} strokeWidth={2} />
+      </TouchableOpacity>
+    </View>
+  )
+}
+
 export function SharePanel({ visible, selectedObjects, collectionName, onClose, onDone }: SharePanelProps) {
   const { t } = useTranslation()
   const slideAnim = useRef(new Animated.Value(600)).current
+
+  /** Le tiroir a deux pages : les réglages fins vivent derrière, pas dessous. */
+  const [page, setPage] = useState<'main' | 'advanced'>('main')
 
   const [options, setOptions] = useState<ShareOptions>({
     password_protected: false,
     allow_download: false,
     include_documents: false,
   })
+  const [fields, setFields] = useState<ShareFields>(DEFAULT_FIELDS)
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const passwordAnim = useRef(new Animated.Value(0)).current
+
+  const [shareName, setShareName] = useState('')
+  const [activeFields, setActiveFields] = useState<InfoField[]>([])
+  const [addMenuOpen, setAddMenuOpen] = useState(false)
+  const [durationMenuOpen, setDurationMenuOpen] = useState(false)
+  const [expiresDays, setExpiresDays] = useState<number | null>(null)
+
   const [contactName, setContactName] = useState('')
   const [contactEmail, setContactEmail] = useState('')
   const [contactPhone, setContactPhone] = useState('')
@@ -43,12 +118,18 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null)
   const [emailSent, setEmailSent] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [coverUrls, setCoverUrls] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (visible) {
+      setPage('main')
       setGeneratedUrl(null)
       setCopied(false)
       setPassword('')
+      setShareName(collectionName ?? '')
+      setActiveFields([])
+      setExpiresDays(null)
+      setFields(DEFAULT_FIELDS)
       setContactName('')
       setContactEmail('')
       setContactPhone('')
@@ -60,6 +141,27 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
       Animated.timing(slideAnim, { toValue: 600, duration: 250, useNativeDriver: true }).start()
     }
   }, [visible])
+
+  // Vignettes de la sélection : le panneau affichait un carton pour tous.
+  useEffect(() => {
+    if (!visible || selectedObjects.length === 0) return
+    let cancelled = false
+    ;(async () => {
+      const { data: rows } = await supabase
+        .from('object_images')
+        .select('object_id, storage_path')
+        .in('object_id', selectedObjects.map(o => o.id))
+        .eq('is_cover', true)
+      if (!rows?.length || cancelled) return
+      const map: Record<string, string> = {}
+      await Promise.all(rows.map(async row => {
+        const { data } = await supabase.storage.from('object-images').createSignedUrl(row.storage_path, 3600)
+        if (data?.signedUrl) map[row.object_id] = data.signedUrl
+      }))
+      if (!cancelled) setCoverUrls(map)
+    })()
+    return () => { cancelled = true }
+  }, [visible, selectedObjects.map(o => o.id).join(',')])
 
   function toggleOption(key: keyof ShareOptions) {
     const next = !options[key]
@@ -75,25 +177,39 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
     }
   }
 
+  function addField(field: InfoField) {
+    setAddMenuOpen(false)
+    setActiveFields(prev => prev.includes(field) ? prev : [...prev, field])
+    if (field === 'duration') setDurationMenuOpen(true)
+  }
+
+  function removeField(field: InfoField) {
+    setActiveFields(prev => prev.filter(f => f !== field))
+    if (field === 'name') setContactName('')
+    if (field === 'email') setContactEmail('')
+    if (field === 'phone') setContactPhone('')
+    if (field === 'duration') setExpiresDays(null)
+  }
+
   const trimmedEmail = contactEmail.trim()
   const emailIsValid = trimmedEmail.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
+  const blocked = generating || (options.password_protected && password.trim().length < 4) || !emailIsValid
+
+  const durationLabel = DURATIONS.find(d => d.days === expiresDays)?.labelKey ?? 'sharePanel.durationNever'
 
   async function generateLink() {
-    if (generating) return
-    if (options.password_protected && password.trim().length < 4) {
-      // champ visible mais vide ou trop court
-      return
-    }
-    if (!emailIsValid) return
+    if (generating || blocked) return
     setGenerating(true)
     try {
       const { data, error } = await supabase.functions.invoke('create-share-link', {
         body: {
           object_ids: selectedObjects.map(o => o.id),
-          title: collectionName,
+          title: shareName.trim() || collectionName,
           options: {
             ...options,
             password: options.password_protected ? password.trim() : undefined,
+            expires_days: activeFields.includes('duration') ? expiresDays ?? undefined : undefined,
+            fields,
           },
           contact: {
             name: contactName.trim() || undefined,
@@ -124,10 +240,12 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
     await Share.share({ url: generatedUrl, message: generatedUrl })
   }
 
-  const OPTION_ROWS: { key: keyof ShareOptions; label: string; sub?: string }[] = [
-    { key: 'password_protected', label: t('sharePanel.optPassword') },
-    { key: 'allow_download', label: t('sharePanel.optDownload') },
-    { key: 'include_documents', label: t('sharePanel.optDocuments') },
+  const FIELD_ROWS: { key: keyof ShareFields; label: string }[] = [
+    { key: 'values', label: t('sharePanel.fieldValues') },
+    { key: 'location', label: t('sharePanel.fieldLocation') },
+    { key: 'attributes', label: t('sharePanel.fieldAttributes') },
+    { key: 'description', label: t('sharePanel.fieldDescription') },
+    { key: 'insurance', label: t('sharePanel.fieldInsurance') },
   ]
 
   return (
@@ -135,131 +253,216 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
       <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
         <View style={styles.handle} />
-        <Text style={styles.title}>{t('sharePanel.title')}</Text>
 
-        {!generatedUrl ? (
+        {page === 'advanced' ? (
           <>
-            {/* Objets sélectionnés */}
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>{t('sharePanel.selection')}</Text>
-              <ScrollView style={styles.objectList} showsVerticalScrollIndicator={false} nestedScrollEnabled>
-                {selectedObjects.map(obj => (
-                  <View key={obj.id} style={styles.objectRow}>
-                    <View style={styles.objectThumb}>
-                      <Text style={styles.objectThumbIcon}>📦</Text>
-                    </View>
-                    <Text style={styles.objectTitle} numberOfLines={1}>{obj.title}</Text>
-                    <View style={styles.objectRemove}>
-                      <Text style={styles.objectRemoveIcon}>⊖</Text>
-                    </View>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
+            <TouchableOpacity style={styles.backRow} onPress={() => setPage('main')} hitSlop={8}>
+              <ChevronLeft size={18} color={Colors.textPrimary} strokeWidth={2.2} />
+              <Text style={styles.title}>{t('sharePanel.advanced')}</Text>
+            </TouchableOpacity>
 
-            {/* Destinataire */}
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>{t('sharePanel.recipient')}</Text>
-              <View style={styles.contactField}>
-                <TextInput
-                  style={styles.contactInput}
-                  value={contactName}
-                  onChangeText={setContactName}
-                  placeholder={t('sharePanel.recipientName')}
-                  placeholderTextColor={Colors.textTertiary}
-                  autoCorrect={false}
-                  returnKeyType="next"
-                />
-              </View>
-              <View style={styles.contactField}>
-                <TextInput
-                  style={styles.contactInput}
-                  value={contactEmail}
-                  onChangeText={setContactEmail}
-                  placeholder={t('sharePanel.recipientEmail')}
-                  placeholderTextColor={Colors.textTertiary}
-                  autoCorrect={false}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  returnKeyType="next"
-                />
-              </View>
-              {!emailIsValid && (
-                <Text style={styles.contactError}>{t('sharePanel.invalidEmail')}</Text>
-              )}
-              <View style={styles.contactField}>
-                <TextInput
-                  style={styles.contactInput}
-                  value={contactPhone}
-                  onChangeText={setContactPhone}
-                  placeholder={t('sharePanel.recipientPhone')}
-                  placeholderTextColor={Colors.textTertiary}
-                  autoCorrect={false}
-                  keyboardType="phone-pad"
-                  returnKeyType="done"
-                />
-              </View>
-              {trimmedEmail.length > 0 && (
-                <Text style={styles.contactHint}>
-                  {t('sharePanel.emailAutoHint')}
-                </Text>
-              )}
-            </View>
-
-            {/* Options */}
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>{t('sharePanel.shareOptions')}</Text>
-              {OPTION_ROWS.map(row => (
-                <View key={row.key}>
-                  <View style={styles.optionRow}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>{t('sharePanel.fieldsLabel')}</Text>
+                <Text style={styles.sectionHelp}>{t('sharePanel.fieldsHelp')}</Text>
+                {FIELD_ROWS.map(row => (
+                  <View key={row.key} style={styles.optionRow}>
                     <Text style={styles.optionLabel}>{row.label}</Text>
                     <Switch
-                      value={options[row.key]}
-                      onValueChange={() => toggleOption(row.key)}
+                      value={fields[row.key]}
+                      onValueChange={v => setFields(prev => ({ ...prev, [row.key]: v }))}
                       trackColor={{ false: Colors.borderLight, true: Colors.accent }}
                       thumbColor="white"
                       style={styles.switch}
                     />
                   </View>
+                ))}
+              </View>
 
-                  {/* Champ mot de passe animé */}
-                  {row.key === 'password_protected' && (
-                    <Animated.View style={{
-                      overflow: 'hidden',
-                      maxHeight: passwordAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 64] }),
-                      opacity: passwordAnim,
-                      marginBottom: passwordAnim.interpolate({ inputRange: [0, 1], outputRange: [0, Spacing.sm] }),
-                    }}>
-                      <View style={styles.passwordRow}>
-                        <TextInput
-                          style={styles.passwordInput}
-                          value={password}
-                          onChangeText={setPassword}
-                          placeholder={t('sharePanel.passwordPlaceholder')}
-                          placeholderTextColor={Colors.textTertiary}
-                          secureTextEntry={!showPassword}
-                          autoCorrect={false}
-                          autoCapitalize="none"
-                          returnKeyType="done"
-                        />
-                        <TouchableOpacity onPress={() => setShowPassword(p => !p)} hitSlop={8}>
-                          {showPassword
-                            ? <EyeOff size={18} color={Colors.textTertiary} strokeWidth={1.5} />
-                            : <Eye size={18} color={Colors.textTertiary} strokeWidth={1.5} />
-                          }
-                        </TouchableOpacity>
-                      </View>
-                    </Animated.View>
-                  )}
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>{t('sharePanel.filesLabel')}</Text>
+                <View style={styles.optionRow}>
+                  <Text style={styles.optionLabel}>{t('sharePanel.optDownload')}</Text>
+                  <Switch
+                    value={options.allow_download}
+                    onValueChange={() => toggleOption('allow_download')}
+                    trackColor={{ false: Colors.borderLight, true: Colors.accent }}
+                    thumbColor="white"
+                    style={styles.switch}
+                  />
                 </View>
-              ))}
-            </View>
+                <View style={styles.optionRow}>
+                  <Text style={styles.optionLabel}>{t('sharePanel.optDocuments')}</Text>
+                  <Switch
+                    value={options.include_documents}
+                    onValueChange={() => toggleOption('include_documents')}
+                    trackColor={{ false: Colors.borderLight, true: Colors.accent }}
+                    thumbColor="white"
+                    style={styles.switch}
+                  />
+                </View>
+              </View>
+            </ScrollView>
 
-            {/* CTA */}
+            <TouchableOpacity style={styles.generateBtn} onPress={() => setPage('main')} activeOpacity={0.85}>
+              <Text style={styles.generateBtnText}>{t('common.validate')}</Text>
+            </TouchableOpacity>
+          </>
+        ) : !generatedUrl ? (
+          <>
+            <Text style={styles.title}>{t('sharePanel.title')}</Text>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              {/* Sélection — une bande qu'on balaye du pouce plutôt qu'une
+                  liste verticale qui mange la moitié du tiroir. */}
+              <View style={styles.section}>
+                <View style={styles.sectionHead}>
+                  <Text style={styles.sectionLabel}>{t('sharePanel.selection')}</Text>
+                  <Text style={styles.sectionCount}>
+                    {t('common.objects', { count: selectedObjects.length })}
+                  </Text>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.stripRow}
+                >
+                  {selectedObjects.map(obj => (
+                    <View key={obj.id} style={styles.miniCard}>
+                      <View style={styles.miniCover}>
+                        {coverUrls[obj.id]
+                          ? <Image source={{ uri: coverUrls[obj.id] }} style={styles.miniImg} resizeMode="cover" />
+                          : <Text style={styles.miniPlaceholder}>📦</Text>}
+                      </View>
+                      <Text style={styles.miniTitle} numberOfLines={1}>{obj.title}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* Informations */}
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>{t('sharePanel.infos')}</Text>
+
+                <View style={styles.contactField}>
+                  <TextInput
+                    style={styles.contactInput}
+                    value={shareName}
+                    onChangeText={setShareName}
+                    placeholder={t('sharePanel.shareName')}
+                    placeholderTextColor={Colors.textTertiary}
+                    returnKeyType="next"
+                  />
+                </View>
+
+                {activeFields.includes('name') && (
+                  <InfoInput
+                    onRemove={() => removeField('name')}
+                    value={contactName}
+                    onChangeText={setContactName}
+                    placeholder={t('sharePanel.recipientName')}
+                    returnKeyType="next"
+                  />
+                )}
+                {activeFields.includes('email') && (
+                  <>
+                    <InfoInput
+                      onRemove={() => removeField('email')}
+                      value={contactEmail}
+                      onChangeText={setContactEmail}
+                      placeholder={t('sharePanel.recipientEmail')}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      returnKeyType="next"
+                    />
+                    {!emailIsValid && <Text style={styles.contactError}>{t('sharePanel.invalidEmail')}</Text>}
+                    {trimmedEmail.length > 0 && emailIsValid && (
+                      <Text style={styles.contactHint}>{t('sharePanel.emailAutoHint')}</Text>
+                    )}
+                  </>
+                )}
+                {activeFields.includes('phone') && (
+                  <InfoInput
+                    onRemove={() => removeField('phone')}
+                    value={contactPhone}
+                    onChangeText={setContactPhone}
+                    placeholder={t('sharePanel.recipientPhone')}
+                    keyboardType="phone-pad"
+                    returnKeyType="done"
+                  />
+                )}
+                {activeFields.includes('duration') && (
+                  <TouchableOpacity
+                    style={styles.contactField}
+                    onPress={() => setDurationMenuOpen(true)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.contactValue}>{t(durationLabel)}</Text>
+                    <TouchableOpacity onPress={() => removeField('duration')} hitSlop={10}>
+                      <X size={15} color={Colors.textTertiary} strokeWidth={2} />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                )}
+
+                {activeFields.length < 4 && (
+                  <TouchableOpacity style={styles.addBtn} onPress={() => setAddMenuOpen(true)} activeOpacity={0.7}>
+                    <Plus size={14} color={Colors.accent} strokeWidth={2.4} />
+                    <Text style={styles.addBtnText}>{t('sharePanel.addField')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Paramètres */}
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>{t('sharePanel.settings')}</Text>
+                <View style={styles.optionRow}>
+                  <Text style={styles.optionLabel}>{t('sharePanel.optPassword')}</Text>
+                  <Switch
+                    value={options.password_protected}
+                    onValueChange={() => toggleOption('password_protected')}
+                    trackColor={{ false: Colors.borderLight, true: Colors.accent }}
+                    thumbColor="white"
+                    style={styles.switch}
+                  />
+                </View>
+
+                <Animated.View style={{
+                  overflow: 'hidden',
+                  maxHeight: passwordAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 64] }),
+                  opacity: passwordAnim,
+                  marginBottom: passwordAnim.interpolate({ inputRange: [0, 1], outputRange: [0, Spacing.sm] }),
+                }}>
+                  <View style={styles.passwordRow}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder={t('sharePanel.passwordPlaceholder')}
+                      placeholderTextColor={Colors.textTertiary}
+                      secureTextEntry={!showPassword}
+                      autoCorrect={false}
+                      autoCapitalize="none"
+                      returnKeyType="done"
+                    />
+                    <TouchableOpacity onPress={() => setShowPassword(p => !p)} hitSlop={8}>
+                      {showPassword
+                        ? <EyeOff size={18} color={Colors.textTertiary} strokeWidth={1.5} />
+                        : <Eye size={18} color={Colors.textTertiary} strokeWidth={1.5} />
+                      }
+                    </TouchableOpacity>
+                  </View>
+                </Animated.View>
+
+                <TouchableOpacity style={styles.navRow} onPress={() => setPage('advanced')} activeOpacity={0.7}>
+                  <Text style={styles.optionLabel}>{t('sharePanel.advanced')}</Text>
+                  <ChevronRight size={17} color={Colors.textTertiary} strokeWidth={2} />
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+
             <TouchableOpacity
-              style={[styles.generateBtn, (generating || (options.password_protected && password.trim().length < 4) || !emailIsValid) && styles.generateBtnDisabled]}
+              style={[styles.generateBtn, blocked && styles.generateBtnDisabled]}
               onPress={generateLink}
-              disabled={generating || (options.password_protected && password.trim().length < 4) || !emailIsValid}
+              disabled={blocked}
               activeOpacity={0.85}
             >
               {generating
@@ -297,6 +500,30 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
           </View>
         )}
       </Animated.View>
+
+      <ActionSheet
+        visible={addMenuOpen}
+        onClose={() => setAddMenuOpen(false)}
+        options={[
+          ...(['name', 'email', 'phone', 'duration'] as InfoField[])
+            .filter(f => !activeFields.includes(f))
+            .map(f => ({ label: t(`sharePanel.field_${f}`), onPress: () => addField(f) })),
+          { label: t('common.cancel'), cancel: true, onPress: () => {} },
+        ]}
+      />
+
+      <ActionSheet
+        visible={durationMenuOpen}
+        onClose={() => setDurationMenuOpen(false)}
+        options={[
+          ...DURATIONS.map(d => ({
+            label: t(d.labelKey),
+            selected: d.days === expiresDays,
+            onPress: () => setExpiresDays(d.days),
+          })),
+          { label: t('common.cancel'), cancel: true, onPress: () => {} },
+        ]}
+      />
     </Modal>
   )
 }
@@ -327,7 +554,47 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
 
+  backRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
+
   section: { marginBottom: Spacing.lg },
+  sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  sectionCount: {
+    fontSize: Typography.xs, color: Colors.textTertiary,
+    marginBottom: Spacing.sm,
+  },
+  sectionHelp: {
+    fontSize: Typography.xs, color: Colors.textTertiary,
+    lineHeight: Typography.xs * Typography.relaxed,
+    marginTop: -Spacing.xs, marginBottom: Spacing.sm,
+  },
+
+  // Bande de sélection : on balaye le contenu du partage d'un coup d'œil.
+  stripRow: { flexDirection: 'row', gap: Spacing.sm, paddingRight: Spacing.sm },
+  miniCard: { width: 76, gap: 5 },
+  miniCover: {
+    width: 76, height: 76,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceWarm,
+    borderWidth: 0.5, borderColor: Colors.border,
+    alignItems: 'center', justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  miniImg: { width: '100%', height: '100%' },
+  miniPlaceholder: { fontSize: 26 },
+  miniTitle: { fontSize: 10, color: Colors.textSecondary, lineHeight: 13 },
+
+  navRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderTopWidth: 1, borderTopColor: Colors.borderLight,
+    marginTop: Spacing.xs,
+  },
+  addBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5,
+    paddingVertical: 10, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed',
+  },
+  addBtnText: { fontSize: Typography.sm, color: Colors.accent, fontWeight: Typography.semibold },
   sectionLabel: {
     fontSize: Typography.xs,
     fontWeight: Typography.semibold,
@@ -337,27 +604,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
 
-  objectList: { maxHeight: 160 },
-  objectRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    gap: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-  },
-  objectThumb: {
-    width: 36, height: 36,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.surfaceWarm,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  objectThumbIcon: { fontSize: 18 },
-  objectTitle: { flex: 1, fontSize: Typography.base, color: Colors.textPrimary },
-  objectRemove: { padding: 4 },
-  objectRemoveIcon: { fontSize: 18, color: Colors.textTertiary },
 
   contactField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
     backgroundColor: Colors.background,
     borderRadius: Radius.md,
     borderWidth: 1,
@@ -367,10 +618,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   contactInput: {
+    flex: 1,
     fontSize: Typography.sm,
     color: Colors.textPrimary,
     padding: 0,
   },
+  contactValue: { flex: 1, fontSize: Typography.sm, color: Colors.textPrimary },
   contactError: {
     fontSize: Typography.xs,
     color: '#DC2626',
