@@ -272,8 +272,8 @@
     "takePhoto": "Hacer una\nfoto",
     "library": "Galería",
     "preparing": "Preparando…",
-    "analyzeCta_one": "Analizar {{count}} foto →",
-    "analyzeCta_other": "Analizar {{count}} fotos →",
+    "analyzeCta_one": "Crear una ficha →",
+    "analyzeCta_other": "Crear una ficha con {{count}} fotos →",
     "addPhotoToContinue": "Añade una foto para continuar",
     "rechargeQuota": "Recargar mi cuota →",
     "createEmpty": "Crear una ficha vacía sin IA",
@@ -694,8 +694,6 @@
     "fatalTitle": "No se pudo iniciar el lote",
     "entryTitle": "¿Varios objetos que guardar?",
     "entrySub": "Una foto = un objeto · hasta {{max}}",
-    "addAnotherTitle": "Añadir otro objeto",
-    "addAnotherSub": "Una foto = un objeto",
     "photosOfThisObject": "Fotos de este objeto",
     "entryBlocked": "No disponible · cuota de IA agotada",
     "blockedTitle": "Cuota de IA agotada",
@@ -705,7 +703,11 @@
     "destinationSub_other": "Se añadirán {{count}} objetos a esta colección.",
     "addMore_one": "Añadir otro objeto · queda {{count}} plaza",
     "addMore_other": "Añadir más objetos · quedan {{count}} plazas",
-    "addMoreFull": "Lote completo · máx. {{max}} objetos"
+    "addMoreFull": "Lote completo · máx. {{max}} objetos",
+    "addAnotherTitle_one": "¿Son objetos diferentes?",
+    "addAnotherTitle_other": "¿Son {{count}} objetos diferentes?",
+    "addAnotherSub_one": "Crear una ficha por foto",
+    "addAnotherSub_other": "Crear {{count}} fichas, una por foto"
   },
   "collectionComposer": {
     "inviteTitle": "Crea tu primera colección",

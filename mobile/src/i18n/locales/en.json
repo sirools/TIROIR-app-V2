@@ -272,8 +272,8 @@
     "takePhoto": "Take a\nphoto",
     "library": "Library",
     "preparing": "Preparing…",
-    "analyzeCta_one": "Analyse {{count}} photo →",
-    "analyzeCta_other": "Analyse {{count}} photos →",
+    "analyzeCta_one": "Create an entry →",
+    "analyzeCta_other": "Create one entry from {{count}} photos →",
     "addPhotoToContinue": "Add a photo to continue",
     "rechargeQuota": "Top up my quota →",
     "createEmpty": "Create an empty entry without AI",
@@ -694,8 +694,6 @@
     "fatalTitle": "Couldn't start the batch",
     "entryTitle": "Several items to file?",
     "entrySub": "One photo = one item · up to {{max}}",
-    "addAnotherTitle": "Add another item",
-    "addAnotherSub": "One photo = one item",
     "photosOfThisObject": "Photos of this item",
     "entryBlocked": "Unavailable · AI quota used up",
     "blockedTitle": "AI quota used up",
@@ -705,7 +703,11 @@
     "destinationSub_other": "{{count}} items will be added to this collection.",
     "addMore_one": "Add another item · {{count}} slot left",
     "addMore_other": "Add more items · {{count}} slots left",
-    "addMoreFull": "Batch full · {{max}} items max"
+    "addMoreFull": "Batch full · {{max}} items max",
+    "addAnotherTitle_one": "Are these different objects?",
+    "addAnotherTitle_other": "Are these {{count}} different objects?",
+    "addAnotherSub_one": "Create one entry per photo",
+    "addAnotherSub_other": "Create {{count}} entries, one per photo"
   },
   "collectionComposer": {
     "inviteTitle": "Create your first collection",

@@ -430,8 +430,10 @@ export default function CaptureScreen() {
             grille de photos. */}
         {images.length >= 2 && (
           <BatchEntry
-            title={t('batch.addAnotherTitle')}
-            subtitle={batchAvailable ? t('batch.addAnotherSub') : t('batch.entryBlocked')}
+            title={t('batch.addAnotherTitle', { count: images.length })}
+            subtitle={batchAvailable
+              ? t('batch.addAnotherSub', { count: images.length })
+              : t('batch.entryBlocked')}
             enabled={batchAvailable}
             onPress={batchAvailable ? convertSelectionToBatch : explainBatchBlocked}
           />

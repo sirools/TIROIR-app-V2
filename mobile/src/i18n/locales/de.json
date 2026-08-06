@@ -272,8 +272,8 @@
     "takePhoto": "Ein Foto\nmachen",
     "library": "Mediathek",
     "preparing": "Wird vorbereitet…",
-    "analyzeCta_one": "{{count}} Foto analysieren →",
-    "analyzeCta_other": "{{count}} Fotos analysieren →",
+    "analyzeCta_one": "Eintrag erstellen →",
+    "analyzeCta_other": "Einen Eintrag aus {{count}} Fotos erstellen →",
     "addPhotoToContinue": "Füge ein Foto hinzu, um fortzufahren",
     "rechargeQuota": "Kontingent aufladen →",
     "createEmpty": "Leeren Eintrag ohne KI erstellen",
@@ -694,8 +694,6 @@
     "fatalTitle": "Stapel konnte nicht gestartet werden",
     "entryTitle": "Mehrere Objekte einzuordnen?",
     "entrySub": "Ein Foto = ein Objekt · bis zu {{max}}",
-    "addAnotherTitle": "Weiteres Objekt hinzufügen",
-    "addAnotherSub": "Ein Foto = ein Objekt",
     "photosOfThisObject": "Fotos dieses Objekts",
     "entryBlocked": "Nicht verfügbar · KI-Kontingent aufgebraucht",
     "blockedTitle": "KI-Kontingent aufgebraucht",
@@ -705,7 +703,11 @@
     "destinationSub_other": "{{count}} Objekte werden dieser Sammlung hinzugefügt.",
     "addMore_one": "Weiteres Objekt hinzufügen · {{count}} Platz frei",
     "addMore_other": "Weitere Objekte hinzufügen · {{count}} Plätze frei",
-    "addMoreFull": "Stapel voll · max. {{max}} Objekte"
+    "addMoreFull": "Stapel voll · max. {{max}} Objekte",
+    "addAnotherTitle_one": "Sind das verschiedene Gegenstände?",
+    "addAnotherTitle_other": "Sind das {{count}} verschiedene Gegenstände?",
+    "addAnotherSub_one": "Pro Foto einen Eintrag erstellen",
+    "addAnotherSub_other": "{{count}} Einträge erstellen, einen pro Foto"
   },
   "collectionComposer": {
     "inviteTitle": "Erstelle deine erste Sammlung",

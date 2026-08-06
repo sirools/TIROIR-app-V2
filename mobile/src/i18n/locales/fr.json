@@ -272,8 +272,8 @@
     "takePhoto": "Prendre une\nphoto",
     "library": "Photothèque",
     "preparing": "Préparation…",
-    "analyzeCta_one": "Analyser {{count}} photo →",
-    "analyzeCta_other": "Analyser {{count}} photos →",
+    "analyzeCta_one": "Créer une fiche →",
+    "analyzeCta_other": "Créer une fiche avec {{count}} photos →",
     "addPhotoToContinue": "Ajoute une photo pour continuer",
     "rechargeQuota": "Recharger mon quota →",
     "createEmpty": "Créer une fiche vide sans IA",
@@ -694,8 +694,6 @@
     "fatalTitle": "Impossible de démarrer le lot",
     "entryTitle": "Plusieurs objets à ranger ?",
     "entrySub": "Une photo = un objet · jusqu'à {{max}}",
-    "addAnotherTitle": "Ajouter un autre objet",
-    "addAnotherSub": "Une photo = un objet",
     "photosOfThisObject": "Photos de cet objet",
     "entryBlocked": "Indisponible · quota IA épuisé",
     "blockedTitle": "Quota IA épuisé",
@@ -705,7 +703,11 @@
     "destinationSub_other": "{{count}} objets seront ajoutés à cette collection.",
     "addMore_one": "Ajouter un autre objet · {{count}} place",
     "addMore_other": "Ajouter d'autres objets · {{count}} places",
-    "addMoreFull": "Lot complet · {{max}} objets max"
+    "addMoreFull": "Lot complet · {{max}} objets max",
+    "addAnotherTitle_one": "Ce sont des objets différents ?",
+    "addAnotherTitle_other": "Ce sont {{count}} objets différents ?",
+    "addAnotherSub_one": "Créer une fiche par photo",
+    "addAnotherSub_other": "Créer {{count}} fiches, une par photo"
   },
   "collectionComposer": {
     "inviteTitle": "Crée ta première collection",
