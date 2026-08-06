@@ -173,7 +173,13 @@
     "copy": "Copier",
     "deleteTitle": "Supprimer ce lien ?",
     "deleteMessage_one": "Le lien partagé ({{count}} objet) ne sera plus accessible.",
-    "deleteMessage_other": "Le lien partagé ({{count}} objets) ne sera plus accessible."
+    "deleteMessage_other": "Le lien partagé ({{count}} objets) ne sera plus accessible.",
+    "edit": "Modifier",
+    "editTitle": "Réglages du partage",
+    "editHelp": "Ces valeurs sont celles enregistrées en base pour ce lien. Toute modification s'applique immédiatement.",
+    "passwordOn": "Protégé par mot de passe",
+    "passwordOff": "Accès libre",
+    "passwordHint": "Pour poser un nouveau mot de passe, il faut créer un nouveau lien."
   },
   "onboarding": {
     "tagline": "Retrouve ce que\ntu possèdes.",

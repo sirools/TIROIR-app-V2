@@ -173,7 +173,13 @@
     "copy": "Copiar",
     "deleteTitle": "¿Eliminar este enlace?",
     "deleteMessage_one": "El enlace compartido ({{count}} objeto) dejará de estar accesible.",
-    "deleteMessage_other": "El enlace compartido ({{count}} objetos) dejará de estar accesible."
+    "deleteMessage_other": "El enlace compartido ({{count}} objetos) dejará de estar accesible.",
+    "edit": "Editar",
+    "editTitle": "Ajustes del enlace",
+    "editHelp": "Estos son los valores guardados para este enlace. Cualquier cambio se aplica de inmediato.",
+    "passwordOn": "Protegido con contraseña",
+    "passwordOff": "Acceso libre",
+    "passwordHint": "Para poner una nueva contraseña, crea un enlace nuevo."
   },
   "onboarding": {
     "tagline": "Encuentra todo\nlo que tienes.",

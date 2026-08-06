@@ -6,15 +6,18 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import * as Clipboard from 'expo-clipboard'
-import { Link2, Eye, Trash2, Copy, ArrowLeft, ExternalLink } from 'lucide-react-native'
+import { Link2, Eye, Trash2, Copy, Pencil, ArrowLeft, ExternalLink } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { ShareSettingsSheet, ShareLinkOptions } from '@/components/ShareSettingsSheet'
 
 interface ShareLink {
   id: string
   token: string
   object_ids: string[]
   title: string | null
+  /** Réglages tels qu'ils sont en base — la source de vérité de l'écran d'édition. */
+  options: ShareLinkOptions | null
   view_count: number
   expires_at: string | null
   created_at: string
@@ -26,12 +29,13 @@ export default function SharesScreen() {
   const [links, setLinks] = useState<ShareLink[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [editTarget, setEditTarget] = useState<ShareLink | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
       .from('share_links')
-      .select('id, token, object_ids, title, view_count, expires_at, created_at')
+      .select('id, token, object_ids, title, options, view_count, expires_at, created_at')
       .order('created_at', { ascending: false })
 
     if (!error) setLinks(data ?? [])
@@ -176,6 +180,15 @@ export default function SharesScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
+                    style={styles.actionBtn}
+                    onPress={() => setEditTarget(link)}
+                    activeOpacity={0.7}
+                  >
+                    <Pencil size={14} color={Colors.textSecondary} strokeWidth={1.8} />
+                    <Text style={styles.actionText}>{t('shares.edit')}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
                     style={[styles.actionBtn, styles.actionBtnDestructive]}
                     onPress={() => handleDelete(link)}
                     activeOpacity={0.7}
@@ -189,6 +202,16 @@ export default function SharesScreen() {
           })}
         </ScrollView>
       )}
+
+      <ShareSettingsSheet
+        visible={editTarget !== null}
+        link={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSaved={patch => {
+          setLinks(prev => prev.map(l => l.id === editTarget?.id ? { ...l, ...patch } : l))
+          setEditTarget(null)
+        }}
+      />
     </Screen>
   )
 }

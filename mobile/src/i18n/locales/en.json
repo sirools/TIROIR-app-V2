@@ -173,7 +173,13 @@
     "copy": "Copy",
     "deleteTitle": "Delete this link?",
     "deleteMessage_one": "The shared link ({{count}} item) will no longer be accessible.",
-    "deleteMessage_other": "The shared link ({{count}} items) will no longer be accessible."
+    "deleteMessage_other": "The shared link ({{count}} items) will no longer be accessible.",
+    "edit": "Edit",
+    "editTitle": "Share settings",
+    "editHelp": "These are the values stored for this link. Any change applies immediately.",
+    "passwordOn": "Password protected",
+    "passwordOff": "Open access",
+    "passwordHint": "To set a new password, create a new link."
   },
   "onboarding": {
     "tagline": "Find everything\nyou own.",

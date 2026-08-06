@@ -173,7 +173,13 @@
     "copy": "Kopieren",
     "deleteTitle": "Diesen Link löschen?",
     "deleteMessage_one": "Der geteilte Link ({{count}} Objekt) ist nicht mehr zugänglich.",
-    "deleteMessage_other": "Der geteilte Link ({{count}} Objekte) ist nicht mehr zugänglich."
+    "deleteMessage_other": "Der geteilte Link ({{count}} Objekte) ist nicht mehr zugänglich.",
+    "edit": "Ändern",
+    "editTitle": "Freigabe-Einstellungen",
+    "editHelp": "Dies sind die gespeicherten Werte dieses Links. Änderungen gelten sofort.",
+    "passwordOn": "Passwortgeschützt",
+    "passwordOff": "Freier Zugang",
+    "passwordHint": "Für ein neues Passwort muss ein neuer Link erstellt werden."
   },
   "onboarding": {
     "tagline": "Finde alles,\nwas du besitzt.",
