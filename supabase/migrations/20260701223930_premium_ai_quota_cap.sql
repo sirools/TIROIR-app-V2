@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260702010000_premium_ai_quota_cap.sql
+-- 20260701223930_premium_ai_quota_cap.sql
 -- Retire le quota IA "illimité" en premium : plafond configurable
 -- (5x le quota gratuit par défaut) pour éviter un risque de coût
 -- API non maîtrisé sur les gros utilisateurs premium.

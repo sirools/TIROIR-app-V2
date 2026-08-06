@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260702050000_search_objects_fuzzy.sql
+-- 20260702001230_search_objects_fuzzy.sql
 -- search_objects (plein-texte, ET logique strict entre les mots)
 -- rate les requêtes en langage naturel qui ne matchent pas
 -- exactement le titre/attributs ("manteau fourrure blanc" ne

@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260729120000_supabase_pro_plan_quotas.sql
+-- 20260729012934_supabase_pro_plan_quotas.sql
 -- Passage du projet au plan Supabase Pro : mise à jour des limites
 -- suivies par le dashboard admin, et ajout du suivi de l'Egress —
 -- le seul quota Pro réellement contraignant pour une app photo,

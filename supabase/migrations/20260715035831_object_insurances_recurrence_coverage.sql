@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260715130000_object_insurances_recurrence_coverage.sql
+-- 20260715035831_object_insurances_recurrence_coverage.sql
 -- Récurrence du coût (mensuel/annuel) + montant de couverture pour
 -- les assurances. La colonne `date` sert désormais d'échéance du
 -- contrat (optionnelle).

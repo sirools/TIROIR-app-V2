@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260702030000_admin_infra_cost_tracking.sql
+-- 20260701233713_admin_infra_cost_tracking.sql
 -- Dashboard admin V1 : jauges d'usage infra Supabase (DB + Storage
 -- vs limites du plan, pilotables) et estimation des coûts IA
 -- (Claude analyses + Gemini retouches), avec seuil d'alerte.

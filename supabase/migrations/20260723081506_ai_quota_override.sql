@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260723234500_ai_quota_override.sql
+-- 20260723081506_ai_quota_override.sql
 -- Override de quota IA par compte (comptes de test, futurs comptes
 -- pro) sans toucher aux réglages globaux d'app_settings.
 --

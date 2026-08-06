@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260723210000_batch_capture.sql
+-- 20260723004221_batch_capture.sql
 -- Ajout multiple d'objets (« mode rafale ») — socle base.
 --
 -- Un lot regroupe N drafts partageant un batch_id. Chaque draft

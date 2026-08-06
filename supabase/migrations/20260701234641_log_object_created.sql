@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260702040000_log_object_created.sql
+-- 20260701234641_log_object_created.sql
 -- Trace 'object.created' dans activity_log via un trigger sur
 -- public.objects, pour capturer TOUTES les voies de création
 -- (confirmation de draft IA, fiche vide manuelle, etc.) sans

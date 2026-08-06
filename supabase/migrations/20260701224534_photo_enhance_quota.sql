@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260702020000_photo_enhance_quota.sql
+-- 20260701224534_photo_enhance_quota.sql
 -- Feature "Améliorer la photo" (retouche IA via Gemini) : réservée
 -- aux comptes premium, plafonnée à 50/mois par défaut (configurable
 -- via app_settings, jamais illimité).

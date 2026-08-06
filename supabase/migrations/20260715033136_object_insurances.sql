@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260715123000_object_insurances.sql
+-- 20260715033136_object_insurances.sql
 -- Assurances multiples par objet (prix + date), avec contrats PDF
 -- liés via object_documents.insurance_id.
 -- ================================================================

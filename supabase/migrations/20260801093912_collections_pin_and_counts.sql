@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260801040000_collections_pin_and_counts.sql
+-- 20260801093912_collections_pin_and_counts.sql
 -- collections.pinned_at (épinglage) · list_collections_with_counts()
 --
 -- L'app comptait jusqu'ici les objets côté client, en chargeant tous

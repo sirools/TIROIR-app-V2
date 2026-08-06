@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260801120000_object_groups.sql
+-- 20260801175313_object_groups.sql
 -- Groupes d'objets à l'intérieur d'une collection.
 --
 -- Un cran de rangement sous la collection : « Vestes d'hiver » dans

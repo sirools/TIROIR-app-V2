@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260723230000_extend_batch.sql
+-- 20260723080014_extend_batch.sql
 -- Allonge un lot déjà ouvert (bouton « Ajouter d'autres objets »
 -- depuis l'écran de review).
 --

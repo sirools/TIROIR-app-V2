@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260715120000_add_sale_price_and_deposit.sql
+-- 20260715032243_add_sale_price_and_deposit.sql
 -- Fiche objet : prix de vente (champ libre) + caution (montant de la
 -- garantie demandée en cas de prêt de l'objet).
 -- ================================================================

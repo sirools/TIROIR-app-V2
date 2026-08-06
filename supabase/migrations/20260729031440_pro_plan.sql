@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260729210000_pro_plan.sql
+-- 20260729031440_pro_plan.sql
 -- Troisième palier d'abonnement : « Professionnel ».
 --
 -- Vendu en direct sur facture (hors stores, donc hors RevenueCat) :

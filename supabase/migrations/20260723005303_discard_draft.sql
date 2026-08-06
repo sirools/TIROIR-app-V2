@@ -1,5 +1,5 @@
 -- ================================================================
--- 20260723213000_discard_draft.sql
+-- 20260723005303_discard_draft.sql
 -- Écarte un draft sans le confirmer (bouton « supprimer » d'une
 -- ligne dans l'écran de review d'un lot).
 --
