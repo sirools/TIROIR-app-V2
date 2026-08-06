@@ -3,6 +3,7 @@ export const Colors = {
   background: '#F7F3EE',       // chaud, crème
   surface: '#FFFFFF',
   surfaceWarm: '#F0EBE3',      // carte légèrement plus chaude
+  surfaceSubtle: '#FBFAF8',    // carte imbriquée dans une carte : à peine détachée du blanc
 
   // Texte
   textPrimary: '#1A1612',

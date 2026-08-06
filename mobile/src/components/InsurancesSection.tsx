@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity, Image,
-  ActivityIndicator, Alert, Modal, TextInput, Platform, Switch, ScrollView,
+  ActivityIndicator, Alert, Modal, TextInput, Platform, ScrollView,
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { decode } from 'base64-arraybuffer'
 import { useTranslation } from 'react-i18next'
-import { FileText, Plus, Trash2, CalendarDays, Pencil, Camera, Image as LucideImage, File as FileIcon } from 'lucide-react-native'
+import { FileText, Plus, Trash2, CalendarDays, Pencil, Camera, Image as LucideImage, File as FileIcon, Link2 } from 'lucide-react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { DocumentViewer } from './DocumentViewer'
 import { ObjectDocument } from './DocumentsSection'
 import { ObjectInsurance } from '@/types/database'
+
+/** Bleu déjà présent dans la palette des statuts — pas une couleur de plus. */
+const LINK_COLOR = '#0284C7'
 
 type BillingPeriod = 'monthly' | 'yearly'
 
@@ -33,15 +36,13 @@ const round2 = (n: number) => Math.round(n * 100) / 100
 
 interface InsurancesSectionProps {
   objectId: string
-  insured: boolean
   currencySymbol: string
   documents: ObjectDocument[]
   onDocumentsChange: (docs: ObjectDocument[]) => void
-  onToggleInsured: (v: boolean) => void
 }
 
 export function InsurancesSection({
-  objectId, insured, currencySymbol, documents, onDocumentsChange, onToggleInsured,
+  objectId, currencySymbol, documents, onDocumentsChange,
 }: InsurancesSectionProps) {
   const { t, i18n } = useTranslation()
   const [insurances, setInsurances] = useState<ObjectInsurance[]>([])
@@ -60,12 +61,11 @@ export function InsurancesSection({
   const [deleteTarget, setDeleteTarget] = useState<ObjectInsurance | null>(null)
 
   useEffect(() => {
-    if (!insured) return
     supabase.from('object_insurances').select('*').eq('object_id', objectId).order('position').then(({ data }) => {
       setInsurances((data as ObjectInsurance[]) ?? [])
       setLoaded(true)
     })
-  }, [objectId, insured])
+  }, [objectId])
 
   // URLs signées des contrats liés (documents avec insurance_id)
   const linkedPaths = documents.filter(d => d.insurance_id).map(d => d.storage_path)
@@ -331,106 +331,96 @@ export function InsurancesSection({
     )
   }
 
+  /** Carte d'un contrat existant, en lecture. */
+  function renderInsurance(ins: ObjectInsurance, docs: ObjectDocument[]) {
+    return (
+      <View key={ins.id} style={s.insCard}>
+        <View style={s.insHead}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.insTitle}>{ins.label || t('object.insurance.untitled')}</Text>
+            <Text style={s.insMeta}>
+              {ins.price != null
+                ? `${ins.price.toLocaleString(i18n.language)} ${currencySymbol} ${periodSuffix(ins.billing_period)}`
+                : '—'}
+            </Text>
+            {ins.coverage != null && (
+              <Text style={s.insSub}>{t('object.insurance.coverageUpTo', { sym: currencySymbol, value: ins.coverage.toLocaleString(i18n.language) })}</Text>
+            )}
+            {ins.date && (
+              <Text style={s.insSub}>{t('object.insurance.expiry', { date: fmtDate(ins.date) })}</Text>
+            )}
+          </View>
+          <View style={s.insActions}>
+            <TouchableOpacity onPress={() => openEdit(ins)} hitSlop={8} style={s.iconBtn}>
+              <Pencil size={15} color={Colors.textTertiary} strokeWidth={1.8} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setDeleteTarget(ins)} hitSlop={8} style={s.iconBtn}>
+              <Trash2 size={16} color={Colors.textTertiary} strokeWidth={1.7} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Contrats liés */}
+        {docs.map(doc => {
+          const url = signedUrls[doc.storage_path]
+          return (
+            <TouchableOpacity key={doc.id} style={s.docRow} onPress={() => url && setViewerDoc(doc)} activeOpacity={0.7}>
+              {/* Un lien, pas une vignette : le contrat est déjà présenté
+                  comme document dans le bloc Documents, ici on y renvoie. */}
+              <Link2 size={14} color={LINK_COLOR} strokeWidth={2.2} />
+              <Text style={s.docName} numberOfLines={1}>{doc.file_name}</Text>
+              <TouchableOpacity onPress={() => unlinkDoc(doc)} hitSlop={8} style={s.docUnlink}>
+                <Text style={s.docUnlinkText}>{t('object.insurance.unlink')}</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          )
+        })}
+
+        <TouchableOpacity
+          style={s.linkBtn}
+          onPress={() => setLinkTarget(ins.id)}
+          disabled={uploadingFor === ins.id}
+          activeOpacity={0.8}
+        >
+          {uploadingFor === ins.id
+            ? <ActivityIndicator size="small" color="#5B6B7B" />
+            : <>
+                <Plus size={14} color="#5B6B7B" strokeWidth={2.2} />
+                <Text style={s.linkText}>{t('object.insurance.linkContract')}</Text>
+              </>}
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
   return (
     <View style={s.section}>
-      {/* Toggle maître */}
-      <View style={s.toggleRow}>
-        <Text style={s.sectionLabel}>{t('object.insurance.title')}</Text>
-        <View style={s.toggleRight}>
-          <Text style={s.toggleHint}>{t('object.insurance.toggle')}</Text>
-          <Switch value={insured} onValueChange={onToggleInsured} trackColor={{ true: Colors.accent }} />
-        </View>
-      </View>
-
-      {insured && (
+      {/* Plus de bascule « objet assuré » : cocher un booléen puis créer un
+          contrat faisait faire deux fois le même geste. Un objet est assuré
+          s'il porte un contrat, point. */}
+      {!loaded ? (
+        <ActivityIndicator color={Colors.accent} size="small" style={{ marginVertical: Spacing.sm }} />
+      ) : (
         <View style={s.body}>
-          {!loaded ? (
-            <ActivityIndicator color={Colors.accent} size="small" style={{ marginVertical: Spacing.sm }} />
-          ) : (
-            <>
-              {insurances.length === 0 && mode.type !== 'add' && (
-                <Text style={s.empty}>{t('object.insurance.emptyOn')}</Text>
-              )}
+          {insurances.map(ins => {
+            if (mode.type === 'edit' && mode.id === ins.id) {
+              return <View key={ins.id}>{renderForm(t('object.insurance.validate'))}</View>
+            }
+            const docs = documents.filter(d => d.insurance_id === ins.id)
+            return renderInsurance(ins, docs)
+          })}
 
-              {insurances.map(ins => {
-                if (mode.type === 'edit' && mode.id === ins.id) {
-                  return <View key={ins.id}>{renderForm(t('object.insurance.validate'))}</View>
-                }
-                const docs = documents.filter(d => d.insurance_id === ins.id)
-                return (
-                  <View key={ins.id} style={s.insCard}>
-                    <View style={s.insHead}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={s.insTitle}>{ins.label || t('object.insurance.untitled')}</Text>
-                        <Text style={s.insMeta}>
-                          {ins.price != null
-                            ? `${ins.price.toLocaleString(i18n.language)} ${currencySymbol} ${periodSuffix(ins.billing_period)}`
-                            : '—'}
-                        </Text>
-                        {ins.coverage != null && (
-                          <Text style={s.insSub}>{t('object.insurance.coverageUpTo', { sym: currencySymbol, value: ins.coverage.toLocaleString(i18n.language) })}</Text>
-                        )}
-                        {ins.date && (
-                          <Text style={s.insSub}>{t('object.insurance.expiry', { date: fmtDate(ins.date) })}</Text>
-                        )}
-                      </View>
-                      <View style={s.insActions}>
-                        <TouchableOpacity onPress={() => openEdit(ins)} hitSlop={8} style={s.iconBtn}>
-                          <Pencil size={15} color={Colors.textTertiary} strokeWidth={1.8} />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setDeleteTarget(ins)} hitSlop={8} style={s.iconBtn}>
-                          <Trash2 size={16} color={Colors.textTertiary} strokeWidth={1.7} />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    {/* Contrats liés */}
-                    {docs.map(doc => {
-                      const isImage = doc.mime_type.startsWith('image/')
-                      const url = signedUrls[doc.storage_path]
-                      return (
-                        <TouchableOpacity key={doc.id} style={s.docRow} onPress={() => url && setViewerDoc(doc)} activeOpacity={0.7}>
-                          <View style={s.thumb}>
-                            {isImage && url
-                              ? <Image source={{ uri: url }} style={s.thumbImg} resizeMode="cover" />
-                              : <FileText size={16} color={Colors.textTertiary} strokeWidth={1.6} />}
-                          </View>
-                          <Text style={s.docName} numberOfLines={1}>{doc.file_name}</Text>
-                          <TouchableOpacity onPress={() => unlinkDoc(doc)} hitSlop={8} style={s.docUnlink}>
-                            <Text style={s.docUnlinkText}>{t('object.insurance.unlink')}</Text>
-                          </TouchableOpacity>
-                        </TouchableOpacity>
-                      )
-                    })}
-
-                    <TouchableOpacity
-                      style={s.linkBtn}
-                      onPress={() => setLinkTarget(ins.id)}
-                      disabled={uploadingFor === ins.id}
-                      activeOpacity={0.8}
-                    >
-                      {uploadingFor === ins.id
-                        ? <ActivityIndicator size="small" color="#5B6B7B" />
-                        : <>
-                            <Plus size={14} color="#5B6B7B" strokeWidth={2.2} />
-                            <Text style={s.linkText}>{t('object.insurance.linkContract')}</Text>
-                          </>}
-                    </TouchableOpacity>
-                  </View>
-                )
-              })}
-
-              {/* Ajout */}
-              {mode.type === 'add'
-                ? renderForm(t('object.insurance.add'))
-                : (
-                  <TouchableOpacity style={s.addInsBtn} onPress={openAdd} activeOpacity={0.85}>
-                    <Plus size={15} color={Colors.accent} strokeWidth={2.2} />
-                    <Text style={s.addInsText}>{t('object.insurance.addOne')}</Text>
-                  </TouchableOpacity>
-                )}
-            </>
-          )}
+          {/* Le formulaire ne s'ouvre que sur demande : déplié par défaut,
+              il occupait toute la hauteur pour un objet que l'utilisateur
+              n'assure peut-être pas. */}
+          {mode.type === 'add'
+            ? renderForm(t('object.insurance.add'))
+            : (
+              <TouchableOpacity style={s.addInsBtn} onPress={openAdd} activeOpacity={0.85}>
+                <Plus size={15} color={Colors.accent} strokeWidth={2.2} />
+                <Text style={s.addInsText}>{t('object.insurance.addOne')}</Text>
+              </TouchableOpacity>
+            )}
         </View>
       )}
 
@@ -522,16 +512,18 @@ export function InsurancesSection({
 }
 
 const s = StyleSheet.create({
-  section: { paddingHorizontal: Spacing.md, gap: Spacing.sm },
-  sectionLabel: { fontSize: Typography.xs, color: Colors.textTertiary, fontWeight: Typography.semibold, letterSpacing: 0.5, textTransform: 'uppercase' },
-  toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  toggleRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  toggleHint: { fontSize: Typography.sm, color: Colors.textSecondary },
+  section: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 0.5,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
   body: { gap: Spacing.sm },
-  empty: { fontSize: Typography.sm, color: Colors.textTertiary, fontStyle: 'italic' },
 
   insCard: {
-    backgroundColor: Colors.background, borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceSubtle, borderRadius: Radius.md,
     borderWidth: 0.5, borderColor: Colors.border, padding: Spacing.sm, gap: Spacing.xs,
   },
   insHead: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm },
@@ -552,7 +544,7 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
   thumbImg: { width: '100%', height: '100%' },
-  docName: { flex: 1, fontSize: Typography.sm, color: Colors.textPrimary },
+  docName: { flex: 1, fontSize: Typography.sm, color: LINK_COLOR, fontWeight: Typography.medium },
   docUnlink: { paddingHorizontal: 8, paddingVertical: 2 },
   docUnlinkText: { fontSize: Typography.xs, color: Colors.textTertiary, fontWeight: Typography.medium },
 
