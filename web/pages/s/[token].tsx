@@ -33,11 +33,28 @@ interface SharedObject {
   created_at: string | null
 }
 
+/**
+ * Blocs d'informations exposés par le partage. Absent côté base = tout est
+ * visible : les liens créés avant l'option gardent leur comportement.
+ */
+interface ShareFields {
+  values: boolean
+  location: boolean
+  attributes: boolean
+  description: boolean
+  insurance: boolean
+}
+
+const ALL_FIELDS: ShareFields = {
+  values: true, location: true, attributes: true, description: true, insurance: true,
+}
+
 interface Props {
   token: string
   title: string
   objects: SharedObject[]
   allowDownload: boolean
+  fields: ShareFields
   error?: 'not_found' | 'expired'
   gated?: boolean
 }
@@ -109,20 +126,42 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     .eq('token', token)
     .single()
 
-  if (linkErr || !link) return { props: { error: 'not_found', title: '', objects: [], allowDownload: false } }
+  if (linkErr || !link) return { props: { error: 'not_found', title: '', objects: [], allowDownload: false, fields: ALL_FIELDS } }
   if (link.is_archived || (link.expires_at && new Date(link.expires_at) < new Date())) {
-    return { props: { error: 'expired', title: '', objects: [], allowDownload: false } }
+    return { props: { error: 'expired', title: '', objects: [], allowDownload: false, fields: ALL_FIELDS } }
   }
 
   if (link.options?.password_protected && !hasValidCookie(token, ctx)) {
-    return { props: { token, title: link.title ?? 'Partage TiROiR', objects: [], allowDownload: false, gated: true } }
+    return { props: { token, title: link.title ?? 'Partage TiROiR', objects: [], allowDownload: false, fields: ALL_FIELDS, gated: true } }
   }
 
   const ids: string[] = Array.isArray(link.object_ids) ? link.object_ids : []
+  const fields: ShareFields = { ...ALL_FIELDS, ...(link.options?.fields ?? {}) }
+
+  /**
+   * Ce qu'un partage masque n'est PAS chargé.
+   *
+   * Filtrer au rendu ne suffit pas : les props d'une page Next voyagent en
+   * clair dans le HTML, et « afficher le code source » suffirait à lire des
+   * montants que le propriétaire a explicitement choisi de ne pas montrer.
+   * La colonne n'est donc même pas demandée à la base.
+   */
+  const columns = [
+    'id', 'title', 'status', 'quantity', 'created_at',
+    ...(fields.description ? ['description'] : []),
+    ...(fields.location ? ['location_note'] : []),
+    ...(fields.attributes ? ['attributes'] : []),
+    ...(fields.values ? [
+      'market_value', 'user_value', 'value_currency',
+      'purchase_price', 'purchase_currency', 'purchase_date',
+      'sale_price', 'sale_price_lot', 'deposit_amount',
+    ] : []),
+    ...(fields.insurance ? ['insured'] : []),
+  ].join(', ')
 
   const { data: objData } = await supabase
     .from('objects')
-    .select('id, title, description, status, location_note, attributes, market_value, user_value, value_currency, purchase_price, purchase_currency, purchase_date, sale_price, sale_price_lot, deposit_amount, quantity, insured, created_at')
+    .select(columns)
     .in('id', ids)
 
   // Covers
@@ -149,7 +188,14 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     }
   }
 
+  // Les champs absents de la requête arrivent à `null` côté client, ce que
+  // les types déclarent déjà : rien à distinguer entre « masqué » et « vide ».
   const objects: SharedObject[] = (objData ?? []).map((o: any) => ({
+    description: null, location_note: null, attributes: null,
+    market_value: null, user_value: null, value_currency: null,
+    purchase_price: null, purchase_currency: null, purchase_date: null,
+    sale_price: null, sale_price_lot: null, deposit_amount: null,
+    insured: null,
     ...o,
     cover_url: coverUrls[o.id] ?? null,
   }))
@@ -160,6 +206,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
       title: link.title ?? 'Partage TiROiR',
       objects,
       allowDownload: link.options?.allow_download ?? false,
+      fields,
     },
   }
 }
@@ -268,7 +315,7 @@ function sortObjects(objects: SharedObject[], key: SortKey | null, dir: SortDir)
   })
 }
 
-export default function ShareV2Page({ token, title, objects, allowDownload, error, gated }: Props) {
+export default function ShareV2Page({ token, title, objects, allowDownload, fields = ALL_FIELDS, error, gated }: Props) {
   const router = useRouter()
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const [sortKey, setSortKey] = useState<SortKey | null>(null)
@@ -301,6 +348,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
 
   // Colonnes d'attributs : union des clés présentes sur les objets, connues d'abord
   const attrKeys = (() => {
+    if (!fields.attributes) return []
     const seen: string[] = []
     for (const o of objects) {
       for (const [k, v] of Object.entries(o.attributes ?? {})) {
@@ -318,7 +366,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
   })()
 
   // Colonnes monétaires (partagent en-tête, cellule, total, tri)
-  const moneyCols: {
+  const allMoneyCols: {
     key: Extract<SortKey, 'value' | 'market_value' | 'purchase_price' | 'sale_price' | 'deposit_amount'>
     label: string
     /** Montant unitaire, tel qu'il est stocké. */
@@ -334,6 +382,9 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
     { key: 'sale_price', label: 'Prix de vente', get: o => o.sale_price, total: o => o.sale_price_lot ?? lotTotal(o.sale_price, o.quantity), cur: o => o.value_currency },
     { key: 'deposit_amount', label: 'Caution', get: o => o.deposit_amount, total: o => lotTotal(o.deposit_amount, o.quantity), cur: o => o.value_currency },
   ]
+
+  // Le partage peut masquer tout le bloc monétaire d'un coup.
+  const moneyCols = fields.values ? allMoneyCols : []
 
   /**
    * Total par colonne monétaire (EUR — devise dominante du partage).
@@ -471,7 +522,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                             </span>
                           </div>
                         )}
-                        {obj.location_note && (
+                        {fields.location && obj.location_note && (
                           <p className="location">📍 {obj.location_note}</p>
                         )}
                         {obj.description && (
@@ -504,20 +555,22 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                         <th className="th-sortable" onClick={() => toggleSort('status')}>
                           Statut{sortKey === 'status' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                         </th>
-                        <th className="th-sortable" onClick={() => toggleSort('location_note')}>
-                          Emplacement{sortKey === 'location_note' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
-                        </th>
+                        {fields.location && (
+                          <th className="th-sortable" onClick={() => toggleSort('location_note')}>
+                            Emplacement{sortKey === 'location_note' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                          </th>
+                        )}
                         {attrKeys.map(k => (
                           <th key={k} className="th-attr">{attrLabel(k)}</th>
                         ))}
-                        <th className="th-desc">Description</th>
+                        {fields.description && <th className="th-desc">Description</th>}
                         <th className="th-center">Qté</th>
                         {moneyCols.map(col => (
                           <th key={col.key} className="th-value th-sortable" onClick={() => toggleSort(col.key)}>
                             {col.label}{sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                           </th>
                         ))}
-                        <th className="th-center">Assuré</th>
+                        {fields.insurance && <th className="th-center">Assuré</th>}
                         <th className="th-sortable th-nowrap" onClick={() => toggleSort('created_at')}>
                           Ajouté le{sortKey === 'created_at' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                         </th>
@@ -556,7 +609,9 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                               </span>
                             )}
                           </td>
-                          <td className="td-muted td-nowrap">{obj.location_note ?? '—'}</td>
+                          {fields.location && (
+                            <td className="td-muted td-nowrap">{obj.location_note ?? '—'}</td>
+                          )}
                           {attrKeys.map(k => {
                             const v = obj.attributes?.[k]
                             return (
@@ -565,7 +620,9 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                               </td>
                             )
                           })}
-                          <td className="td-description">{obj.description ?? '—'}</td>
+                          {fields.description && (
+                            <td className="td-description">{obj.description ?? '—'}</td>
+                          )}
                           <td className="td-center td-qty">
                             {isLot(obj.quantity) ? obj.quantity : '—'}
                           </td>
@@ -574,14 +631,24 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                               {money(col.get(obj), col.cur(obj)) ?? '—'}
                             </td>
                           ))}
-                          <td className="td-center">{obj.insured ? 'Oui' : '—'}</td>
+                          {fields.insurance && (
+                            <td className="td-center">{obj.insured ? 'Oui' : '—'}</td>
+                          )}
                           <td className="td-muted td-nowrap">{shortDate(obj.created_at) ?? '—'}</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
                       <tr className="total-row">
-                        <td colSpan={(exportMode ? 1 : 0) + 4 + attrKeys.length + 1} className="td-total-label">Total</td>
+                        <td
+                          colSpan={
+                            (exportMode ? 1 : 0) + 3
+                            + (fields.location ? 1 : 0)
+                            + attrKeys.length
+                            + (fields.description ? 1 : 0)
+                          }
+                          className="td-total-label"
+                        >Total</td>
                         <td className="td-center td-total-value">
                           {totalUnits > objects.length ? totalUnits : ''}
                         </td>
@@ -590,7 +657,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, erro
                             {moneyTotals[col.key] > 0 ? money(moneyTotals[col.key], 'EUR') : '—'}
                           </td>
                         ))}
-                        <td className="td-center"></td>
+                        {fields.insurance && <td className="td-center"></td>}
                         <td></td>
                       </tr>
                     </tfoot>

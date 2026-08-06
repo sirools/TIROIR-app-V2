@@ -9,6 +9,13 @@ type ShareLinkRow = {
   options: {
     allow_download?: boolean
     password_protected?: boolean
+    fields?: {
+      values?: boolean
+      location?: boolean
+      attributes?: boolean
+      description?: boolean
+      insurance?: boolean
+    }
   } | null
   expires_at: string | null
   is_archived: boolean
@@ -51,6 +58,36 @@ type InsuranceRow = {
   coverage: number | null
   date: string | null
   position: number | null
+}
+
+/**
+ * Colonnes rattachées à un bloc masquable. Celles qui n'y figurent pas —
+ * titre, statut, collection, dates — restent toujours exportées : sans
+ * elles, une ligne ne désigne plus rien.
+ */
+const COLUMN_GROUP: Record<string, 'values' | 'location' | 'description' | 'insurance' | undefined> = {
+  location_note: 'location',
+  description: 'description',
+  estimated_value: 'values',
+  market_value: 'values',
+  value_currency: 'values',
+  value_estimated_at: 'values',
+  purchase_price: 'values',
+  purchase_currency: 'values',
+  purchase_date: 'values',
+  sale_price: 'values',
+  sale_price_lot: 'values',
+  deposit_amount: 'values',
+  estimated_value_total: 'values',
+  purchase_price_total: 'values',
+  deposit_amount_total: 'values',
+  insured: 'insurance',
+  insurances: 'insurance',
+  insurance_provider: 'insurance',
+  insurance_type: 'insurance',
+  insurance_coverage: 'insurance',
+  insurance_policy_ref: 'insurance',
+  insurance_expires_at: 'insurance',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -158,6 +195,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
+  // Un export ne doit pas contourner ce que la page masque.
+  const shareFields = {
+    values: true, location: true, attributes: true, description: true, insurance: true,
+    ...(shareLink.options?.fields ?? {}),
+  }
+
   if (!shareLink.options?.allow_download) {
     res.status(403).json({ error: 'DOWNLOAD_DISABLED' })
     return
@@ -178,40 +221,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     : shareObjectIds
 
   if (objectIds.length === 0) {
-    sendCsv(res, safeFilename(shareLink.title ?? 'tiroir-export'), buildCsv([], new Map(), new Map()))
+    sendCsv(res, safeFilename(shareLink.title ?? 'tiroir-export'), buildCsv([], new Map(), new Map(), shareFields))
     return
   }
 
+  // Même règle que la page : ce que le partage masque n'est pas chargé.
+  const exportColumns = [
+    'id', 'collection_id', 'title', 'status', 'quantity', 'created_at', 'updated_at',
+    ...(shareFields.description ? ['description'] : []),
+    ...(shareFields.location ? ['location_note'] : []),
+    ...(shareFields.attributes ? ['attributes'] : []),
+    ...(shareFields.values ? [
+      'market_value', 'user_value', 'value_currency', 'value_estimated_at',
+      'purchase_price', 'purchase_currency', 'purchase_date',
+      'sale_price', 'sale_price_lot', 'deposit_amount',
+    ] : []),
+    ...(shareFields.insurance ? [
+      'insured', 'insurance_type', 'insurance_coverage',
+      'insurance_policy_ref', 'insurance_provider', 'insurance_expires_at',
+    ] : []),
+  ].join(', ')
+
   const { data: objectsData, error: objectsError } = await supabase
     .from('objects')
-    .select(`
-      id,
-      collection_id,
-      title,
-      description,
-      status,
-      location_note,
-      attributes,
-      market_value,
-      user_value,
-      value_currency,
-      value_estimated_at,
-      purchase_price,
-      purchase_currency,
-      purchase_date,
-      sale_price,
-      sale_price_lot,
-      deposit_amount,
-      quantity,
-      insured,
-      insurance_type,
-      insurance_coverage,
-      insurance_policy_ref,
-      insurance_provider,
-      insurance_expires_at,
-      created_at,
-      updated_at
-    `)
+    .select(exportColumns)
     .in('id', objectIds)
 
   if (objectsError || !objectsData) {
@@ -219,7 +252,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
-  const objectsById = new Map((objectsData as ExportObjectRow[]).map(object => [object.id, object]))
+  // Colonnes non demandées : `null`, comme un champ vide.
+  const objectRows = (objectsData as unknown as Record<string, unknown>[]).map(row => ({
+    description: null, location_note: null, attributes: null,
+    market_value: null, user_value: null, value_currency: null, value_estimated_at: null,
+    purchase_price: null, purchase_currency: null, purchase_date: null,
+    sale_price: null, sale_price_lot: null, deposit_amount: null,
+    insured: null, insurance_type: null, insurance_coverage: null,
+    insurance_policy_ref: null, insurance_provider: null, insurance_expires_at: null,
+    ...row,
+  })) as unknown as ExportObjectRow[]
+
+  const objectsById = new Map(objectRows.map(object => [object.id, object]))
   const orderedObjects = objectIds
     .map(objectId => objectsById.get(objectId))
     .filter((object): object is ExportObjectRow => Boolean(object))
@@ -239,11 +283,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Contrats d'assurance (table object_insurances, multi-contrats par objet)
   const insurancesByObject = new Map<string, InsuranceRow[]>()
-  const { data: insuranceData } = await supabase
-    .from('object_insurances')
-    .select('object_id, label, price, billing_period, coverage, date, position')
-    .in('object_id', objectIds)
-    .order('position')
+  const { data: insuranceData } = shareFields.insurance
+    ? await supabase
+        .from('object_insurances')
+        .select('object_id, label, price, billing_period, coverage, date, position')
+        .in('object_id', objectIds)
+        .order('position')
+    : { data: null }
 
   for (const row of (insuranceData ?? []) as InsuranceRow[]) {
     const list = insurancesByObject.get(row.object_id) ?? []
@@ -251,14 +297,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     insurancesByObject.set(row.object_id, list)
   }
 
-  const csv = buildCsv(orderedObjects, collectionNames, insurancesByObject)
+  const csv = buildCsv(orderedObjects, collectionNames, insurancesByObject, shareFields)
   sendCsv(res, safeFilename(shareLink.title ?? 'tiroir-export'), csv)
+}
+
+type ShareFields = {
+  values: boolean; location: boolean; attributes: boolean
+  description: boolean; insurance: boolean
 }
 
 function buildCsv(
   objects: ExportObjectRow[],
   collectionNames: Map<string, string>,
   insurancesByObject: Map<string, InsuranceRow[]>,
+  shareFields: ShareFields,
 ) {
   const attributeKeys = Array.from(
     objects.reduce((keys, object) => {
@@ -269,9 +321,15 @@ function buildCsv(
     }, new Set<string>())
   ).sort((a, b) => a.localeCompare(b, 'fr'))
 
+  const columns = FIXED_COLUMNS.filter(column => {
+    const group = COLUMN_GROUP[column.key]
+    return !group || shareFields[group]
+  })
+  const attrCols = shareFields.attributes ? attributeKeys : []
+
   const headers = [
-    ...FIXED_COLUMNS.map(column => column.label),
-    ...attributeKeys.map(key => `Attribut: ${key}`),
+    ...columns.map(column => column.label),
+    ...attrCols.map(key => `Attribut: ${key}`),
   ]
 
   const rows = objects.map(object => {
@@ -308,8 +366,8 @@ function buildCsv(
     }
 
     return [
-      ...FIXED_COLUMNS.map(column => fixedValues[column.key]),
-      ...attributeKeys.map(key => object.attributes?.[key] ?? null),
+      ...columns.map(column => fixedValues[column.key]),
+      ...attrCols.map(key => object.attributes?.[key] ?? null),
     ]
   })
 

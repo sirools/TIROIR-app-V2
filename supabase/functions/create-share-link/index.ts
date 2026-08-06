@@ -72,6 +72,15 @@ Deno.serve(async (req: Request) => {
           password_hash: passwordHash,
           allow_download: options.allow_download ?? false,
           include_documents: options.include_documents ?? false,
+          // Blocs d'informations exposés par le partage. Absent = tout est
+          // visible : les liens créés avant cette option ne changent pas.
+          fields: {
+            values: options.fields?.values ?? true,
+            location: options.fields?.location ?? true,
+            attributes: options.fields?.attributes ?? true,
+            description: options.fields?.description ?? true,
+            insurance: options.fields?.insurance ?? true,
+          },
           contact_name: contactName || null,
           contact_email: isValidEmail ? contactEmail : null,
           contact_phone: contactPhone || null,

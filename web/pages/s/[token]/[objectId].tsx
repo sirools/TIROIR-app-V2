@@ -73,12 +73,26 @@ interface DocMeta {
   signed_url: string
 }
 
+/** Blocs masquables par le partage. Absent = tout est visible. */
+interface ShareFields {
+  values: boolean
+  location: boolean
+  attributes: boolean
+  description: boolean
+  insurance: boolean
+}
+
+const ALL_FIELDS: ShareFields = {
+  values: true, location: true, attributes: true, description: true, insurance: true,
+}
+
 interface Props {
   token: string
   object: ObjectDetail | null
   images: string[]
   documents: DocMeta[]
   insurances: Insurance[]
+  fields?: ShareFields
   error?: 'not_found' | 'expired'
   gated?: boolean
 }
@@ -159,11 +173,36 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     return { props: { token, object: null, images: [], documents: [], insurances: [], error: 'not_found' } }
   }
 
-  const { data: obj, error: objErr } = await supabase
+  const fields: ShareFields = { ...ALL_FIELDS, ...(link.options?.fields ?? {}) }
+
+  /**
+   * Ce qu'un partage masque n'est PAS chargé — voir la page de liste : les
+   * props d'une page Next voyagent en clair dans le HTML, filtrer au rendu
+   * laisserait la donnée lisible dans le code source.
+   */
+  const columns = [
+    'id', 'title', 'status', 'quantity', 'created_at',
+    ...(fields.description ? ['description'] : []),
+    ...(fields.location ? ['location_note'] : []),
+    ...(fields.attributes ? ['attributes'] : []),
+    ...(fields.values ? [
+      'market_value', 'user_value', 'value_currency', 'value_estimated_at', 'value_sources',
+      'purchase_price', 'purchase_currency', 'purchase_date',
+      'sale_price', 'sale_price_lot', 'deposit_amount',
+    ] : []),
+    ...(fields.insurance ? [
+      'insured', 'insurance_type', 'insurance_coverage',
+      'insurance_policy_ref', 'insurance_provider', 'insurance_expires_at',
+    ] : []),
+  ].join(', ')
+
+  const { data: objRow, error: objErr } = await supabase
     .from('objects')
-    .select('id, title, description, status, location_note, attributes, market_value, user_value, value_currency, value_estimated_at, value_sources, purchase_price, purchase_currency, purchase_date, sale_price, sale_price_lot, deposit_amount, quantity, insured, insurance_type, insurance_coverage, insurance_policy_ref, insurance_provider, insurance_expires_at, created_at')
+    .select(columns)
     .eq('id', objectId)
     .single()
+
+  const obj = objRow as Record<string, unknown> | null
 
   if (objErr || !obj) return { props: { token, object: null, images: [], documents: [], insurances: [], error: 'not_found' } }
 
@@ -181,6 +220,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   }
 
   let documents: DocMeta[] = []
+
   if (link.options?.include_documents) {
     const { data: docRows } = await supabase
       .from('object_documents')
@@ -201,11 +241,13 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     }
   }
 
-  const { data: insRows } = await supabase
-    .from('object_insurances')
-    .select('id, label, price, billing_period, coverage, date')
-    .eq('object_id', objectId)
-    .order('position')
+  const { data: insRows } = fields.insurance
+    ? await supabase
+        .from('object_insurances')
+        .select('id, label, price, billing_period, coverage, date')
+        .eq('object_id', objectId)
+        .order('position')
+    : { data: null }
 
   const insurances: Insurance[] = (insRows ?? []).map(r => ({
     id: r.id,
@@ -216,10 +258,22 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     date: r.date,
   }))
 
-  return { props: { token, object: obj as ObjectDetail, images, documents, insurances } }
+  // Les colonnes non demandées arrivent à `null`, comme un champ vide.
+  const object = {
+    description: null, location_note: null, attributes: null,
+    market_value: null, user_value: null, value_currency: null,
+    value_estimated_at: null, value_sources: null,
+    purchase_price: null, purchase_currency: null, purchase_date: null,
+    sale_price: null, sale_price_lot: null, deposit_amount: null,
+    insured: null, insurance_type: null, insurance_coverage: null,
+    insurance_policy_ref: null, insurance_provider: null, insurance_expires_at: null,
+    ...obj,
+  } as unknown as ObjectDetail
+
+  return { props: { token, object, images, documents, insurances, fields } }
 }
 
-export default function SharedObjectDetailPage({ token, object, images, documents, insurances, error, gated }: Props) {
+export default function SharedObjectDetailPage({ token, object, images, documents, insurances, fields = ALL_FIELDS, error, gated }: Props) {
   const [activeImg, setActiveImg] = useState(0)
   const pageTitle = gated
     ? 'Partage protégé — TiROiR'
@@ -288,27 +342,27 @@ export default function SharedObjectDetailPage({ token, object, images, document
     return total == null ? null : `Total du lot : ${money(total, valCur)}`
   }
 
-  if (object.market_value != null && headlineIsUser) {
+  if (fields.values && object.market_value != null && headlineIsUser) {
     valueRows.push({ label: 'Valeur marchande (IA)', sub: lotSub(object.market_value), amount: money(object.market_value, valCur) })
   }
-  if (object.purchase_price != null) {
+  if (fields.values && object.purchase_price != null) {
     valueRows.push({
       label: "Prix d'achat",
       sub: [formatDate(object.purchase_date), lotSub(object.purchase_price)].filter(Boolean).join(' · ') || null,
       amount: money(object.purchase_price, object.purchase_currency ?? valCur),
     })
   }
-  if (object.sale_price != null) {
+  if (fields.values && object.sale_price != null) {
     valueRows.push({ label: 'Prix de vente', sub: lotSub(object.sale_price, object.sale_price_lot), amount: money(object.sale_price, valCur) })
   }
-  if (object.deposit_amount != null) {
+  if (fields.values && object.deposit_amount != null) {
     valueRows.push({ label: 'Caution', sub: lotSub(object.deposit_amount), amount: money(object.deposit_amount, valCur) })
   }
 
   const vs = object.value_sources
   const hasRange = !!vs && vs.value_min != null && vs.value_max != null
   const hasSources = !!vs && Array.isArray(vs.sources) && vs.sources.length > 0
-  const showEstimationDetail = object.market_value != null && !!vs && (!!vs.summary || hasRange || hasSources || !!vs.confidence)
+  const showEstimationDetail = fields.values && object.market_value != null && !!vs && (!!vs.summary || hasRange || hasSources || !!vs.confidence)
   const showValueCard = valueRows.length > 0 || showEstimationDetail
 
   // Assurance : legacy (mono) si pas de contrats en table
@@ -316,7 +370,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
     object.insured || object.insurance_provider || object.insurance_type ||
     object.insurance_coverage != null || object.insurance_policy_ref || object.insurance_expires_at
   )
-  const showInsuranceCard = insurances.length > 0 || hasLegacyInsurance
+  const showInsuranceCard = fields.insurance && (insurances.length > 0 || hasLegacyInsurance)
 
   // Documents hors assurance vs justificatifs d'assurance
   const insuranceDocs = documents.filter(d => d.doc_type === 'assurance')
@@ -376,10 +430,10 @@ export default function SharedObjectDetailPage({ token, object, images, document
                 )}
               </div>
 
-              {object.location_note && <p className="location">📍 {object.location_note}</p>}
-              {object.description && <p className="description">{object.description}</p>}
+              {fields.location && object.location_note && <p className="location">📍 {object.location_note}</p>}
+              {fields.description && object.description && <p className="description">{object.description}</p>}
 
-              {headlineValue !== null && headlineValue !== undefined && (
+              {fields.values && headlineValue !== null && headlineValue !== undefined && (
                 <div className="value-block">
                   <span className="value-label">{headlineLabel}</span>
                   <div className="value-amount-row">
@@ -456,7 +510,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
               )}
 
               {/* ── Caractéristiques ── */}
-              {attributes.length > 0 && (
+              {fields.attributes && attributes.length > 0 && (
                 <div className="bento-card">
                   <h2 className="section-title">Caractéristiques</h2>
                   <div className="attrs-list">

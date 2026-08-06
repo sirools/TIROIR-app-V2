@@ -6,9 +6,10 @@ import {
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import {
-  ArrowLeft, MoreHorizontal, Eye, Minus, Plus,
+  ArrowLeft, MoreHorizontal, Minus, Plus,
   CheckSquare, Square, Trash2, MoveRight, Tag, Share2, CheckCircle,
   Camera, Images, Layers, ChevronRight, ChevronDown, FolderPlus,
+  Search, SlidersHorizontal,
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import {
@@ -574,6 +575,7 @@ export default function CollectionDetailScreen() {
   const [objects, setObjects] = useState<TiroirObject[]>([])
   const [coverUrls, setCoverUrls] = useState<Record<string, string>>({})
   const [filter, setFilter] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [pickerVisible, setPickerVisible] = useState(false)
@@ -941,7 +943,7 @@ export default function CollectionDetailScreen() {
   }
 
   return (
-    <Screen edges={['top']}>
+    <Screen edges={['top']} topColor={Colors.surface}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={isSelectMode ? exitSelectMode : () => router.back()} style={styles.headerBtn} hitSlop={12}>
@@ -983,7 +985,7 @@ export default function CollectionDetailScreen() {
       {/* Barre filtre + zoom */}
       <View style={styles.toolbar}>
         <TouchableOpacity style={styles.filterBtn} onPress={() => setDisplayPanelVisible(true)} activeOpacity={0.75}>
-          <Text style={styles.filterBtnIcon}>👁</Text>
+          <SlidersHorizontal size={14} color={Colors.textSecondary} strokeWidth={2} />
           <Text style={styles.filterBtnText}>{t('collectionDetail.filter')}</Text>
         </TouchableOpacity>
 
@@ -1002,14 +1004,31 @@ export default function CollectionDetailScreen() {
           </Text>
         </TouchableOpacity>
 
-        <TextInput
-          style={styles.filterInput}
-          value={filter}
-          onChangeText={setFilter}
-          placeholder={t('collectionDetail.searchPlaceholder')}
-          placeholderTextColor={Colors.textTertiary}
-          clearButtonMode="while-editing"
-        />
+        {/* La recherche ne prend de la place que lorsqu'on s'en sert :
+            repliée, c'est un bouton comme les autres. */}
+        {searchOpen ? (
+          <TextInput
+            style={styles.filterInput}
+            value={filter}
+            onChangeText={setFilter}
+            placeholder={t('collectionDetail.searchPlaceholder')}
+            placeholderTextColor={Colors.textTertiary}
+            clearButtonMode="while-editing"
+            autoFocus
+            returnKeyType="search"
+            onBlur={() => { if (!filter.trim()) setSearchOpen(false) }}
+          />
+        ) : (
+          <TouchableOpacity
+            style={styles.filterBtn}
+            onPress={() => setSearchOpen(true)}
+            activeOpacity={0.75}
+          >
+            <Search size={14} color={Colors.textSecondary} strokeWidth={2} />
+          </TouchableOpacity>
+        )}
+
+        {!searchOpen && <View style={styles.toolbarSpacer} />}
 
         <View style={styles.zoomControls}>
           <TouchableOpacity
@@ -1510,6 +1529,8 @@ const styles = StyleSheet.create({
   backArrow: { fontSize: Typography.xl, color: Colors.accent, lineHeight: Typography.xl * 1.2 },
   menuDots: { fontSize: Typography.xl, color: Colors.textPrimary, letterSpacing: 2, marginBottom: 4 },
 
+  // Pousse les contrôles de zoom à droite quand la recherche est repliée.
+  toolbarSpacer: { flex: 1 },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1542,7 +1563,6 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     fontWeight: Typography.semibold,
   },
-  filterBtnIcon: { fontSize: 13 },
   filterBtnText: { fontSize: Typography.sm, color: Colors.textSecondary, fontWeight: Typography.medium },
   filterInput: {
     flex: 1,

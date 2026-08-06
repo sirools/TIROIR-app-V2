@@ -2600,8 +2600,10 @@ export default function ObjectScreen() {
     ([k, v]) => ATTR_LABELS[k] && v !== null && v !== ''
   )
 
+  // Pas de zone sûre basse : la barre d'onglets applique déjà l'inset, et
+  // l'ajouter ici figeait une bande beige qui rognait le défilement.
   return (
-    <Screen edges={['top', 'bottom']}>
+    <Screen edges={['top']}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
