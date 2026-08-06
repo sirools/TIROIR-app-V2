@@ -279,7 +279,9 @@
     "createEmpty": "Leeren Eintrag ohne KI erstellen",
     "noCollection": "Ohne Sammlung",
     "created": "Gegenstand erstellt",
-    "createdIn": "Gegenstand in {{name}} erstellt"
+    "createdIn": "Gegenstand in {{name}} erstellt",
+    "groupSingle": "Ein einzelner Gegenstand",
+    "groupMultiple": "Mehrere Gegenstände"
   },
   "status": {
     "owned": "Besessen",
@@ -757,5 +759,23 @@
     "helperManual": "Du kannst die Sammlung jederzeit ändern.",
     "none": "Ohne Sammlung",
     "noneHint": "Später einsortieren"
+  },
+  "scene": {
+    "entryTitle": "Ein Foto, mehrere Gegenstände?",
+    "entrySub": "Die KI erkennt und zählt sie auf einem einzigen Foto",
+    "title": "Szenenerkennung",
+    "subtitle": "Mehrere Gegenstände auf einmal fotografieren",
+    "analyse": "Szene analysieren",
+    "resultCount": "{{types}} Typen · {{units}} Stück",
+    "containerSuggested": "Vorgeschlagener Behälter-Eintrag",
+    "truncated": "Antwort abgeschnitten: die Liste ist unvollständig.",
+    "approx": "ca.",
+    "discernable": "unterscheidbar",
+    "notDiscernable": "nicht unterscheidbar",
+    "croppable": "zuschneidbar",
+    "noCrop": "ganzes Foto",
+    "confidence_low": "geringe Sicherheit",
+    "confidence_medium": "mittlere Sicherheit",
+    "confidence_high": "hohe Sicherheit"
   }
 }

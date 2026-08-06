@@ -68,6 +68,7 @@ export default function AppLayout() {
         <Tabs.Screen name="shares"            options={{ href: null }} />
         <Tabs.Screen name="settings"          options={{ href: null }} />
         <Tabs.Screen name="capture/uploading" options={{ href: null }} />
+        <Tabs.Screen name="capture/scene"     options={{ href: null }} />
         <Tabs.Screen name="objects/[id]"      options={{ href: null }} />
         <Tabs.Screen name="objects/edit/[id]" options={{ href: null }} />
         <Tabs.Screen name="collections/index" options={{ href: null }} />

@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan, Plan } from '@/lib/plan'
+import { useFeatureFlags } from '@/features/objects/useFeatureFlags'
 import {
   Screen, Colors, Typography, Spacing, Radius,
   CollectionPickerSheet, PickedCollection, useToast,
@@ -37,6 +38,7 @@ export default function CaptureScreen() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { flags } = useFeatureFlags()
   /**
    * `intent` : la source de photo a déjà été choisie ailleurs (invite d'une
    * collection vide) — on ouvre directement le bon sélecteur.
@@ -350,9 +352,12 @@ export default function CaptureScreen() {
           </Text>
         </View>
 
-        {/* Deux sources de photo, à parité, en tête d'écran : elles
-            remplacent l'ancienne zone hero. Position stable qu'il y ait
-            des photos ou non. */}
+        {/* Deux groupes explicites plutôt que quatre boutons à plat : la
+            source (appareil / photothèque) et l'interprétation (un objet /
+            plusieurs) sont deux axes distincts, et les mélanger oblige à
+            résoudre les deux d'un coup. */}
+        <Text style={styles.groupLabel}>{t('capture.groupSingle')}</Text>
+
         <View style={styles.actions}>
           <TouchableOpacity style={styles.btnAction} onPress={pickFromCamera} activeOpacity={0.8}>
             <Camera size={28} color={Colors.textPrimary} strokeWidth={1.5} />
@@ -393,16 +398,30 @@ export default function CaptureScreen() {
               </Text>
             </View>
 
-            {/* Entrée « plusieurs objets » — formulée comme une question
-                sur la situation de l'utilisateur, pas comme un nom de
-                fonctionnalité. Toujours visible : une affordance qui
+            {/* Entrées « plusieurs objets » — formulées comme des questions
+                sur la situation de l'utilisateur, pas comme des noms de
+                fonctionnalité. Toujours visibles : une affordance qui
                 disparaît en silence est introuvable et inexplicable. */}
+            <Text style={styles.groupLabel}>{t('capture.groupMultiple')}</Text>
+
             <BatchEntry
               title={t('batch.entryTitle')}
               subtitle={batchAvailable ? t('batch.entrySub', { max: batchMax }) : t('batch.entryBlocked')}
               enabled={batchAvailable}
               onPress={batchAvailable ? pickMultipleObjects : explainBatchBlocked}
             />
+
+            {/* Détection de scène — derrière le drapeau serveur. Le point
+                d'entrée est explicite pendant le POC : le banc doit mesurer
+                la détection, pas la capacité de l'utilisateur à la trouver. */}
+            {flags.multiAdd && (
+              <BatchEntry
+                title={t('scene.entryTitle')}
+                subtitle={t('scene.entrySub')}
+                enabled
+                onPress={() => router.push('/capture/scene')}
+              />
+            )}
           </>
         )}
 
@@ -614,6 +633,14 @@ const styles = StyleSheet.create({
   },
 
   actions: { flexDirection: 'row', gap: Spacing.sm },
+  groupLabel: {
+    fontSize: Typography.xs,
+    fontWeight: Typography.semibold,
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: -Spacing.xs,
+  },
   btnAction: {
     flex: 1,
     alignItems: 'center',

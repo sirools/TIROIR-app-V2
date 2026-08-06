@@ -279,7 +279,9 @@
     "createEmpty": "Crear una ficha vacía sin IA",
     "noCollection": "Sin colección",
     "created": "Objeto creado",
-    "createdIn": "Objeto creado en {{name}}"
+    "createdIn": "Objeto creado en {{name}}",
+    "groupSingle": "Un solo objeto",
+    "groupMultiple": "Varios objetos"
   },
   "status": {
     "owned": "En posesión",
@@ -757,5 +759,23 @@
     "helperManual": "Podrás cambiar de colección en cualquier momento.",
     "none": "Sin colección",
     "noneHint": "Ordenar más tarde"
+  },
+  "scene": {
+    "entryTitle": "¿Una foto, varios objetos?",
+    "entrySub": "La IA los identifica y los cuenta en una sola foto",
+    "title": "Detección de escena",
+    "subtitle": "Fotografía varios objetos a la vez",
+    "analyse": "Analizar la escena",
+    "resultCount": "{{types}} tipos · {{units}} unidades",
+    "containerSuggested": "Ficha de contenedor sugerida",
+    "truncated": "Respuesta truncada: la lista está incompleta.",
+    "approx": "aprox.",
+    "discernable": "distinguibles",
+    "notDiscernable": "no distinguibles",
+    "croppable": "recortable",
+    "noCrop": "foto completa",
+    "confidence_low": "confianza baja",
+    "confidence_medium": "confianza media",
+    "confidence_high": "confianza alta"
   }
 }

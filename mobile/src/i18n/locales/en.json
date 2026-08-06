@@ -279,7 +279,9 @@
     "createEmpty": "Create an empty entry without AI",
     "noCollection": "No collection",
     "created": "Object created",
-    "createdIn": "Object created in {{name}}"
+    "createdIn": "Object created in {{name}}",
+    "groupSingle": "A single object",
+    "groupMultiple": "Several objects"
   },
   "status": {
     "owned": "Owned",
@@ -757,5 +759,23 @@
     "helperManual": "You can move it to another collection at any time.",
     "none": "No collection",
     "noneHint": "Sort it later"
+  },
+  "scene": {
+    "entryTitle": "One photo, several objects?",
+    "entrySub": "AI identifies and counts them from a single photo",
+    "title": "Scene detection",
+    "subtitle": "Photograph several objects at once",
+    "analyse": "Analyse the scene",
+    "resultCount": "{{types}} types · {{units}} items",
+    "containerSuggested": "Suggested container entry",
+    "truncated": "Response truncated: the list is incomplete.",
+    "approx": "approx.",
+    "discernable": "distinguishable",
+    "notDiscernable": "not distinguishable",
+    "croppable": "croppable",
+    "noCrop": "full photo",
+    "confidence_low": "low confidence",
+    "confidence_medium": "medium confidence",
+    "confidence_high": "high confidence"
   }
 }
