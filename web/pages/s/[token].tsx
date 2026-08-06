@@ -55,6 +55,8 @@ interface Props {
   objects: SharedObject[]
   allowDownload: boolean
   fields: ShareFields
+  /** Date d'expiration du lien, `null` s'il n'expire pas. */
+  expiresAt?: string | null
   error?: 'not_found' | 'expired'
   gated?: boolean
 }
@@ -135,6 +137,16 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     return { props: { token, title: link.title ?? 'Partage TiROiR', objects: [], allowDownload: false, fields: ALL_FIELDS, gated: true } }
   }
 
+  /**
+   * Vue comptabilisée ici, et pas plus haut : seul ce point du parcours
+   * signifie que la page est réellement rendue — ni introuvable, ni expirée,
+   * ni bloquée par le mot de passe.
+   *
+   * Volontairement sans await : le compteur ne doit jamais retarder ni faire
+   * échouer l'affichage du partage.
+   */
+  void supabase.rpc('increment_share_view', { p_token: token })
+
   const ids: string[] = Array.isArray(link.object_ids) ? link.object_ids : []
   const fields: ShareFields = { ...ALL_FIELDS, ...(link.options?.fields ?? {}) }
 
@@ -188,6 +200,24 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     }
   }
 
+  /**
+   * « Assuré » se DÉDUIT, il ne se lit plus.
+   *
+   * `objects.insured` était piloté par une bascule de la fiche, supprimée
+   * lors du passage aux contrats multiples : un contrat ajouté depuis laisse
+   * le booléen à false, et le partage annoncerait « Non » alors que l'objet
+   * est assuré. On retient donc la présence d'un contrat OU l'ancien booléen
+   * — quelques objets historiques ne portent leur assurance que par lui.
+   */
+  const insuredIds = new Set<string>()
+  if (fields.insurance && ids.length > 0) {
+    const { data: insRows } = await supabase
+      .from('object_insurances')
+      .select('object_id')
+      .in('object_id', ids)
+    for (const row of insRows ?? []) insuredIds.add(row.object_id)
+  }
+
   // Les champs absents de la requête arrivent à `null` côté client, ce que
   // les types déclarent déjà : rien à distinguer entre « masqué » et « vide ».
   const objects: SharedObject[] = (objData ?? []).map((o: any) => ({
@@ -195,8 +225,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     market_value: null, user_value: null, value_currency: null,
     purchase_price: null, purchase_currency: null, purchase_date: null,
     sale_price: null, sale_price_lot: null, deposit_amount: null,
-    insured: null,
     ...o,
+    insured: fields.insurance ? Boolean(o.insured || insuredIds.has(o.id)) : null,
     cover_url: coverUrls[o.id] ?? null,
   }))
 
@@ -207,6 +237,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
       objects,
       allowDownload: link.options?.allow_download ?? false,
       fields,
+      expiresAt: link.expires_at ?? null,
     },
   }
 }
@@ -315,7 +346,7 @@ function sortObjects(objects: SharedObject[], key: SortKey | null, dir: SortDir)
   })
 }
 
-export default function ShareV2Page({ token, title, objects, allowDownload, fields = ALL_FIELDS, error, gated }: Props) {
+export default function ShareV2Page({ token, title, objects, allowDownload, fields = ALL_FIELDS, expiresAt, error, gated }: Props) {
   const router = useRouter()
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const [sortKey, setSortKey] = useState<SortKey | null>(null)
@@ -343,6 +374,22 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
       return next
     })
   }
+
+  /** Décompte avant archivage automatique du lien. */
+  const expiry = (() => {
+    if (!expiresAt) return null
+    const end = new Date(expiresAt)
+    if (isNaN(end.getTime())) return null
+    const days = Math.ceil((end.getTime() - Date.now()) / 86400_000)
+    const date = end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    if (days <= 0) return { label: `Ce lien expire aujourd'hui`, urgent: true }
+    if (days === 1) return { label: `Ce lien expire demain, le ${date}`, urgent: true }
+    return {
+      label: `Ce lien expire dans ${days} jours, le ${date}`,
+      // Une semaine : le seuil où prévenir sert encore à quelque chose.
+      urgent: days <= 7,
+    }
+  })()
 
   const sortedObjects = sortObjects(objects, sortKey, sortDir)
 
@@ -467,6 +514,13 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                 <div className="page-hero-text">
                   <h1 className="page-title">{title}</h1>
                   <p className="page-sub">Partagé via TiROiR · {objects.length} objet{objects.length !== 1 ? 's' : ''}</p>
+                  {/* Un lien à durée limitée doit le dire pendant qu'il vit
+                      encore : constater l'expiration après coup n'aide personne. */}
+                  {expiry && (
+                    <p className={`expiry ${expiry.urgent ? 'urgent' : ''}`}>
+                      ⏱ {expiry.label}
+                    </p>
+                  )}
                 </div>
                 <div className="view-toggle" role="group" aria-label="Mode d'affichage">
                   <button
@@ -757,6 +811,11 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
           gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
         }
         .page-title { font-size: 28px; font-weight: 800; color: #1A1612; line-height: 1.2; }
+        .expiry {
+          margin: 6px 0 0; font-size: 13px; font-weight: 600;
+          color: #6B6158;
+        }
+        .expiry.urgent { color: #C2410C; }
         .page-sub { font-size: 14px; color: #A89F96; margin-top: 6px; }
 
         /* View toggle */

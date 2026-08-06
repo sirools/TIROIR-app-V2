@@ -354,7 +354,9 @@ function buildCsv(
       estimated_value_total: lotTotal(estimatedValue, object.quantity),
       purchase_price_total: lotTotal(object.purchase_price, object.quantity),
       deposit_amount_total: lotTotal(object.deposit_amount, object.quantity),
-      insured: object.insured ? 'Oui' : 'Non',
+      // Déduit comme sur la page : le booléen n'est plus écrit par l'app
+      // depuis le passage aux contrats multiples.
+      insured: (object.insured || (insurancesByObject.get(object.id) ?? []).length > 0) ? 'Oui' : 'Non',
       insurances: formatInsurances(insurancesByObject.get(object.id) ?? [], object.value_currency),
       insurance_provider: object.insurance_provider,
       insurance_type: object.insurance_type,
