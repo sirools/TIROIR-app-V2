@@ -1676,7 +1676,11 @@ const vc = StyleSheet.create({
 // ── Écran principal ───────────────────────────────────────────────────────────
 
 export default function ObjectScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>()
+  /**
+   * `focusTitle` : la fiche vient d'être créée sans IA. Le titre est le seul
+   * champ qui manque encore, on ouvre donc directement sa saisie.
+   */
+  const { id, focusTitle } = useLocalSearchParams<{ id: string; focusTitle?: string }>()
   const router = useRouter()
   const { t, i18n } = useTranslation()
 
@@ -1694,6 +1698,15 @@ export default function ObjectScreen() {
   // Titre
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleDraft, setTitleDraft] = useState('')
+  const titleFocusHandled = useRef(false)
+
+  // Une seule fois, à l'arrivée depuis une création sans IA : le clavier
+  // s'ouvre sur le titre dès que l'objet est chargé.
+  useEffect(() => {
+    if (focusTitle !== '1' || !object || titleFocusHandled.current) return
+    titleFocusHandled.current = true
+    startEditTitle(true)
+  }, [focusTitle, object])
 
   // Description
   const [editingDesc, setEditingDesc] = useState(false)
@@ -1808,8 +1821,14 @@ export default function ObjectScreen() {
 
   // ── Description ─────────────────────────────────────────────────────────────
 
-  function startEditTitle() {
-    setTitleDraft(object?.title ?? '')
+  /**
+   * `blank` : on part d'un champ vide plutôt que du titre provisoire
+   * (« Nouvel objet »), pour que l'utilisateur tape au lieu d'effacer.
+   * Un champ laissé vide est ignoré par commitTitle, le titre provisoire
+   * survit donc si l'utilisateur passe son chemin.
+   */
+  function startEditTitle(blank = false) {
+    setTitleDraft(blank ? '' : object?.title ?? '')
     setEditingTitle(true)
   }
 
@@ -2112,7 +2131,7 @@ export default function ObjectScreen() {
                   placeholderTextColor={Colors.textTertiary}
                 />
               ) : (
-                <TouchableOpacity onPress={startEditTitle} activeOpacity={0.6}>
+                <TouchableOpacity onPress={() => startEditTitle()} activeOpacity={0.6}>
                   <Text style={s.title}>{object.title}</Text>
                 </TouchableOpacity>
               )}

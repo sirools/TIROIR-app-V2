@@ -236,7 +236,13 @@
     "retry": "Réessayer",
     "seeSheet": "Voir la fiche →",
     "uploadImageError": "Envoi image {{n}} : {{msg}}",
-    "saveImageError": "Enregistrement image {{n}} : {{msg}}"
+    "saveImageError": "Enregistrement image {{n}} : {{msg}}",
+    "readyTitle": "Fiche prête",
+    "readySub": "Choisis un rangement pour terminer.",
+    "destinationSet": "Rangement : {{name}}",
+    "destinationNone": "Sans collection",
+    "changeDestination": "Modifier",
+    "chooseDestination": "Choisir un rangement"
   },
   "capture": {
     "permissionDeniedTitle": "Permission refusée",
@@ -264,34 +270,9 @@
     "addPhotoToContinue": "Ajoute une photo pour continuer",
     "rechargeQuota": "Recharger mon quota →",
     "createEmpty": "Créer une fiche vide sans IA",
-    "titleMissingTitle": "Titre manquant",
-    "titleMissingMessage": "Donne un nom à cet objet avant de confirmer.",
-    "confirmErrorAiPending": "L'analyse IA n'est pas encore terminée. Réessaie dans un instant.",
-    "confirmErrorExpired": "Ce brouillon a expiré. Recommence la capture.",
-    "confirmErrorTitle": "Impossible de confirmer",
-    "cancelTitle": "Annuler ?",
-    "cancelMessage": "Les photos seront supprimées et le brouillon effacé.",
-    "cancelNo": "Non",
-    "cancelYes": "Oui, annuler",
-    "aiToVerify": "✦ IA — à vérifier",
-    "untitled": "Sans titre",
-    "titleAiHint": "Proposition de l'IA · appuie pour modifier",
-    "detectedByAi": "Détecté par l'IA",
-    "description": "Description",
-    "descriptionPlaceholder": "Quelques mots sur l'objet…",
-    "location": "Emplacement",
-    "locationPlaceholder": "Garage, étagère du haut…",
-    "collection": "Collection",
     "noCollection": "Sans collection",
-    "newCollectionPlaceholder": "Nouvelle collection…",
-    "addToDrawer": "Ajouter à mon Tiroir",
-    "reanalyze": "Relancer l'analyse IA",
-    "attrBrand": "Marque",
-    "attrModel": "Modèle",
-    "attrCategory": "Catégorie",
-    "attrColor": "Couleur",
-    "attrVoltage": "Voltage",
-    "attrSerial": "N° série"
+    "created": "Objet créé",
+    "createdIn": "Objet créé dans {{name}}"
   },
   "status": {
     "owned": "Possédé",
@@ -669,7 +650,6 @@
     "destinationTitle": "Où ranger ces objets ?",
     "destinationSub_one": "{{count}} objet sera ajouté à cette collection.",
     "destinationSub_other": "{{count}} objets seront ajoutés à cette collection.",
-    "noCollection": "Sans collection",
     "addMore_one": "Ajouter un autre objet · {{count}} place",
     "addMore_other": "Ajouter d'autres objets · {{count}} places",
     "addMoreFull": "Lot complet · {{max}} objets max"
@@ -718,5 +698,12 @@
     "otherCollection": "Vers une autre collection",
     "moveInto": "Dans « {{name}} »",
     "selectGroup": "Sélectionner le groupe"
+  },
+  "collectionPicker": {
+    "title": "Où ranger cet objet ?",
+    "helperSingle": "Choisis pendant que l'IA prépare la fiche — ça ne rallonge rien.",
+    "helperManual": "Tu pourras changer de rangement à tout moment depuis la fiche.",
+    "none": "Sans collection",
+    "noneHint": "À ranger plus tard"
   }
 }

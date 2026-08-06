@@ -5,8 +5,10 @@ import { useTranslation } from 'react-i18next'
 import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@/lib/supabase'
 import { assistantService } from '@/services/assistant'
-import { draftCache } from '@/services/draftCache'
-import { Screen, Button, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import {
+  Screen, Button, Colors, Typography, Spacing, Radius,
+  CollectionPickerSheet, PickedCollection, useToast,
+} from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthContext'
 
 type Phase = 'uploading' | 'analyzing' | 'error'
@@ -33,6 +35,7 @@ export default function UploadingScreen() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const router = useRouter()
+  const { showToast } = useToast()
 
   const [phase, setPhase] = useState<Phase>('uploading')
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -46,6 +49,22 @@ export default function UploadingScreen() {
   const [showManualNav, setShowManualNav] = useState(false)
   const processedDraftId = useRef<string | null>(null)
   const pendingDraftId = useRef<string | null>(null)
+
+  /**
+   * Rangement de l'objet. `undefined` = la question n'a pas encore été
+   * tranchée, `null` = l'utilisateur a choisi de ne pas ranger.
+   *
+   * La question est posée pendant l'analyse, dans le temps d'attente qui
+   * existait déjà : le parcours ne s'allonge pas d'un écran, il remplit un
+   * vide. La création n'a lieu que lorsque l'analyse est finie *et* que la
+   * destination est connue — l'ordre entre les deux n'a pas d'importance.
+   */
+  const [destination, setDestination] = useState<PickedCollection | null | undefined>(
+    collectionId ? { id: collectionId, name: '' } : undefined
+  )
+  const [pickerVisible, setPickerVisible] = useState(false)
+  const [analysisDone, setAnalysisDone] = useState(false)
+  const confirmStarted = useRef(false)
 
   // Animations d'entrée pour chaque item de checklist
   const itemAnims = useRef(STEPS.map(() => new Animated.Value(0))).current
@@ -75,6 +94,10 @@ export default function UploadingScreen() {
     setImages([])
     setUploadedCount(0)
     setShowManualNav(false)
+    setAnalysisDone(false)
+    setDestination(collectionId ? { id: collectionId, name: '' } : undefined)
+    setPickerVisible(false)
+    confirmStarted.current = false
     pendingDraftId.current = null
 
     const parsed: PickedImage[] = JSON.parse(imagesParam)
@@ -111,6 +134,8 @@ export default function UploadingScreen() {
       setStep('upload', 'done')
       setStep('identify', 'active')
       setPhase('analyzing')
+      // La destination n'est demandée que si le parcours ne l'impose pas.
+      if (!collectionId) setPickerVisible(true)
 
       // Simuler la progression pendant l'appel IA (durée ~3-6s)
       setTimeout(() => {
@@ -130,19 +155,7 @@ export default function UploadingScreen() {
       animateConfidence(87)
       await new Promise(r => setTimeout(r, 500))
 
-      const { data: objectId, error: confirmError } = await supabase.rpc('confirm_draft', {
-        p_draft_id: draftId,
-        p_collection_id: collectionId ?? null,
-      })
-      if (confirmError) throw new Error(confirmError.message)
-
-      pendingDraftId.current = objectId
-      try {
-        router.replace({ pathname: '/objects/[id]', params: { id: objectId } })
-      } catch {
-        setShowManualNav(true)
-      }
-      setTimeout(() => setShowManualNav(true), 1500)
+      setAnalysisDone(true)
     } catch (err) {
       console.error('[Upload]', err)
       setError(err instanceof Error ? err.message : t('uploading.genericError'))
@@ -155,6 +168,8 @@ export default function UploadingScreen() {
       setStep('upload', 'done')
       setStep('identify', 'active')
       setPhase('analyzing')
+      // La destination n'est demandée que si le parcours ne l'impose pas.
+      if (!collectionId) setPickerVisible(true)
 
       setTimeout(() => { setStep('identify', 'done'); setStep('attrs', 'active'); animateConfidence(30) }, 1200)
       setTimeout(() => { setStep('attrs', 'done'); setStep('sheet', 'active'); animateConfidence(72) }, 2800)
@@ -165,13 +180,46 @@ export default function UploadingScreen() {
       animateConfidence(87)
       await new Promise(r => setTimeout(r, 500))
 
+      setAnalysisDone(true)
+    } catch (err) {
+      console.error('[Reanalyze]', err)
+      setError(err instanceof Error ? err.message : t('uploading.genericError'))
+      setPhase('error')
+    }
+  }
+
+  /**
+   * Création effective. Déclenchée par les deux conditions réunies —
+   * analyse terminée et destination connue — quel que soit l'ordre dans
+   * lequel elles se produisent.
+   */
+  useEffect(() => {
+    if (!analysisDone || destination === undefined) return
+    if (confirmStarted.current) return
+    confirmStarted.current = true
+    finalize(destination)
+  }, [analysisDone, destination])
+
+  async function finalize(dest: PickedCollection | null) {
+    try {
       const { data: objectId, error: confirmError } = await supabase.rpc('confirm_draft', {
         p_draft_id: draftId,
-        p_collection_id: collectionId ?? null,
+        p_collection_id: dest?.id ?? null,
       })
       if (confirmError) throw new Error(confirmError.message)
 
       pendingDraftId.current = objectId
+
+      // Destination imposée par le parcours : on n'a que son id, il faut
+      // son nom pour que le message de confirmation dise quelque chose.
+      let name = dest?.name
+      if (dest && !name) {
+        const { data } = await supabase
+          .from('collections').select('name').eq('id', dest.id).single()
+        name = data?.name ?? undefined
+      }
+      showToast(name ? t('capture.createdIn', { name }) : t('capture.created'))
+
       try {
         router.replace({ pathname: '/objects/[id]', params: { id: objectId } })
       } catch {
@@ -179,7 +227,8 @@ export default function UploadingScreen() {
       }
       setTimeout(() => setShowManualNav(true), 1500)
     } catch (err) {
-      console.error('[Reanalyze]', err)
+      console.error('[Confirm]', err)
+      confirmStarted.current = false
       setError(err instanceof Error ? err.message : t('uploading.genericError'))
       setPhase('error')
     }
@@ -239,6 +288,9 @@ export default function UploadingScreen() {
 
   const confidenceWidth = confidenceAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] })
 
+  /** La fiche est prête mais on ignore encore où la ranger. */
+  const awaitingDestination = analysisDone && destination === undefined
+
   return (
     <Screen edges={['top', 'bottom']}>
       <View style={styles.container}>
@@ -270,14 +322,34 @@ export default function UploadingScreen() {
         {/* Titre */}
         <View style={styles.titleBlock}>
           <Text style={styles.title}>
-            {phase === 'uploading' ? t('uploading.sendingPhotos') : t('uploading.analyzing')}
+            {awaitingDestination
+              ? t('uploading.readyTitle')
+              : phase === 'uploading' ? t('uploading.sendingPhotos') : t('uploading.analyzing')}
           </Text>
           <Text style={styles.subtitle}>
-            {phase === 'uploading'
-              ? t('uploading.progress', { percent: uploadProgress, done: uploadedCount, total: images.length, count: images.length })
-              : t('uploading.preparingSheet')}
+            {awaitingDestination
+              ? t('uploading.readySub')
+              : phase === 'uploading'
+                ? t('uploading.progress', { percent: uploadProgress, done: uploadedCount, total: images.length, count: images.length })
+                : t('uploading.preparingSheet')}
           </Text>
         </View>
+
+        {/* Rappel du rangement choisi, modifiable tant que rien n'est créé */}
+        {!collectionId && destination !== undefined && !analysisDone && (
+          <TouchableOpacity
+            style={styles.destChip}
+            onPress={() => setPickerVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.destChipLabel} numberOfLines={1}>
+              {destination
+                ? t('uploading.destinationSet', { name: destination.name })
+                : t('uploading.destinationNone')}
+            </Text>
+            <Text style={styles.destChipAction}>{t('uploading.changeDestination')}</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Barre de progression upload */}
         {phase === 'uploading' && (
@@ -335,6 +407,18 @@ export default function UploadingScreen() {
           </View>
         )}
 
+        {/* La feuille a été refermée sans choisir : on ne laisse pas
+            l'utilisateur devant un écran qui n'avance plus. */}
+        {awaitingDestination && !pickerVisible && (
+          <TouchableOpacity
+            style={styles.manualNavBtn}
+            onPress={() => setPickerVisible(true)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.manualNavText}>{t('uploading.chooseDestination')}</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Bouton de secours si la navigation automatique ne s'est pas déclenchée */}
         {showManualNav && pendingDraftId.current && (
           <TouchableOpacity
@@ -346,6 +430,17 @@ export default function UploadingScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      <CollectionPickerSheet
+        visible={pickerVisible}
+        title={t('collectionPicker.title')}
+        helper={t('collectionPicker.helperSingle')}
+        onSelect={dest => {
+          setDestination(dest)
+          setPickerVisible(false)
+        }}
+        onDismiss={() => setPickerVisible(false)}
+      />
     </Screen>
   )
 }
@@ -394,6 +489,31 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   subtitle: { fontSize: Typography.base, color: Colors.textSecondary },
+
+  destChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    backgroundColor: Colors.accentLight,
+    borderRadius: Radius.full,
+    paddingVertical: Spacing.xs + 2,
+    paddingHorizontal: Spacing.md,
+  },
+  destChipLabel: {
+    flexShrink: 1,
+    fontSize: Typography.sm,
+    fontWeight: Typography.medium,
+    color: Colors.accent,
+  },
+  destChipAction: {
+    fontSize: Typography.xs,
+    fontWeight: Typography.semibold,
+    color: Colors.accent,
+    opacity: 0.7,
+    textDecorationLine: 'underline',
+  },
 
   progressTrack: {
     height: 4,

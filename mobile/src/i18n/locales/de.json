@@ -236,7 +236,13 @@
     "retry": "Erneut versuchen",
     "seeSheet": "Eintrag ansehen →",
     "uploadImageError": "Bild {{n}} hochladen: {{msg}}",
-    "saveImageError": "Bild {{n}} speichern: {{msg}}"
+    "saveImageError": "Bild {{n}} speichern: {{msg}}",
+    "readyTitle": "Eintrag fertig",
+    "readySub": "Wähle eine Sammlung, um abzuschließen.",
+    "destinationSet": "Sammlung: {{name}}",
+    "destinationNone": "Ohne Sammlung",
+    "changeDestination": "Ändern",
+    "chooseDestination": "Sammlung wählen"
   },
   "capture": {
     "permissionDeniedTitle": "Zugriff verweigert",
@@ -264,34 +270,9 @@
     "addPhotoToContinue": "Füge ein Foto hinzu, um fortzufahren",
     "rechargeQuota": "Kontingent aufladen →",
     "createEmpty": "Leeren Eintrag ohne KI erstellen",
-    "titleMissingTitle": "Titel fehlt",
-    "titleMissingMessage": "Gib diesem Objekt einen Namen, bevor du bestätigst.",
-    "confirmErrorAiPending": "Die KI-Analyse ist noch nicht abgeschlossen. Versuche es gleich noch einmal.",
-    "confirmErrorExpired": "Dieser Entwurf ist abgelaufen. Starte die Aufnahme erneut.",
-    "confirmErrorTitle": "Bestätigung nicht möglich",
-    "cancelTitle": "Abbrechen?",
-    "cancelMessage": "Die Fotos werden gelöscht und der Entwurf verworfen.",
-    "cancelNo": "Nein",
-    "cancelYes": "Ja, abbrechen",
-    "aiToVerify": "✦ KI — zu prüfen",
-    "untitled": "Ohne Titel",
-    "titleAiHint": "KI-Vorschlag · zum Bearbeiten tippen",
-    "detectedByAi": "Von der KI erkannt",
-    "description": "Beschreibung",
-    "descriptionPlaceholder": "Ein paar Worte zum Objekt…",
-    "location": "Ort",
-    "locationPlaceholder": "Garage, oberstes Regal…",
-    "collection": "Sammlung",
     "noCollection": "Ohne Sammlung",
-    "newCollectionPlaceholder": "Neue Sammlung…",
-    "addToDrawer": "Zu meinem Tiroir hinzufügen",
-    "reanalyze": "KI-Analyse erneut starten",
-    "attrBrand": "Marke",
-    "attrModel": "Modell",
-    "attrCategory": "Kategorie",
-    "attrColor": "Farbe",
-    "attrVoltage": "Spannung",
-    "attrSerial": "Seriennr."
+    "created": "Gegenstand erstellt",
+    "createdIn": "Gegenstand in {{name}} erstellt"
   },
   "status": {
     "owned": "Besessen",
@@ -669,7 +650,6 @@
     "destinationTitle": "Wohin mit diesen Objekten?",
     "destinationSub_one": "{{count}} Objekt wird dieser Sammlung hinzugefügt.",
     "destinationSub_other": "{{count}} Objekte werden dieser Sammlung hinzugefügt.",
-    "noCollection": "Ohne Sammlung",
     "addMore_one": "Weiteres Objekt hinzufügen · {{count}} Platz frei",
     "addMore_other": "Weitere Objekte hinzufügen · {{count}} Plätze frei",
     "addMoreFull": "Stapel voll · max. {{max}} Objekte"
@@ -718,5 +698,12 @@
     "otherCollection": "In eine andere Sammlung",
     "moveInto": "In „{{name}}“",
     "selectGroup": "Gruppe auswählen"
+  },
+  "collectionPicker": {
+    "title": "Wohin mit diesem Gegenstand?",
+    "helperSingle": "Wähle aus, während die KI den Eintrag vorbereitet — das kostet keine Zeit.",
+    "helperManual": "Du kannst die Sammlung jederzeit ändern.",
+    "none": "Ohne Sammlung",
+    "noneHint": "Später einsortieren"
   }
 }

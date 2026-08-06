@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router'
 import { View, TouchableOpacity, StyleSheet } from 'react-native'
 import { Archive, Camera, Search } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Colors } from '@/components/ui'
+import { Colors, ToastProvider } from '@/components/ui'
 
 const ICON_AREA_H = 64
 
@@ -55,24 +55,25 @@ function CustomTabBar({ state, navigation }: TabBarProps) {
 
 export default function AppLayout() {
   return (
-    <Tabs
-      tabBar={props => <CustomTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tabs.Screen name="index" />
-      <Tabs.Screen name="capture/index" />
-      <Tabs.Screen name="search" />
-      <Tabs.Screen name="onboarding"        options={{ href: null }} />
-      <Tabs.Screen name="profile"           options={{ href: null }} />
-      <Tabs.Screen name="shares"            options={{ href: null }} />
-      <Tabs.Screen name="settings"          options={{ href: null }} />
-      <Tabs.Screen name="capture/uploading" options={{ href: null }} />
-      <Tabs.Screen name="capture/draft"     options={{ href: null }} />
-      <Tabs.Screen name="objects/[id]"      options={{ href: null }} />
-      <Tabs.Screen name="objects/edit/[id]" options={{ href: null }} />
-      <Tabs.Screen name="collections/index" options={{ href: null }} />
-      <Tabs.Screen name="collections/[id]"  options={{ href: null }} />
-    </Tabs>
+    <ToastProvider>
+      <Tabs
+        tabBar={props => <CustomTabBar {...props} />}
+        screenOptions={{ headerShown: false }}
+      >
+        <Tabs.Screen name="index" />
+        <Tabs.Screen name="capture/index" />
+        <Tabs.Screen name="search" />
+        <Tabs.Screen name="onboarding"        options={{ href: null }} />
+        <Tabs.Screen name="profile"           options={{ href: null }} />
+        <Tabs.Screen name="shares"            options={{ href: null }} />
+        <Tabs.Screen name="settings"          options={{ href: null }} />
+        <Tabs.Screen name="capture/uploading" options={{ href: null }} />
+        <Tabs.Screen name="objects/[id]"      options={{ href: null }} />
+        <Tabs.Screen name="objects/edit/[id]" options={{ href: null }} />
+        <Tabs.Screen name="collections/index" options={{ href: null }} />
+        <Tabs.Screen name="collections/[id]"  options={{ href: null }} />
+      </Tabs>
+    </ToastProvider>
   )
 }
 

@@ -2,7 +2,11 @@ import React, { useState } from 'react'
 import { Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown } from 'lucide-react-native'
-import { ActionSheet, Colors, Typography, Spacing } from '@/components/ui'
+// Imports directs plutôt que par le baril `@/components/ui` : celui-ci
+// exporte CollectionPickerSheet, qui utilise ce bouton — passer par le
+// baril créerait un cycle de modules.
+import { ActionSheet } from '@/components/ui/ActionSheet'
+import { Colors, Typography, Spacing } from '@/components/ui/tokens'
 import { CollectionSort, COLLECTION_SORTS, sortLabelKey } from '@/features/collections/sort'
 
 interface CollectionSortButtonProps {

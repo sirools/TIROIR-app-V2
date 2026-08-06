@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View, Text, StyleSheet, Image, TextInput, FlatList,
-  TouchableOpacity, ActivityIndicator, Alert, Animated, Modal,
+  TouchableOpacity, ActivityIndicator, Alert, Animated,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -9,7 +9,7 @@ import { X, Trash2, RotateCw, Plus } from 'lucide-react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
-import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { Screen, Colors, Typography, Spacing, Radius, CollectionPickerSheet } from '@/components/ui'
 import {
   beginBatch, extendBatch, runBatch, retryItem, confirmBatch,
   applyEditedTitles, compressImages,
@@ -25,12 +25,6 @@ import {
 // ================================================================
 
 type Phase = 'preparing' | 'running' | 'settled' | 'confirming' | 'failed'
-
-interface CollectionRow {
-  id: string
-  name: string
-  emoji: string | null
-}
 
 export default function BatchReviewScreen() {
   const {
@@ -58,7 +52,6 @@ export default function BatchReviewScreen() {
   const [fatalError, setFatalError] = useState<string | null>(null)
 
   const [pickerVisible, setPickerVisible] = useState(false)
-  const [collections, setCollections] = useState<CollectionRow[] | null>(null)
 
   const progressAnim = useRef(new Animated.Value(0)).current
 
@@ -127,17 +120,6 @@ export default function BatchReviewScreen() {
     // Au démontage, on périme le lot courant sans en démarrer d'autre.
     return () => { runToken.current++ }
   }, [imagesParam, runId, user])
-
-  // ── Collections disponibles (chargées à l'ouverture du sélecteur) ──
-
-  useEffect(() => {
-    if (!pickerVisible || collections !== null) return
-    supabase
-      .from('collections')
-      .select('id, name, emoji')
-      .order('updated_at', { ascending: false })
-      .then(({ data }) => setCollections((data ?? []) as CollectionRow[]))
-  }, [pickerVisible, collections])
 
   // ── Progression ────────────────────────────────────────────────
 
@@ -484,60 +466,14 @@ export default function BatchReviewScreen() {
       </View>
 
       {/* Destination du lot — dernière décision avant création */}
-      <Modal
+      <CollectionPickerSheet
         visible={pickerVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setPickerVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.backdrop}
-          activeOpacity={1}
-          onPress={() => setPickerVisible(false)}
-        />
-        <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>{t('batch.destinationTitle')}</Text>
-          <Text style={styles.sheetSub}>
-            {t('batch.destinationSub', { count: readyCount })}
-          </Text>
-
-          {collections === null ? (
-            <ActivityIndicator style={styles.sheetLoader} color={Colors.accent} />
-          ) : (
-            <FlatList
-              data={collections}
-              keyExtractor={c => c.id}
-              style={styles.sheetList}
-              ListHeaderComponent={
-                <TouchableOpacity
-                  style={styles.sheetRow}
-                  onPress={() => runConfirm(null)}
-                >
-                  <Text style={styles.sheetEmoji}>📥</Text>
-                  <Text style={styles.sheetRowLabel}>{t('batch.noCollection')}</Text>
-                </TouchableOpacity>
-              }
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.sheetRow}
-                  onPress={() => runConfirm(item.id)}
-                >
-                  <Text style={styles.sheetEmoji}>{item.emoji ?? '🗂'}</Text>
-                  <Text style={styles.sheetRowLabel} numberOfLines={1}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
-              ItemSeparatorComponent={() => <View style={styles.sheetSep} />}
-            />
-          )}
-
-          <TouchableOpacity
-            style={styles.sheetCancel}
-            onPress={() => setPickerVisible(false)}
-          >
-            <Text style={styles.sheetCancelText}>{t('common.cancel')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        title={t('batch.destinationTitle')}
+        helper={t('batch.destinationSub', { count: readyCount })}
+        busy={phase === 'confirming'}
+        onSelect={dest => runConfirm(dest?.id ?? null)}
+        onDismiss={() => setPickerVisible(false)}
+      />
     </Screen>
   )
 }
@@ -624,40 +560,6 @@ const styles = StyleSheet.create({
   btnPrimaryText: {
     color: Colors.textInverse, fontSize: Typography.md, fontWeight: Typography.semibold,
   },
-
-  backdrop: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-  },
-  sheet: {
-    position: 'absolute', left: 0, right: 0, bottom: 0,
-    maxHeight: '75%',
-    backgroundColor: Colors.background,
-    borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl,
-    paddingTop: Spacing.lg, paddingBottom: Spacing.xl, paddingHorizontal: Spacing.md,
-  },
-  sheetTitle: {
-    fontSize: Typography.lg, fontWeight: Typography.semibold, color: Colors.textPrimary,
-  },
-  sheetSub: {
-    fontSize: Typography.sm, color: Colors.textSecondary,
-    marginTop: 2, marginBottom: Spacing.md,
-  },
-  sheetLoader: { paddingVertical: Spacing.xl },
-  sheetList: { flexGrow: 0 },
-  sheetRow: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
-    backgroundColor: Colors.surface, borderRadius: Radius.md,
-    paddingVertical: Spacing.md, paddingHorizontal: Spacing.md,
-  },
-  sheetEmoji: { fontSize: 20 },
-  sheetRowLabel: {
-    flex: 1, fontSize: Typography.base, fontWeight: Typography.medium,
-    color: Colors.textPrimary,
-  },
-  sheetSep: { height: Spacing.sm },
-  sheetCancel: { paddingVertical: Spacing.md, alignItems: 'center', marginTop: Spacing.sm },
-  sheetCancelText: { fontSize: Typography.base, color: Colors.textSecondary },
 
   center: { flex: 1, justifyContent: 'center', padding: Spacing.lg, gap: Spacing.md },
   errorTitle: {

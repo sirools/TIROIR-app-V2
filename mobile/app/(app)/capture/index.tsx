@@ -13,7 +13,10 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan, Plan } from '@/lib/plan'
-import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import {
+  Screen, Colors, Typography, Spacing, Radius,
+  CollectionPickerSheet, PickedCollection, useToast,
+} from '@/components/ui'
 
 interface PickedImage {
   uri: string
@@ -33,6 +36,7 @@ export default function CaptureScreen() {
   const router = useRouter()
   const { t } = useTranslation()
   const { user } = useAuth()
+  const { showToast } = useToast()
   /**
    * `intent` : la source de photo a déjà été choisie ailleurs (invite d'une
    * collection vide) — on ouvre directement le bon sélecteur.
@@ -46,6 +50,7 @@ export default function CaptureScreen() {
   const [images, setImages] = useState<PickedImage[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingManual, setLoadingManual] = useState(false)
+  const [manualPickerVisible, setManualPickerVisible] = useState(false)
   const [quotaUsed, setQuotaUsed] = useState(0)
   const [quotaLimit, setQuotaLimit] = useState<number | null>(null)
   const [quotaExhausted, setQuotaExhausted] = useState(false)
@@ -58,6 +63,7 @@ export default function CaptureScreen() {
     setImages([])
     setLoading(false)
     setLoadingManual(false)
+    setManualPickerVisible(false)
   }, []))
 
   useEffect(() => {
@@ -231,16 +237,30 @@ export default function CaptureScreen() {
     })
   }
 
-  async function handleManual() {
+  /**
+   * Saisie sans IA : aucune analyse, donc aucun temps mort où glisser la
+   * question du rangement. On la pose donc avant, et la création suit
+   * immédiatement le choix.
+   */
+  function handleManual() {
     if (images.length === 0) return
+    if (collectionId) {
+      // Destination imposée par le parcours d'origine.
+      createManual({ id: collectionId, name: '' })
+      return
+    }
+    setManualPickerVisible(true)
+  }
+
+  async function createManual(dest: PickedCollection | null) {
+    setManualPickerVisible(false)
     setLoadingManual(true)
     try {
       const { data: objectId, error: createError } = await supabase.rpc('create_empty_object')
       if (createError || !objectId) throw new Error(createError?.message ?? t('capture.createError'))
 
-      // Saisie manuelle lancée depuis une collection : elle reste la destination.
-      if (collectionId) {
-        await supabase.from('objects').update({ collection_id: collectionId }).eq('id', objectId)
+      if (dest) {
+        await supabase.from('objects').update({ collection_id: dest.id }).eq('id', objectId)
       }
 
       for (let i = 0; i < images.length; i++) {
@@ -275,7 +295,21 @@ export default function CaptureScreen() {
         })
       }
 
-      router.replace(`/objects/edit/${objectId}`)
+      let name = dest?.name
+      if (dest && !name) {
+        const { data } = await supabase
+          .from('collections').select('name').eq('id', dest.id).single()
+        name = data?.name ?? undefined
+      }
+      showToast(name ? t('capture.createdIn', { name }) : t('capture.created'))
+
+      // Le rangement vient d'être choisi et le reste se remplit sur la fiche :
+      // on saute l'écran d'édition et on arrive directement sur le titre,
+      // clavier ouvert, seul champ qui manque encore.
+      router.replace({
+        pathname: '/objects/[id]',
+        params: { id: objectId, focusTitle: '1' },
+      })
     } catch (e: any) {
       Alert.alert(t('common.error'), e.message ?? t('capture.genericError'))
     } finally {
@@ -429,6 +463,15 @@ export default function CaptureScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+
+      <CollectionPickerSheet
+        visible={manualPickerVisible}
+        title={t('collectionPicker.title')}
+        helper={t('collectionPicker.helperManual')}
+        busy={loadingManual}
+        onSelect={createManual}
+        onDismiss={() => setManualPickerVisible(false)}
+      />
     </Screen>
   )
 }
@@ -607,19 +650,29 @@ const styles = StyleSheet.create({
     color: Colors.textInverse,
     letterSpacing: 0.1,
   },
-  btnManual: { alignItems: 'center', paddingVertical: Spacing.sm },
-  btnManualText: { fontSize: Typography.sm, color: Colors.textTertiary },
-  btnManualProminent: {
+  // Vrai bouton secondaire, et non un lien discret : la saisie sans IA
+  // est une voie légitime, pas un repli honteux.
+  btnManual: {
+    alignItems: 'center',
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
     paddingVertical: 14,
   },
-  btnManualTextProminent: {
+  btnManualText: {
     fontSize: Typography.base,
     fontWeight: Typography.medium,
     color: Colors.textPrimary,
+  },
+  // Quota épuisé : c'est la seule voie restante, elle passe en avant.
+  btnManualProminent: {
+    backgroundColor: Colors.accentLight,
+    borderColor: Colors.accent,
+  },
+  btnManualTextProminent: {
+    fontWeight: Typography.semibold,
+    color: Colors.accent,
   },
   quotaBanner: {
     backgroundColor: Colors.surface,

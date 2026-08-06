@@ -236,7 +236,13 @@
     "retry": "Reintentar",
     "seeSheet": "Ver la ficha →",
     "uploadImageError": "Subida de la imagen {{n}}: {{msg}}",
-    "saveImageError": "Guardado de la imagen {{n}}: {{msg}}"
+    "saveImageError": "Guardado de la imagen {{n}}: {{msg}}",
+    "readyTitle": "Ficha lista",
+    "readySub": "Elige una colección para terminar.",
+    "destinationSet": "Colección: {{name}}",
+    "destinationNone": "Sin colección",
+    "changeDestination": "Cambiar",
+    "chooseDestination": "Elegir una colección"
   },
   "capture": {
     "permissionDeniedTitle": "Permiso denegado",
@@ -264,34 +270,9 @@
     "addPhotoToContinue": "Añade una foto para continuar",
     "rechargeQuota": "Recargar mi cuota →",
     "createEmpty": "Crear una ficha vacía sin IA",
-    "titleMissingTitle": "Falta el título",
-    "titleMissingMessage": "Dale un nombre a este objeto antes de confirmar.",
-    "confirmErrorAiPending": "El análisis de IA aún no ha terminado. Inténtalo de nuevo en un momento.",
-    "confirmErrorExpired": "Este borrador ha caducado. Vuelve a empezar la captura.",
-    "confirmErrorTitle": "No se puede confirmar",
-    "cancelTitle": "¿Cancelar?",
-    "cancelMessage": "Las fotos se eliminarán y el borrador se borrará.",
-    "cancelNo": "No",
-    "cancelYes": "Sí, cancelar",
-    "aiToVerify": "✦ IA — por verificar",
-    "untitled": "Sin título",
-    "titleAiHint": "Propuesta de la IA · toca para editar",
-    "detectedByAi": "Detectado por la IA",
-    "description": "Descripción",
-    "descriptionPlaceholder": "Unas palabras sobre el objeto…",
-    "location": "Ubicación",
-    "locationPlaceholder": "Garaje, estante de arriba…",
-    "collection": "Colección",
     "noCollection": "Sin colección",
-    "newCollectionPlaceholder": "Nueva colección…",
-    "addToDrawer": "Añadir a mi Tiroir",
-    "reanalyze": "Relanzar el análisis de IA",
-    "attrBrand": "Marca",
-    "attrModel": "Modelo",
-    "attrCategory": "Categoría",
-    "attrColor": "Color",
-    "attrVoltage": "Voltaje",
-    "attrSerial": "N.º de serie"
+    "created": "Objeto creado",
+    "createdIn": "Objeto creado en {{name}}"
   },
   "status": {
     "owned": "En posesión",
@@ -669,7 +650,6 @@
     "destinationTitle": "¿Dónde guardar estos objetos?",
     "destinationSub_one": "Se añadirá {{count}} objeto a esta colección.",
     "destinationSub_other": "Se añadirán {{count}} objetos a esta colección.",
-    "noCollection": "Sin colección",
     "addMore_one": "Añadir otro objeto · queda {{count}} plaza",
     "addMore_other": "Añadir más objetos · quedan {{count}} plazas",
     "addMoreFull": "Lote completo · máx. {{max}} objetos"
@@ -718,5 +698,12 @@
     "otherCollection": "A otra colección",
     "moveInto": "En «{{name}}»",
     "selectGroup": "Seleccionar el grupo"
+  },
+  "collectionPicker": {
+    "title": "¿Dónde guardar este objeto?",
+    "helperSingle": "Elige mientras la IA prepara la ficha: no alarga nada.",
+    "helperManual": "Podrás cambiar de colección en cualquier momento.",
+    "none": "Sin colección",
+    "noneHint": "Ordenar más tarde"
   }
 }
