@@ -778,6 +778,12 @@
     "noCrop": "full photo",
     "confidence_low": "low confidence",
     "confidence_medium": "medium confidence",
-    "confidence_high": "high confidence"
+    "confidence_high": "high confidence",
+    "createCta_one": "Create 1 entry →",
+    "createCta_other": "Create {{count}} entries →",
+    "destinationHelper_one": "The entry will be created in this collection.",
+    "destinationHelper_other": "All {{count}} entries will be created in this collection.",
+    "created_one": "1 object created",
+    "created_other": "{{count}} objects created"
   }
 }

@@ -8,9 +8,12 @@ import { useTranslation } from 'react-i18next'
 import * as ImagePicker from 'expo-image-picker'
 import * as ImageManipulator from 'expo-image-manipulator'
 import * as FileSystem from 'expo-file-system/legacy'
-import { X, Camera, Images, AlertTriangle } from 'lucide-react-native'
+import { X, Camera, Images, AlertTriangle, Minus, Plus, Trash2 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
-import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import {
+  Screen, Colors, Typography, Spacing, Radius,
+  CollectionPickerSheet, PickedCollection, useToast,
+} from '@/components/ui'
 
 /**
  * Détecté par le modèle. Aucun champ n'est nullable : côté serveur une
@@ -63,12 +66,23 @@ const MODELS = [
 export default function SceneDetectionScreen() {
   const router = useRouter()
   const { t } = useTranslation()
+  const { showToast } = useToast()
 
   const [uri, setUri] = useState<string | null>(null)
   const [model, setModel] = useState(MODELS[0].id)
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState<DetectionResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  /**
+   * Revue de la détection. Le résultat du modèle n'est jamais modifié :
+   * on tient à part ce que l'utilisateur en a fait, pour qu'une nouvelle
+   * analyse reparte d'une base propre.
+   */
+  const [removed, setRemoved] = useState<Set<number>>(new Set())
+  const [quantities, setQuantities] = useState<Record<number, number>>({})
+  const [pickerVisible, setPickerVisible] = useState(false)
+  const [creating, setCreating] = useState(false)
 
   async function pick(from: 'camera' | 'library') {
     const perm = from === 'camera'
@@ -108,6 +122,8 @@ export default function SceneDetectionScreen() {
       })
       if (fnError) throw new Error(fnError.message)
       if (res?.error) throw new Error(res.error.code)
+      setRemoved(new Set())
+      setQuantities({})
       setResult(res as DetectionResult)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
@@ -116,7 +132,81 @@ export default function SceneDetectionScreen() {
     }
   }
 
-  const totalUnits = result?.objects.reduce((n, o) => n + o.quantity, 0) ?? 0
+  const qtyOf = (i: number, o: DetectedObject) => quantities[i] ?? o.quantity
+
+  const kept = (result?.objects ?? [])
+    .map((o, i) => ({ o, i }))
+    .filter(({ i }) => !removed.has(i))
+
+  const totalUnits = kept.reduce((n, { o, i }) => n + qtyOf(i, o), 0)
+
+  function setQty(i: number, next: number) {
+    setQuantities(prev => ({ ...prev, [i]: Math.max(1, Math.min(999, next)) }))
+  }
+
+  /**
+   * Une seule RPC pour tout le lot : sur onze objets, deux allers-retours
+   * chacun feraient vingt-deux appels, et un échec au milieu laisserait un
+   * inventaire à moitié créé.
+   *
+   * La photo de scène est uploadée une fois et partagée par les fiches —
+   * le découpage par objet attend que le banc dise si les boîtes du modèle
+   * sont exploitables.
+   */
+  async function create(collection: PickedCollection | null) {
+    if (!result || creating) return
+    setPickerVisible(false)
+    setCreating(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('AUTH')
+
+      let storagePath: string | null = null
+      if (uri) {
+        const resized = await ImageManipulator.manipulateAsync(
+          uri,
+          [{ resize: { width: 1200 } }],
+          { compress: 0.82, format: ImageManipulator.SaveFormat.JPEG },
+        )
+        const b64 = await FileSystem.readAsStringAsync(resized.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        })
+        const binary = atob(b64)
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+
+        const path = `${user.id}/scenes/${Date.now()}.jpg`
+        const { error: upErr } = await supabase.storage
+          .from('object-images')
+          .upload(path, bytes, { contentType: 'image/jpeg', upsert: false })
+        if (upErr) throw new Error(upErr.message)
+        storagePath = path
+      }
+
+      const { data: ids, error: rpcErr } = await supabase.rpc('create_objects_from_scene', {
+        p_objects: kept.map(({ o, i }) => ({
+          title: o.title,
+          quantity: qtyOf(i, o),
+          category: o.category,
+        })),
+        p_collection_id: collection?.id ?? null,
+        p_storage_path: storagePath,
+        p_mime_type: 'image/jpeg',
+      })
+      if (rpcErr) throw new Error(rpcErr.message)
+
+      showToast(t('scene.created', { count: (ids as unknown[])?.length ?? kept.length }))
+      if (collection) {
+        router.replace({ pathname: '/collections/[id]', params: { id: collection.id } })
+      } else {
+        router.back()
+      }
+    } catch (e) {
+      Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e))
+    } finally {
+      setCreating(false)
+    }
+  }
 
   return (
     <Screen edges={['top']} topColor={Colors.surface}>
@@ -214,26 +304,68 @@ export default function SceneDetectionScreen() {
               {t('scene.resultCount', { types: result.objects.length, units: totalUnits })}
             </Text>
 
-            {result.objects.map((o, i) => (
+            {kept.map(({ o, i }) => (
               <View key={i} style={s.row}>
-                <View style={s.rowText}>
-                  <Text style={s.rowTitle} numberOfLines={2}>{o.title}</Text>
-                  <Text style={s.rowMeta}>
-                    {[
-                      o.type + (o.variant ? ` · ${o.variant}` : ''),
-                      o.category,
-                      t(`scene.confidence_${o.confidence}`),
-                      o.discernable ? t('scene.discernable') : t('scene.notDiscernable'),
-                      o.bbox.length === 4 ? t('scene.croppable') : t('scene.noCrop'),
-                    ].filter(Boolean).join(' · ')}
-                  </Text>
+                <View style={s.rowHead}>
+                  <View style={s.rowText}>
+                    <Text style={s.rowTitle} numberOfLines={2}>{o.title}</Text>
+                    <Text style={s.rowMeta}>
+                      {[
+                        o.type + (o.variant ? ` · ${o.variant}` : ''),
+                        o.category,
+                        t(`scene.confidence_${o.confidence}`),
+                        o.discernable ? t('scene.discernable') : t('scene.notDiscernable'),
+                        o.bbox.length === 4 ? t('scene.croppable') : t('scene.noCrop'),
+                      ].filter(Boolean).join(' · ')}
+                    </Text>
+                  </View>
+                  {/* Retirer, pas supprimer : l'objet est déjà dans
+                      l'inventaire, il n'a rien à faire dans ce lot. */}
+                  <TouchableOpacity
+                    onPress={() => setRemoved(prev => new Set(prev).add(i))}
+                    hitSlop={10}
+                    style={s.rowRemove}
+                  >
+                    <Trash2 size={16} color={Colors.textTertiary} strokeWidth={1.8} />
+                  </TouchableOpacity>
                 </View>
-                <View style={s.qty}>
-                  <Text style={s.qtyValue}>×{o.quantity}</Text>
+
+                {/* La quantité est une proposition : elle se corrige ici,
+                    au moment où l'utilisateur a la photo sous les yeux. */}
+                <View style={s.qtyRow}>
+                  <TouchableOpacity
+                    style={[s.qtyBtn, qtyOf(i, o) <= 1 && s.qtyBtnOff]}
+                    onPress={() => setQty(i, qtyOf(i, o) - 1)}
+                    disabled={qtyOf(i, o) <= 1}
+                    hitSlop={8}
+                  >
+                    <Minus size={14} color={qtyOf(i, o) <= 1 ? Colors.textTertiary : Colors.textPrimary} strokeWidth={2.6} />
+                  </TouchableOpacity>
+                  <Text style={s.qtyValue}>×{qtyOf(i, o)}</Text>
+                  <TouchableOpacity
+                    style={s.qtyBtn}
+                    onPress={() => setQty(i, qtyOf(i, o) + 1)}
+                    hitSlop={8}
+                  >
+                    <Plus size={14} color={Colors.textPrimary} strokeWidth={2.6} />
+                  </TouchableOpacity>
                   {!o.quantity_certain && <Text style={s.qtyDoubt}>{t('scene.approx')}</Text>}
                 </View>
               </View>
             ))}
+
+            {kept.length > 0 && (
+              <TouchableOpacity
+                style={[s.cta, creating && s.ctaOff]}
+                onPress={() => setPickerVisible(true)}
+                disabled={creating}
+                activeOpacity={0.85}
+              >
+                {creating
+                  ? <ActivityIndicator color={Colors.textInverse} />
+                  : <Text style={s.ctaText}>{t('scene.createCta', { count: kept.length })}</Text>}
+              </TouchableOpacity>
+            )}
 
             {/* Mesure du banc : coût et latence réels, pas un forfait. */}
             <View style={s.metaBox}>
@@ -248,6 +380,15 @@ export default function SceneDetectionScreen() {
           </>
         )}
       </ScrollView>
+
+      <CollectionPickerSheet
+        visible={pickerVisible}
+        title={t('collectionPicker.title')}
+        helper={t('scene.destinationHelper', { count: kept.length })}
+        busy={creating}
+        onSelect={create}
+        onDismiss={() => setPickerVisible(false)}
+      />
     </Screen>
   )
 }
@@ -320,17 +461,28 @@ const s = StyleSheet.create({
   },
 
   row: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
     backgroundColor: Colors.surface, borderRadius: Radius.md,
     borderWidth: 0.5, borderColor: Colors.border,
     padding: Spacing.md,
   },
+  rowHead: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm },
+  rowRemove: { padding: 2 },
   rowText: { flex: 1, gap: 2 },
   rowTitle: { fontSize: Typography.base, fontWeight: Typography.medium, color: Colors.textPrimary },
   rowMeta: { fontSize: Typography.xs, color: Colors.textTertiary, lineHeight: Typography.xs * 1.45 },
-  qty: { alignItems: 'flex-end' },
-  qtyValue: { fontSize: Typography.lg, fontWeight: Typography.bold, color: Colors.textPrimary },
-  qtyDoubt: { fontSize: 9, color: '#C2410C', fontWeight: Typography.semibold },
+  qtyRow: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    marginTop: Spacing.sm, paddingTop: Spacing.sm,
+    borderTopWidth: 1, borderTopColor: Colors.borderLight,
+  },
+  qtyBtn: {
+    width: 26, height: 26, borderRadius: 13,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.surfaceWarm,
+  },
+  qtyBtnOff: { backgroundColor: 'transparent' },
+  qtyValue: { fontSize: Typography.md, fontWeight: Typography.bold, color: Colors.textPrimary, minWidth: 40 },
+  qtyDoubt: { flex: 1, fontSize: Typography.xs, color: '#C2410C', fontWeight: Typography.semibold },
 
   metaBox: {
     backgroundColor: Colors.surfaceWarm, borderRadius: Radius.md,

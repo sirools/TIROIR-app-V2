@@ -778,6 +778,12 @@
     "noCrop": "foto completa",
     "confidence_low": "confianza baja",
     "confidence_medium": "confianza media",
-    "confidence_high": "confianza alta"
+    "confidence_high": "confianza alta",
+    "createCta_one": "Crear 1 ficha →",
+    "createCta_other": "Crear {{count}} fichas →",
+    "destinationHelper_one": "La ficha se creará en esta colección.",
+    "destinationHelper_other": "Las {{count}} fichas se crearán en esta colección.",
+    "created_one": "1 objeto creado",
+    "created_other": "{{count}} objetos creados"
   }
 }

@@ -778,6 +778,12 @@
     "noCrop": "ganzes Foto",
     "confidence_low": "geringe Sicherheit",
     "confidence_medium": "mittlere Sicherheit",
-    "confidence_high": "hohe Sicherheit"
+    "confidence_high": "hohe Sicherheit",
+    "createCta_one": "1 Eintrag erstellen →",
+    "createCta_other": "{{count}} Einträge erstellen →",
+    "destinationHelper_one": "Der Eintrag wird in dieser Sammlung erstellt.",
+    "destinationHelper_other": "Alle {{count}} Einträge werden in dieser Sammlung erstellt.",
+    "created_one": "1 Gegenstand erstellt",
+    "created_other": "{{count}} Gegenstände erstellt"
   }
 }
