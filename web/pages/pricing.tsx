@@ -6,14 +6,19 @@ import StoreButtons from '../components/StoreButtons'
 // Les quotas ci-dessous doivent rester alignés sur app_settings (onglet Quotas
 // du dashboard admin) : free_objects_max, free_ai_quota_monthly,
 // free_photos_per_object, premium_ai_quota_monthly,
-// premium_photo_enhance_quota_monthly.
+// premium_photo_enhance_quota_monthly, et les trois
+// *_value_estimate_monthly.
+//
+// L'estimation de valeur marchande est la fonction la plus chère de l'app
+// (recherche web + modèle) : elle est annoncée avec son propre plafond, pas
+// diluée dans les « analyses IA ».
 const FREE_FEATURES = [
   '100 objets',
   '10 analyses IA / mois',
   "Jusqu'à 3 photos par objet",
   'Collections & recherche',
   'Partage par lien',
-  'Valeur marché estimée',
+  '3 estimations de valeur / mois',
 ]
 
 const PREMIUM_FEATURES = [
@@ -21,8 +26,9 @@ const PREMIUM_FEATURES = [
   '60 analyses IA / mois',
   'Photos multiples par objet',
   '20 améliorations photo IA / mois',
+  '20 estimations de valeur / mois',
   'Ajout multiple en rafale',
-  'Assistant IA & estimation du prix de vente',
+  'Assistant IA & aide au prix de vente',
   'Documents joints & suivi des assurances',
   'Toutes les futures fonctionnalités',
 ]
@@ -31,6 +37,7 @@ const PRO_FEATURES = [
   'Tout le Premium, sans les limites',
   '300 analyses IA / mois',
   '100 améliorations photo IA / mois',
+  '60 estimations de valeur / mois',
   'Inventaires volumineux (brocante, atelier, agence)',
   'Export des inventaires pour un assureur ou un expert',
   'Facturation sur facture, sans commission de store',
@@ -43,9 +50,11 @@ const HIGHLIGHTED = new Set([
   'Objets illimités',
   '60 analyses IA / mois',
   '20 améliorations photo IA / mois',
+  '20 estimations de valeur / mois',
   'Tout le Premium, sans les limites',
   '300 analyses IA / mois',
   '100 améliorations photo IA / mois',
+  '60 estimations de valeur / mois',
 ])
 
 const FAQ = [
@@ -56,6 +65,10 @@ const FAQ = [
   {
     q: 'Qu\'est-ce qu\'une "analyse IA" ?',
     a: 'Chaque fois que vous photographiez un objet, Tiroir envoie les images à un modèle d\'intelligence artificielle (Claude d\'Anthropic) qui génère automatiquement le titre, la description, la catégorie et les attributs. C\'est cette opération qui consomme un crédit d\'analyse.',
+  },
+  {
+    q: 'Et une "estimation de valeur" ?',
+    a: 'C\'est une recherche d\'annonces comparables (leboncoin, Vinted, eBay, Facebook Marketplace) suivie d\'une synthèse par l\'IA, avec les liens vers les annonces trouvées. Elle mobilise une recherche web en plus du modèle, ce qui la rend nettement plus coûteuse qu\'une analyse de photo : elle a donc son propre quota, plus serré.',
   },
   {
     q: 'La version gratuite est-elle vraiment gratuite ?',
