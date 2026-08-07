@@ -21,8 +21,23 @@ const CORS_HEADERS: Record<string, string> = {
 }
 
 
-/** Modèle de production. Les autres ne servent qu'au banc d'essai. */
+/** Modèle par défaut, et repli si un plan inconnu apparaissait. */
 const DEFAULT_MODEL = 'claude-haiku-4-5'
+
+/**
+ * Le modèle suit le plan.
+ *
+ * C'est le seul levier qui compte sur cette fonctionnalité : à travail
+ * identique, la facture varie d'un facteur 17 entre Haiku et Opus. Ouvrir
+ * la détection de scène à tout le monde ne coûte rien tant que le gratuit
+ * reste sur Haiku — 0,74 c la scène, soit 7 c pour un quota mensuel
+ * entier.
+ */
+const MODEL_BY_PLAN: Record<string, string> = {
+  free: 'claude-haiku-4-5',
+  premium: 'claude-sonnet-5',
+  pro: 'claude-opus-5',
+}
 
 /** Types acceptés par le bucket object-images et par scene_analyses. */
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
@@ -108,7 +123,7 @@ Deno.serve(async (req: Request) => {
     // cette fonction agit en service_role, auth.uid() y est nul.
     const [{ data: settings }, { data: profile }] = await Promise.all([
       supabase.from('app_settings').select('multi_add_audience').eq('id', 1).single(),
-      supabase.from('profiles').select('plan, is_admin').eq('id', user.id).single(),
+      supabase.from('profiles').select('plan, is_admin, pro_expires_at').eq('id', user.id).single(),
     ])
 
     const audience = settings?.multi_add_audience ?? 'admin'
@@ -125,9 +140,25 @@ Deno.serve(async (req: Request) => {
     const image = body?.image
     if (!image?.data || typeof image.data !== 'string') return err(400, 'MISSING_IMAGE')
 
-    const model = typeof body?.model === 'string' && PRICING[body.model]
+    // ── Le modèle est une conséquence du plan, pas un choix ────────────
+    // L'écart Haiku/Opus est de 1 à 17 en coût. Laisser le client le
+    // désigner reviendrait à laisser l'utilisateur fixer sa facture — et
+    // il choisirait toujours le plus cher, sans savoir ce que ça change.
+    //
+    // Un forfait 'pro' périmé retombe en gratuit : sans ça, il garderait
+    // Opus avec un quota de compte gratuit.
+    const effective = plan === 'pro' && profile?.pro_expires_at
+      && profile.pro_expires_at < new Date().toISOString().slice(0, 10)
+      ? 'free'
+      : plan
+
+    const planModel = MODEL_BY_PLAN[effective] ?? DEFAULT_MODEL
+
+    // Seul un admin peut imposer un modèle : c'est le banc d'essai, il
+    // doit rester pilotable pour comparer les sorties.
+    const model = isAdmin && typeof body?.model === 'string' && PRICING[body.model]
       ? body.model
-      : DEFAULT_MODEL
+      : planModel
 
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
     if (!apiKey) {

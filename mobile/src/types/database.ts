@@ -11,6 +11,8 @@ export interface Profile {
   display_name: string | null
   avatar_url: string | null
   plan: 'free' | 'premium' | 'pro'
+  /** Compte d'administration : donne accès aux instruments de mesure. */
+  is_admin: boolean
   pro_since: string | null
   pro_expires_at: string | null
   pro_invoice_ref: string | null

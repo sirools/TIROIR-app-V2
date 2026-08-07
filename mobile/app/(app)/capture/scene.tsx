@@ -10,6 +10,7 @@ import * as ImageManipulator from 'expo-image-manipulator'
 import * as FileSystem from 'expo-file-system/legacy'
 import { ArrowLeft, Camera, Images, AlertTriangle, Minus, Plus, Trash2, RotateCcw, Sparkles } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/features/auth/AuthContext'
 import { functionMessage } from '@/lib/functionError'
 import { cropSceneObjects, ensureLocalScenePhoto, SceneCrop } from '@/services/sceneCrops'
 import {
@@ -122,6 +123,14 @@ function toResult(row: SceneRow): DetectionResult {
  */
 const BENCH_WIDTH = 1568
 
+/**
+ * Banc d'essai, réservé aux comptes d'administration.
+ *
+ * Pour tout le monde d'autre, le modèle est une conséquence du plan et se
+ * décide côté serveur : l'écart de coût est de 1 à 17, et un utilisateur
+ * à qui on présente trois boutons prendra toujours le plus cher sans
+ * savoir ce qu'il change.
+ */
 const MODELS = [
   { id: 'claude-haiku-4-5', label: 'Haiku 4.5' },
   { id: 'claude-sonnet-5', label: 'Sonnet 5' },
@@ -132,6 +141,8 @@ export default function SceneDetectionScreen() {
   const router = useRouter()
   const { t, i18n } = useTranslation()
   const { showToast } = useToast()
+  const { profile } = useAuth()
+  const isAdmin = Boolean(profile?.is_admin)
 
   const [uri, setUri] = useState<string | null>(null)
   const [model, setModel] = useState(MODELS[0].id)
@@ -388,7 +399,9 @@ export default function SceneDetectionScreen() {
       })
 
       const { data: res, error: fnError } = await supabase.functions.invoke('detect-scene', {
-        body: { image: { data, media_type: 'image/jpeg' }, model },
+        // Envoyé seulement par un admin : le serveur ignore ce champ pour
+        // tous les autres, mais autant ne pas le transmettre du tout.
+        body: { image: { data, media_type: 'image/jpeg' }, ...(isAdmin ? { model } : {}) },
       })
       // Le motif — quota atteint, modèle indisponible — vit dans le corps
       // de la réponse ; `invoke` ne rend qu'un « non-2xx status code ».
@@ -625,9 +638,9 @@ export default function SceneDetectionScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Sélecteur de modèle — instrument du banc, pas une option produit.
-            Il disparaîtra quand le modèle sera arrêté. */}
-        {uri && (
+        {/* Instrument de banc : le modèle est décidé par le plan côté
+            serveur, seul un admin peut encore le forcer. */}
+        {uri && isAdmin && (
           <View style={s.modelRow}>
             {MODELS.map(m => (
               <TouchableOpacity
