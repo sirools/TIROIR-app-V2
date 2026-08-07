@@ -1,0 +1,7 @@
+
+# L'appelant est pg_cron, pas un utilisateur. La verification JWT ne
+# protegerait rien ici : une cle anon est un JWT valide, n'importe qui
+# pourrait donc declencher une fonction qui expedie du courrier.
+# L'authentification se fait par secret partage, compare en base.
+[functions.send-lifecycle-emails]
+verify_jwt = false

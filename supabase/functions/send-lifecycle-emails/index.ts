@@ -129,17 +129,6 @@ Deno.serve(async (req: Request) => {
     return new Response('Method not allowed', { status: 405 })
   }
 
-  // Secret partagé plutôt que JWT : l'appelant est pg_cron, pas un
-  // utilisateur. Un JWT anonyme suffirait à atteindre la fonction, et
-  // celle-ci expédie du courrier — elle ne doit être déclenchable que
-  // par ce qui détient le secret.
-  const secret = Deno.env.get('CRON_SECRET')
-  if (!secret || req.headers.get('x-cron-secret') !== secret) {
-    return new Response(JSON.stringify({ error: 'unauthorized' }), {
-      status: 401, headers: { 'Content-Type': 'application/json' },
-    })
-  }
-
   const apiKey = Deno.env.get('RESEND_API_KEY')
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'RESEND_API_KEY manquante' }), {
@@ -152,12 +141,35 @@ Deno.serve(async (req: Request) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   )
 
+  // Secret partagé plutôt que JWT : l'appelant est pg_cron, pas un
+  // utilisateur. Un JWT anonyme est un JWT valide — `verify_jwt` seul
+  // laisserait donc n'importe qui déclencher une fonction qui expédie du
+  // courrier.
+  //
+  // Le secret n'est ni dans l'environnement, ni dans la commande du
+  // cron : il vit dans le Vault, et la comparaison se fait EN BASE. Ni
+  // ce code, ni `cron.job`, ni un journal de déploiement n'en détiennent
+  // donc une copie en clair.
+  const presente = req.headers.get('x-cron-secret') ?? ''
+  const { data: autorise, error: erreurSecret } =
+    await supabase.rpc('cron_secret_matches', { p_secret: presente })
+
+  if (erreurSecret || autorise !== true) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401, headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
   let limite: number | null = null
   let simulation = false
+  let cible: string | null = null
   try {
     const corps = await req.json()
     if (typeof corps?.limit === 'number') limite = Math.min(200, Math.max(1, corps.limit))
     simulation = corps?.dry_run === true
+    // Un exemplaire vers un compte precis, pour controler le rendu dans
+    // un vrai client mail avant d'ouvrir la campagne.
+    if (typeof corps?.only_user === 'string') cible = corps.only_user
   } catch { /* corps vide : on prend les réglages de la base */ }
 
   // L'adresse postale est lue ici uniquement pour le rendu ; c'est la
@@ -181,7 +193,9 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: destinataires, error } = await supabase
-    .rpc('claim_lifecycle_recipients', { p_campaign: CAMPAGNE, p_limit: limite })
+    .rpc('claim_lifecycle_recipients', {
+      p_campaign: CAMPAGNE, p_limit: limite, p_only_user: cible,
+    })
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
