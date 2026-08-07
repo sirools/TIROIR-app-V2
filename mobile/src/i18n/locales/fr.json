@@ -793,7 +793,8 @@
     "created_desc": "Plus récentes",
     "name_asc": "A → Z",
     "count_desc": "Plus fournies",
-    "count_asc": "Moins fournies"
+    "count_asc": "Moins fournies",
+    "updated_desc": "Modifiées récemment"
   },
   "groups": {
     "action": "Grouper",

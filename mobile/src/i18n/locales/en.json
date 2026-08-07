@@ -793,7 +793,8 @@
     "created_desc": "Newest first",
     "name_asc": "A → Z",
     "count_desc": "Most items",
-    "count_asc": "Fewest items"
+    "count_asc": "Fewest items",
+    "updated_desc": "Recently updated"
   },
   "groups": {
     "action": "Group",

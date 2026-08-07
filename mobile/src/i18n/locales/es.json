@@ -793,7 +793,8 @@
     "created_desc": "Más recientes",
     "name_asc": "A → Z",
     "count_desc": "Más objetos",
-    "count_asc": "Menos objetos"
+    "count_asc": "Menos objetos",
+    "updated_desc": "Modificadas recientemente"
   },
   "groups": {
     "action": "Agrupar",

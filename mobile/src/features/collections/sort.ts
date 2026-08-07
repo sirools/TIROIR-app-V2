@@ -3,14 +3,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 /**
  * Tri de la liste des collections.
  *
- * L'ordre par défaut est l'ordre d'ajout : une collection créée apparaît
+ * L'ordre par défaut reste l'ordre d'ajout : une collection créée apparaît
  * à la suite des précédentes, à la place où l'utilisateur vient de la
- * saisir. Trier par `updated_at` ferait bouger la liste à chaque
- * modification, ce qui désoriente dès qu'on a plus de quelques entrées.
+ * saisir. Trier par activité ferait bouger la liste à chaque modification,
+ * ce qui désoriente quand on ne l'a pas demandé — c'est donc un choix
+ * explicite, jamais un défaut.
  */
 export type CollectionSort =
   | 'created_asc'
   | 'created_desc'
+  | 'updated_desc'
   | 'name_asc'
   | 'count_desc'
   | 'count_asc'
@@ -18,6 +20,7 @@ export type CollectionSort =
 export const COLLECTION_SORTS: CollectionSort[] = [
   'created_asc',
   'created_desc',
+  'updated_desc',
   'name_asc',
   'count_desc',
   'count_asc',
@@ -31,6 +34,11 @@ export const sortLabelKey = (sort: CollectionSort) => `collectionSort.${sort}`
 export interface SortableCollection {
   name: string
   created_at: string
+  /**
+   * Dernière activité dans la collection : elle-même OU l'un de ses
+   * objets. Calculée par `list_collections_with_counts`.
+   */
+  last_activity_at?: string | null
   pinned_at: string | null
   object_count: number
 }
@@ -61,6 +69,11 @@ function comparator(sort: CollectionSort) {
         return a.created_at.localeCompare(b.created_at)
       case 'created_desc':
         return b.created_at.localeCompare(a.created_at)
+      case 'updated_desc':
+        // Repli sur la date de création : une collection jamais touchée
+        // depuis sa création a les deux valeurs égales de toute façon.
+        return (b.last_activity_at ?? b.created_at)
+          .localeCompare(a.last_activity_at ?? a.created_at)
       case 'name_asc':
         return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
       case 'count_desc':

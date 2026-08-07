@@ -793,7 +793,8 @@
     "created_desc": "Neueste zuerst",
     "name_asc": "A → Z",
     "count_desc": "Meiste Objekte",
-    "count_asc": "Wenigste Objekte"
+    "count_asc": "Wenigste Objekte",
+    "updated_desc": "Zuletzt geändert"
   },
   "groups": {
     "action": "Gruppieren",

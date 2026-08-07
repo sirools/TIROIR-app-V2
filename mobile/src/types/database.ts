@@ -41,6 +41,12 @@ export interface Collection {
   pinned_at: string | null
   created_at: string
   updated_at: string
+  /**
+   * Dernière activité : la collection elle-même OU l'un de ses objets.
+   * Calculée à la lecture par `list_collections_with_counts`, absente
+   * d'un SELECT direct sur la table.
+   */
+  last_activity_at?: string | null
 }
 
 export interface ValueSource {
