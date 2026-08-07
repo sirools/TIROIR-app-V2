@@ -124,7 +124,8 @@
     "deleteCollectionTitle": "¿Eliminar «{{name}}»?",
     "deleteCollectionWithObjects_one": "Contiene {{count}} objeto. Los objetos permanecerán en tu Tiroir.",
     "deleteCollectionWithObjects_other": "Contiene {{count}} objetos. Los objetos permanecerán en tu Tiroir.",
-    "deleteCollectionIrreversible": "Esta acción es irreversible."
+    "deleteCollectionIrreversible": "Esta acción es irreversible.",
+    "loading": "Cargando tus colecciones…"
   },
   "profile": {
     "title": "Mi perfil",
@@ -199,7 +200,15 @@
     "deleteWithObjects_other": "Esta colección contiene {{count}} objetos. Los objetos no se eliminarán pero perderán su colección.",
     "deleteIrreversible": "Esta acción es irreversible.",
     "pin": "Fijar",
-    "unpin": "Quitar fijado"
+    "unpin": "Quitar fijado",
+    "edit": "Editar",
+    "editTitle": "Editar la colección",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "Armario, garaje, taller…",
+    "tabIcon": "Icono",
+    "tabPhoto": "Foto",
+    "photoHint": "Una foto del lugar se reconoce más rápido que un icono.",
+    "photoRemove": "Quitar la foto"
   },
   "search": {
     "title": "Buscar",

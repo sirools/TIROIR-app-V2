@@ -12,11 +12,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
+import { Image } from 'react-native'
 import { Pin } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import {
-  ActionSheet, CollectionComposer, PromptDialog,
+  ActionSheet, CollectionComposer, PromptDialog, TiroirLoader,
+  CollectionEditSheet, EditableCollection, CollectionPatch,
   Colors, Typography, Spacing, Radius,
 } from '@/components/ui'
 import { CollectionSortButton } from '@/components/CollectionSortButton'
@@ -45,13 +47,38 @@ export default function HomeScreen() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [sort, setSort] = useState<CollectionSort>(DEFAULT_COLLECTION_SORT)
   const [actionTarget, setActionTarget] = useState<CollectionWithCount | null>(null)
-  const [renameTarget, setRenameTarget] = useState<CollectionWithCount | null>(null)
+  const [editTarget, setEditTarget] = useState<CollectionWithCount | null>(null)
+
+  /**
+   * Vrai jusqu'à la première réponse. Sans cet état, l'accueil affichait
+   * « aucune collection » pendant une seconde à quelqu'un qui en a dix —
+   * un état vide affiché à tort annonce une perte.
+   */
+  const [loading, setLoading] = useState(true)
+
+  /** URLs signées des couvertures, par identifiant de collection. */
+  const [covers, setCovers] = useState<Record<string, string>>({})
 
   useEffect(() => { loadCollectionSort().then(setSort) }, [])
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.rpc('list_collections_with_counts')
-    if (!error) setCollections((data ?? []) as CollectionWithCount[])
+    if (!error) {
+      const rows = (data ?? []) as CollectionWithCount[]
+      setCollections(rows)
+
+      const paths = rows.map(c => c.cover_image_path).filter(Boolean) as string[]
+      if (paths.length > 0) {
+        const { data: signed } = await supabase.storage
+          .from('object-images').createSignedUrls(paths, 3600)
+        setCovers(Object.fromEntries(
+          (signed ?? []).filter(x => x.signedUrl).map(x => [x.path, x.signedUrl]),
+        ))
+      } else {
+        setCovers({})
+      }
+    }
+    setLoading(false)
     setRefreshing(false)
   }, [])
 
@@ -101,12 +128,21 @@ export default function HomeScreen() {
     )
   }
 
-  async function handleRename(col: CollectionWithCount, name: string) {
-    setRenameTarget(null)
-    if (name === col.name) return
-    const { error } = await supabase.from('collections').update({ name }).eq('id', col.id)
-    if (error) { Alert.alert(t('common.error'), error.message); return }
-    setCollections(prev => prev.map(c => c.id === col.id ? { ...c, name } : c))
+  /**
+   * La feuille a déjà écrit en base : on aligne l'écran plutôt que de
+   * recharger toute la liste pour un champ.
+   */
+  async function applyPatch(id: string, patch: CollectionPatch) {
+    setCollections(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c))
+
+    // Une couverture qui vient d'être posée n'a pas encore d'URL signée.
+    if (patch.cover_image_path && !covers[patch.cover_image_path]) {
+      const { data } = await supabase.storage
+        .from('object-images').createSignedUrl(patch.cover_image_path, 3600)
+      if (data?.signedUrl) {
+        setCovers(prev => ({ ...prev, [patch.cover_image_path!]: data.signedUrl }))
+      }
+    }
   }
 
   function handleDeleteCollection(col: CollectionWithCount) {
@@ -166,6 +202,9 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {loading ? (
+          <TiroirLoader label={t('home.loading')} />
+        ) : (
         <View style={styles.collectionList}>
           {ordered.map(col => (
             <TouchableOpacity
@@ -176,9 +215,19 @@ export default function HomeScreen() {
               delayLongPress={300}
               activeOpacity={0.75}
             >
-              <View style={[styles.collectionIcon, { backgroundColor: col.icon_color ?? '#E8F0E0' }]}>
-                <Text style={styles.collectionIconText}>{col.emoji ?? '📦'}</Text>
-              </View>
+              {/* Photo ou emoji, jamais les deux : deux repères concurrents
+                  sur la même vignette se nuisent. */}
+              {col.cover_image_path && covers[col.cover_image_path] ? (
+                <Image
+                  source={{ uri: covers[col.cover_image_path] }}
+                  style={styles.collectionIcon}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={[styles.collectionIcon, { backgroundColor: col.icon_color ?? '#E8F0E0' }]}>
+                  <Text style={styles.collectionIconText}>{col.emoji ?? '📦'}</Text>
+                </View>
+              )}
               <View style={styles.collectionInfo}>
                 <View style={styles.collectionNameRow}>
                   {col.pinned_at && (
@@ -201,6 +250,7 @@ export default function HomeScreen() {
             onCreate={handleCreate}
           />
         </View>
+        )}
       </ScrollView>
 
       {/* Appui long sur une collection : les actions rares vivent ici,
@@ -214,8 +264,8 @@ export default function HomeScreen() {
             onPress: () => togglePin(actionTarget),
           },
           {
-            label: t('collections.rename'),
-            onPress: () => afterSheet(() => setRenameTarget(actionTarget)),
+            label: t('collections.edit'),
+            onPress: () => afterSheet(() => setEditTarget(actionTarget)),
           },
           {
             label: t('common.delete'),
@@ -226,14 +276,11 @@ export default function HomeScreen() {
         ] : []}
       />
 
-      <PromptDialog
-        visible={!!renameTarget}
-        title={t('collectionDetail.renameTitle')}
-        placeholder={t('collectionDetail.renamePlaceholder')}
-        initialValue={renameTarget?.name ?? ''}
-        confirmLabel={t('collections.rename')}
-        onConfirm={name => renameTarget && handleRename(renameTarget, name)}
-        onClose={() => setRenameTarget(null)}
+      <CollectionEditSheet
+        visible={!!editTarget}
+        collection={editTarget as EditableCollection | null}
+        onClose={() => setEditTarget(null)}
+        onSaved={patch => applyPatch(editTarget!.id, patch)}
       />
 
       <GlobalMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />

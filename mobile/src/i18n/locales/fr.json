@@ -124,7 +124,8 @@
     "deleteCollectionTitle": "Supprimer « {{name}} » ?",
     "deleteCollectionWithObjects_one": "Elle contient {{count}} objet. Les objets resteront dans ton Tiroir.",
     "deleteCollectionWithObjects_other": "Elle contient {{count}} objets. Les objets resteront dans ton Tiroir.",
-    "deleteCollectionIrreversible": "Cette action est irréversible."
+    "deleteCollectionIrreversible": "Cette action est irréversible.",
+    "loading": "Chargement de tes collections…"
   },
   "profile": {
     "title": "Mon Profil",
@@ -199,7 +200,15 @@
     "deleteWithObjects_other": "Cette collection contient {{count}} objets. Les objets ne seront pas supprimés mais perdront leur collection.",
     "deleteIrreversible": "Cette action est irréversible.",
     "pin": "Épingler",
-    "unpin": "Retirer l'épingle"
+    "unpin": "Retirer l'épingle",
+    "edit": "Modifier",
+    "editTitle": "Modifier la collection",
+    "nameLabel": "Nom",
+    "namePlaceholder": "Dressing, garage, atelier…",
+    "tabIcon": "Icône",
+    "tabPhoto": "Photo",
+    "photoHint": "Une photo du lieu se reconnaît plus vite qu'une icône.",
+    "photoRemove": "Retirer la photo"
   },
   "search": {
     "title": "Rechercher",

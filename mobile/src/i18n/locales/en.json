@@ -124,7 +124,8 @@
     "deleteCollectionTitle": "Delete \"{{name}}\"?",
     "deleteCollectionWithObjects_one": "It contains {{count}} item. The items will stay in your Tiroir.",
     "deleteCollectionWithObjects_other": "It contains {{count}} items. The items will stay in your Tiroir.",
-    "deleteCollectionIrreversible": "This action is irreversible."
+    "deleteCollectionIrreversible": "This action is irreversible.",
+    "loading": "Loading your collections…"
   },
   "profile": {
     "title": "My Profile",
@@ -199,7 +200,15 @@
     "deleteWithObjects_other": "This collection contains {{count}} items. The items won't be deleted but will lose their collection.",
     "deleteIrreversible": "This action is irreversible.",
     "pin": "Pin",
-    "unpin": "Unpin"
+    "unpin": "Unpin",
+    "edit": "Edit",
+    "editTitle": "Edit collection",
+    "nameLabel": "Name",
+    "namePlaceholder": "Wardrobe, garage, workshop…",
+    "tabIcon": "Icon",
+    "tabPhoto": "Photo",
+    "photoHint": "A photo of the place is recognised faster than an icon.",
+    "photoRemove": "Remove the photo"
   },
   "search": {
     "title": "Search",

@@ -13,7 +13,8 @@ import {
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import {
-  Screen, EmptyState, IconPicker, ActionSheet, PromptDialog,
+  Screen, EmptyState, ActionSheet, PromptDialog,
+  CollectionEditSheet, EditableCollection, CollectionPatch,
   Colors, Typography, Spacing, Radius,
 } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
@@ -579,6 +580,7 @@ export default function CollectionDetailScreen() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [pickerVisible, setPickerVisible] = useState(false)
+  const [coverUrl, setCoverUrl] = useState<string | null>(null)
   const [menuVisible, setMenuVisible] = useState(false)
   const [renameVisible, setRenameVisible] = useState(false)
   const [renameValue, setRenameValue] = useState('')
@@ -619,7 +621,19 @@ export default function CollectionDetailScreen() {
       supabase.from('object_groups').select('*').eq('collection_id', id)
         .order('position').order('created_at'),
     ])
-    if (!colRes.error) setCollection(colRes.data as Collection)
+    if (!colRes.error) {
+      const col = colRes.data as Collection
+      setCollection(col)
+      // La couverture ne descend pas avec la ligne : elle vit en Storage
+      // et demande une URL signée.
+      if (col.cover_image_path) {
+        const { data } = await supabase.storage
+          .from('object-images').createSignedUrl(col.cover_image_path, 3600)
+        setCoverUrl(data?.signedUrl ?? null)
+      } else {
+        setCoverUrl(null)
+      }
+    }
     if (!grpRes.error) setGroups((grpRes.data ?? []) as ObjectGroup[])
     const objs: TiroirObject[] = objRes.error ? [] : (objRes.data as TiroirObject[])
     setObjects(objs)
@@ -647,19 +661,22 @@ export default function CollectionDetailScreen() {
 
   function onRefresh() { setRefreshing(true); load() }
 
-  async function handleIconSave(emoji: string, color: string) {
+  /**
+   * La feuille a déjà écrit en base. On aligne l'écran, et le cache
+   * d'icônes — il sert à afficher la bonne pastille avant que la liste
+   * n'ait rechargé.
+   */
+  async function handleCollectionSaved(patch: CollectionPatch) {
     if (!collection) return
-    const collectionId = collection.id
-    setIconOverride(collectionId, emoji, color)
-    setCollection(prev => prev ? { ...prev, emoji, icon_color: color } : prev)
-    setPickerVisible(false)
-    const { error } = await supabase
-      .from('collections')
-      .update({ emoji, icon_color: color, updated_at: new Date().toISOString() })
-      .eq('id', collectionId)
-    if (error) {
-      Alert.alert(t('common.error'), error.message)
-      setCollection(prev => prev ? { ...prev, emoji: collection.emoji, icon_color: collection.icon_color } : prev)
+    setIconOverride(collection.id, patch.emoji, patch.icon_color)
+    setCollection(prev => prev ? { ...prev, ...patch } : prev)
+
+    if (patch.cover_image_path) {
+      const { data } = await supabase.storage
+        .from('object-images').createSignedUrl(patch.cover_image_path, 3600)
+      setCoverUrl(data?.signedUrl ?? null)
+    } else {
+      setCoverUrl(null)
     }
   }
 
@@ -960,11 +977,20 @@ export default function CollectionDetailScreen() {
                 onPress={() => setPickerVisible(true)}
                 activeOpacity={0.7}
                 hitSlop={8}
-                style={[styles.headerIcon, { backgroundColor: collection.icon_color ?? '#E8F0E0' }]}
               >
-                <Text style={styles.headerIconEmoji}>{collection.emoji ?? '📦'}</Text>
+                {/* Photo ou emoji, jamais les deux — même règle que sur
+                    l'accueil, sinon les deux écrans se contrediraient. */}
+                {collection.cover_image_path && coverUrl ? (
+                  <Image source={{ uri: coverUrl }} style={styles.headerIcon} resizeMode="cover" />
+                ) : (
+                  <View style={[styles.headerIcon, { backgroundColor: collection.icon_color ?? '#E8F0E0' }]}>
+                    <Text style={styles.headerIconEmoji}>{collection.emoji ?? '📦'}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
-              <TouchableOpacity onPress={doRename} activeOpacity={0.7} style={styles.headerTitleBtn} hitSlop={6}>
+              {/* Le nom ouvre la même feuille : le renommage n'est plus une
+                  action à part, c'est un champ de l'édition. */}
+              <TouchableOpacity onPress={() => setPickerVisible(true)} activeOpacity={0.7} style={styles.headerTitleBtn} hitSlop={6}>
                 <Text style={styles.headerTitle} numberOfLines={1}>{collection.name}</Text>
               </TouchableOpacity>
               <Text style={styles.headerCount}>({objects.length})</Text>
@@ -1114,13 +1140,12 @@ export default function CollectionDetailScreen() {
         </View>
       </Modal>
 
-      {/* Picker icône */}
-      <IconPicker
+      {/* Édition de la collection : nom, icône ou photo */}
+      <CollectionEditSheet
         visible={pickerVisible}
-        currentEmoji={collection.emoji ?? '📦'}
-        currentColor={collection.icon_color ?? '#E8F0E0'}
-        onSave={handleIconSave}
+        collection={collection as EditableCollection}
         onClose={() => setPickerVisible(false)}
+        onSaved={handleCollectionSaved}
       />
 
       {/* Panneau personnalisation */}

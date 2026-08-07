@@ -124,7 +124,8 @@
     "deleteCollectionTitle": "„{{name}}“ löschen?",
     "deleteCollectionWithObjects_one": "Sie enthält {{count}} Objekt. Die Objekte bleiben in deinem Tiroir.",
     "deleteCollectionWithObjects_other": "Sie enthält {{count}} Objekte. Die Objekte bleiben in deinem Tiroir.",
-    "deleteCollectionIrreversible": "Diese Aktion ist unwiderruflich."
+    "deleteCollectionIrreversible": "Diese Aktion ist unwiderruflich.",
+    "loading": "Sammlungen werden geladen…"
   },
   "profile": {
     "title": "Mein Profil",
@@ -199,7 +200,15 @@
     "deleteWithObjects_other": "Diese Sammlung enthält {{count}} Objekte. Die Objekte werden nicht gelöscht, verlieren aber ihre Sammlung.",
     "deleteIrreversible": "Diese Aktion ist unwiderruflich.",
     "pin": "Anheften",
-    "unpin": "Lösen"
+    "unpin": "Lösen",
+    "edit": "Bearbeiten",
+    "editTitle": "Sammlung bearbeiten",
+    "nameLabel": "Name",
+    "namePlaceholder": "Kleiderschrank, Garage, Werkstatt…",
+    "tabIcon": "Symbol",
+    "tabPhoto": "Foto",
+    "photoHint": "Ein Foto des Orts erkennt man schneller als ein Symbol.",
+    "photoRemove": "Foto entfernen"
   },
   "search": {
     "title": "Suchen",

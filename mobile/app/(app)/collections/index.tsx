@@ -14,7 +14,8 @@ import { useTranslation } from 'react-i18next'
 import { Pin } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import {
-  Screen, ActionSheet, IconPicker, CollectionComposer, PromptDialog,
+  Screen, ActionSheet, CollectionComposer, PromptDialog,
+  CollectionEditSheet, EditableCollection, CollectionPatch,
   Colors, Typography, Spacing, Radius,
 } from '@/components/ui'
 import { CollectionSortButton } from '@/components/CollectionSortButton'
@@ -132,23 +133,14 @@ export default function CollectionsScreen() {
 
   // ── Sauvegarde icône ────────────────────────────────────────────────────────
 
-  async function handleIconSave(emoji: string, color: string) {
+  /** La feuille a déjà écrit en base : on aligne la liste et le cache
+   *  d'icônes, sans recharger. */
+  function handleCollectionSaved(patch: CollectionPatch) {
     if (!pickerTarget) return
-    const targetId = pickerTarget.id
-
-    // Mise à jour optimiste immédiate — visible avant même le retour réseau
-    setIconOverride(targetId, emoji, color)
+    setIconOverride(pickerTarget.id, patch.emoji, patch.icon_color)
     setCollections(prev =>
-      prev.map(c => c.id === targetId ? { ...c, emoji, icon_color: color } : c)
+      prev.map(c => c.id === pickerTarget.id ? { ...c, ...patch } : c)
     )
-    setPickerTarget(null)
-
-    const { error } = await supabase
-      .from('collections')
-      .update({ emoji, icon_color: color, updated_at: new Date().toISOString() })
-      .eq('id', targetId)
-
-    if (error) Alert.alert(t('common.error'), error.message)
   }
 
   // ── Renommer ────────────────────────────────────────────────────────────────
@@ -255,11 +247,9 @@ export default function CollectionsScreen() {
             onPress: () => togglePin(actionTarget),
           },
           {
-            label: t('collections.rename'),
-            onPress: () => afterSheet(() => setRenameTarget(actionTarget)),
-          },
-          {
-            label: t('collectionDetail.editIcon'),
+            // Renommer et changer l'icône étaient deux entrées pour la
+            // même intention : modifier la collection.
+            label: t('collections.edit'),
             onPress: () => afterSheet(() => setPickerTarget(actionTarget)),
           },
           {
@@ -281,12 +271,11 @@ export default function CollectionsScreen() {
         onClose={() => setRenameTarget(null)}
       />
 
-      <IconPicker
+      <CollectionEditSheet
         visible={!!pickerTarget}
-        currentEmoji={pickerTarget?.emoji ?? '📦'}
-        currentColor={pickerTarget?.icon_color ?? '#E8F0E0'}
-        onSave={handleIconSave}
+        collection={pickerTarget as EditableCollection | null}
         onClose={() => setPickerTarget(null)}
+        onSaved={patch => handleCollectionSaved(patch)}
       />
     </Screen>
   )
