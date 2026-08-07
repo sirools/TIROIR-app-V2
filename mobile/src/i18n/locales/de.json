@@ -10,7 +10,8 @@
     "delete": "Löschen",
     "objects_one": "{{count}} Objekt",
     "objects_other": "{{count}} Objekte",
-    "validate": "Bestätigen"
+    "validate": "Bestätigen",
+    "save": "Speichern"
   },
   "auth": {
     "login": {

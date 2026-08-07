@@ -10,7 +10,8 @@
     "delete": "Eliminar",
     "objects_one": "{{count}} objeto",
     "objects_other": "{{count}} objetos",
-    "validate": "Confirmar"
+    "validate": "Confirmar",
+    "save": "Guardar"
   },
   "auth": {
     "login": {
