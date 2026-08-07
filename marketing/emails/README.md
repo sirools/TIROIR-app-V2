@@ -165,3 +165,67 @@ désinscription y reste, mais sans le vocabulaire marketing.
 3. **Cliquer chaque lien** une fois les variables résolues.
 4. **Peser le fichier.** Au-delà de 102 Ko, Gmail tronque le message et
    coupe le pied de page — donc la désinscription.
+
+## Exploitation de la campagne J+3
+
+### Ne jamais appeler `claim_lifecycle_recipients` pour « regarder »
+
+Elle **réserve**. Chaque ligne rendue est une ligne écrite dans
+`email_sends`, et cette ligne interdit définitivement un second envoi au
+compte concerné. L'appeler pour compter des destinataires réserve
+réellement ces personnes ; si aucun e-mail ne part derrière, elles ne le
+recevront jamais.
+
+Pour consulter sans réserver, deux voies sûres :
+
+```sql
+-- Le tableau de bord, en lecture seule (admin uniquement)
+select public.get_lifecycle_email_status('presentation');
+
+-- Ou, si l'on veut vraiment exercer la fonction : dans une transaction
+-- annulée, jamais autrement.
+begin;
+  select count(*) from public.claim_lifecycle_recipients('presentation', 100);
+rollback;
+```
+
+### Les lignes `pending` bloquent, volontairement
+
+Une ligne restée en `pending` signifie : réservée, envoi non confirmé.
+Elle n'est **pas** relâchée automatiquement, et c'est un choix.
+
+Deux pannes produisent le même état sans qu'on puisse les distinguer :
+la fonction s'est arrêtée *avant* d'expédier — le compte devrait être
+relâché ; ou elle a expédié et n'a pas réussi à l'écrire — le relâcher
+enverrait le message une seconde fois.
+
+Sur un premier contact, **un doublon coûte plus cher qu'un manque** : il
+agace, et il pousse vers le bouton « spam », qui abîme la réputation du
+domaine pour tous les envois suivants. On préfère donc un message
+manquant, qu'on voit dans le compteur `en_attente`, à un doublon qu'on
+ne peut pas reprendre.
+
+Pour relâcher après vérification dans le tableau de bord Resend :
+
+```sql
+delete from public.email_sends
+ where campaign = 'presentation' and status = 'pending' and id = <id>;
+```
+
+### Ouvrir le rattrapage
+
+```sql
+update public.app_settings set email_backfill_enabled = true where id = 1;
+```
+
+Le lot par exécution reste borné par `email_batch_size`. Se recoupe seul
+une fois la campagne épuisée — il ne reste alors plus personne à servir.
+
+### Arrêt d'urgence
+
+```sql
+update public.app_settings set email_lifecycle_enabled = false where id = 1;
+```
+
+Ni redéploiement, ni suppression de tâche. Le cron continue de tourner
+et ne sert plus personne.
