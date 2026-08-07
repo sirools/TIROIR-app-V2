@@ -80,13 +80,41 @@ interface AiSpend {
   par_jour: { jour: string; cout_usd: number }[]
 }
 
+/**
+ * Rapport de campagne e-mail, tel que `get_email_campaign_report()` le rend.
+ *
+ * `delivres` et `ouverts` valent zero tant que le webhook Resend n'est
+ * pas declare : un e-mail parti ne dit rien de lui-meme, c'est Resend
+ * qui pousse ces evenements ou personne.
+ */
+interface EmailReport {
+  campagne: string
+  totaux: {
+    envoyes: number; delivres: number; ouverts: number; cliques: number
+    en_attente: number; echecs: number; plaintes: number
+  }
+  desinscrits: number
+  reste: { regime_j3: number; rattrapage: number; total: number }
+  enveloppe: {
+    envoyes_ce_mois: number; plafond_mensuel: number; cout_pour_mille: number
+    suivi_ouverture: boolean; actif: boolean; rattrapage: boolean
+    lot: number; adresse: string | null
+  }
+  destinataires: {
+    email: string; statut: string; motif: string; sent_at: string | null
+    delivre: boolean; ouvert: boolean; clics: number
+    plainte: boolean; desinscrit: boolean; erreur: string | null
+  }[]
+}
+
 interface Props {
   kpis: KPIs
   settings: AppSettings
   aiSpend: AiSpend
+  emails: EmailReport
 }
 
-export default function Admin({ kpis, settings: initialSettings, aiSpend }: Props) {
+export default function Admin({ kpis, settings: initialSettings, aiSpend, emails }: Props) {
   const conversionPct = kpis.totalAccounts > 0
     ? ((kpis.accountsWithObjects / kpis.totalAccounts) * 100).toFixed(1)
     : '0'
@@ -646,6 +674,8 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend }: Prop
         </div>
         </>)}
 
+        {tab === 'emails' && <EmailsPanel report={emails} />}
+
         {tab === 'pro' && <ProAccountsPanel settings={settings} />}
 
         {tab === 'simulation' && (<>
@@ -1199,6 +1229,143 @@ function PlanBadge({ plan }: { plan: string }) {
   )
 }
 
+
+/**
+ * Campagne e-mail.
+ *
+ * Deux honnêtetés portées par l'écran lui-même, parce qu'un tableau de
+ * bord qui laisse croire ce qu'il ne mesure pas est pire que pas de
+ * tableau du tout :
+ *
+ * — tant que le webhook Resend n'est pas déclaré, remise / ouvertures /
+ *   clics restent à zéro. Un bandeau le dit, plutôt que d'afficher
+ *   « 0 % d'ouverture » qu'on lirait comme un échec du message ;
+ *
+ * — l'ouverture est une INFÉRENCE. Apple Mail précharge les images de
+ *   tout le monde et déclenche des ouvertures qui n'ont pas eu lieu ; un
+ *   client qui bloque les images n'en déclenche aucune pour une lecture
+ *   réelle. Le clic est le seul signal d'intérêt qui ne mente pas, d'où
+ *   sa mise en avant.
+ */
+function EmailsPanel({ report }: { report: EmailReport }) {
+  const t = report.totaux
+  const env = report.enveloppe
+  const pct = (n: number) => (t.envoyes > 0 ? `${Math.round((n / t.envoyes) * 100)} %` : '—')
+  const suiviAbsent = t.envoyes > 0 && t.delivres === 0 && t.ouverts === 0
+  const coutMois = (env.envoyes_ce_mois / 1000) * env.cout_pour_mille
+  const pctEnveloppe = env.plafond_mensuel > 0
+    ? Math.min(100, (env.envoyes_ce_mois / env.plafond_mensuel) * 100) : 0
+
+  return (
+    <>
+      {suiviAbsent && (
+        <div style={s.mailWarn}>
+          <strong>Le webhook Resend n’est pas encore branché.</strong> Remise, ouvertures
+          et clics resteront à zéro tant qu’il n’est pas déclaré — ce n’est pas le message
+          qui ne fonctionne pas, c’est la mesure qui n’existe pas. À déclarer dans Resend
+          → Webhooks, vers <code style={s.mailCode}>/functions/v1/resend-webhook</code>.
+        </div>
+      )}
+
+      <h2 style={s.sectionTitle}>Ce qui est parti</h2>
+      <div style={s.grid}>
+        <Kpi label="Envoyés" value={fmtInt(t.envoyes)} highlight />
+        <Kpi label="Délivrés" value={t.delivres > 0 ? `${fmtInt(t.delivres)} · ${pct(t.delivres)}` : '—'} />
+        <Kpi label="Ouverts (estimé)" value={t.ouverts > 0 ? `${fmtInt(t.ouverts)} · ${pct(t.ouverts)}` : '—'} />
+        <Kpi label="Ont cliqué" value={t.cliques > 0 ? `${fmtInt(t.cliques)} · ${pct(t.cliques)}` : '—'} />
+      </div>
+
+      <h2 style={s.sectionTitle}>Ce qui coince</h2>
+      <div style={s.grid}>
+        <Kpi label="En attente" value={fmtInt(t.en_attente)} />
+        <Kpi label="Échecs / rebonds" value={fmtInt(t.echecs)} />
+        <Kpi label="Désinscrits" value={fmtInt(report.desinscrits)} />
+        <Kpi label="Plaintes spam" value={fmtInt(t.plaintes)} />
+      </div>
+      <p style={s.mailNote}>
+        Une ligne « en attente » est réservée sans envoi confirmé : elle n’est jamais
+        relâchée d’office, parce qu’un doublon coûte plus cher qu’un manque sur un premier
+        contact. Une plainte pèse bien plus lourd qu’une désinscription : elle abîme la
+        réputation du domaine pour tous les envois suivants, transactionnels compris.
+      </p>
+
+      <h2 style={s.sectionTitle}>Reste à servir</h2>
+      <div style={s.grid}>
+        <Kpi label="Total en attente d’envoi" value={fmtInt(report.reste.total)} highlight />
+        <Kpi label="Régime J+3 — part tout seul" value={fmtInt(report.reste.regime_j3)} />
+        <Kpi label="Rattrapage — volet fermé" value={fmtInt(report.reste.rattrapage)} />
+        <Kpi label="Lot par exécution" value={fmtInt(env.lot)} />
+      </div>
+      <p style={s.mailNote}>
+        {env.rattrapage
+          ? 'Le rattrapage est ouvert : les comptes anciens partent par lots, une exécution par heure.'
+          : 'Le rattrapage est fermé : les comptes de plus de 30 jours attendent. Ouvrir email_backfill_enabled pour les servir.'}
+        {' '}Campagne {env.actif ? 'active' : 'à l’arrêt'}.
+      </p>
+
+      <h2 style={s.sectionTitle}>Enveloppe et budget</h2>
+      <div style={s.grid3}>
+        <GaugeCard
+          label="Envois ce mois-ci"
+          value={`${fmtInt(env.envoyes_ce_mois)} / ${fmtInt(env.plafond_mensuel)}`}
+          pct={pctEnveloppe}
+          hint={`${fmtInt(Math.max(0, env.plafond_mensuel - env.envoyes_ce_mois))} restants`}
+        />
+        <Kpi label="Coût du mois" value={env.cout_pour_mille > 0 ? fmtUsdFine(coutMois) : '0 $ (plan gratuit)'} />
+        <Kpi label="Coût pour mille" value={env.cout_pour_mille > 0 ? fmtUsdFine(env.cout_pour_mille) : '—'} />
+      </div>
+      {!env.adresse && (
+        <p style={s.mailWarn}>
+          <strong>Adresse postale absente.</strong> Aucun envoi ne partira : elle est
+          exigée pour identifier l’expéditeur.
+        </p>
+      )}
+
+      <h2 style={s.sectionTitle}>Qui a reçu quoi</h2>
+      <div style={s.spendTable}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              {['Adresse', 'Statut', 'Envoyé le', 'Remis', 'Ouvert', 'Clics'].map(c => (
+                <th key={c} style={s.mailTh}>{c}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {report.destinataires.length === 0 && (
+              <tr><td colSpan={6} style={s.mailEmpty}>Aucun envoi pour l’instant.</td></tr>
+            )}
+            {report.destinataires.map(d => (
+              <tr key={d.email}>
+                <td style={s.mailTd}>
+                  {d.email}
+                  {d.desinscrit && <span style={s.mailTagOff}>désinscrit</span>}
+                  {d.plainte && <span style={s.mailTagBad}>plainte</span>}
+                </td>
+                <td style={s.mailTd}>
+                  <span style={d.statut === 'sent' ? s.mailTagOk : d.statut === 'failed' ? s.mailTagBad : s.mailTagWait}>
+                    {d.statut === 'sent' ? 'envoyé' : d.statut === 'failed' ? 'échec' : d.statut}
+                  </span>
+                  {d.erreur && <span style={s.mailErr}>{d.erreur}</span>}
+                </td>
+                <td style={s.mailTd}>{d.sent_at ? fmtDate(d.sent_at) : '—'}</td>
+                <td style={s.mailTd}>{d.delivre ? 'oui' : '—'}</td>
+                <td style={s.mailTd}>{d.ouvert ? 'oui' : '—'}</td>
+                <td style={s.mailTd}>{d.clics > 0 ? fmtInt(d.clics) : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style={s.mailNote}>
+        « Ouvert » repose sur le chargement d’une image invisible. Apple Mail la précharge
+        pour tout le monde, ce qui gonfle le chiffre ; un client qui bloque les images le
+        creuse. À lire comme un ordre de grandeur — le clic, lui, ne ment pas.
+      </p>
+    </>
+  )
+}
+
 function ProAccountsPanel({ settings }: { settings: AppSettings }) {
   const [tab, setTab] = useState<PlanKey>('pro')
   const [query, setQuery] = useState('')
@@ -1475,11 +1642,12 @@ function ProAccountsPanel({ settings }: { settings: AppSettings }) {
 }
 
 // ── Onglets ─────────────────────────────────────────────────────────────
-type TabKey = 'dashboard' | 'quotas' | 'pro' | 'simulation'
-const TABS: TabKey[] = ['dashboard', 'quotas', 'pro', 'simulation']
+type TabKey = 'dashboard' | 'quotas' | 'emails' | 'pro' | 'simulation'
+const TABS: TabKey[] = ['dashboard', 'quotas', 'emails', 'pro', 'simulation']
 const TAB_META: Record<TabKey, { label: string; title: string; subtitle: string }> = {
   dashboard: { label: 'Tableau de bord', title: 'Tableau de bord', subtitle: 'Données en temps réel depuis Supabase' },
   quotas: { label: 'Quotas', title: 'Quotas & coûts', subtitle: 'Modifie les valeurs et enregistre — appliqué instantanément sans déploiement.' },
+  emails: { label: 'E-mails', title: 'Campagne e-mail', subtitle: 'Message de présentation, expédié automatiquement à J+3 de l’inscription.' },
   pro: { label: 'Comptes Pro', title: 'Comptes Professionnels', subtitle: 'Palier vendu en direct sur facture : attribution et révocation manuelles, effet immédiat.' },
   simulation: { label: 'Simulation économique', title: 'Simulation économique', subtitle: 'Simule l’impact d’un lancement sur les coûts infra/IA et les revenus premium.' },
 }
@@ -2067,6 +2235,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     { data: appSettings },
     { data: infraStats },
     { data: aiSpendRaw },
+    { data: emailReportRaw },
   ] = await Promise.all([
     admin.from('site_pageviews').select('*', { count: 'exact', head: true }).gte('created_at', since24h),
     admin.from('site_pageviews').select('*', { count: 'exact', head: true }).gte('created_at', since7d),
@@ -2083,6 +2252,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       .eq('id', 1).single(),
     admin.rpc('get_admin_infra_stats').single(),
     admin.rpc('get_admin_ai_spend'),
+    admin.rpc('get_email_campaign_report', { p_campaign: 'presentation', p_limit: 200 }),
   ])
 
   const totalObjects = objectsByUser?.length ?? 0
@@ -2214,6 +2384,17 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       },
       settings,
       aiSpend,
+      emails: (emailReportRaw as EmailReport | null) ?? {
+        campagne: 'presentation',
+        totaux: { envoyes: 0, delivres: 0, ouverts: 0, cliques: 0, en_attente: 0, echecs: 0, plaintes: 0 },
+        desinscrits: 0,
+        reste: { regime_j3: 0, rattrapage: 0, total: 0 },
+        enveloppe: {
+          envoyes_ce_mois: 0, plafond_mensuel: 0, cout_pour_mille: 0,
+          suivi_ouverture: false, actif: false, rattrapage: false, lot: 0, adresse: null,
+        },
+        destinataires: [],
+      },
     },
   }
 }
@@ -2264,6 +2445,17 @@ const s: Record<string, React.CSSProperties> = {
   spendStatValue:    { fontSize: 20, fontWeight: 700, color: '#121212', fontVariantNumeric: 'tabular-nums' },
   spendStatLabel:    { fontSize: 12, color: '#8a8a8a', fontWeight: 600 },
 
+  mailWarn:          { background: '#FFF4E8', border: '1px solid #F2C795', borderRadius: 12, padding: '14px 18px', fontSize: 14, lineHeight: '22px', color: '#7A3E06', marginBottom: 20 },
+  mailCode:          { background: 'rgba(0,0,0,0.06)', borderRadius: 4, padding: '1px 5px', fontSize: 13 },
+  mailNote:          { fontSize: 13, lineHeight: '21px', color: '#8a8a8a', marginTop: -24, marginBottom: 36 },
+  mailTh:            { textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#8a8a8a', padding: '12px 8px', borderBottom: '1px solid rgba(0,0,0,0.06)', textTransform: 'uppercase', letterSpacing: 0.4 },
+  mailTd:            { fontSize: 13, color: '#121212', padding: '10px 8px', borderBottom: '1px solid rgba(0,0,0,0.04)', verticalAlign: 'top' },
+  mailEmpty:         { fontSize: 13, color: '#8a8a8a', padding: '20px 8px', textAlign: 'center' },
+  mailTagOk:         { fontSize: 11, fontWeight: 700, color: '#2D5016', background: '#E8F0E0', borderRadius: 6, padding: '2px 7px' },
+  mailTagBad:        { fontSize: 11, fontWeight: 700, color: '#C0392B', background: '#FBE9E7', borderRadius: 6, padding: '2px 7px', marginLeft: 6 },
+  mailTagWait:       { fontSize: 11, fontWeight: 700, color: '#7A3E06', background: '#FFF4E8', borderRadius: 6, padding: '2px 7px' },
+  mailTagOff:        { fontSize: 11, fontWeight: 700, color: '#5b5b5b', background: '#EFEFEF', borderRadius: 6, padding: '2px 7px', marginLeft: 6 },
+  mailErr:           { display: 'block', fontSize: 11, color: '#C0392B', marginTop: 4 },
   spendTable:        { background: 'white', borderRadius: 16, padding: '4px 20px 12px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 8 },
   spendHead:         { display: 'flex', alignItems: 'flex-end', gap: 16, padding: '14px 0 10px', borderBottom: '1px solid rgba(0,0,0,0.08)' },
   spendHeadCell:     { fontSize: 11, fontWeight: 700, color: '#8a8a8a', textTransform: 'uppercase', letterSpacing: 0.5 },

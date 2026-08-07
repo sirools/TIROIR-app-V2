@@ -5,3 +5,9 @@
 # L'authentification se fait par secret partage, compare en base.
 [functions.send-lifecycle-emails]
 verify_jwt = false
+
+# Resend n'envoie pas de JWT Supabase : le portier JWT rejetterait tous
+# les evenements avant meme que la fonction les voie. L'authentification
+# se fait par signature Svix, verifiee dans la fonction.
+[functions.resend-webhook]
+verify_jwt = false
