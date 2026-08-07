@@ -35,6 +35,10 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: CORS_HEADERS })
   }
 
+  // Déclaré hors du try : l'appel au modèle remonte ses erreurs jusqu'au
+  // catch de plus bas, et c'est justement là qu'il faut rendre le jeton.
+  let refundQuota: () => Promise<unknown> = async () => {}
+
   try {
     // ── Auth ──────────────────────────────────────────────────────
     const authHeader = req.headers.get('Authorization')
@@ -54,6 +58,30 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => null)
     if (!body?.object_id) return errorResponse(400, 'MISSING_OBJECT_ID', 'object_id requis')
 
+    // ── Quota ─────────────────────────────────────────────────────
+    // Dernière fonction IA sans plafond, et la plus chère : Sonnet avec
+    // recherche web, jusqu'à cinq allers-retours, chaque recherche
+    // facturée en plus des tokens. Prélevé AVANT l'appel — sinon rien
+    // n'empêche d'enchaîner — et rendu si rien n'est produit.
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
+    )
+
+    const { data: quota, error: quotaError } = await userClient.rpc(
+      'check_and_increment_value_estimate_quota',
+    )
+    if (quotaError) {
+      console.error('[estimate-value] quota', quotaError.message)
+      return errorResponse(500, 'INTERNAL_ERROR', 'Impossible de vérifier le quota')
+    }
+    if (quota === 'QUOTA_EXCEEDED') {
+      return errorResponse(429, 'QUOTA_EXCEEDED', 'Quota d’estimations du mois atteint')
+    }
+
+    refundQuota = () => userClient.rpc('refund_value_estimate_quota')
+
     // ── Récupération objet ────────────────────────────────────────
     const { data: obj, error: objError } = await supabase
       .from('objects')
@@ -62,7 +90,10 @@ Deno.serve(async (req: Request) => {
       .eq('user_id', user.id)
       .single()
 
-    if (objError || !obj) return errorResponse(404, 'OBJECT_NOT_FOUND', 'Objet introuvable')
+    if (objError || !obj) {
+      await refundQuota()
+      return errorResponse(404, 'OBJECT_NOT_FOUND', 'Objet introuvable')
+    }
 
     // ── Construction du prompt ────────────────────────────────────
     const attrs = obj.attributes ?? {}
@@ -100,7 +131,10 @@ Cherche sur leboncoin, Vinted, Facebook Marketplace et eBay France. Retourne le 
 
     // ── Appel Claude avec web_search (boucle tool_use) ────────────
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!apiKey) return errorResponse(500, 'CONFIG_ERROR', 'Clé API manquante')
+    if (!apiKey) {
+      await refundQuota()
+      return errorResponse(500, 'CONFIG_ERROR', 'Clé API manquante')
+    }
 
     const messages: Array<{ role: string; content: unknown }> = [
       { role: 'user', content: userMessage }
@@ -207,6 +241,7 @@ Cherche sur leboncoin, Vinted, Facebook Marketplace et eBay France. Retourne le 
         throw new Error('market_value manquant')
       }
     } catch {
+      await refundQuota()
       return errorResponse(422, 'PARSE_ERROR', `Impossible de parser la réponse: ${finalText.slice(0, 200)}`)
     }
 
@@ -258,6 +293,7 @@ Cherche sur leboncoin, Vinted, Facebook Marketplace et eBay France. Retourne le 
 
   } catch (err) {
     console.error('estimate-value error:', err)
+    await refundQuota()
     return errorResponse(500, 'INTERNAL_ERROR', err instanceof Error ? err.message : String(err))
   }
 })

@@ -23,8 +23,9 @@ import i18n from 'i18next'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as Clipboard from 'expo-clipboard'
+import * as WebBrowser from 'expo-web-browser'
 import { decode } from 'base64-arraybuffer'
-import { Plus, Minus, Pencil, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, ChevronUp, ChevronDown, MapPin, Share2, Sparkles, Star, Info, CalendarDays, UserRound } from 'lucide-react-native'
+import { Plus, Minus, Pencil, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, ChevronUp, ChevronDown, MapPin, Share2, Sparkles, Star, Info, CalendarDays, UserRound, ExternalLink } from 'lucide-react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
 import { functionMessage } from '@/lib/functionError'
@@ -1341,6 +1342,22 @@ interface MarketValueSectionProps {
   onUpdateMarketValue: (newValue: number) => Promise<void>
 }
 
+/**
+ * Ouvre l'annonce dans un navigateur applicatif plutôt que de quitter
+ * l'app : on revient à la fiche d'un geste, sans perdre son contexte.
+ *
+ * L'URL vient du modèle et n'est pas garantie : on refuse tout ce qui
+ * n'est pas http(s) plutôt que de laisser passer un schéma inattendu.
+ */
+async function openSource(url: string) {
+  if (!/^https?:\/\//i.test(url)) return
+  try {
+    await WebBrowser.openBrowserAsync(url, { presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET })
+  } catch {
+    // Une annonce retirée ou une URL malformée ne doit pas faire tomber la fiche.
+  }
+}
+
 function MarketValueSection({ object, estimating, sources, confidence, currSym, onEstimate, onClearMarketValue, onUpdateMarketValue }: MarketValueSectionProps) {
   const { t, i18n } = useTranslation()
   const [editing, setEditing] = useState(false)
@@ -1448,9 +1465,24 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
             {sources?.sources && sources.sources.length > 0 && (
               <View style={vc.sourcesRow}>
                 {sources.sources.slice(0, 3).map((src, i) => (
-                  <View key={i} style={vc.sourceChip}>
-                    <Text style={vc.sourceChipText}>{src.site} · {src.price} {currSym}</Text>
-                  </View>
+                  /* L'annonce est la preuve de l'estimation : pouvoir
+                     l'ouvrir, c'est pouvoir vérifier. Sans URL la pastille
+                     reste un simple libellé — mieux qu'un lien mort. */
+                  src.url ? (
+                    <TouchableOpacity
+                      key={i}
+                      style={[vc.sourceChip, vc.sourceChipLink]}
+                      onPress={() => openSource(src.url!)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={vc.sourceChipText}>{src.site} · {src.price} {currSym}</Text>
+                      <ExternalLink size={11} color={Colors.accent} strokeWidth={2} />
+                    </TouchableOpacity>
+                  ) : (
+                    <View key={i} style={vc.sourceChip}>
+                      <Text style={vc.sourceChipText}>{src.site} · {src.price} {currSym}</Text>
+                    </View>
+                  )
                 ))}
               </View>
             )}
@@ -2117,6 +2149,7 @@ const vc = StyleSheet.create({
     paddingHorizontal: Spacing.sm, paddingVertical: 4,
     borderWidth: 1, borderColor: Colors.borderLight,
   },
+  sourceChipLink: { flexDirection: 'row', alignItems: 'center', gap: 5, borderColor: Colors.accentLight },
   sourceChipText: { fontSize: Typography.xs, color: Colors.textSecondary },
   footerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, marginTop: 4 },
   footerDeleteBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -2537,7 +2570,10 @@ export default function ObjectScreen() {
       const res = await supabase.functions.invoke('estimate-value', {
         body: { object_id: object.id },
       })
-      if (res.error) throw new Error(res.error.message)
+      // Le motif vit dans le corps de la réponse : `invoke` ne rend qu'un
+      // « non-2xx status code ».
+      if (res.error) throw new Error(await functionMessage(res.error))
+      if (res.data?.error) throw new Error(res.data.error.message ?? res.data.error.code)
       const est = res.data
       setObject(prev => prev ? {
         ...prev,
@@ -2553,7 +2589,17 @@ export default function ObjectScreen() {
         },
       } : prev)
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : t('object.estimateFailed'))
+      const message = err instanceof Error ? err.message : t('object.estimateFailed')
+      // Au plafond, l'erreur seule laisserait l'utilisateur sans issue :
+      // on lui montre la sortie plutôt que le mur.
+      if (/quota/i.test(message)) {
+        Alert.alert(t('object.value.quotaTitle'), t('object.value.quotaBody'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('object.value.quotaUpgrade'), onPress: () => router.push('/paywall') },
+        ])
+      } else {
+        Alert.alert(t('common.error'), message)
+      }
     } finally {
       setEstimating(false)
     }

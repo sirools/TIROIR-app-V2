@@ -573,7 +573,10 @@
       "depositPerItem": "Deposit per item",
       "depositLot": "Deposit for the lot",
       "depositLotHint": "{{count}} × {{unit}} {{sym}}",
-      "agePrefix": "Age: {{age}}"
+      "agePrefix": "Age: {{age}}",
+      "quotaTitle": "Estimate quota reached",
+      "quotaBody": "You have used all your value estimates for this month. The next plan gives you more, without waiting for the reset.",
+      "quotaUpgrade": "See plans"
     },
     "insurance": {
       "title": "Insurance",

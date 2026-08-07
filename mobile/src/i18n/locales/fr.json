@@ -573,7 +573,10 @@
       "depositPerItem": "Caution par article",
       "depositLot": "Caution du lot",
       "depositLotHint": "{{count}} × {{unit}} {{sym}}",
-      "agePrefix": "Ancienneté : {{age}}"
+      "agePrefix": "Ancienneté : {{age}}",
+      "quotaTitle": "Quota d'estimations atteint",
+      "quotaBody": "Tu as utilisé toutes tes estimations de valeur du mois. L'abonnement supérieur en donne davantage, sans attendre la réinitialisation.",
+      "quotaUpgrade": "Voir les abonnements"
     },
     "insurance": {
       "title": "Assurance",

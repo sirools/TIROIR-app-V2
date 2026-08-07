@@ -573,7 +573,10 @@
       "depositPerItem": "Kaution pro Stück",
       "depositLot": "Kaution für das Set",
       "depositLotHint": "{{count}} × {{unit}} {{sym}}",
-      "agePrefix": "Alter: {{age}}"
+      "agePrefix": "Alter: {{age}}",
+      "quotaTitle": "Schätzungslimit erreicht",
+      "quotaBody": "Du hast alle Wertschätzungen dieses Monats verbraucht. Der nächsthöhere Tarif bietet mehr, ohne auf die Zurücksetzung zu warten.",
+      "quotaUpgrade": "Tarife ansehen"
     },
     "insurance": {
       "title": "Versicherung",

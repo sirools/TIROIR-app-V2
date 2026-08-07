@@ -573,7 +573,10 @@
       "depositPerItem": "Fianza por artículo",
       "depositLot": "Fianza del lote",
       "depositLotHint": "{{count}} × {{unit}} {{sym}}",
-      "agePrefix": "Antigüedad: {{age}}"
+      "agePrefix": "Antigüedad: {{age}}",
+      "quotaTitle": "Límite de estimaciones alcanzado",
+      "quotaBody": "Has usado todas tus estimaciones de valor del mes. El plan superior te da más, sin esperar al reinicio.",
+      "quotaUpgrade": "Ver planes"
     },
     "insurance": {
       "title": "Seguro",
