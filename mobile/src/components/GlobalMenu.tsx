@@ -10,6 +10,7 @@ import { User, Settings, LogOut, Link, Zap, MessageCircle } from 'lucide-react-n
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan, isProPlan, planLabelKey } from '@/lib/plan'
+import { useFeatureFlags } from '@/features/objects/useFeatureFlags'
 
 const MENU_WIDTH = Dimensions.get('window').width * 0.78
 
@@ -25,6 +26,7 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
   const { profile, signOut } = useAuth()
   const plan = (profile as any)?.plan
   const isPremium = isPaidPlan(plan)
+  const { flags } = useFeatureFlags()
   const isPro = isProPlan(plan)
   const translateX = useRef(new Animated.Value(-MENU_WIDTH)).current
   const opacity = useRef(new Animated.Value(0)).current
@@ -112,7 +114,9 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
         <View style={styles.divider} />
 
         {/* Entrées */}
-        {isPremium && (
+        {/* Drapeau serveur, pas le plan : l'assistant est encore en
+            développement et ne s'ouvre qu'aux comptes admin. */}
+        {flags.assistant && (
           <MenuItem
             icon={<MessageCircle size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
             label={t('menu.assistant')}

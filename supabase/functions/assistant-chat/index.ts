@@ -10,6 +10,7 @@
 // ================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { logAiUsage } from '../_shared/aiUsage.ts'
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -98,6 +99,8 @@ function isCountingQuery(message: string): boolean {
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
 
+  const startedAt = Date.now()
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -115,22 +118,34 @@ Deno.serve(async (req: Request) => {
     )
     if (authError || !user) return err(401, 'AUTH_INVALID', 'Authentification invalide')
 
-    // L'Assistant est réservé aux comptes premium. Le masquage de l'entrée
-    // nav et l'écran d'accueil filtrent déjà côté client, mais l'API doit
-    // refuser elle-même l'accès (ne jamais faire confiance qu'au client).
-    const { data: profile } = await adminClient
-      .from('profiles')
-      .select('plan')
-      .eq('id', user.id)
-      .single()
-    if (profile?.plan !== 'premium') return err(403, 'PREMIUM_REQUIRED', 'Cette fonctionnalité est réservée aux abonnés Premium')
-
     // Client scopé utilisateur : nécessaire pour que search_objects (SECURITY
-    // INVOKER, filtré sur auth.uid()) ne renvoie que SES objets.
+    // INVOKER, filtré sur auth.uid()) ne renvoie que SES objets, et pour que
+    // auth.uid() résolve dans la RPC de quota.
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false },
     })
+
+    // Accès ET plafond journalier en un seul appel. L'assistant est encore
+    // en développement : il vit derrière le drapeau `assistant_audience`,
+    // sur 'admin' par défaut. Le masquage côté client ne suffit pas — l'API
+    // doit refuser d'elle-même.
+    //
+    // Journalier et non mensuel : une conversation est une rafale, un
+    // plafond mensuel se viderait en un après-midi.
+    const { data: gate, error: gateError } = await userClient.rpc(
+      'check_and_increment_assistant_quota',
+    )
+    if (gateError) {
+      console.error('[assistant-chat] quota', gateError.message)
+      return err(500, 'INTERNAL_ERROR', 'Impossible de vérifier l’accès')
+    }
+    if (gate === 'NOT_ALLOWED') {
+      return err(403, 'FEATURE_NOT_AVAILABLE', 'Cette fonctionnalité n’est pas encore disponible')
+    }
+    if (gate === 'QUOTA_EXCEEDED') {
+      return err(429, 'QUOTA_EXCEEDED', 'Limite de messages du jour atteinte')
+    }
 
     const body = await req.json().catch(() => null)
     const message = typeof body?.message === 'string' ? body.message.trim().slice(0, MAX_MESSAGE_LEN) : ''
@@ -227,6 +242,17 @@ Deno.serve(async (req: Request) => {
     // Plafonné même si la recherche (comptage) en a récupéré davantage,
     // pour ne pas noyer l'écran de chips.
     const referencedObjects = matches.slice(0, 12).map((o: any) => ({ id: o.id, title: o.title }))
+
+    // Mesuré avant d'être ouvert : c'est tout l'intérêt de le garder
+    // derrière un drapeau plutôt que de le retirer.
+    logAiUsage(adminClient, {
+      userId: user.id,
+      feature: 'assistant_chat',
+      model: CLAUDE_MODEL,
+      usage: claudeJson?.usage ?? {},
+      durationMs: Date.now() - startedAt,
+      meta: { matches: matches.length, history_turns: history.length },
+    })
 
     return new Response(JSON.stringify({ reply, objects: referencedObjects }), {
       status: 200,

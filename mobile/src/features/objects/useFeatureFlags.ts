@@ -4,9 +4,12 @@ import { supabase } from '@/lib/supabase'
 export interface FeatureFlags {
   /** Capture multi-objets par détection. Coûteuse en tokens, donc verrouillée. */
   multiAdd: boolean
+  /** Assistant conversationnel. Encore en développement : pas assez fiable
+   *  pour être montré, et donc pas encore un argument de vente. */
+  assistant: boolean
 }
 
-const NONE: FeatureFlags = { multiAdd: false }
+const NONE: FeatureFlags = { multiAdd: false, assistant: false }
 
 /**
  * Drapeaux d'accès aux fonctionnalités, calculés côté serveur.
@@ -26,7 +29,10 @@ export function useFeatureFlags(): { flags: FeatureFlags; loaded: boolean } {
     let cancelled = false
     supabase.rpc('get_feature_flags').then(({ data, error }) => {
       if (cancelled) return
-      if (!error && data?.[0]) setFlags({ multiAdd: Boolean(data[0].multi_add) })
+      if (!error && data?.[0]) setFlags({
+        multiAdd: Boolean(data[0].multi_add),
+        assistant: Boolean(data[0].assistant),
+      })
       setLoaded(true)
     })
     return () => { cancelled = true }

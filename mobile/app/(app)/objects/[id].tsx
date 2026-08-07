@@ -224,6 +224,167 @@ const lbStyles = StyleSheet.create({
   closeIcon: { color: 'white', fontSize: 16, fontWeight: '600' },
 })
 
+type ShadowKey = 'none' | 'soft' | 'diffuse' | 'strong'
+
+/**
+ * Fonds proposés pour un détourage.
+ *
+ * Une palette fermée plutôt qu'un sélecteur libre : sur une photo produit,
+ * les fonds qui fonctionnent sont peu nombreux et une teinte saturée
+ * choisie au hasard abîme l'objet qu'elle est censée mettre en valeur.
+ * Le blanc d'abord — c'est ce qu'attendent les places de marché.
+ */
+const STUDIO_BACKGROUNDS = [
+  { hex: '#FFFFFF', key: 'white' },
+  { hex: '#F5F1EA', key: 'ivory' },
+  { hex: '#E8ECF0', key: 'slate' },
+  { hex: '#E8F0E0', key: 'sage' },
+  { hex: '#DCF0F7', key: 'sky' },
+  { hex: '#F7E8EC', key: 'rose' },
+  { hex: '#FAE8DC', key: 'peach' },
+  { hex: '#1A1612', key: 'ink' },
+]
+
+const SHADOW_KEYS: ShadowKey[] = ['none', 'soft', 'diffuse', 'strong']
+
+/** Feuille de choix du picto violet : détourer, ou embellir. */
+function PhotoStudioSheet({ visible, busy, onCutout, onEnhance, onClose }: {
+  visible: boolean
+  busy: boolean
+  onCutout: (background: string, shadow: ShadowKey) => void
+  onEnhance: () => void
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const [background, setBackground] = useState(STUDIO_BACKGROUNDS[0].hex)
+  const [shadow, setShadow] = useState<ShadowKey>('soft')
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={ps.backdrop} activeOpacity={1} onPress={onClose} />
+      <View style={ps.sheet}>
+        <View style={ps.handle} />
+
+        <Text style={ps.title}>{t('object.photo.studioTitle')}</Text>
+
+        {/* ── Détourage ── */}
+        <View style={ps.block}>
+          <Text style={ps.blockTitle}>{t('object.photo.cutoutTitle')}</Text>
+          <Text style={ps.blockSub}>{t('object.photo.cutoutSub')}</Text>
+
+          <Text style={ps.fieldLabel}>{t('object.photo.background')}</Text>
+          <View style={ps.swatchRow}>
+            {STUDIO_BACKGROUNDS.map(c => (
+              <TouchableOpacity
+                key={c.hex}
+                onPress={() => setBackground(c.hex)}
+                style={[
+                  ps.swatch,
+                  { backgroundColor: c.hex },
+                  background === c.hex && ps.swatchActive,
+                ]}
+                activeOpacity={0.8}
+                accessibilityLabel={t(`object.photo.colors.${c.key}`)}
+              />
+            ))}
+          </View>
+
+          <Text style={ps.fieldLabel}>{t('object.photo.shadow')}</Text>
+          <View style={ps.shadowRow}>
+            {SHADOW_KEYS.map(k => (
+              <TouchableOpacity
+                key={k}
+                onPress={() => setShadow(k)}
+                style={[ps.shadowChip, shadow === k && ps.shadowChipActive]}
+                activeOpacity={0.8}
+              >
+                <Text style={[ps.shadowChipText, shadow === k && ps.shadowChipTextActive]}>
+                  {t(`object.photo.shadows.${k}`)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={[ps.primaryBtn, busy && ps.btnOff]}
+            onPress={() => onCutout(background, shadow)}
+            disabled={busy}
+            activeOpacity={0.85}
+          >
+            <Text style={ps.primaryBtnText}>{t('object.photo.cutoutCta')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Embellissement ── */}
+        <View style={ps.block}>
+          <Text style={ps.blockTitle}>{t('object.photo.enhanceTitle')}</Text>
+          <Text style={ps.blockSub}>{t('object.photo.enhanceSub')}</Text>
+          <TouchableOpacity
+            style={[ps.secondaryBtn, busy && ps.btnOff]}
+            onPress={onEnhance}
+            disabled={busy}
+            activeOpacity={0.85}
+          >
+            <Text style={ps.secondaryBtnText}>{t('object.photo.enhanceCta')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={ps.footnote}>{t('object.photo.studioFootnote')}</Text>
+      </View>
+    </Modal>
+  )
+}
+
+const ps = StyleSheet.create({
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  sheet: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl,
+    paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm, paddingBottom: Spacing.xxl,
+    gap: Spacing.md,
+  },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.xs },
+  title: { fontSize: Typography.lg, fontWeight: Typography.bold, color: Colors.textPrimary },
+  block: {
+    backgroundColor: Colors.surface, borderRadius: Radius.lg,
+    borderWidth: 0.5, borderColor: Colors.border,
+    padding: Spacing.md, gap: Spacing.sm,
+  },
+  blockTitle: { fontSize: Typography.base, fontWeight: Typography.semibold, color: Colors.textPrimary },
+  blockSub: { fontSize: Typography.sm, color: Colors.textSecondary, lineHeight: Typography.sm * 1.45 },
+  fieldLabel: {
+    fontSize: Typography.xs, fontWeight: Typography.semibold, color: Colors.textTertiary,
+    textTransform: 'uppercase', letterSpacing: 0.5, marginTop: Spacing.xs,
+  },
+  swatchRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  swatch: {
+    width: 36, height: 36, borderRadius: 18,
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)',
+  },
+  swatchActive: { borderWidth: 3, borderColor: Colors.accent },
+  shadowRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs },
+  shadowChip: {
+    paddingVertical: 7, paddingHorizontal: Spacing.md,
+    borderRadius: Radius.full, borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  shadowChipActive: { borderColor: Colors.accent, backgroundColor: Colors.accentLight },
+  shadowChipText: { fontSize: Typography.xs, fontWeight: Typography.medium, color: Colors.textSecondary },
+  shadowChipTextActive: { color: Colors.accent, fontWeight: Typography.semibold },
+  primaryBtn: {
+    backgroundColor: Colors.accent, borderRadius: Radius.md,
+    paddingVertical: 13, alignItems: 'center', marginTop: Spacing.xs,
+  },
+  primaryBtnText: { fontSize: Typography.base, fontWeight: Typography.bold, color: Colors.textInverse },
+  secondaryBtn: {
+    borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.accent,
+    paddingVertical: 12, alignItems: 'center', marginTop: Spacing.xs,
+  },
+  secondaryBtnText: { fontSize: Typography.base, fontWeight: Typography.semibold, color: Colors.accent },
+  btnOff: { opacity: 0.5 },
+  footnote: { fontSize: Typography.xs, color: Colors.textTertiary, textAlign: 'center' },
+})
+
 function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
   const router = useRouter()
   const { t } = useTranslation()
@@ -232,6 +393,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
   const [uploading, setUploading] = useState(false)
   const [enhancing, setEnhancing] = useState(false)
+  const [studioOpen, setStudioOpen] = useState(false)
   const [settingCover, setSettingCover] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -366,10 +528,17 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
     }
   }
 
-  async function enhanceActive() {
+  /**
+   * Le picto violet ouvre un choix, il ne lance plus rien directement.
+   *
+   * Détourer et embellir sont deux gestes différents : le premier exécute
+   * une décision de l'utilisateur (quel fond, quelle ombre), le second
+   * décide à sa place. Les confondre derrière un seul bouton obligeait à
+   * subir le second quand on voulait le premier.
+   */
+  function openStudio() {
     if (enhancing) return
-    const img = images[safeIndex]
-    if (!img) return
+    if (!images[safeIndex]) return
 
     if (!isPaidPlan(profile?.plan)) {
       crossAlert(
@@ -379,11 +548,19 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
       )
       return
     }
+    setStudioOpen(true)
+  }
 
+  async function enhanceActive(options?: { mode: 'cutout'; background: string; shadow: ShadowKey }) {
+    if (enhancing) return
+    const img = images[safeIndex]
+    if (!img) return
+
+    setStudioOpen(false)
     setEnhancing(true)
     try {
       const { data, error } = await supabase.functions.invoke('enhance-object-photo', {
-        body: { object_id: objectId, image_id: img.id },
+        body: { object_id: objectId, image_id: img.id, ...(options ?? { mode: 'enhance' }) },
       })
       if (error) {
         let code = 'INTERNAL_ERROR'
@@ -515,6 +692,14 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
         </TouchableOpacity>
       )}
 
+      <PhotoStudioSheet
+        visible={studioOpen}
+        busy={enhancing}
+        onClose={() => setStudioOpen(false)}
+        onEnhance={() => enhanceActive()}
+        onCutout={(background, shadow) => enhanceActive({ mode: 'cutout', background, shadow })}
+      />
+
       {/* Bouton favori (photo de garde) — au-dessus du bouton supprimer */}
       {total > 1 && (
         <TouchableOpacity
@@ -552,7 +737,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
       {total > 0 && (
         <TouchableOpacity
           style={sl.enhanceBtn}
-          onPress={enhanceActive}
+          onPress={openStudio}
           disabled={enhancing}
           activeOpacity={0.8}
         >

@@ -348,7 +348,9 @@
     "andMore_other": "\n… and {{count}} others.",
     "seeList": "See the list",
     "errorReply": "Sorry, I couldn't answer. Try again in a moment.",
-    "inputPlaceholder": "Ask your question…"
+    "inputPlaceholder": "Ask your question…",
+    "devTitle": "Assistant under development",
+    "devSub": "It is not reliable enough to open yet. It will arrive when it can really answer."
   },
   "collectionDetail": {
     "notFound": "Collection not found.",
@@ -532,7 +534,33 @@
       "quotaMessage": "You've reached your AI edit limit this month. Come back next month.",
       "premiumRequiredMessage": "This feature is reserved for Premium subscribers.",
       "enhanceError": "Couldn't enhance this photo right now.",
-      "coverError": "Couldn't set this photo as the favorite."
+      "coverError": "Couldn't set this photo as the favorite.",
+      "studioTitle": "Work on this photo",
+      "cutoutTitle": "Cut out the object",
+      "cutoutSub": "The object is isolated and placed on the background you choose. Its shape, colours and wear stay untouched.",
+      "cutoutCta": "Cut out",
+      "background": "Background",
+      "shadow": "Drop shadow",
+      "enhanceTitle": "Improve the quality",
+      "enhanceSub": "The AI reworks lighting, sharpness and framing, and picks a matching background itself.",
+      "enhanceCta": "Improve",
+      "studioFootnote": "The result is added to the item; the original photo is kept.",
+      "shadows": {
+        "none": "None",
+        "soft": "Subtle",
+        "diffuse": "Diffuse",
+        "strong": "Strong"
+      },
+      "colors": {
+        "white": "White",
+        "ivory": "Ivory",
+        "slate": "Slate",
+        "sage": "Sage",
+        "sky": "Sky",
+        "rose": "Rose",
+        "peach": "Peach",
+        "ink": "Ink"
+      }
     },
     "value": {
       "sectionTitle": "Performance",

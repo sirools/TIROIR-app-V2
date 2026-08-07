@@ -348,7 +348,9 @@
     "andMore_other": "\n… y {{count}} más.",
     "seeList": "Ver la lista",
     "errorReply": "Lo siento, no he podido responder. Inténtalo de nuevo en un momento.",
-    "inputPlaceholder": "Haz tu pregunta…"
+    "inputPlaceholder": "Haz tu pregunta…",
+    "devTitle": "Asistente en desarrollo",
+    "devSub": "Todavía no es lo bastante fiable para abrirlo. Llegará cuando sepa responder de verdad."
   },
   "collectionDetail": {
     "notFound": "Colección no encontrada.",
@@ -532,7 +534,33 @@
       "quotaMessage": "Has alcanzado tu límite de retoques con IA este mes. Vuelve el mes que viene.",
       "premiumRequiredMessage": "Esta función está reservada a los suscriptores Premium.",
       "enhanceError": "No se pudo mejorar esta foto por ahora.",
-      "coverError": "No se pudo definir esta foto como favorita."
+      "coverError": "No se pudo definir esta foto como favorita.",
+      "studioTitle": "Trabajar esta foto",
+      "cutoutTitle": "Recortar el objeto",
+      "cutoutSub": "El objeto se aísla y se coloca sobre el fondo que elijas. Su forma, sus colores y su desgaste no cambian.",
+      "cutoutCta": "Recortar",
+      "background": "Fondo",
+      "shadow": "Sombra",
+      "enhanceTitle": "Mejorar la calidad",
+      "enhanceSub": "La IA retoca la luz, la nitidez y el encuadre, y elige ella misma un fondo a juego.",
+      "enhanceCta": "Mejorar",
+      "studioFootnote": "El resultado se añade a la ficha; la foto original se conserva.",
+      "shadows": {
+        "none": "Ninguna",
+        "soft": "Discreta",
+        "diffuse": "Difusa",
+        "strong": "Marcada"
+      },
+      "colors": {
+        "white": "Blanco",
+        "ivory": "Marfil",
+        "slate": "Pizarra",
+        "sage": "Salvia",
+        "sky": "Cielo",
+        "rose": "Rosa",
+        "peach": "Melocotón",
+        "ink": "Tinta"
+      }
     },
     "value": {
       "sectionTitle": "Rendimiento",

@@ -19,7 +19,40 @@ const CORS_HEADERS: Record<string, string> = {
 }
 
 const GEMINI_MODEL = 'gemini-2.5-flash-image'
+
+/**
+ * Deux gestes distincts, pas deux réglages du même.
+ *
+ * `enhance` embellit : il retouche l'éclairage, défroisse, choisit un fond.
+ * `cutout` détoure : il isole l'objet et le pose sur le fond que
+ * l'utilisateur a choisi. Le premier décide à sa place, le second exécute
+ * sa décision — d'où deux consignes séparées plutôt qu'une paramétrée.
+ */
 const ENHANCE_PROMPT = `Transforme cette photo d'objet en photo produit professionnelle : améliore la netteté et les couleurs, corrige l'éclairage et le contraste, défroisse et repasse virtuellement le tissu si c'est un vêtement, recadre et centre l'objet au milieu de l'image. Remplace l'arrière-plan par un fond dégradé doux et uni dans une teinte qui s'accorde avec les couleurs de l'objet. Ajoute une légère ombre portée douce sous l'objet pour donner du volume. Éclairage studio propre et homogène. Garde la forme, les couleurs et les détails exacts de l'objet (ne change pas sa structure, ses motifs, son style) ; n'invente aucun texte, logo ou marque qui ne serait pas clairement lisible dans la photo d'origine.`
+
+/** Formulations plutôt que valeurs numériques : un modèle image répond à
+ *  une description, pas à un pourcentage d'opacité. */
+const SHADOW_PROMPT: Record<string, string> = {
+  none: "N'ajoute aucune ombre portée : l'objet repose directement sur le fond, sans contact ni reflet.",
+  soft: "Ajoute une ombre portée discrète : un contact léger juste sous l'objet, à peine visible, sans halo.",
+  diffuse: "Ajoute une ombre portée diffuse : douce et étalée sous l'objet, comme un éclairage studio large.",
+  strong: "Ajoute une ombre portée marquée : dense et nettement dessinée sous l'objet, comme un éclairage directionnel.",
+}
+
+function cutoutPrompt(background: string, shadow: string): string {
+  return `Détoure l'objet principal de cette photo et place-le seul sur un fond uni de couleur exactement ${background}, centré, avec une marge régulière autour de lui.
+
+${SHADOW_PROMPT[shadow] ?? SHADOW_PROMPT.soft}
+
+Garde EXACTEMENT sa forme, ses couleurs, ses matières, son usure et ses détails : ne l'embellis pas, ne le répare pas, ne le repeins pas, n'ajoute aucun élément. Supprime uniquement l'arrière-plan et les objets voisins.
+
+Le fond doit être parfaitement uni sur toute l'image, sans dégradé, sans texture, sans vignettage. N'invente aucun texte, logo ni marque.`
+}
+
+const SHADOWS = ['none', 'soft', 'diffuse', 'strong']
+/** #RGB ou #RRGGBB. La couleur part dans un prompt : on refuse tout ce
+ *  qui n'est pas une couleur pour ne pas y injecter d'instruction. */
+const HEX_RE = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
@@ -56,6 +89,13 @@ Deno.serve(async (req: Request) => {
     if (typeof objectId !== 'string' || typeof imageId !== 'string') {
       return err(400, 'MISSING_PARAMS', 'object_id et image_id requis')
     }
+
+    const mode = body?.mode === 'cutout' ? 'cutout' : 'enhance'
+    const background = typeof body?.background === 'string' && HEX_RE.test(body.background)
+      ? body.background.toUpperCase()
+      : '#FFFFFF'
+    const shadow = SHADOWS.includes(body?.shadow) ? body.shadow : 'soft'
+    const prompt = mode === 'cutout' ? cutoutPrompt(background, shadow) : ENHANCE_PROMPT
 
     // ── Vérifier propriété de l'objet + récupérer l'image source ──
     const { data: image, error: imageError } = await adminClient
@@ -102,7 +142,7 @@ Deno.serve(async (req: Request) => {
     const geminiBody = JSON.stringify({
       contents: [{
         parts: [
-          { text: ENHANCE_PROMPT },
+          { text: prompt },
           { inline_data: { mime_type: sourceMime, data: sourceB64 } },
         ],
       }],
@@ -153,7 +193,7 @@ Deno.serve(async (req: Request) => {
     const outputBytes = base64Decode(inline.data)
 
     // ── Upload du résultat + insertion en base ──────────────────────
-    const newStoragePath = `${user.id}/${objectId}/${Date.now()}-enhanced.${outputExt}`
+    const newStoragePath = `${user.id}/${objectId}/${Date.now()}-${mode}.${outputExt}`
     const { error: uploadError } = await adminClient.storage
       .from('object-images')
       .upload(newStoragePath, outputBytes, { contentType: outputMime })
@@ -201,7 +241,7 @@ Deno.serve(async (req: Request) => {
         output_tokens: usage.candidatesTokenCount ?? 0,
       },
       durationMs: Date.now() - startedAt,
-      meta: { object_id: objectId, source_image_id: imageId, bytes: outputBytes.byteLength },
+      meta: { object_id: objectId, source_image_id: imageId, bytes: outputBytes.byteLength, mode, background: mode === 'cutout' ? background : null, shadow: mode === 'cutout' ? shadow : null },
     })
 
     const { data: signed } = await adminClient.storage

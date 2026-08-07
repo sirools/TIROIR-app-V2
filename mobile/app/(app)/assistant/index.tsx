@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, MessageCircle, Sparkles, MapPin, Search, ListChecks, Zap } from 'lucide-react-native'
 import { useAuth } from '@/features/auth/AuthContext'
-import { isPaidPlan } from '@/lib/plan'
+import { useFeatureFlags } from '@/features/objects/useFeatureFlags'
 import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 const TIPS = [
@@ -26,7 +26,11 @@ export default function AssistantLandingScreen() {
   const router = useRouter()
   const { t } = useTranslation()
   const { profile } = useAuth()
-  const isPremium = isPaidPlan(profile?.plan)
+  // Drapeau serveur : l'assistant n'est pas encore ouvert aux abonnés,
+  // il est en cours de développement. `loaded` évite le clignotement du
+  // message d'indisponibilité pendant le premier rendu.
+  const { flags, loaded: flagsLoaded } = useFeatureFlags()
+  const isPremium = flags.assistant
 
   function openChat(prompt?: string) {
     router.push({ pathname: '/assistant/chat', params: prompt ? { prompt } : undefined })
@@ -47,17 +51,18 @@ export default function AssistantLandingScreen() {
         <View style={{ width: 22 }} />
       </View>
 
-      {!isPremium ? (
+      {!flagsLoaded ? (
+        <View style={styles.lockedWrap} />
+      ) : !isPremium ? (
+        /* Pas de renvoi vers le paywall : l'assistant est en cours de
+           développement, aucun abonnement ne le débloque aujourd'hui.
+           Proposer de payer pour ça serait une promesse fausse. */
         <View style={styles.lockedWrap}>
           <View style={styles.heroIcon}>
-            <Zap size={28} color="white" strokeWidth={2.2} />
+            <MessageCircle size={28} color="white" strokeWidth={2.2} />
           </View>
-          <Text style={styles.heroTitle}>{t('assistant.lockedTitle')}</Text>
-          <Text style={styles.heroSub}>{t('assistant.lockedSub')}</Text>
-          <TouchableOpacity style={styles.ctaBtn} onPress={() => router.push('/paywall')} activeOpacity={0.85}>
-            <Zap size={18} color="white" strokeWidth={2.2} />
-            <Text style={styles.ctaBtnText}>{t('assistant.seePremium')}</Text>
-          </TouchableOpacity>
+          <Text style={styles.heroTitle}>{t('assistant.devTitle')}</Text>
+          <Text style={styles.heroSub}>{t('assistant.devSub')}</Text>
         </View>
       ) : (
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>

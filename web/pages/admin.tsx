@@ -15,6 +15,7 @@ interface AppSettings {
   free_value_estimate_monthly: number
   premium_value_estimate_monthly: number
   pro_value_estimate_monthly: number
+  assistant_daily_messages: number
   supabase_db_limit_mb: number
   supabase_storage_limit_mb: number
   supabase_plan_monthly_usd: number
@@ -531,6 +532,22 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend }: Prop
             hint="L'estimation mobilise une recherche web en plus du modèle : c'est la fonction la plus chère de l'app, à surveiller dans « Dépense IA réelle » avant de la monter"
             value={settings.pro_value_estimate_monthly}
             onChange={v => setSettings(s => ({ ...s, pro_value_estimate_monthly: v }))}
+          />
+        </div>
+
+        {/* ── Assistant, encore en développement ── */}
+        <h2 style={s.sectionTitle}>Assistant conversationnel</h2>
+        <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
+          Réservé aux comptes admin tant qu&apos;il est en développement — son audience se change directement en base
+          (<code>app_settings.assistant_audience</code>), sans release. Le plafond ci-dessous est <strong>journalier</strong> :
+          une conversation est une rafale, un quota mensuel se viderait en un après-midi.
+        </p>
+        <div style={s.settingsCard}>
+          <QuotaField
+            label="Messages par jour et par compte"
+            hint="Garde-fou contre l'emballement, pas une promesse commerciale — assez haut pour ne jamais gêner"
+            value={settings.assistant_daily_messages}
+            onChange={v => setSettings(s => ({ ...s, assistant_daily_messages: v }))}
           />
         </div>
 
@@ -2054,7 +2071,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     admin.from('activity_log').select('*', { count: 'exact', head: true }).eq('action', 'quota.exceeded').gte('created_at', since30d),
     admin.from('activity_log').select('action').gte('created_at', since30d),
     admin.from('app_settings')
-      .select('free_ai_quota_monthly,free_objects_max,free_photos_per_object,premium_ai_quota_monthly,premium_photo_enhance_quota_monthly,pro_ai_quota_monthly,pro_photo_enhance_quota_monthly,free_value_estimate_monthly,premium_value_estimate_monthly,pro_value_estimate_monthly,supabase_db_limit_mb,supabase_storage_limit_mb,supabase_plan_monthly_usd,supabase_egress_limit_gb,supabase_egress_used_gb,supabase_egress_reading_date,estimated_cost_per_ai_analysis_usd,estimated_cost_per_photo_enhance_usd,monthly_ai_spend_alert_usd')
+      .select('free_ai_quota_monthly,free_objects_max,free_photos_per_object,premium_ai_quota_monthly,premium_photo_enhance_quota_monthly,pro_ai_quota_monthly,pro_photo_enhance_quota_monthly,free_value_estimate_monthly,premium_value_estimate_monthly,pro_value_estimate_monthly,assistant_daily_messages,supabase_db_limit_mb,supabase_storage_limit_mb,supabase_plan_monthly_usd,supabase_egress_limit_gb,supabase_egress_used_gb,supabase_egress_reading_date,estimated_cost_per_ai_analysis_usd,estimated_cost_per_photo_enhance_usd,monthly_ai_spend_alert_usd')
       .eq('id', 1).single(),
     admin.rpc('get_admin_infra_stats').single(),
     admin.rpc('get_admin_ai_spend'),
@@ -2153,6 +2170,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     free_value_estimate_monthly: num('free_value_estimate_monthly', 3),
     premium_value_estimate_monthly: num('premium_value_estimate_monthly', 20),
     pro_value_estimate_monthly: num('pro_value_estimate_monthly', 60),
+    assistant_daily_messages: num('assistant_daily_messages', 50),
     supabase_db_limit_mb: num('supabase_db_limit_mb', 8192),
     supabase_storage_limit_mb: num('supabase_storage_limit_mb', 102400),
     supabase_plan_monthly_usd: num('supabase_plan_monthly_usd', 25),

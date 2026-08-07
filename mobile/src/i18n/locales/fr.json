@@ -348,7 +348,9 @@
     "andMore_other": "\n… et {{count}} autres.",
     "seeList": "Voir la liste",
     "errorReply": "Désolé, je n'ai pas pu répondre. Réessaie dans un instant.",
-    "inputPlaceholder": "Pose ta question…"
+    "inputPlaceholder": "Pose ta question…",
+    "devTitle": "Assistant en cours de développement",
+    "devSub": "Il n'est pas encore assez fiable pour être ouvert. Il arrivera quand il saura vraiment répondre."
   },
   "collectionDetail": {
     "notFound": "Collection introuvable.",
@@ -532,7 +534,33 @@
       "quotaMessage": "Tu as atteint ta limite de retouches IA ce mois-ci. Reviens le mois prochain.",
       "premiumRequiredMessage": "Cette fonctionnalité est réservée aux abonnés Premium.",
       "enhanceError": "Impossible d'améliorer cette photo pour le moment.",
-      "coverError": "Impossible de définir cette photo comme favorite."
+      "coverError": "Impossible de définir cette photo comme favorite.",
+      "studioTitle": "Travailler cette photo",
+      "cutoutTitle": "Détourer l'objet",
+      "cutoutSub": "L'objet est isolé et posé sur le fond de ton choix. Ses formes, ses couleurs et son usure ne changent pas.",
+      "cutoutCta": "Détourer",
+      "background": "Fond",
+      "shadow": "Ombre portée",
+      "enhanceTitle": "Améliorer la qualité",
+      "enhanceSub": "L'IA reprend la lumière, la netteté et le cadrage, et choisit elle-même un fond assorti.",
+      "enhanceCta": "Améliorer",
+      "studioFootnote": "Le résultat s'ajoute à la fiche, la photo d'origine est conservée.",
+      "shadows": {
+        "none": "Aucune",
+        "soft": "Discrète",
+        "diffuse": "Diffuse",
+        "strong": "Opaque"
+      },
+      "colors": {
+        "white": "Blanc",
+        "ivory": "Ivoire",
+        "slate": "Ardoise",
+        "sage": "Sauge",
+        "sky": "Ciel",
+        "rose": "Rose",
+        "peach": "Pêche",
+        "ink": "Encre"
+      }
     },
     "value": {
       "sectionTitle": "Performances",

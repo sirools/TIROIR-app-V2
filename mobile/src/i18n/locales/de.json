@@ -348,7 +348,9 @@
     "andMore_other": "\n… und {{count}} weitere.",
     "seeList": "Liste ansehen",
     "errorReply": "Entschuldige, ich konnte nicht antworten. Versuche es gleich noch einmal.",
-    "inputPlaceholder": "Stell deine Frage…"
+    "inputPlaceholder": "Stell deine Frage…",
+    "devTitle": "Assistent in Entwicklung",
+    "devSub": "Er ist noch nicht zuverlässig genug. Er kommt, wenn er wirklich antworten kann."
   },
   "collectionDetail": {
     "notFound": "Sammlung nicht gefunden.",
@@ -532,7 +534,33 @@
       "quotaMessage": "Du hast dein KI-Bearbeitungslimit diesen Monat erreicht. Komm nächsten Monat wieder.",
       "premiumRequiredMessage": "Diese Funktion ist Premium-Abonnenten vorbehalten.",
       "enhanceError": "Dieses Foto kann derzeit nicht verbessert werden.",
-      "coverError": "Dieses Foto konnte nicht als Favorit festgelegt werden."
+      "coverError": "Dieses Foto konnte nicht als Favorit festgelegt werden.",
+      "studioTitle": "Dieses Foto bearbeiten",
+      "cutoutTitle": "Objekt freistellen",
+      "cutoutSub": "Das Objekt wird isoliert und auf den gewählten Hintergrund gesetzt. Form, Farben und Gebrauchsspuren bleiben unverändert.",
+      "cutoutCta": "Freistellen",
+      "background": "Hintergrund",
+      "shadow": "Schlagschatten",
+      "enhanceTitle": "Qualität verbessern",
+      "enhanceSub": "Die KI überarbeitet Licht, Schärfe und Bildausschnitt und wählt selbst einen passenden Hintergrund.",
+      "enhanceCta": "Verbessern",
+      "studioFootnote": "Das Ergebnis kommt zum Eintrag hinzu, das Originalfoto bleibt erhalten.",
+      "shadows": {
+        "none": "Keiner",
+        "soft": "Dezent",
+        "diffuse": "Diffus",
+        "strong": "Kräftig"
+      },
+      "colors": {
+        "white": "Weiß",
+        "ivory": "Elfenbein",
+        "slate": "Schiefer",
+        "sage": "Salbei",
+        "sky": "Himmel",
+        "rose": "Rosé",
+        "peach": "Pfirsich",
+        "ink": "Tinte"
+      }
     },
     "value": {
       "sectionTitle": "Wertentwicklung",
