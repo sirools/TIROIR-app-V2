@@ -627,7 +627,7 @@
       "sectionTitle": "Insurance"
     },
     "loan": {
-      "toLabel": "Loaned to…",
+      "toLabel": "Loaned to:",
       "toPlaceholder": "Person's name",
       "returnLabel": "Return date"
     },
@@ -638,7 +638,20 @@
       "placeholder": "e.g. Garage, top shelf…",
       "add": "Add a level",
       "full": "{{max}} levels maximum"
-    }
+    },
+    "illustration": "AI illustration",
+    "summaryGenerate": "Generate an AI description",
+    "summaryRegenerate": "Regenerate the description",
+    "summaryCopy": "Copy the description",
+    "summaryEdit": "Edit the description",
+    "summaryWrite": "Write the description",
+    "summaryDelete": "Delete the description",
+    "summaryWriting": "Writing…",
+    "summaryCopied": "Description copied",
+    "summaryDeleteTitle": "Delete the description?",
+    "summaryDeleteBody": "The text will be erased. The rest of the item is untouched.",
+    "collectionMoved": "Item moved to {{name}}",
+    "collectionRemoved": "Item removed from its collection"
   },
   "objectEdit": {
     "title": "Edit",
@@ -784,6 +797,21 @@
     "destinationHelper_one": "The entry will be created in this collection.",
     "destinationHelper_other": "All {{count}} entries will be created in this collection.",
     "created_one": "1 object created",
-    "created_other": "{{count}} objects created"
+    "created_other": "{{count}} objects created",
+    "history": "Recent scans",
+    "historyObjects_one": "1 object detected",
+    "historyObjects_other": "{{count}} objects detected",
+    "historyCreated_one": "1 item created",
+    "historyCreated_other": "{{count}} items created",
+    "historyNone": "no item created",
+    "historyDeleteTitle": "Delete this scan?",
+    "historyDeleteBody": "The photo and the result will be erased. Items already created are untouched.",
+    "replayed": "Saved scan — no new cost",
+    "newPhoto": "New photo",
+    "thumbCutout": "Cut out",
+    "thumbGenerate": "Generate",
+    "thumbRedo": "Redo",
+    "thumbNoCrop": "No crop available for this object.",
+    "illustration": "AI illustration"
   }
 }

@@ -139,6 +139,13 @@ export interface ObjectImage {
   size_bytes: number | null
   position: number
   is_cover: boolean
+  /**
+   * Image produite par l'IA à partir d'une description, pas photographiée.
+   * L'application porte des champs d'assurance et des liens de partage :
+   * une image de synthèse prise pour une pièce réelle serait une pièce
+   * fausse. Elle doit donc rester identifiable partout où elle s'affiche.
+   */
+  is_illustration: boolean
   created_at: string
 }
 

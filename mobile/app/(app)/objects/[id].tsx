@@ -22,13 +22,18 @@ import { useTranslation } from 'react-i18next'
 import i18n from 'i18next'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
+import * as Clipboard from 'expo-clipboard'
 import { decode } from 'base64-arraybuffer'
 import { Plus, Minus, Pencil, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, ChevronUp, ChevronDown, MapPin, Share2, Sparkles, Star, Info, CalendarDays, UserRound } from 'lucide-react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
+import { functionMessage } from '@/lib/functionError'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan } from '@/lib/plan'
-import { Screen, Colors, Typography, Spacing, Radius, ActionSheet, Checkbox } from '@/components/ui'
+import {
+  Screen, Colors, Typography, Spacing, Radius, ActionSheet, Checkbox, useToast,
+  CollectionPickerSheet, PickedCollection,
+} from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
 import { DocumentsSection, ObjectDocument } from '@/components/DocumentsSection'
 import { InsurancesSection } from '@/components/InsurancesSection'
@@ -470,6 +475,14 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
                 ? <Image source={{ uri: url }} style={sl.img} resizeMode="cover" />
                 : <View style={sl.placeholder}><ActivityIndicator color={Colors.textTertiary} /></View>
               }
+              {/* Dit sur l'image même, pas dans un réglage : c'est en la
+                  regardant qu'on la prend pour une photo de l'objet. */}
+              {item.is_illustration && (
+                <View style={sl.illusTag}>
+                  <Sparkles size={11} color="white" strokeWidth={2.2} />
+                  <Text style={sl.illusTagText}>{t('object.illustration')}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           )
         }}
@@ -589,6 +602,16 @@ const sl = StyleSheet.create({
   empty: { width: SCREEN_WIDTH, height: HERO_HEIGHT, alignItems: 'center', justifyContent: 'center', gap: 8 },
   emptyIcon: { fontSize: 36 },
   emptyText: { fontSize: Typography.sm, color: Colors.textTertiary },
+
+  // Image générée : dite sur l'image, jamais seulement en base.
+  illusTag: {
+    // Sous le bouton retour, qui occupe déjà le coin.
+    position: 'absolute', top: 66, left: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingVertical: 4, paddingHorizontal: 9,
+    borderRadius: Radius.full, backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  illusTagText: { fontSize: Typography.xs, fontWeight: Typography.semibold, color: 'white' },
 
   // Dots
   dots: {
@@ -2210,6 +2233,7 @@ export default function ObjectScreen() {
   const { id, focusTitle } = useLocalSearchParams<{ id: string; focusTitle?: string }>()
   const router = useRouter()
   const { t, i18n } = useTranslation()
+  const { showToast } = useToast()
 
   const [object, setObject] = useState<TiroirObject | null>(null)
   // Miroir de `object` — voir saveField. Resynchronisé après chaque rendu pour couvrir
@@ -2252,11 +2276,13 @@ export default function ObjectScreen() {
 
   // Statut / Collection
   const [showStatusPicker, setShowStatusPicker] = useState(false)
-  const [showCollectionPicker, setShowCollectionPicker] = useState(false)
+  /** La collection se choisit en feuille basse — même composant que les
+   *  parcours d'ajout, donc la même liste, le même tri, la même création
+   *  à la volée. Un dropdown de puces ne montrait ni les icônes ni les
+   *  compteurs, et devenait illisible passé une dizaine de collections. */
+  const [collectionSheetOpen, setCollectionSheetOpen] = useState(false)
   const [statusPickerMounted, setStatusPickerMounted] = useState(false)
-  const [collectionPickerMounted, setCollectionPickerMounted] = useState(false)
   const statusPickerAnim = useRef(new Animated.Value(0)).current
-  const collectionPickerAnim = useRef(new Animated.Value(0)).current
   const [metricsRowHeight, setMetricsRowHeight] = useState(0)
 
   // Les dropdowns sont en position absolue et débordent sous la rangée : tant qu'ils sont
@@ -2275,20 +2301,6 @@ export default function ObjectScreen() {
     const opening = !showStatusPicker
     setShowStatusPicker(opening)
     animatePicker(statusPickerAnim, opening, setStatusPickerMounted)
-    if (opening) {
-      setShowCollectionPicker(false)
-      animatePicker(collectionPickerAnim, false, setCollectionPickerMounted)
-    }
-  }
-
-  function toggleCollectionPicker() {
-    const opening = !showCollectionPicker
-    setShowCollectionPicker(opening)
-    animatePicker(collectionPickerAnim, opening, setCollectionPickerMounted)
-    if (opening) {
-      setShowStatusPicker(false)
-      animatePicker(statusPickerAnim, false, setStatusPickerMounted)
-    }
   }
 
   // Emplacement
@@ -2322,12 +2334,12 @@ export default function ObjectScreen() {
 
   // ── Save helper ─────────────────────────────────────────────────────────────
 
-  async function saveField(updates: Partial<TiroirObject>, silentObj?: TiroirObject) {
+  async function saveField(updates: Partial<TiroirObject>, silentObj?: TiroirObject): Promise<boolean> {
     // objectRef, tenu à jour de façon synchrone, sert de base : deux saveField enchaînés
     // avant le retour du RPC (ex. nom du prêt puis date de retour) partageraient sinon
     // le même `object` périmé, et le second écraserait le premier.
     const base = silentObj ?? objectRef.current ?? object
-    if (!base) return
+    if (!base) return false
     const merged: TiroirObject = { ...base, ...updates }
     objectRef.current = merged
     setSaving(true)
@@ -2341,8 +2353,12 @@ export default function ObjectScreen() {
       p_attributes: merged.attributes ?? {},
     })
     setSaving(false)
-    if (error) Alert.alert(t('common.error'), error.message)
-    else setObject(merged)
+    if (error) {
+      Alert.alert(t('common.error'), error.message)
+      return false
+    }
+    setObject(merged)
+    return true
   }
 
   // ── Description ─────────────────────────────────────────────────────────────
@@ -2368,6 +2384,73 @@ export default function ObjectScreen() {
   function startEditDesc() {
     setDescDraft(object?.description ?? '')
     setEditingDesc(true)
+  }
+
+  /**
+   * Actions du bloc « Résumé IA ».
+   *
+   * Toutes passent par le menu : ouvrir puis choisir est déjà un geste
+   * délibéré, inutile d'y ajouter une confirmation — sauf pour la
+   * suppression, seule action qui ne laisse rien derrière elle.
+   */
+  const [describing, setDescribing] = useState(false)
+  const [summaryMenuVisible, setSummaryMenuVisible] = useState(false)
+
+  async function copyDescription() {
+    const text = object?.description?.trim()
+    if (!text) return
+    await Clipboard.setStringAsync(text)
+    showToast(t('object.summaryCopied'))
+  }
+
+  function deleteDescription() {
+    Alert.alert(t('object.summaryDeleteTitle'), t('object.summaryDeleteBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => saveField({ description: null }),
+      },
+    ])
+  }
+
+  /** Options du menu, réduites à ce qui a du sens : sans description,
+   *  copier, modifier et supprimer n'ont rien sur quoi agir. */
+  function summaryMenuOptions() {
+    const hasDescription = Boolean(object?.description?.trim())
+    if (!hasDescription) {
+      return [
+        { label: t('object.summaryGenerate'), onPress: runDescribe },
+        { label: t('object.summaryWrite'), onPress: startEditDesc },
+        { label: t('common.cancel'), onPress: () => {}, cancel: true },
+      ]
+    }
+    return [
+      { label: t('object.summaryRegenerate'), onPress: runDescribe },
+      { label: t('object.summaryCopy'), onPress: copyDescription },
+      { label: t('object.summaryEdit'), onPress: startEditDesc },
+      { label: t('object.summaryDelete'), onPress: deleteDescription, destructive: true },
+      { label: t('common.cancel'), onPress: () => {}, cancel: true },
+    ]
+  }
+
+  async function runDescribe() {
+    setDescribing(true)
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('describe-object', {
+        body: { object_id: id, locale: i18n.language },
+      })
+      if (fnError) throw new Error(await functionMessage(fnError))
+      if (data?.error) throw new Error(data.error.message ?? data.error.code)
+
+      // La fonction a déjà écrit en base : on aligne l'écran plutôt que
+      // de renvoyer une seconde écriture derrière.
+      setObject(prev => prev ? ({ ...prev, description: data.description } as TiroirObject) : prev)
+    } catch (e) {
+      Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e))
+    } finally {
+      setDescribing(false)
+    }
   }
 
   function commitDesc() {
@@ -2409,10 +2492,24 @@ export default function ObjectScreen() {
 
   // ── Collection ──────────────────────────────────────────────────────────────
 
-  function handleCollectionChange(collectionId: string | null) {
-    setShowCollectionPicker(false)
-    if (collectionId === object?.collection_id) return
-    saveField({ collection_id: collectionId })
+  function handleCollectionChange(picked: PickedCollection | null) {
+    setCollectionSheetOpen(false)
+    if ((picked?.id ?? null) === (object?.collection_id ?? null)) return
+
+    // La feuille sait créer une collection à la volée : sans ça, la carte
+    // afficherait « — » jusqu'au prochain chargement de l'écran.
+    if (picked && !allCollections.some(c => c.id === picked.id)) {
+      setAllCollections(prev => [...prev, { id: picked.id, name: picked.name } as Collection])
+    }
+
+    saveField({ collection_id: picked?.id ?? null }).then(ok => {
+      // Après l'écriture, pas avant : la feuille se referme aussitôt, sans
+      // ce mot rien ne dirait où l'objet a atterri.
+      if (!ok) return
+      showToast(picked
+        ? t('object.collectionMoved', { name: picked.name })
+        : t('object.collectionRemoved'))
+    })
   }
 
   // ── Emplacement ─────────────────────────────────────────────────────────────
@@ -2682,13 +2779,29 @@ export default function ObjectScreen() {
             {/* ── Résumé IA ── */}
             <View style={s.card}>
               <View style={s.cardHead}>
-                <Text style={s.cardIcon}>✦</Text>
+                {/* Le ✦ dit ce qu'est le bloc, il ne fait rien. Toutes les
+                    actions passent par le ••• : un seul point d'entrée, et
+                    plus deux crayons côte à côte qui se ressemblaient sans
+                    faire la même chose. */}
+                <Sparkles size={14} color={Colors.accent} strokeWidth={2} />
                 <Text style={s.cardLabel}>{t('object.aiSummary')}</Text>
-                <TouchableOpacity onPress={startEditDesc} style={s.editIconBtn}>
-                  <Text style={s.editIconText}>✎</Text>
+                <TouchableOpacity
+                  onPress={() => setSummaryMenuVisible(true)}
+                  disabled={describing}
+                  style={[s.summaryMenuBtn, describing && s.summaryMenuBtnOff]}
+                  hitSlop={8}
+                >
+                  <MoreHorizontal size={16} color={Colors.textTertiary} strokeWidth={2} />
                 </TouchableOpacity>
               </View>
-              {editingDesc ? (
+              {describing ? (
+                /* La rédaction prend trois secondes : le dire là où le texte
+                   va apparaître, pas dans un coin de l'en-tête. */
+                <View style={s.summaryWriting}>
+                  <ActivityIndicator size="small" color={Colors.accent} />
+                  <Text style={s.summaryWritingText}>{t('object.summaryWriting')}</Text>
+                </View>
+              ) : editingDesc ? (
                 <TextInput
                   style={s.descInput}
                   value={descDraft}
@@ -2720,7 +2833,7 @@ export default function ObjectScreen() {
                 style={[
                   s.metricCard,
                   { flex: 1, backgroundColor: STATUS_COLOR[object.status]?.bg ?? Colors.surface },
-                  // Statut « prêté » : la carte se prolonge dans la carte de prêt juste dessous.
+                  // Statut « prêté » : la carte se prolonge dans le bloc de prêt juste dessous.
                   object.status === 'loaned' && s.metricCardConnected,
                 ]}
                 onPress={toggleStatusPicker}
@@ -2732,16 +2845,24 @@ export default function ObjectScreen() {
                   <Text style={[s.metricValue, { color: STATUS_COLOR[object.status]?.text ?? Colors.accent, flex: 1 }]}>
                     {t(`object.statusOptions.${object.status}`, { defaultValue: object.status })}
                   </Text>
-                  <Text style={[s.statusChevron, { color: STATUS_COLOR[object.status]?.text ?? Colors.accent }]}>
-                    {showStatusPicker ? '▲' : '▾'}
-                  </Text>
+                  {/* Le chevron prend la couleur du statut, comme la pastille
+                      et le libellé : les trois disent la même chose. */}
+                  {showStatusPicker
+                    ? <ChevronUp size={16} color={STATUS_COLOR[object.status]?.text ?? Colors.accent} strokeWidth={2} />
+                    : <ChevronDown size={16} color={STATUS_COLOR[object.status]?.text ?? Colors.accent} strokeWidth={2} />}
                 </View>
               </TouchableOpacity>
 
               {/* Collection */}
               <TouchableOpacity
-                style={[s.metricCard, { flex: 1 }]}
-                onPress={toggleCollectionPicker}
+                style={[
+                  s.metricCard,
+                  { flex: 1 },
+                  // Le bloc de prêt remonte sous le Statut sur toute la largeur :
+                  // sans ce retrait, il viendrait coller le bas de cette carte.
+                  object.status === 'loaned' && s.metricCardDetached,
+                ]}
+                onPress={() => setCollectionSheetOpen(true)}
                 activeOpacity={0.8}
               >
                 <Text style={s.metricLabel}>{t('object.collectionLabel')}</Text>
@@ -2749,7 +2870,9 @@ export default function ObjectScreen() {
                   <Text style={[s.metricValue, { flex: 1 }]} numberOfLines={1}>
                     {currentCollection?.name ?? '—'}
                   </Text>
-                  <Text style={s.statusChevron}>{showCollectionPicker ? '▲' : '▾'}</Text>
+                  {/* La feuille couvre l'écran : le chevron ne bascule plus,
+                      il n'y a rien à replier derrière elle. */}
+                  <ChevronDown size={16} color={Colors.textPrimary} strokeWidth={2} />
                 </View>
               </TouchableOpacity>
 
@@ -2780,37 +2903,6 @@ export default function ObjectScreen() {
                       </TouchableOpacity>
                     )
                   })}
-                </View>
-              </Animated.View>
-              )}
-
-              {/* Dropdown collection — absolu pleine largeur, monté seulement le temps de l'ouverture */}
-              {collectionPickerMounted && (
-              <Animated.View
-                pointerEvents={showCollectionPicker ? 'auto' : 'none'}
-                style={[s.dropdownAbsolute, {
-                  top: metricsRowHeight,
-                  opacity: collectionPickerAnim,
-                  transform: [{ translateY: collectionPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) }],
-                }]}>
-                <View style={s.chipRow}>
-                  <TouchableOpacity
-                    style={[s.chip, !object.collection_id && s.chipActive]}
-                    onPress={() => { handleCollectionChange(null); toggleCollectionPicker() }}
-                  >
-                    <Text style={[s.chipText, !object.collection_id && s.chipTextActive]}>{t('object.noCollection')}</Text>
-                  </TouchableOpacity>
-                  {allCollections.map(col => (
-                    <TouchableOpacity
-                      key={col.id}
-                      style={[s.chip, object.collection_id === col.id && s.chipActive]}
-                      onPress={() => { handleCollectionChange(col.id); toggleCollectionPicker() }}
-                    >
-                      <Text style={[s.chipText, object.collection_id === col.id && s.chipTextActive]}>
-                        {col.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
                 </View>
               </Animated.View>
               )}
@@ -2948,6 +3040,22 @@ export default function ObjectScreen() {
           ]}
         />
 
+        {/* ── Choix de collection ── */}
+        <CollectionPickerSheet
+          visible={collectionSheetOpen}
+          title={t('collectionPicker.title')}
+          helper={t('collectionPicker.helperManual')}
+          onSelect={handleCollectionChange}
+          onDismiss={() => setCollectionSheetOpen(false)}
+        />
+
+        {/* ── Menu du bloc Résumé IA ── */}
+        <ActionSheet
+          visible={summaryMenuVisible}
+          onClose={() => setSummaryMenuVisible(false)}
+          options={summaryMenuOptions()}
+        />
+
         {/* ── Emplacement ── */}
         <LocationEditorSheet
           visible={locationSheetOpen}
@@ -3077,8 +3185,17 @@ const s = StyleSheet.create({
     fontSize: Typography.xs, fontWeight: Typography.bold,
     color: Colors.accent, letterSpacing: 0.8,
   },
+  // Bouton secondaire discret : le bloc reste une carte de lecture, pas
+  // une barre d'outils.
+  summaryMenuBtn: {
+    paddingHorizontal: 8, paddingVertical: 4,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.surfaceWarm,
+  },
+  summaryMenuBtnOff: { opacity: 0.45 },
+  summaryWriting: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  summaryWritingText: { fontSize: Typography.sm, color: Colors.textTertiary, fontStyle: 'italic' },
   editIconBtn: { padding: 4 },
-  editIconText: { fontSize: Typography.sm, color: Colors.textTertiary },
   descText: { fontSize: Typography.sm, color: Colors.textSecondary, lineHeight: Typography.sm * 1.6 },
   descPlaceholder: { fontSize: Typography.sm, color: Colors.textTertiary, fontStyle: 'italic' },
   showMoreBtn: { marginTop: 4 },
@@ -3106,6 +3223,10 @@ const s = StyleSheet.create({
     gap: 4,
   },
   metricCardConnected: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomWidth: 0 },
+  // La carte Collection s'arrête une gouttière plus haut : la même que celle
+  // qui la sépare du Statut à sa gauche. Sans elle, le bloc de prêt qui
+  // remonte sous le Statut viendrait la toucher.
+  metricCardDetached: { marginBottom: GRID_GAP },
   metricLabel: { fontSize: Typography.xs, color: Colors.textTertiary, marginBottom: 4 },
   metricValue: { fontSize: Typography.md, fontWeight: Typography.bold, color: Colors.textPrimary },
 
@@ -3131,14 +3252,15 @@ const s = StyleSheet.create({
 
   statusValueRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   statusDot: { width: 8, height: 8, borderRadius: 4, flexShrink: 0 },
-  statusChevron: { fontSize: 14, lineHeight: 18 },
   chipDot: { width: 10, height: 10, borderRadius: 5, flexShrink: 0 },
 
   loanCard: {
     borderRadius: Radius.lg,
     borderWidth: 0.5, borderColor: Colors.border,   // même trait que metricCard
-    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
-    gap: Spacing.xs,
+    // Même respiration que les autres cartes : le prêt est soudé au Statut,
+    // ce n'est pas une raison pour que son contenu soit à l'étroit.
+    padding: Spacing.md,
+    gap: Spacing.sm,
     // Soudée à la carte Statut : on annule la gouttière de la grille puis on
     // superpose les traits (0.5) pour ne laisser qu'une seule ligne de séparation.
     marginTop: -(GRID_GAP + 0.5),

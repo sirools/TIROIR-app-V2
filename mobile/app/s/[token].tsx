@@ -20,6 +20,7 @@ interface SharedObject {
   location_note: string | null
   quantity: number
   cover_url: string | null
+  cover_is_illustration: boolean
 }
 
 interface ShareLink {
@@ -84,14 +85,19 @@ export default function SharePage() {
       // 3. Charger les covers (object_images)
       const { data: imgData } = await supabase
         .from('object_images')
-        .select('object_id, storage_path')
+        .select('object_id, storage_path, is_illustration')
         .in('object_id', linkData.object_ids)
         .eq('is_cover', true)
 
       const coverPaths: Record<string, string> = {}
+      // Une image générée reste identifiable chez le destinataire : c'est
+      // lui, justement, qui n'a aucun moyen de savoir à quoi ressemble
+      // vraiment l'objet.
+      const coverIllustration: Record<string, boolean> = {}
       if (imgData) {
         for (const img of imgData) {
           coverPaths[img.object_id] = img.storage_path
+          coverIllustration[img.object_id] = Boolean(img.is_illustration)
         }
       }
 
@@ -114,6 +120,7 @@ export default function SharePage() {
         (objData as Omit<SharedObject, 'cover_url'>[]).map(o => ({
           ...o,
           cover_url: coverUrls[o.id] ?? null,
+          cover_is_illustration: coverIllustration[o.id] ?? false,
         }))
       )
     } catch {
@@ -199,6 +206,11 @@ export default function SharePage() {
                 {isLot(obj.quantity) && (
                   <View style={styles.qtyBadge}>
                     <Text style={styles.qtyBadgeText}>×{obj.quantity}</Text>
+                  </View>
+                )}
+                {obj.cover_is_illustration && obj.cover_url && (
+                  <View style={styles.illusBadge}>
+                    <Text style={styles.illusBadgeText}>{t('object.illustration')}</Text>
                   </View>
                 )}
               </View>
@@ -323,6 +335,13 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   qtyBadgeText: { fontSize: Typography.xs, fontWeight: Typography.bold, color: Colors.textInverse },
+  illusBadge: {
+    position: 'absolute', bottom: 6, left: 6,
+    paddingHorizontal: 6, paddingVertical: 2,
+    borderRadius: Radius.full,
+    backgroundColor: 'rgba(26, 22, 18, 0.72)',
+  },
+  illusBadgeText: { fontSize: 10, fontWeight: Typography.semibold, color: Colors.textInverse },
   coverImg: { width: '100%', height: '100%' },
   coverPlaceholder: {
     flex: 1, alignItems: 'center', justifyContent: 'center',

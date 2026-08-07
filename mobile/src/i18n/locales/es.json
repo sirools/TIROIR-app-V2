@@ -627,7 +627,7 @@
       "sectionTitle": "Seguros"
     },
     "loan": {
-      "toLabel": "Prestado a…",
+      "toLabel": "Prestado a:",
       "toPlaceholder": "Nombre de la persona",
       "returnLabel": "Fecha de devolución"
     },
@@ -638,7 +638,20 @@
       "placeholder": "Ej.: Garaje, estante superior…",
       "add": "Añadir un nivel",
       "full": "Máximo {{max}} niveles"
-    }
+    },
+    "illustration": "Ilustración IA",
+    "summaryGenerate": "Generar una descripción con IA",
+    "summaryRegenerate": "Regenerar la descripción",
+    "summaryCopy": "Copiar la descripción",
+    "summaryEdit": "Editar la descripción",
+    "summaryWrite": "Escribir la descripción",
+    "summaryDelete": "Eliminar la descripción",
+    "summaryWriting": "Redactando…",
+    "summaryCopied": "Descripción copiada",
+    "summaryDeleteTitle": "¿Eliminar la descripción?",
+    "summaryDeleteBody": "El texto se borrará. El resto de la ficha no se ve afectado.",
+    "collectionMoved": "Objeto movido a {{name}}",
+    "collectionRemoved": "Objeto retirado de su colección"
   },
   "objectEdit": {
     "title": "Editar",
@@ -784,6 +797,21 @@
     "destinationHelper_one": "La ficha se creará en esta colección.",
     "destinationHelper_other": "Las {{count}} fichas se crearán en esta colección.",
     "created_one": "1 objeto creado",
-    "created_other": "{{count}} objetos creados"
+    "created_other": "{{count}} objetos creados",
+    "history": "Análisis recientes",
+    "historyObjects_one": "1 objeto detectado",
+    "historyObjects_other": "{{count}} objetos detectados",
+    "historyCreated_one": "1 ficha creada",
+    "historyCreated_other": "{{count}} fichas creadas",
+    "historyNone": "ninguna ficha creada",
+    "historyDeleteTitle": "¿Eliminar este análisis?",
+    "historyDeleteBody": "Se borrarán la foto y el resultado. Las fichas ya creadas no se ven afectadas.",
+    "replayed": "Análisis guardado: sin coste adicional",
+    "newPhoto": "Nueva foto",
+    "thumbCutout": "Recortar",
+    "thumbGenerate": "Generar",
+    "thumbRedo": "Rehacer",
+    "thumbNoCrop": "No hay recorte disponible para este objeto.",
+    "illustration": "Ilustración IA"
   }
 }

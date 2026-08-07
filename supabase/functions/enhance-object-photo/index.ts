@@ -127,7 +127,12 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // Le jeton a été prélevé avant l'appel : une panne du fournisseur ne
+    // doit pas être facturée à l'utilisateur.
+    const refund = () => userClient.rpc('refund_photo_enhance_quota')
+
     if (!geminiJson) {
+      await refund()
       return err(502, 'GENERATION_FAILED', "L'amélioration a échoué, réessaie plus tard")
     }
 
@@ -137,6 +142,7 @@ Deno.serve(async (req: Request) => {
 
     if (!inline?.data) {
       console.error('[enhance-object-photo] no image part in Gemini response')
+      await refund()
       return err(502, 'GENERATION_FAILED', "L'amélioration a échoué, réessaie plus tard")
     }
 
@@ -152,6 +158,7 @@ Deno.serve(async (req: Request) => {
 
     if (uploadError) {
       console.error('[enhance-object-photo] upload error', uploadError.message)
+      await refund()
       return err(500, 'INTERNAL_ERROR', "Impossible d'enregistrer la photo améliorée")
     }
 

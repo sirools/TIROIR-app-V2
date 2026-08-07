@@ -38,6 +38,9 @@ const PRICING: Record<string, { input: number; output: number }> = {
 /** Modèle de production. Les autres ne servent qu'au banc d'essai. */
 const DEFAULT_MODEL = 'claude-haiku-4-5'
 
+/** Types acceptés par le bucket object-images et par scene_analyses. */
+const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
+
 const SYSTEM_PROMPT = `Tu inventories une photo de rangement pour une application d'inventaire personnel.
 Tu listes les objets présents et tu comptes leurs exemplaires.
 
@@ -213,6 +216,57 @@ Deno.serve(async (req: Request) => {
       (inputTokens / 1_000_000) * price.input +
       (outputTokens / 1_000_000) * price.output
 
+    // ── Persistance de la scène ────────────────────────────────────────
+    // La photo et le résultat sont écrits ICI, pas au moment où l'utilisateur
+    // valide le lot. Deux raisons :
+    //
+    //   1. l'analyse abandonnée est justement celle qu'il faut rattraper —
+    //      un placard photographié puis une interruption ne doivent pas
+    //      coûter une seconde analyse ;
+    //   2. la fonction agit en service_role et tient déjà les octets : le
+    //      client n'uploade rien, et aucune policy Storage n'est à assouplir.
+    //
+    // L'écriture est faite au mieux : une analyse payée en tokens ne doit
+    // pas être perdue parce que le stockage a hoqueté. La photo peut manquer
+    // (storage_path NULL), les fiches se créeront alors sans image.
+    const sceneId = crypto.randomUUID()
+    const sceneMime = ALLOWED_MIME.includes(image.media_type) ? image.media_type : 'image/jpeg'
+    const sceneExt = sceneMime === 'image/png' ? 'png' : sceneMime === 'image/webp' ? 'webp' : 'jpg'
+
+    let scenePath: string | null = null
+    try {
+      const binary = atob(image.data)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+
+      const path = `${user.id}/scenes/${sceneId}.${sceneExt}`
+      const { error: upErr } = await supabase.storage
+        .from('object-images')
+        .upload(path, bytes, { contentType: sceneMime, upsert: false })
+      if (upErr) throw new Error(upErr.message)
+      scenePath = path
+    } catch (e) {
+      console.error('[detect-scene] storage', e instanceof Error ? e.message : e)
+    }
+
+    const objects = Array.isArray(result.objects) ? result.objects : []
+
+    const { error: sceneErr } = await supabase.from('scene_analyses').insert({
+      id: sceneId,
+      user_id: user.id,
+      storage_path: scenePath,
+      mime_type: sceneMime,
+      model,
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      cost_usd: costUsd,
+      duration_ms: Date.now() - startedAt,
+      result,
+      object_count: objects.length,
+      truncated,
+    })
+    if (sceneErr) console.error('[detect-scene] scene_analyses', sceneErr.message)
+
     // Jamais bloquant : une écriture de télémétrie ne doit pas faire
     // échouer une analyse que l'utilisateur a déjà payée en tokens.
     supabase.from('ai_usage').insert({
@@ -226,10 +280,13 @@ Deno.serve(async (req: Request) => {
       cost_usd: costUsd,
       duration_ms: Date.now() - startedAt,
       meta: {
-        object_count: Array.isArray(result.objects) ? result.objects.length : 0,
+        object_count: objects.length,
         scene_type: result.scene_type ?? null,
         truncated,
         image_bytes: Math.round((image.data.length * 3) / 4),
+        // Rattache le coût à la scène : sans cela, impossible de savoir a
+        // posteriori ce qu'une analyse abandonnée a coûté.
+        scene_id: sceneErr ? null : sceneId,
       },
     }).then(({ error }) => {
       if (error) console.error('[detect-scene] ai_usage', error.message)
@@ -238,6 +295,11 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({
       ...result,
       truncated,
+      // scene_id NULL si la ligne n'a pas pu être écrite : le client créera
+      // alors les fiches sans photo plutôt que d'échouer sur une scène
+      // que la RPC ne trouverait pas.
+      scene_id: sceneErr ? null : sceneId,
+      scene_storage_path: sceneErr ? null : scenePath,
       _meta: {
         model,
         input_tokens: inputTokens,

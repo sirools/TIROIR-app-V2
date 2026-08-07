@@ -117,7 +117,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <View style={[styles.iconWrap, isError && styles.iconWrapError]}>
                 <Icon size={13} color={Colors.textInverse} strokeWidth={3} />
               </View>
-              <Text style={styles.message} numberOfLines={2}>{toast.message}</Text>
+              <Text style={styles.message}>{toast.message}</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -157,7 +157,9 @@ const styles = StyleSheet.create({
   },
   inner: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // Ferré en haut : sur un message de trois lignes, une pastille centrée
+    // se retrouve en face du milieu du texte au lieu de son début.
+    alignItems: 'flex-start',
     gap: Spacing.sm,
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.md,
@@ -165,6 +167,9 @@ const styles = StyleSheet.create({
   iconWrap: {
     width: 20,
     height: 20,
+    // (lineHeight - hauteur de pastille) / 2 : la pastille tombe pile au
+    // milieu de la première ligne.
+    marginTop: 1,
     borderRadius: 10,
     backgroundColor: Colors.accent,
     alignItems: 'center',
@@ -177,6 +182,7 @@ const styles = StyleSheet.create({
   message: {
     flex: 1,
     fontSize: Typography.base,
+    lineHeight: 22,
     fontWeight: Typography.medium,
     color: Colors.textPrimary,
   },

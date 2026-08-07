@@ -627,7 +627,7 @@
       "sectionTitle": "Versicherungen"
     },
     "loan": {
-      "toLabel": "Verliehen an…",
+      "toLabel": "Verliehen an:",
       "toPlaceholder": "Name der Person",
       "returnLabel": "Rückgabedatum"
     },
@@ -638,7 +638,20 @@
       "placeholder": "z. B. Garage, oberes Regal…",
       "add": "Ebene hinzufügen",
       "full": "Maximal {{max}} Ebenen"
-    }
+    },
+    "illustration": "KI-Illustration",
+    "summaryGenerate": "KI-Beschreibung erzeugen",
+    "summaryRegenerate": "Beschreibung neu erzeugen",
+    "summaryCopy": "Beschreibung kopieren",
+    "summaryEdit": "Beschreibung bearbeiten",
+    "summaryWrite": "Beschreibung schreiben",
+    "summaryDelete": "Beschreibung löschen",
+    "summaryWriting": "Wird verfasst…",
+    "summaryCopied": "Beschreibung kopiert",
+    "summaryDeleteTitle": "Beschreibung löschen?",
+    "summaryDeleteBody": "Der Text wird gelöscht. Der Rest des Eintrags bleibt erhalten.",
+    "collectionMoved": "Objekt nach {{name}} verschoben",
+    "collectionRemoved": "Objekt aus seiner Sammlung entfernt"
   },
   "objectEdit": {
     "title": "Bearbeiten",
@@ -784,6 +797,21 @@
     "destinationHelper_one": "Der Eintrag wird in dieser Sammlung erstellt.",
     "destinationHelper_other": "Alle {{count}} Einträge werden in dieser Sammlung erstellt.",
     "created_one": "1 Gegenstand erstellt",
-    "created_other": "{{count}} Gegenstände erstellt"
+    "created_other": "{{count}} Gegenstände erstellt",
+    "history": "Letzte Analysen",
+    "historyObjects_one": "1 Objekt erkannt",
+    "historyObjects_other": "{{count}} Objekte erkannt",
+    "historyCreated_one": "1 Eintrag erstellt",
+    "historyCreated_other": "{{count}} Einträge erstellt",
+    "historyNone": "kein Eintrag erstellt",
+    "historyDeleteTitle": "Diese Analyse löschen?",
+    "historyDeleteBody": "Foto und Ergebnis werden gelöscht. Bereits erstellte Einträge bleiben erhalten.",
+    "replayed": "Gespeicherte Analyse – keine neuen Kosten",
+    "newPhoto": "Neues Foto",
+    "thumbCutout": "Freistellen",
+    "thumbGenerate": "Erzeugen",
+    "thumbRedo": "Neu",
+    "thumbNoCrop": "Für dieses Objekt ist kein Ausschnitt verfügbar.",
+    "illustration": "KI-Illustration"
   }
 }
