@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="x-apple-disable-message-reformatting" />
+<meta name="color-scheme" content="light dark" />
+<meta name="supported-color-schemes" content="light dark" />
+<title>Tiroir — point d'étape {{periode}}</title>
+<!--
+  OBJET SUGGÉRÉ  : Tiroir — point d'étape {{periode}}
+  EXPÉDITEUR     : Clément Ougier <clement@tiroir.app>
+
+  Un point d'étape investisseurs n'est pas un e-mail marketing. Il se
+  juge sur une seule chose : est-ce qu'on peut lui faire confiance quand
+  ça va mal ? D'où la section « Ce qu'on surveille », qui n'est pas une
+  précaution de style — c'est elle qui rend les bonnes nouvelles
+  crédibles. La supprimer un mois difficile détruit la valeur de tous
+  les envois précédents.
+-->
+<!--[if mso]>
+<noscript><xml><o:OfficeDocumentSettings xmlns:o="urn:schemas-microsoft-com:office:office">
+<o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+<![endif]-->
+<style type="text/css">
+  body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
+  img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
+  a { color:#F26900; }
+
+  @media only screen and (max-width:620px) {
+    .conteneur { width:100% !important; }
+    .marge { padding-left:24px !important; padding-right:24px !important; }
+    .titre { font-size:26px !important; line-height:32px !important; }
+  }
+
+  /* Apple Mail et Outlook récent. Gmail applique sa propre inversion,
+     qu'on ne pilote pas — d'où un dessin qui reste lisible même mal
+     retourné : jamais de texte clair sur fond clair. */
+  @media (prefers-color-scheme: dark) {
+    .fond      { background-color:#141210 !important; }
+    .carte     { background-color:#211C17 !important; }
+    .encart    { background-color:#2A231B !important; }
+    .texte     { color:#F0EBE3 !important; }
+    .secondaire{ color:#B5ABA1 !important; }
+    .positif   { color:#9BC97B !important; }  /* le vert de marque devient illisible sur fond sombre */
+    .bordure   { border-color:#3A332B !important; }
+  }
+</style>
+</head>
+<body class="fond" style="margin:0; padding:0; background-color:#F7F3EE;">
+
+<!-- Pré-en-tête : s'affiche à côté de l'objet dans la boîte de réception.
+     Laissé vide, le client y met les premiers mots du HTML. -->
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#F7F3EE; opacity:0;">
+  {{comptes}} comptes, {{objets}} objets catalogués — et le point qui nous occupe ce mois-ci.
+  &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
+</div>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="fond" style="background-color:#F7F3EE;">
+  <tr><td align="center" style="padding:32px 12px;">
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="conteneur" style="width:600px; max-width:600px;">
+
+      <!-- En-tête -->
+      <tr><td class="marge" style="padding:0 8px 20px 8px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td width="36" style="padding-right:12px;">
+              <img src="https://www.tiroir.app/icons/app-icon.png" width="36" height="36" alt="Tiroir" style="display:block; width:36px; height:36px; border-radius:9px;" />
+            </td>
+            <td class="texte" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:17px; font-weight:700; color:#1A1612; letter-spacing:-0.2px;">
+              Tiroir
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Carte principale -->
+      <tr><td class="carte bordure" style="background-color:#FFFFFF; border:1px solid #E8E2DA; border-radius:16px;">
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+
+          <tr><td class="marge" style="padding:36px 40px 0 40px;">
+            <p class="secondaire" style="margin:0 0 8px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:13px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#A89F96;">
+              Point d'étape &middot; {{periode}}
+            </p>
+            <h1 class="titre texte" style="margin:0 0 20px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:30px; line-height:36px; font-weight:700; color:#1A1612; letter-spacing:-0.5px;">
+              Où en est Tiroir
+            </h1>
+            <p class="secondaire" style="margin:0 0 28px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#6B6158;">
+              Tiroir catalogue les objets d'un foyer à partir d'une simple photo&nbsp;: l'IA reconnaît l'objet, rédige sa fiche et estime sa valeur. Voici le mois écoulé, sans arrondi.
+            </p>
+          </td></tr>
+
+          <!-- Chiffres.
+               Colonnes en blocs EN LIGNE plutôt qu'en cellules de tableau.
+               Un <td> basculé en display:block reste enfant d'une ligne de
+               tableau : sa largeur 100 % se résout contre une boîte
+               anonyme, et les colonnes ne s'empilent jamais vraiment — la
+               première version débordait sur mobile.
+               Des blocs en ligne à largeur maximale bornée passent à la
+               ligne d'eux-mêmes, SANS requête média. Ils tiennent donc
+               aussi dans les clients qui suppriment la balise <style>.
+               Les commentaires conditionnels rétablissent un vrai tableau
+               pour Outlook, qui ignore inline-block. -->
+          <tr><td class="marge" style="padding:0 34px; font-size:0; text-align:center;">
+            <!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="50%" valign="top"><![endif]-->
+            <div style="display:inline-block; width:100%; max-width:260px; vertical-align:top;"><div style="padding:0 6px 12px 6px; text-align:left;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="encart" style="background-color:#F7F3EE; border-radius:12px;"><tr><td style="padding:16px 18px;">
+                <p class="secondaire" style="margin:0 0 6px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:13px; color:#6B6158;">Comptes</p>
+                <p class="texte" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:28px; line-height:32px; font-weight:700; color:#1A1612;">{{comptes}}</p>
+                <p class="positif" style="margin:4px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:13px; font-weight:600; color:#2D5016;">{{comptes_delta}}</p>
+              </td></tr></table>
+            </div></div><!--[if mso]></td><td width="50%" valign="top"><![endif]--><div style="display:inline-block; width:100%; max-width:260px; vertical-align:top;"><div style="padding:0 6px 12px 6px; text-align:left;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="encart" style="background-color:#F7F3EE; border-radius:12px;"><tr><td style="padding:16px 18px;">
+                <p class="secondaire" style="margin:0 0 6px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:13px; color:#6B6158;">Actifs sur 30&nbsp;jours</p>
+                <p class="texte" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:28px; line-height:32px; font-weight:700; color:#1A1612;">{{actifs_30j}}</p>
+                <p class="positif" style="margin:4px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:13px; font-weight:600; color:#2D5016;">{{actifs_delta}}</p>
+              </td></tr></table>
+            </div></div><!--[if mso]></td></tr><tr><td width="50%" valign="top"><![endif]--><div style="display:inline-block; width:100%; max-width:260px; vertical-align:top;"><div style="padding:0 6px 12px 6px; text-align:left;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="encart" style="background-color:#F7F3EE; border-radius:12px;"><tr><td style="padding:16px 18px;">
+                <p class="secondaire" style="margin:0 0 6px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:13px; color:#6B6158;">Objets catalogués</p>
+                <p class="texte" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:28px; line-height:32px; font-weight:700; color:#1A1612;">{{objets}}</p>
+                <p class="positif" style="margin:4px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:13px; font-weight:600; color:#2D5016;">{{objets_delta}}</p>
+              </td></tr></table>
+            </div></div><!--[if mso]></td><td width="50%" valign="top"><![endif]--><div style="display:inline-block; width:100%; max-width:260px; vertical-align:top;"><div style="padding:0 6px 12px 6px; text-align:left;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="encart" style="background-color:#F7F3EE; border-radius:12px;"><tr><td style="padding:16px 18px;">
+                <p class="secondaire" style="margin:0 0 6px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:13px; color:#6B6158;">Revenu récurrent</p>
+                <p class="texte" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:28px; line-height:32px; font-weight:700; color:#1A1612;">{{mrr}}</p>
+                <p class="positif" style="margin:4px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:13px; font-weight:600; color:#2D5016;">{{mrr_delta}}</p>
+              </td></tr></table>
+            </div></div>
+            <!--[if mso]></td></tr></table><![endif]-->
+          </td></tr>
+
+          <!-- Ce qui a bougé -->
+          <tr><td class="marge" style="padding:32px 40px 0 40px;">
+            <h2 class="texte" style="margin:0 0 14px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:18px; line-height:24px; font-weight:700; color:#1A1612;">
+              Ce qui a bougé
+            </h2>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr><td width="18" valign="top" style="width:18px; padding:0 0 12px 0; font-family:Arial,sans-serif; font-size:16px; line-height:26px; color:#F26900;">&bull;</td>
+                  <td class="secondaire" valign="top" style="padding:0 0 12px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#6B6158;">{{fait_1}}</td></tr>
+              <tr><td width="18" valign="top" style="width:18px; padding:0 0 12px 0; font-family:Arial,sans-serif; font-size:16px; line-height:26px; color:#F26900;">&bull;</td>
+                  <td class="secondaire" valign="top" style="padding:0 0 12px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#6B6158;">{{fait_2}}</td></tr>
+              <tr><td width="18" valign="top" style="width:18px; font-family:Arial,sans-serif; font-size:16px; line-height:26px; color:#F26900;">&bull;</td>
+                  <td class="secondaire" valign="top" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#6B6158;">{{fait_3}}</td></tr>
+            </table>
+          </td></tr>
+
+          <!-- Ce qu'on surveille : la section qui rend le reste crédible -->
+          <tr><td class="marge" style="padding:28px 40px 0 40px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr><td style="border-left:3px solid #F26900; padding:2px 0 2px 18px;">
+                <h2 class="texte" style="margin:0 0 8px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:18px; line-height:24px; font-weight:700; color:#1A1612;">
+                  Ce qu'on surveille
+                </h2>
+                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#6B6158;">
+                  {{vigilance}}
+                </p>
+              </td></tr>
+            </table>
+          </td></tr>
+
+          <!-- La demande -->
+          <tr><td class="marge" style="padding:28px 40px 0 40px;">
+            <h2 class="texte" style="margin:0 0 14px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:18px; line-height:24px; font-weight:700; color:#1A1612;">
+              Ce dont on a besoin
+            </h2>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr><td width="18" valign="top" style="width:18px; padding:0 0 12px 0; font-family:Arial,sans-serif; font-size:16px; line-height:26px; color:#F26900;">&bull;</td>
+                  <td class="secondaire" valign="top" style="padding:0 0 12px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#6B6158;">{{demande_1}}</td></tr>
+              <tr><td width="18" valign="top" style="width:18px; font-family:Arial,sans-serif; font-size:16px; line-height:26px; color:#F26900;">&bull;</td>
+                  <td class="secondaire" valign="top" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#6B6158;">{{demande_2}}</td></tr>
+            </table>
+          </td></tr>
+
+          <!-- Bouton -->
+          <tr><td class="marge" align="left" style="padding:30px 40px 0 40px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr><td bgcolor="#1A1612" style="border-radius:10px;">
+                <a href="{{lien_rdv}}" style="display:inline-block; padding:14px 28px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; font-weight:600; color:#FFFFFF; text-decoration:none; border-radius:10px;">
+                  Réserver 20&nbsp;minutes
+                </a>
+              </td></tr>
+            </table>
+          </td></tr>
+
+          <tr><td class="marge" style="padding:30px 40px 36px 40px;">
+            <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#6B6158;">
+              Une question, un désaccord, une piste&nbsp;? Répondez directement à ce message.<br />
+              Clément
+            </p>
+          </td></tr>
+
+        </table>
+      </td></tr>
+
+      <!-- Pied de page -->
+      <tr><td class="marge" style="padding:24px 8px 0 8px;">
+        <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:13px; line-height:20px; color:#A89F96;">
+          Vous recevez ce point d'étape parce que vous suivez Tiroir de près.<br />
+          {{adresse_postale}} &middot; <a href="{{lien_desinscription}}" style="color:#A89F96; text-decoration:underline;">ne plus recevoir ces points d'étape</a>
+        </p>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
