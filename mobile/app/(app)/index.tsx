@@ -216,41 +216,42 @@ export default function HomeScreen() {
               <BurgerIcon onPress={() => setMenuOpen(true)} />
             </View>
 
-            <TouchableOpacity style={styles.searchBar} onPress={() => router.push('/search')} activeOpacity={0.7}>
-              <Text style={styles.searchIcon}>🔍</Text>
-              <Text style={styles.searchPlaceholder}>{t('home.search')}</Text>
-            </TouchableOpacity>
-
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionLabel}>{t('home.myCollections')}</Text>
-              {collections.length > 1 && (
-                <CollectionSortButton sort={sort} onChange={changeSort} />
-              )}
-            </View>
-
-            {/* Compteur et filtre n'apparaissent qu'au-delà du seuil : sous
-                huit collections, la liste entière tient à l'écran et les
-                afficher ne ferait qu'ajouter du bruit. */}
+            {/* Une seule barre : elle filtre les collections et porte le
+                mot, ce qui rend le titre de section redondant. La recherche
+                d'objets garde son onglet dédié en bas d'écran. */}
             {showFilter && (
-              <View style={styles.filterRow}>
-                <Search size={15} color={Colors.textTertiary} strokeWidth={1.8} />
-                <TextInput
-                  value={filter}
-                  onChangeText={setFilter}
-                  placeholder={t('home.filterPlaceholder')}
-                  placeholderTextColor={Colors.textTertiary}
-                  style={styles.filterInput}
-                  autoCorrect={false}
-                  returnKeyType="search"
-                />
-                {filter.length > 0 && (
-                  <TouchableOpacity onPress={() => setFilter('')} hitSlop={10}>
-                    <X size={15} color={Colors.textTertiary} strokeWidth={2} />
-                  </TouchableOpacity>
+              <View style={styles.toolRow}>
+                <View style={styles.filterRow}>
+                  <Search size={16} color={Colors.textTertiary} strokeWidth={1.8} />
+                  <TextInput
+                    value={filter}
+                    onChangeText={setFilter}
+                    placeholder={t('home.filterPlaceholder')}
+                    placeholderTextColor={Colors.textTertiary}
+                    style={styles.filterInput}
+                    autoCorrect={false}
+                    returnKeyType="search"
+                  />
+                  {filter.length > 0 ? (
+                    <TouchableOpacity onPress={() => setFilter('')} hitSlop={10}>
+                      <X size={15} color={Colors.textTertiary} strokeWidth={2} />
+                    </TouchableOpacity>
+                  ) : (
+                    <Text style={styles.filterCount}>{collections.length}</Text>
+                  )}
+                </View>
+                {collections.length > 1 && (
+                  <CollectionSortButton sort={sort} onChange={changeSort} />
                 )}
-                <Text style={styles.filterCount}>
-                  {filter ? `${visible.length}/${collections.length}` : collections.length}
-                </Text>
+              </View>
+            )}
+
+            {/* Sous le seuil, le tri seul suffit — filtrer trois lignes
+                n'a pas de sens, et une barre vide au-dessus d'une liste
+                courte n'est que du bruit. */}
+            {!showFilter && collections.length > 1 && (
+              <View style={styles.sortOnlyRow}>
+                <CollectionSortButton sort={sort} onChange={changeSort} />
               </View>
             )}
 
@@ -299,12 +300,13 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </>
         )}
-        ItemSeparatorComponent={() => <View style={{ height: Spacing.sm }} />}
+        ItemSeparatorComponent={() => <View style={{ height: 6 }} />}
         ListEmptyComponent={
           !loading && filter.length > 0
             ? <Text style={styles.filterEmpty}>{t('home.filterEmpty', { query: filter })}</Text>
             : null
         }
+        ListHeaderComponentStyle={styles.headerBlock}
         ListFooterComponent={
           loading ? null : (
             <View style={styles.footerWrap}>
@@ -356,44 +358,34 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
-  content: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg, gap: Spacing.md, paddingBottom: 96 },
+  // `gap` retiré : il s'appliquait entre l'en-tête et CHAQUE ligne de la
+  // FlatList, en plus du séparateur. Les écarts sont désormais portés par
+  // les blocs qui les demandent, une seule fois chacun.
+  content: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg, paddingBottom: 96 },
+  headerBlock: { marginBottom: Spacing.sm },
 
   hero: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   heroLeft: { gap: 4 },
   greeting: { fontSize: Typography.sm, color: Colors.textSecondary },
   heroTitle: { fontSize: 32, fontWeight: '800', color: Colors.textPrimary, letterSpacing: -0.5 },
 
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: Spacing.sm,
-  },
-  searchIcon: { fontSize: 16 },
-  searchPlaceholder: { fontSize: Typography.base, color: Colors.textTertiary, flex: 1 },
 
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.xs },
-  sectionLabel: { fontSize: Typography.xs, fontWeight: '600', color: Colors.textTertiary, letterSpacing: 1, textTransform: 'uppercase' },
 
+  toolRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  sortOnlyRow: { flexDirection: 'row', justifyContent: 'flex-end' },
   filterRow: {
+    flex: 1,
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
     backgroundColor: Colors.surface, borderRadius: Radius.md,
     borderWidth: 0.5, borderColor: Colors.border,
-    paddingHorizontal: Spacing.md, paddingVertical: 10,
-    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.md, paddingVertical: 9,
   },
-  filterInput: { flex: 1, fontSize: Typography.sm, color: Colors.textPrimary, padding: 0 },
+  filterInput: { flex: 1, fontSize: Typography.base, color: Colors.textPrimary, padding: 0 },
   filterCount: {
     fontSize: Typography.xs, fontWeight: Typography.semibold, color: Colors.textTertiary,
     fontVariant: ['tabular-nums'],
@@ -406,29 +398,34 @@ const styles = StyleSheet.create({
   // séparation doit se sentir sans découper la liste en deux écrans.
   pinDivider: {
     height: 1, backgroundColor: Colors.borderLight,
-    marginTop: Spacing.xs, marginBottom: Spacing.md,
+    marginTop: Spacing.xs, marginBottom: Spacing.sm + 2,
   },
-  footerWrap: { marginTop: Spacing.sm },
+  footerWrap: { marginTop: Spacing.md },
+  // Rembourrage resserré : la pastille impose déjà la hauteur de la carte,
+  // le reste n'était que de l'air. Le pas de la liste passe de 104 px
+  // (16×2 + 64 + 8 de séparateur) à 78 px (8×2 + 56 + 6), soit un quart de
+  // lignes visibles en plus à hauteur d'écran égale.
   collectionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
+    gap: Spacing.sm + 2,
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
-    padding: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm + 2,
     borderWidth: 1,
     borderColor: Colors.borderLight,
   },
   // Pastille volontairement large : c'est elle qui distingue une
   // collection d'une autre d'un coup d'œil, avant même le nom.
   collectionIcon: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
     borderRadius: Radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  collectionIconText: { fontSize: 30, lineHeight: 38 },
+  collectionIconText: { fontSize: 26, lineHeight: 34 },
   collectionInfo: { flex: 1, gap: 2 },
   collectionNameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   collectionName: {
