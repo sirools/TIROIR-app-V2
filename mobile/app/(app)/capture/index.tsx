@@ -318,7 +318,17 @@ export default function CaptureScreen() {
         params: { id: objectId, focusTitle: '1' },
       })
     } catch (e: any) {
-      Alert.alert(t('common.error'), e.message ?? t('capture.genericError'))
+      // Le plafond d'objets se rencontre aussi par ce chemin depuis qu'il
+      // y est vérifié : il mérite une sortie, pas un message d'erreur
+      // Postgres brut.
+      if (typeof e?.message === 'string' && e.message.includes('OBJECT_QUOTA_EXCEEDED')) {
+        Alert.alert(t('capture.objectQuotaTitle'), t('capture.objectQuotaBody'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('capture.objectQuotaUpgrade'), onPress: () => router.push('/paywall') },
+        ])
+      } else {
+        Alert.alert(t('common.error'), e.message ?? t('capture.genericError'))
+      }
     } finally {
       setLoadingManual(false)
     }

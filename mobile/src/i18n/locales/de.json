@@ -293,7 +293,10 @@
     "created": "Gegenstand erstellt",
     "createdIn": "Gegenstand in {{name}} erstellt",
     "groupSingle": "Ein einzelner Gegenstand",
-    "groupMultiple": "Mehrere Gegenstände"
+    "groupMultiple": "Mehrere Gegenstände",
+    "objectQuotaTitle": "Objektlimit erreicht",
+    "objectQuotaBody": "Deine kostenlose Schublade ist voll. Ein Abo hebt das Limit auf und behält alles, was du bereits abgelegt hast.",
+    "objectQuotaUpgrade": "Tarife ansehen"
   },
   "status": {
     "owned": "Besessen",

@@ -293,7 +293,10 @@
     "created": "Objet créé",
     "createdIn": "Objet créé dans {{name}}",
     "groupSingle": "Un seul objet",
-    "groupMultiple": "Plusieurs objets"
+    "groupMultiple": "Plusieurs objets",
+    "objectQuotaTitle": "Limite d'objets atteinte",
+    "objectQuotaBody": "Ton tiroir gratuit est plein. L'abonnement lève la limite et garde tout ce que tu as déjà rangé.",
+    "objectQuotaUpgrade": "Voir les abonnements"
   },
   "status": {
     "owned": "Possédé",

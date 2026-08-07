@@ -293,7 +293,10 @@
     "created": "Objeto creado",
     "createdIn": "Objeto creado en {{name}}",
     "groupSingle": "Un solo objeto",
-    "groupMultiple": "Varios objetos"
+    "groupMultiple": "Varios objetos",
+    "objectQuotaTitle": "Límite de objetos alcanzado",
+    "objectQuotaBody": "Tu cajón gratuito está lleno. La suscripción elimina el límite y conserva todo lo que ya has guardado.",
+    "objectQuotaUpgrade": "Ver planes"
   },
   "status": {
     "owned": "En posesión",

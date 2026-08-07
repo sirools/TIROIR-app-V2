@@ -293,7 +293,10 @@
     "created": "Object created",
     "createdIn": "Object created in {{name}}",
     "groupSingle": "A single object",
-    "groupMultiple": "Several objects"
+    "groupMultiple": "Several objects",
+    "objectQuotaTitle": "Item limit reached",
+    "objectQuotaBody": "Your free drawer is full. A subscription lifts the limit and keeps everything you have already stored.",
+    "objectQuotaUpgrade": "See plans"
   },
   "status": {
     "owned": "Owned",

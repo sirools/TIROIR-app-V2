@@ -112,7 +112,14 @@ export default function BatchReviewScreen() {
         if (!isStale()) setPhase('settled')
       } catch (e: unknown) {
         if (isStale()) return
-        setFatalError(e instanceof Error ? e.message : String(e))
+        const message = e instanceof Error ? e.message : String(e)
+        // Le lot est refusé AVANT la moindre analyse quand la place
+        // manque : on annonce ce qui reste plutôt qu'un code SQL.
+        setFatalError(
+          message.includes('OBJECT_QUOTA_EXCEEDED')
+            ? t('capture.objectQuotaBody')
+            : message,
+        )
         setPhase('failed')
       }
     })()

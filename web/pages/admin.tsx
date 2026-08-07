@@ -16,6 +16,7 @@ interface AppSettings {
   premium_value_estimate_monthly: number
   pro_value_estimate_monthly: number
   assistant_daily_messages: number
+  max_collections_per_account: number
   supabase_db_limit_mb: number
   supabase_storage_limit_mb: number
   supabase_plan_monthly_usd: number
@@ -461,6 +462,13 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend }: Prop
             hint="1 = incite à passer premium pour plus de photos"
             value={settings.free_photos_per_object}
             onChange={v => setSettings(s => ({ ...s, free_photos_per_object: v }))}
+          />
+          <div style={s.settingsDivider} />
+          <QuotaField
+            label="Collections max par compte"
+            hint="Garde-fou anti-emballement, tous plans confondus — pas une offre : plafonner l'organisation punirait l'utilisateur le plus investi"
+            value={settings.max_collections_per_account}
+            onChange={v => setSettings(s => ({ ...s, max_collections_per_account: v }))}
           />
           <div style={s.settingsDivider} />
           <QuotaField
@@ -2071,7 +2079,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     admin.from('activity_log').select('*', { count: 'exact', head: true }).eq('action', 'quota.exceeded').gte('created_at', since30d),
     admin.from('activity_log').select('action').gte('created_at', since30d),
     admin.from('app_settings')
-      .select('free_ai_quota_monthly,free_objects_max,free_photos_per_object,premium_ai_quota_monthly,premium_photo_enhance_quota_monthly,pro_ai_quota_monthly,pro_photo_enhance_quota_monthly,free_value_estimate_monthly,premium_value_estimate_monthly,pro_value_estimate_monthly,assistant_daily_messages,supabase_db_limit_mb,supabase_storage_limit_mb,supabase_plan_monthly_usd,supabase_egress_limit_gb,supabase_egress_used_gb,supabase_egress_reading_date,estimated_cost_per_ai_analysis_usd,estimated_cost_per_photo_enhance_usd,monthly_ai_spend_alert_usd')
+      .select('free_ai_quota_monthly,free_objects_max,free_photos_per_object,premium_ai_quota_monthly,premium_photo_enhance_quota_monthly,pro_ai_quota_monthly,pro_photo_enhance_quota_monthly,free_value_estimate_monthly,premium_value_estimate_monthly,pro_value_estimate_monthly,assistant_daily_messages,max_collections_per_account,supabase_db_limit_mb,supabase_storage_limit_mb,supabase_plan_monthly_usd,supabase_egress_limit_gb,supabase_egress_used_gb,supabase_egress_reading_date,estimated_cost_per_ai_analysis_usd,estimated_cost_per_photo_enhance_usd,monthly_ai_spend_alert_usd')
       .eq('id', 1).single(),
     admin.rpc('get_admin_infra_stats').single(),
     admin.rpc('get_admin_ai_spend'),
@@ -2171,6 +2179,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     premium_value_estimate_monthly: num('premium_value_estimate_monthly', 20),
     pro_value_estimate_monthly: num('pro_value_estimate_monthly', 60),
     assistant_daily_messages: num('assistant_daily_messages', 50),
+    max_collections_per_account: num('max_collections_per_account', 200),
     supabase_db_limit_mb: num('supabase_db_limit_mb', 8192),
     supabase_storage_limit_mb: num('supabase_storage_limit_mb', 102400),
     supabase_plan_monthly_usd: num('supabase_plan_monthly_usd', 25),
