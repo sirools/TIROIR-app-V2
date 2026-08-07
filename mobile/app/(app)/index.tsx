@@ -5,7 +5,8 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
+  TextInput,
   RefreshControl,
   Alert,
 } from 'react-native'
@@ -13,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { Image } from 'react-native'
-import { Pin } from 'lucide-react-native'
+import { Pin, Search, X } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import {
@@ -88,6 +89,25 @@ export default function HomeScreen() {
 
   // Les épinglées en tête, le tri choisi pour le reste.
   const ordered = useMemo(() => sortCollections(collections, sort), [collections, sort])
+
+  /**
+   * Au-delà de ce seuil, la liste ne tient plus à l'écran : le compteur et
+   * le champ de filtre apparaissent. En dessous, ils n'ajouteraient que du
+   * bruit sur une liste qu'on embrasse d'un regard.
+   */
+  const FILTER_THRESHOLD = 8
+  const [filter, setFilter] = useState('')
+  const showFilter = collections.length >= FILTER_THRESHOLD
+
+  /** Sans accents ni casse : « Atelier » se trouve en tapant « atel ». */
+  const fold = (v: string) =>
+    v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+
+  const visible = useMemo(() => {
+    const q = fold(filter.trim())
+    if (!q) return ordered
+    return ordered.filter(c => fold(c.name).includes(q))
+  }, [ordered, filter])
 
   function changeSort(next: CollectionSort) {
     setSort(next)
@@ -173,42 +193,78 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView
+      <FlatList
+        data={loading ? [] : visible}
+        keyExtractor={c => c.id}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />}
-      >
-        {/* En-tête */}
-        <View style={styles.hero}>
-          <TouchableOpacity style={styles.heroLeft} onPress={() => router.push('/profile')} activeOpacity={0.7}>
-            <Text style={styles.greeting}>{greeting()}{profile?.display_name ? `, ${profile.display_name}` : ''}</Text>
-            <Text style={styles.heroTitle}>{t('home.title')}</Text>
-          </TouchableOpacity>
-          <BurgerIcon onPress={() => setMenuOpen(true)} />
-        </View>
+        /* Virtualisation : seules les lignes à l'écran sont montées, donc
+           les photos de couverture des autres ne sont jamais téléchargées.
+           Invisible à trois collections, décisif à cinquante. */
+        initialNumToRender={10}
+        windowSize={7}
+        removeClippedSubviews
+        ListHeaderComponent={
+          <>
+            <View style={styles.hero}>
+              <TouchableOpacity style={styles.heroLeft} onPress={() => router.push('/profile')} activeOpacity={0.7}>
+                <Text style={styles.greeting}>{greeting()}{profile?.display_name ? `, ${profile.display_name}` : ''}</Text>
+                <Text style={styles.heroTitle}>{t('home.title')}</Text>
+              </TouchableOpacity>
+              <BurgerIcon onPress={() => setMenuOpen(true)} />
+            </View>
 
-        {/* Barre de recherche */}
-        <TouchableOpacity style={styles.searchBar} onPress={() => router.push('/search')} activeOpacity={0.7}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <Text style={styles.searchPlaceholder}>{t('home.search')}</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.searchBar} onPress={() => router.push('/search')} activeOpacity={0.7}>
+              <Text style={styles.searchIcon}>🔍</Text>
+              <Text style={styles.searchPlaceholder}>{t('home.search')}</Text>
+            </TouchableOpacity>
 
-        {/* Section collections */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabel}>{t('home.myCollections')}</Text>
-          {collections.length > 1 && (
-            <CollectionSortButton sort={sort} onChange={changeSort} />
-          )}
-        </View>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionLabel}>{t('home.myCollections')}</Text>
+              {collections.length > 1 && (
+                <CollectionSortButton sort={sort} onChange={changeSort} />
+              )}
+            </View>
 
-        {loading ? (
-          <TiroirLoader label={t('home.loading')} />
-        ) : (
-        <View style={styles.collectionList}>
-          {ordered.map(col => (
+            {/* Compteur et filtre n'apparaissent qu'au-delà du seuil : sous
+                huit collections, la liste entière tient à l'écran et les
+                afficher ne ferait qu'ajouter du bruit. */}
+            {showFilter && (
+              <View style={styles.filterRow}>
+                <Search size={15} color={Colors.textTertiary} strokeWidth={1.8} />
+                <TextInput
+                  value={filter}
+                  onChangeText={setFilter}
+                  placeholder={t('home.filterPlaceholder')}
+                  placeholderTextColor={Colors.textTertiary}
+                  style={styles.filterInput}
+                  autoCorrect={false}
+                  returnKeyType="search"
+                />
+                {filter.length > 0 && (
+                  <TouchableOpacity onPress={() => setFilter('')} hitSlop={10}>
+                    <X size={15} color={Colors.textTertiary} strokeWidth={2} />
+                  </TouchableOpacity>
+                )}
+                <Text style={styles.filterCount}>
+                  {filter ? `${visible.length}/${collections.length}` : collections.length}
+                </Text>
+              </View>
+            )}
+
+            {loading && <TiroirLoader label={t('home.loading')} />}
+          </>
+        }
+        renderItem={({ item: col, index }) => (
+          <>
+            {/* Trait sous la dernière épinglée : les collections du
+                quotidien forment un bloc, le reste défile dessous. */}
+            {index > 0 && visible[index - 1].pinned_at && !col.pinned_at && (
+              <View style={styles.pinDivider} />
+            )}
             <TouchableOpacity
-              key={col.id}
               style={styles.collectionCard}
               onPress={() => router.push(`/collections/${col.id}`)}
               onLongPress={() => setActionTarget(col)}
@@ -241,17 +297,27 @@ export default function HomeScreen() {
               </View>
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>
-          ))}
-
-          {/* La carte de création vit dans la liste, à la place qu'occupera
-              la collection : première fois elle explique, ensuite elle ajoute. */}
-          <CollectionComposer
-            variant={collections.length === 0 ? 'first' : 'add'}
-            onCreate={handleCreate}
-          />
-        </View>
+          </>
         )}
-      </ScrollView>
+        ItemSeparatorComponent={() => <View style={{ height: Spacing.sm }} />}
+        ListEmptyComponent={
+          !loading && filter.length > 0
+            ? <Text style={styles.filterEmpty}>{t('home.filterEmpty', { query: filter })}</Text>
+            : null
+        }
+        ListFooterComponent={
+          loading ? null : (
+            <View style={styles.footerWrap}>
+              {/* La carte de création vit en bas de liste : le haut
+                  appartient à ce qu'on possède déjà. */}
+              <CollectionComposer
+                variant={collections.length === 0 ? 'first' : 'add'}
+                onCreate={handleCreate}
+              />
+            </View>
+          )
+        }
+      />
 
       {/* Appui long sur une collection : les actions rares vivent ici,
           la liste reste nue. */}
@@ -320,7 +386,29 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.xs },
   sectionLabel: { fontSize: Typography.xs, fontWeight: '600', color: Colors.textTertiary, letterSpacing: 1, textTransform: 'uppercase' },
 
-  collectionList: { gap: Spacing.sm },
+  filterRow: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    backgroundColor: Colors.surface, borderRadius: Radius.md,
+    borderWidth: 0.5, borderColor: Colors.border,
+    paddingHorizontal: Spacing.md, paddingVertical: 10,
+    marginBottom: Spacing.sm,
+  },
+  filterInput: { flex: 1, fontSize: Typography.sm, color: Colors.textPrimary, padding: 0 },
+  filterCount: {
+    fontSize: Typography.xs, fontWeight: Typography.semibold, color: Colors.textTertiary,
+    fontVariant: ['tabular-nums'],
+  },
+  filterEmpty: {
+    fontSize: Typography.sm, color: Colors.textTertiary,
+    textAlign: 'center', paddingVertical: Spacing.lg,
+  },
+  // Respiration sous le bloc des épinglées, pas un trait plein : la
+  // séparation doit se sentir sans découper la liste en deux écrans.
+  pinDivider: {
+    height: 1, backgroundColor: Colors.borderLight,
+    marginTop: Spacing.xs, marginBottom: Spacing.md,
+  },
+  footerWrap: { marginTop: Spacing.sm },
   collectionCard: {
     flexDirection: 'row',
     alignItems: 'center',

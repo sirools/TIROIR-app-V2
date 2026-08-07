@@ -126,7 +126,9 @@
     "deleteCollectionWithObjects_one": "It contains {{count}} item. The items will stay in your Tiroir.",
     "deleteCollectionWithObjects_other": "It contains {{count}} items. The items will stay in your Tiroir.",
     "deleteCollectionIrreversible": "This action is irreversible.",
-    "loading": "Loading your collections…"
+    "loading": "Loading your collections…",
+    "filterPlaceholder": "Filter my collections…",
+    "filterEmpty": "No collection matches “{{query}}”."
   },
   "profile": {
     "title": "My Profile",
