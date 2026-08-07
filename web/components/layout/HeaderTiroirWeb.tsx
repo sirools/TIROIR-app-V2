@@ -234,6 +234,14 @@ export default function HeaderTiroirWeb() {
                 </button>
                 {userMenuOpen && (
                   <div className="ti-user__dropdown" role="menu">
+                    {/* Admin en tête : c'est l'entrée la plus utilisée par les
+                        rares comptes qui y ont droit, et la seule qu'on ouvre
+                        plusieurs fois par jour. */}
+                    {isAdmin && (
+                      <a className="ti-user__item" href="/admin" role="menuitem">
+                        Admin
+                      </a>
+                    )}
                     <a className="ti-user__item" href="/profil" role="menuitem">
                       {isEn ? 'My profile' : 'Mon profil'}
                     </a>
@@ -243,11 +251,6 @@ export default function HeaderTiroirWeb() {
                     <a className="ti-user__item" href="/mes-partages" role="menuitem">
                       {isEn ? 'My shares' : 'Mes partages'}
                     </a>
-                    {isAdmin && (
-                      <a className="ti-user__item" href="/admin" role="menuitem">
-                        Admin
-                      </a>
-                    )}
                     <button
                       className="ti-user__item ti-user__item--danger"
                       type="button"
@@ -321,6 +324,16 @@ export default function HeaderTiroirWeb() {
                   <UserIcon size={20} />
                   <span>{userName}</span>
                 </div>
+                {/* Même ordre que sur le bureau : Admin d'abord. */}
+                {isAdmin && (
+                  <button
+                    className="appstore-nav-btn"
+                    type="button"
+                    onClick={() => navigate('/admin')}
+                  >
+                    Admin
+                  </button>
+                )}
                 <button
                   className="appstore-nav-btn"
                   type="button"
@@ -342,15 +355,6 @@ export default function HeaderTiroirWeb() {
                 >
                   {isEn ? 'My shares' : 'Mes partages'}
                 </button>
-                {isAdmin && (
-                  <button
-                    className="appstore-nav-btn"
-                    type="button"
-                    onClick={() => navigate('/admin')}
-                  >
-                    Admin
-                  </button>
-                )}
                 <button
                   className="appstore-nav-btn ti-mobile-menu__logout"
                   type="button"

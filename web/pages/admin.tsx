@@ -52,12 +52,36 @@ interface KPIs {
   photoEnhanceLifetime: number
 }
 
+/**
+ * Dépense IA mesurée, telle que `get_admin_ai_spend()` la rend.
+ *
+ * Distincte des estimations de `KPIs` : ici ce sont des tokens réellement
+ * facturés, pas un nombre d'appels multiplié par un forfait à la main.
+ */
+interface AiSpend {
+  total: {
+    mois_usd: number
+    j30_usd: number
+    j7_usd: number
+    lifetime_usd: number
+    appels_mois: number
+    appels_total: number
+    users_j30: number
+    depuis: string | null
+  }
+  par_feature: { feature: string; appels: number; users: number; cout_usd: number; cout_moyen: number; duree_moy_ms: number }[]
+  par_modele: { model: string; appels: number; cout_usd: number; cout_moyen: number; tokens_in: number; tokens_out: number }[]
+  top_users: { user_id: string; email: string | null; plan: string | null; appels: number; cout_usd: number }[]
+  par_jour: { jour: string; cout_usd: number }[]
+}
+
 interface Props {
   kpis: KPIs
   settings: AppSettings
+  aiSpend: AiSpend
 }
 
-export default function Admin({ kpis, settings: initialSettings }: Props) {
+export default function Admin({ kpis, settings: initialSettings, aiSpend }: Props) {
   const conversionPct = kpis.totalAccounts > 0
     ? ((kpis.accountsWithObjects / kpis.totalAccounts) * 100).toFixed(1)
     : '0'
@@ -154,6 +178,13 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
   const supabaseMonthlyCost = settings.supabase_plan_monthly_usd + supabaseOverageUsd
   const totalMonthlyCost = supabaseMonthlyCost + monthlyAiCost
 
+  // Rapporté aux utilisateurs actifs, pas à tous les comptes : diviser par
+  // les inscrits diluerait la dépense dans les dormants et donnerait un
+  // chiffre rassurant qui ne veut rien dire.
+  const costPerActiveUser = aiSpend.total.users_j30 > 0
+    ? aiSpend.total.j30_usd / aiSpend.total.users_j30
+    : null
+
   return (
     <main style={s.root}>
       <HeaderTiroirWeb />
@@ -200,8 +231,8 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
         <h2 style={s.sectionTitle}>Infrastructure & coûts IA</h2>
         <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
           Quotas du plan <strong>Supabase Pro</strong> ({settings.supabase_plan_monthly_usd} $/mois). Base de données et Storage sont mesurés en direct ;
-          l&apos;Egress est un relevé manuel à reporter depuis la page Usage de l&apos;organisation. Les coûts IA restent des <strong>estimations</strong> basées
-          sur un coût moyen configurable par appel (pas un total exact issu de la facturation Anthropic/Google — aucun tracking de tokens réel pour l&apos;instant).
+          l&apos;Egress est un relevé manuel à reporter depuis la page Usage de l&apos;organisation. Les coûts IA de cette section restent des <strong>estimations</strong>
+          (nombre d&apos;appels × forfait configurable) ; la dépense <strong>réellement mesurée</strong>, tokens à l&apos;appui, est juste en dessous.
         </p>
 
         <div style={s.grid}>
@@ -258,6 +289,86 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
           Quota le plus sollicité : <strong>{quotaWatch.label}</strong> ({fmtPct1(quotaWatch.pct)}).
           Sur une app photo, c&apos;est l&apos;Egress qui sature avant le Storage : chaque consultation d&apos;une fiche objet retélécharge ses images.
           Les 100 000 MAU et les 2 M d&apos;invocations Edge Functions du plan Pro sont hors de portée à ce stade et ne sont pas suivis ici.
+        </p>
+
+        {/* ── Dépense IA réelle ── */}
+        <h2 style={s.sectionTitle}>Dépense IA réelle</h2>
+        <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
+          Tokens réellement consommés, tarif du modèle appliqué <strong>à l&apos;écriture</strong> — un changement de grille tarifaire ne réécrit donc pas
+          l&apos;historique déjà mesuré. {aiSpend.total.depuis
+            ? <>Mesure démarrée le {fmtDate(aiSpend.total.depuis)}.</>
+            : <>Aucune mesure enregistrée pour l&apos;instant.</>}
+        </p>
+
+        <div style={s.grid}>
+          <Kpi label="Dépense réelle (ce mois)" value={fmtUsdFine(aiSpend.total.mois_usd)} highlight />
+          <Kpi label="Dépense réelle (30 jours)" value={fmtUsdFine(aiSpend.total.j30_usd)} />
+          <Kpi label="Dépense réelle (7 jours)" value={fmtUsdFine(aiSpend.total.j7_usd)} />
+          <div style={s.kpiCard}>
+            <span style={s.kpiValue}>{costPerActiveUser === null ? '—' : fmtUsdFine(costPerActiveUser)}</span>
+            <span style={s.kpiLabel}>Coût moyen / utilisateur actif (30 j)</span>
+            <span style={s.kpiSub}>{fmtInt(aiSpend.total.users_j30)} utilisateur(s) · {fmtInt(aiSpend.total.appels_mois)} appels ce mois</span>
+          </div>
+        </div>
+
+        {/* La courbe sert à repérer un décrochage, pas à lire une valeur :
+            les jours vides sont présents à zéro pour ne pas mentir sur la tendance. */}
+        <SpendSparkline days={aiSpend.par_jour} />
+
+        <h3 style={s.subSectionTitle}>Par fonctionnalité (30 jours)</h3>
+        <p style={s.tableIntro}>
+          La maille qui sert à arbitrer : une fonctionnalité qui pèse la moitié de la facture pour 3 % des appels se plafonne, ou change de modèle.
+        </p>
+        <SpendTable
+          columns={['Fonctionnalité', 'Appels', 'Users', 'Coût moyen', 'Durée moy.', 'Total']}
+          rows={aiSpend.par_feature.map(f => ({
+            key: f.feature,
+            cells: [
+              f.feature,
+              fmtInt(f.appels),
+              fmtInt(f.users),
+              fmtUsdFine(f.cout_moyen),
+              `${(f.duree_moy_ms / 1000).toFixed(1)} s`,
+              fmtUsdFine(f.cout_usd),
+            ],
+            share: aiSpend.total.j30_usd > 0 ? (f.cout_usd / aiSpend.total.j30_usd) * 100 : 0,
+          }))}
+        />
+
+        <h3 style={s.subSectionTitle}>Par modèle (30 jours)</h3>
+        <SpendTable
+          columns={['Modèle', 'Appels', 'Tokens in', 'Tokens out', 'Coût moyen', 'Total']}
+          rows={aiSpend.par_modele.map(m => ({
+            key: m.model,
+            cells: [
+              m.model,
+              fmtInt(m.appels),
+              fmtInt(m.tokens_in),
+              fmtInt(m.tokens_out),
+              fmtUsdFine(m.cout_moyen),
+              fmtUsdFine(m.cout_usd),
+            ],
+            share: aiSpend.total.j30_usd > 0 ? (m.cout_usd / aiSpend.total.j30_usd) * 100 : 0,
+          }))}
+        />
+
+        <h3 style={s.subSectionTitle}>Plus gros consommateurs (30 jours)</h3>
+        <p style={s.tableIntro}>
+          La moyenne ne dit rien d&apos;utile sur une distribution à longue traîne. C&apos;est cette tête de liste qui décide s&apos;il faut des packs de crédits
+          ou seulement un plafond.
+        </p>
+        <SpendTable
+          columns={['Compte', 'Plan', 'Appels', 'Coût']}
+          rows={aiSpend.top_users.map(u => ({
+            key: u.user_id,
+            cells: [u.email ?? u.user_id.slice(0, 8), u.plan ?? '—', fmtInt(u.appels), fmtUsdFine(u.cout_usd)],
+            share: aiSpend.total.j30_usd > 0 ? (u.cout_usd / aiSpend.total.j30_usd) * 100 : 0,
+          }))}
+        />
+
+        <p style={{ ...s.footnote, marginBottom: 40 }}>
+          Les fonctions IA écrivent toutes dans <code>ai_usage</code> depuis le 7 août 2026. Avant cette date, seul le forfait déclaré existait :
+          les totaux « depuis le lancement » plus haut et cette section ne couvrent donc pas la même période.
         </p>
 
         {/* ── Activité ── */}
@@ -758,6 +869,85 @@ export default function Admin({ kpis, settings: initialSettings }: Props) {
         </>)}
       </div>
     </main>
+  )
+}
+
+/**
+ * Tableau de dépense : une barre de part sous chaque ligne.
+ *
+ * Pas de bibliothèque de graphiques — la page n'en a jamais eu, et une
+ * part de total se lit très bien sur une barre en CSS.
+ */
+function SpendTable({ columns, rows }: {
+  columns: string[]
+  rows: { key: string; cells: (string | number)[]; share: number }[]
+}) {
+  if (rows.length === 0) {
+    return (
+      <div style={s.eventsTable}>
+        <p style={{ fontSize: 14, color: '#5b5b5b', padding: '16px 0' }}>Aucune mesure sur cette période.</p>
+      </div>
+    )
+  }
+  return (
+    <div style={s.spendTable}>
+      <div style={s.spendHead}>
+        {columns.map((c, i) => (
+          <span key={c} style={{ ...s.spendHeadCell, textAlign: i === 0 ? 'left' : 'right' }}>{c}</span>
+        ))}
+      </div>
+      {rows.map(r => (
+        <div key={r.key} style={s.spendRowWrap}>
+          <div style={s.spendRow}>
+            {r.cells.map((cell, i) => (
+              <span
+                key={i}
+                style={{
+                  ...s.spendCell,
+                  textAlign: i === 0 ? 'left' : 'right',
+                  fontWeight: i === 0 || i === r.cells.length - 1 ? 700 : 600,
+                  color: i === 0 ? '#121212' : i === r.cells.length - 1 ? '#121212' : '#5b5b5b',
+                }}
+              >
+                {cell}
+              </span>
+            ))}
+          </div>
+          <div style={s.spendShareTrack}>
+            <div style={{ ...s.spendShareFill, width: `${Math.min(100, r.share)}%` }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Trente jours de dépense, en barres. Sert à repérer un décrochage. */
+function SpendSparkline({ days }: { days: { jour: string; cout_usd: number }[] }) {
+  const max = Math.max(...days.map(d => d.cout_usd), 0)
+  if (days.length === 0) return null
+  return (
+    <div style={s.sparkCard}>
+      <div style={s.sparkHeader}>
+        <span style={s.gaugeLabel}>Dépense par jour (30 derniers jours)</span>
+        <span style={s.gaugeValue}>pic {fmtUsdFine(max)}</span>
+      </div>
+      <div style={s.sparkBars}>
+        {days.map(d => (
+          <div
+            key={d.jour}
+            title={`${d.jour} · ${fmtUsdFine(d.cout_usd)}`}
+            style={{
+              ...s.sparkBar,
+              // Un jour à zéro garde un trait d'un pixel : la colonne
+              // existe, elle est simplement vide.
+              height: max > 0 ? `${Math.max(1, (d.cout_usd / max) * 100)}%` : '1px',
+              background: d.cout_usd > 0 ? '#F26900' : '#E4DED4',
+            }}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -1447,6 +1637,19 @@ function computeSimulation(inp: SimulationInputs, mode: SimMode, settings: AppSe
   return { ...funnel, ...sub, ...rev, ...ai, ...infra, ...health, business, ratios, plausibility }
 }
 
+/**
+ * Un coût IA se lit en dollars quand il s'agit d'un total, en cents quand
+ * il s'agit d'un appel : afficher « 0.00 $ » pour une description à
+ * 0,13 c reviendrait à dire qu'elle est gratuite.
+ */
+function fmtUsdFine(n: number) {
+  if (!isFinite(n)) return '—'
+  if (n === 0) return '0 $'
+  if (n < 0.01) return `${(n * 100).toFixed(2)} ¢`
+  if (n < 1) return `${n.toFixed(3)} $`
+  return `${n.toFixed(2)} $`
+}
+
 function fmtInt(n: number) {
   return Math.round(n).toLocaleString('fr-FR')
 }
@@ -1631,6 +1834,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     { data: events },
     { data: appSettings },
     { data: infraStats },
+    { data: aiSpendRaw },
   ] = await Promise.all([
     admin.from('site_pageviews').select('*', { count: 'exact', head: true }).gte('created_at', since24h),
     admin.from('site_pageviews').select('*', { count: 'exact', head: true }).gte('created_at', since7d),
@@ -1646,6 +1850,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       .select('free_ai_quota_monthly,free_objects_max,free_photos_per_object,premium_ai_quota_monthly,premium_photo_enhance_quota_monthly,pro_ai_quota_monthly,pro_photo_enhance_quota_monthly,supabase_db_limit_mb,supabase_storage_limit_mb,supabase_plan_monthly_usd,supabase_egress_limit_gb,supabase_egress_used_gb,supabase_egress_reading_date,estimated_cost_per_ai_analysis_usd,estimated_cost_per_photo_enhance_usd,monthly_ai_spend_alert_usd')
       .eq('id', 1).single(),
     admin.rpc('get_admin_infra_stats').single(),
+    admin.rpc('get_admin_ai_spend'),
   ])
 
   const totalObjects = objectsByUser?.length ?? 0
@@ -1671,6 +1876,50 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       .map(row => row.visitor_id || row.ip_hash)
       .filter(Boolean)
   ).size
+
+  // Postgres rend les NUMERIC en chaînes selon le pilote : on normalise ici
+  // plutôt que dans chaque cellule du rendu.
+  const toNum = (v: unknown) => Number(v ?? 0)
+  const rawSpend = (aiSpendRaw ?? {}) as Record<string, unknown>
+  const aiSpend: AiSpend = {
+    total: {
+      mois_usd: toNum((rawSpend.total as Record<string, unknown>)?.mois_usd),
+      j30_usd: toNum((rawSpend.total as Record<string, unknown>)?.j30_usd),
+      j7_usd: toNum((rawSpend.total as Record<string, unknown>)?.j7_usd),
+      lifetime_usd: toNum((rawSpend.total as Record<string, unknown>)?.lifetime_usd),
+      appels_mois: toNum((rawSpend.total as Record<string, unknown>)?.appels_mois),
+      appels_total: toNum((rawSpend.total as Record<string, unknown>)?.appels_total),
+      users_j30: toNum((rawSpend.total as Record<string, unknown>)?.users_j30),
+      depuis: ((rawSpend.total as Record<string, unknown>)?.depuis as string) ?? null,
+    },
+    par_feature: ((rawSpend.par_feature ?? []) as Record<string, unknown>[]).map(r => ({
+      feature: String(r.feature),
+      appels: toNum(r.appels),
+      users: toNum(r.users),
+      cout_usd: toNum(r.cout_usd),
+      cout_moyen: toNum(r.cout_moyen),
+      duree_moy_ms: toNum(r.duree_moy_ms),
+    })),
+    par_modele: ((rawSpend.par_modele ?? []) as Record<string, unknown>[]).map(r => ({
+      model: String(r.model),
+      appels: toNum(r.appels),
+      cout_usd: toNum(r.cout_usd),
+      cout_moyen: toNum(r.cout_moyen),
+      tokens_in: toNum(r.tokens_in),
+      tokens_out: toNum(r.tokens_out),
+    })),
+    top_users: ((rawSpend.top_users ?? []) as Record<string, unknown>[]).map(r => ({
+      user_id: String(r.user_id),
+      email: (r.email as string) ?? null,
+      plan: (r.plan as string) ?? null,
+      appels: toNum(r.appels),
+      cout_usd: toNum(r.cout_usd),
+    })),
+    par_jour: ((rawSpend.par_jour ?? []) as Record<string, unknown>[]).map(r => ({
+      jour: String(r.jour),
+      cout_usd: toNum(r.cout_usd),
+    })),
+  }
 
   const infra = infraStats as {
     db_size_bytes: number
@@ -1727,6 +1976,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         photoEnhanceLifetime: infra?.photo_enhance_lifetime ?? 0,
       },
       settings,
+      aiSpend,
     },
   }
 }
