@@ -69,6 +69,11 @@ export default function CaptureScreen() {
   }, []))
 
   useEffect(() => {
+    // La déconnexion repasse `user` à null et relance cet effet : sans ce
+    // garde-fou, `user!.id` plus bas fait planter l'écran au moment même
+    // où il est démonté.
+    if (!user) return
+
     supabase.rpc('get_ai_quota').then(({ data }) => {
       if (data && data[0]) {
         const { used, quota } = data[0]
@@ -82,7 +87,7 @@ export default function CaptureScreen() {
     supabase
       .from('profiles')
       .select('plan')
-      .eq('id', user!.id)
+      .eq('id', user.id)
       .single()
       .then(({ data }) => { if (data?.plan) setPlan(data.plan) })
   }, [user])
