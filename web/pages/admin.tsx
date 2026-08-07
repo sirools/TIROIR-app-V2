@@ -296,38 +296,65 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend }: Prop
 
         {/* ── Dépense IA réelle ── */}
         <h2 style={s.sectionTitle}>Dépense IA réelle</h2>
-        <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
+        <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16, maxWidth: 640 }}>
           Tokens réellement consommés, tarif du modèle appliqué <strong>à l&apos;écriture</strong> — un changement de grille tarifaire ne réécrit donc pas
           l&apos;historique déjà mesuré. {aiSpend.total.depuis
             ? <>Mesure démarrée le {fmtDate(aiSpend.total.depuis)}.</>
             : <>Aucune mesure enregistrée pour l&apos;instant.</>}
         </p>
 
-        <div style={s.grid}>
-          <Kpi label="Dépense réelle (ce mois)" value={fmtUsdFine(aiSpend.total.mois_usd)} highlight />
-          <Kpi label="Dépense réelle (30 jours)" value={fmtUsdFine(aiSpend.total.j30_usd)} />
-          <Kpi label="Dépense réelle (7 jours)" value={fmtUsdFine(aiSpend.total.j7_usd)} />
-          <div style={s.kpiCard}>
-            <span style={s.kpiValue}>{costPerActiveUser === null ? '—' : fmtUsdFine(costPerActiveUser)}</span>
-            <span style={s.kpiLabel}>Coût moyen / utilisateur actif (30 j)</span>
-            <span style={s.kpiSub}>{fmtInt(aiSpend.total.users_j30)} utilisateur(s) · {fmtInt(aiSpend.total.appels_mois)} appels ce mois</span>
+        {/* Un chiffre domine, les autres l'entourent. Quatre cartes de même
+            taille affichant la même valeur — ce qui arrive tant que la
+            mesure a moins d'un mois — donnaient l'impression d'un bug. */}
+        <div style={s.spendPanel}>
+          <div style={s.spendHero}>
+            <span style={s.spendHeroValue}>{fmtUsdFine(aiSpend.total.mois_usd)}</span>
+            <span style={s.spendHeroLabel}>dépensés ce mois-ci</span>
+          </div>
+          <div style={s.spendHeroSub}>
+            {fmtInt(aiSpend.total.appels_mois)} appels · {fmtInt(aiSpend.total.users_j30)} utilisateur{aiSpend.total.users_j30 > 1 ? 's' : ''} actif{aiSpend.total.users_j30 > 1 ? 's' : ''} sur 30 jours
+            {monthlyAiCost > 0 && <> · l&apos;estimation au forfait annonçait {fmtUsdFine(monthlyAiCost)}</>}
+          </div>
+
+          <div style={s.spendStats}>
+            <div style={s.spendStat}>
+              <span style={s.spendStatValue}>{fmtUsdFine(aiSpend.total.j7_usd)}</span>
+              <span style={s.spendStatLabel}>7 derniers jours</span>
+            </div>
+            <div style={s.spendStat}>
+              <span style={s.spendStatValue}>{fmtUsdFine(aiSpend.total.j30_usd)}</span>
+              <span style={s.spendStatLabel}>30 derniers jours</span>
+            </div>
+            <div style={s.spendStat}>
+              <span style={s.spendStatValue}>{costPerActiveUser === null ? '—' : fmtUsdFine(costPerActiveUser)}</span>
+              <span style={s.spendStatLabel}>par utilisateur actif</span>
+            </div>
+            <div style={s.spendStat}>
+              <span style={s.spendStatValue}>{fmtUsdFine(aiSpend.total.lifetime_usd)}</span>
+              <span style={s.spendStatLabel}>depuis le début de la mesure</span>
+            </div>
           </div>
         </div>
 
-        {/* La courbe sert à repérer un décrochage, pas à lire une valeur :
-            les jours vides sont présents à zéro pour ne pas mentir sur la tendance. */}
         <SpendSparkline days={aiSpend.par_jour} />
 
-        <h3 style={s.subSectionTitle}>Par fonctionnalité (30 jours)</h3>
+        <h3 style={s.subSectionTitle}>Ce qui coûte le plus (30 jours)</h3>
         <p style={s.tableIntro}>
-          La maille qui sert à arbitrer : une fonctionnalité qui pèse la moitié de la facture pour 3 % des appels se plafonne, ou change de modèle.
+          La maille qui sert à arbitrer : une fonctionnalité qui pèse la moitié de la facture pour une poignée d&apos;appels se plafonne, ou change de modèle.
         </p>
         <SpendTable
-          columns={['Fonctionnalité', 'Appels', 'Users', 'Coût moyen', 'Durée moy.', 'Total']}
+          columns={[
+            { label: 'Fonctionnalité', width: 3 },
+            { label: 'Appels', width: 1 },
+            { label: 'Comptes', width: 1 },
+            { label: 'Coût / appel', width: 1.4 },
+            { label: 'Durée', width: 1 },
+            { label: 'Total', width: 1.3 },
+          ]}
           rows={aiSpend.par_feature.map(f => ({
             key: f.feature,
+            label: FEATURE_LABELS[f.feature] ?? f.feature,
             cells: [
-              f.feature,
               fmtInt(f.appels),
               fmtInt(f.users),
               fmtUsdFine(f.cout_moyen),
@@ -338,13 +365,23 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend }: Prop
           }))}
         />
 
-        <h3 style={s.subSectionTitle}>Par modèle (30 jours)</h3>
+        <h3 style={s.subSectionTitle}>Quel modèle consomme quoi (30 jours)</h3>
+        <p style={s.tableIntro}>
+          L&apos;écart entre modèles est un levier avant d&apos;être une fatalité : à travail comparable, le choix du modèle fait varier la facture d&apos;un ordre de grandeur.
+        </p>
         <SpendTable
-          columns={['Modèle', 'Appels', 'Tokens in', 'Tokens out', 'Coût moyen', 'Total']}
+          columns={[
+            { label: 'Modèle', width: 3 },
+            { label: 'Appels', width: 1 },
+            { label: 'Tokens entrée', width: 1.4 },
+            { label: 'Tokens sortie', width: 1.4 },
+            { label: 'Coût / appel', width: 1.4 },
+            { label: 'Total', width: 1.3 },
+          ]}
           rows={aiSpend.par_modele.map(m => ({
             key: m.model,
+            label: MODEL_LABELS[m.model] ?? m.model,
             cells: [
-              m.model,
               fmtInt(m.appels),
               fmtInt(m.tokens_in),
               fmtInt(m.tokens_out),
@@ -355,22 +392,28 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend }: Prop
           }))}
         />
 
-        <h3 style={s.subSectionTitle}>Plus gros consommateurs (30 jours)</h3>
+        <h3 style={s.subSectionTitle}>Qui consomme (30 jours)</h3>
         <p style={s.tableIntro}>
-          La moyenne ne dit rien d&apos;utile sur une distribution à longue traîne. C&apos;est cette tête de liste qui décide s&apos;il faut des packs de crédits
-          ou seulement un plafond.
+          La moyenne ne dit rien d&apos;utile sur une distribution à longue traîne. C&apos;est cette tête de liste qui décidera s&apos;il faut ouvrir des packs
+          de crédits ou seulement resserrer un plafond.
         </p>
         <SpendTable
-          columns={['Compte', 'Plan', 'Appels', 'Coût']}
+          columns={[
+            { label: 'Compte', width: 3 },
+            { label: 'Plan', width: 1 },
+            { label: 'Appels', width: 1 },
+            { label: 'Coût', width: 1.3 },
+          ]}
           rows={aiSpend.top_users.map(u => ({
             key: u.user_id,
-            cells: [u.email ?? u.user_id.slice(0, 8), u.plan ?? '—', fmtInt(u.appels), fmtUsdFine(u.cout_usd)],
+            label: u.email ?? u.user_id.slice(0, 8),
+            cells: [u.plan ?? '—', fmtInt(u.appels), fmtUsdFine(u.cout_usd)],
             share: aiSpend.total.j30_usd > 0 ? (u.cout_usd / aiSpend.total.j30_usd) * 100 : 0,
           }))}
         />
 
-        <p style={{ ...s.footnote, marginBottom: 40 }}>
-          Les fonctions IA écrivent toutes dans <code>ai_usage</code> depuis le 7 août 2026. Avant cette date, seul le forfait déclaré existait :
+        <p style={{ ...s.footnote, marginTop: 20, marginBottom: 40 }}>
+          Toutes les fonctions IA écrivent dans <code>ai_usage</code> depuis le 7 août 2026. Avant cette date seul le forfait déclaré existait :
           les totaux « depuis le lancement » plus haut et cette section ne couvrent donc pas la même période.
         </p>
 
@@ -902,13 +945,38 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend }: Prop
  * Pas de bibliothèque de graphiques — la page n'en a jamais eu, et une
  * part de total se lit très bien sur une barre en CSS.
  */
+/**
+ * Les clés techniques n'ont rien à faire dans un tableau de pilotage :
+ * `scene_thumbnail` ne dit pas ce qu'on paie, « Vignette détourée ou
+ * générée » si.
+ */
+const FEATURE_LABELS: Record<string, string> = {
+  chat_turn: 'Analyse d’un objet',
+  detect_scene: 'Détection de scène',
+  scene_thumbnail: 'Vignette détourée ou générée',
+  describe_object: 'Rédaction de description',
+  estimate_value: 'Estimation de valeur',
+  photo_enhance: 'Retouche photo',
+}
+
+const MODEL_LABELS: Record<string, string> = {
+  'claude-opus-5': 'Opus 5',
+  'claude-sonnet-5': 'Sonnet 5',
+  'claude-sonnet-4-6': 'Sonnet 4.6',
+  'claude-haiku-4-5': 'Haiku 4.5',
+  'claude-haiku-4-5-20251001': 'Haiku 4.5',
+  'gemini-2.5-flash-image': 'Gemini Flash Image',
+}
+
 function SpendTable({ columns, rows }: {
-  columns: string[]
-  rows: { key: string; cells: (string | number)[]; share: number }[]
+  /** `width` est un poids flex : le libellé a besoin de plus de place
+   *  que les chiffres, sinon tout se retrouve tronqué à l'identique. */
+  columns: { label: string; width: number }[]
+  rows: { key: string; label: string; cells: string[]; share: number }[]
 }) {
   if (rows.length === 0) {
     return (
-      <div style={s.eventsTable}>
+      <div style={s.spendTable}>
         <p style={{ fontSize: 14, color: '#5b5b5b', padding: '16px 0' }}>Aucune mesure sur cette période.</p>
       </div>
     )
@@ -917,28 +985,41 @@ function SpendTable({ columns, rows }: {
     <div style={s.spendTable}>
       <div style={s.spendHead}>
         {columns.map((c, i) => (
-          <span key={c} style={{ ...s.spendHeadCell, textAlign: i === 0 ? 'left' : 'right' }}>{c}</span>
+          <span
+            key={c.label}
+            style={{ ...s.spendHeadCell, flex: c.width, textAlign: i === 0 ? 'left' : 'right' }}
+          >
+            {c.label}
+          </span>
         ))}
       </div>
       {rows.map(r => (
         <div key={r.key} style={s.spendRowWrap}>
           <div style={s.spendRow}>
+            <span style={{ ...s.spendCell, ...s.spendCellLabel, flex: columns[0].width, textAlign: 'left' }}>
+              {r.label}
+            </span>
             {r.cells.map((cell, i) => (
               <span
                 key={i}
                 style={{
                   ...s.spendCell,
-                  textAlign: i === 0 ? 'left' : 'right',
-                  fontWeight: i === 0 || i === r.cells.length - 1 ? 700 : 600,
-                  color: i === 0 ? '#121212' : i === r.cells.length - 1 ? '#121212' : '#5b5b5b',
+                  ...(i === r.cells.length - 1 ? s.spendCellTotal : {}),
+                  flex: columns[i + 1].width,
+                  textAlign: 'right',
                 }}
               >
                 {cell}
               </span>
             ))}
           </div>
-          <div style={s.spendShareTrack}>
-            <div style={{ ...s.spendShareFill, width: `${Math.min(100, r.share)}%` }} />
+          {/* La part du total est l'information qui sert à arbitrer :
+              elle est écrite, pas seulement suggérée par une barre. */}
+          <div style={s.spendShareRow}>
+            <div style={s.spendShareTrack}>
+              <div style={{ ...s.spendShareFill, width: `${Math.min(100, r.share)}%` }} />
+            </div>
+            <span style={s.spendSharePct}>{r.share >= 1 ? `${Math.round(r.share)} %` : '< 1 %'}</span>
           </div>
         </div>
       ))}
@@ -946,15 +1027,20 @@ function SpendTable({ columns, rows }: {
   )
 }
 
-/** Trente jours de dépense, en barres. Sert à repérer un décrochage. */
+/** Trente jours de dépense, en barres. Sert à repérer un décrochage,
+ *  pas à lire une valeur — d'où l'absence d'axe chiffré. */
 function SpendSparkline({ days }: { days: { jour: string; cout_usd: number }[] }) {
-  const max = Math.max(...days.map(d => d.cout_usd), 0)
   if (days.length === 0) return null
+  const max = Math.max(...days.map(d => d.cout_usd), 0)
+  const jourCourt = (iso: string) => {
+    const d = new Date(iso)
+    return `${d.getDate()}/${d.getMonth() + 1}`
+  }
   return (
     <div style={s.sparkCard}>
       <div style={s.sparkHeader}>
-        <span style={s.gaugeLabel}>Dépense par jour (30 derniers jours)</span>
-        <span style={s.gaugeValue}>pic {fmtUsdFine(max)}</span>
+        <span style={s.gaugeLabel}>Dépense par jour</span>
+        <span style={s.gaugeValue}>journée la plus chère : {fmtUsdFine(max)}</span>
       </div>
       <div style={s.sparkBars}>
         {days.map(d => (
@@ -963,13 +1049,17 @@ function SpendSparkline({ days }: { days: { jour: string; cout_usd: number }[] }
             title={`${d.jour} · ${fmtUsdFine(d.cout_usd)}`}
             style={{
               ...s.sparkBar,
-              // Un jour à zéro garde un trait d'un pixel : la colonne
+              // Un jour sans dépense garde une barre de 2 px : la colonne
               // existe, elle est simplement vide.
-              height: max > 0 ? `${Math.max(1, (d.cout_usd / max) * 100)}%` : '1px',
-              background: d.cout_usd > 0 ? '#F26900' : '#E4DED4',
+              height: max > 0 ? `${Math.max(3, (d.cout_usd / max) * 100)}%` : '2px',
+              background: d.cout_usd > 0 ? '#F26900' : '#EDE7DE',
             }}
           />
         ))}
+      </div>
+      <div style={s.sparkAxis}>
+        <span style={s.sparkAxisLabel}>{jourCourt(days[0].jour)}</span>
+        <span style={s.sparkAxisLabel}>{jourCourt(days[days.length - 1].jour)}</span>
       </div>
     </div>
   )
@@ -2038,6 +2128,42 @@ const s: Record<string, React.CSSProperties> = {
   settingsLocked:    { width: 80, padding: '8px 12px', fontSize: 16, fontWeight: 700, textAlign: 'right', color: '#999' },
   saveBtn:           { padding: '10px 24px', borderRadius: 10, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer' },
   savedBadge:        { fontSize: 14, color: '#2e7d32', fontWeight: 600 },
+  subSectionTitle:   { fontSize: 15, fontWeight: 700, color: '#121212', marginBottom: 6, marginTop: 28 },
+  tableIntro:        { fontSize: 13, color: '#5b5b5b', marginBottom: 12, maxWidth: 640 },
+
+  // Panneau de dépense : un chiffre qui domine, trois repères autour.
+  // Quatre cartes de même taille affichant la même valeur donnaient
+  // l'impression d'un bug plutôt que d'une mesure.
+  spendPanel:        { background: 'white', borderRadius: 16, padding: '24px 28px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 20 },
+  spendHero:         { display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' },
+  spendHeroValue:    { fontSize: 40, fontWeight: 800, color: '#121212', letterSpacing: -1, fontVariantNumeric: 'tabular-nums' },
+  spendHeroLabel:    { fontSize: 14, color: '#5b5b5b', fontWeight: 600 },
+  spendHeroSub:      { fontSize: 13, color: '#8a8a8a', marginTop: 6 },
+  spendStats:        { display: 'flex', gap: 32, flexWrap: 'wrap', marginTop: 20, paddingTop: 18, borderTop: '1px solid rgba(0,0,0,0.06)' },
+  spendStat:         { display: 'flex', flexDirection: 'column', gap: 2 },
+  spendStatValue:    { fontSize: 20, fontWeight: 700, color: '#121212', fontVariantNumeric: 'tabular-nums' },
+  spendStatLabel:    { fontSize: 12, color: '#8a8a8a', fontWeight: 600 },
+
+  spendTable:        { background: 'white', borderRadius: 16, padding: '4px 20px 12px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 8 },
+  spendHead:         { display: 'flex', alignItems: 'flex-end', gap: 16, padding: '14px 0 10px', borderBottom: '1px solid rgba(0,0,0,0.08)' },
+  spendHeadCell:     { fontSize: 11, fontWeight: 700, color: '#8a8a8a', textTransform: 'uppercase', letterSpacing: 0.5 },
+  spendRowWrap:      { padding: '12px 0 10px', borderBottom: '1px solid rgba(0,0,0,0.04)' },
+  spendRow:          { display: 'flex', alignItems: 'baseline', gap: 16 },
+  spendCell:         { fontSize: 13, color: '#5b5b5b', fontWeight: 600, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  spendCellLabel:    { fontSize: 14, color: '#121212', fontWeight: 700 },
+  spendCellTotal:    { fontSize: 14, color: '#121212', fontWeight: 800 },
+  spendShareRow:     { display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 },
+  spendShareTrack:   { flex: 1, height: 4, borderRadius: 99, background: '#F3EEE7', overflow: 'hidden' },
+  spendShareFill:    { height: '100%', borderRadius: 99, background: '#F26900' },
+  spendSharePct:     { fontSize: 11, color: '#8a8a8a', fontWeight: 700, minWidth: 38, textAlign: 'right', fontVariantNumeric: 'tabular-nums' },
+
+  sparkCard:         { background: 'white', borderRadius: 16, padding: '20px 24px 16px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 28 },
+  sparkHeader:       { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, marginBottom: 14 },
+  sparkBars:         { display: 'flex', alignItems: 'flex-end', gap: 3, height: 72 },
+  sparkBar:          { flex: 1, borderRadius: 3, minHeight: 2 },
+  sparkAxis:         { display: 'flex', justifyContent: 'space-between', marginTop: 8 },
+  sparkAxisLabel:    { fontSize: 11, color: '#a0a0a0', fontWeight: 600 },
+
   eventsTable:       { background: 'white', borderRadius: 16, padding: '8px 24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 40 },
   eventRow:          { display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid rgba(0,0,0,0.04)' },
   eventAction:       { fontSize: 14, color: '#121212', fontWeight: 600 },
