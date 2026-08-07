@@ -16,6 +16,7 @@
 // ================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { logAiUsage } from '../_shared/aiUsage.ts'
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -109,6 +110,11 @@ Cherche sur leboncoin, Vinted, Facebook Marketplace et eBay France. Retourne le 
     let iterations = 0
     const MAX_ITERATIONS = 5
 
+    // Une estimation, c'est jusqu'à cinq allers-retours avec recherche web :
+    // seul leur total a un sens, on cumule donc au fil de la boucle.
+    const startedAt = Date.now()
+    const totalUsage = { input_tokens: 0, output_tokens: 0 }
+
     while (iterations < MAX_ITERATIONS) {
       iterations++
 
@@ -140,6 +146,9 @@ Cherche sur leboncoin, Vinted, Facebook Marketplace et eBay France. Retourne le 
 
       const claudeRes = await response.json()
       const stopReason = claudeRes.stop_reason
+
+      totalUsage.input_tokens += claudeRes.usage?.input_tokens ?? 0
+      totalUsage.output_tokens += claudeRes.usage?.output_tokens ?? 0
 
       // Ajouter la réponse de l'assistant aux messages
       messages.push({ role: 'assistant', content: claudeRes.content })
@@ -218,6 +227,20 @@ Cherche sur leboncoin, Vinted, Facebook Marketplace et eBay France. Retourne le 
       })
       .eq('id', body.object_id)
       .eq('user_id', user.id)
+
+    logAiUsage(supabase, {
+      userId: user.id,
+      feature: 'estimate_value',
+      model: CLAUDE_MODEL,
+      usage: totalUsage,
+      durationMs: Date.now() - startedAt,
+      meta: {
+        object_id: body.object_id,
+        iterations,
+        sources: (parsed.sources ?? []).length,
+        confidence: parsed.confidence ?? null,
+      },
+    })
 
     // ── Réponse ───────────────────────────────────────────────────
     return new Response(JSON.stringify({

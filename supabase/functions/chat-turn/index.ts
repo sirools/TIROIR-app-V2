@@ -22,6 +22,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { callClaude, ClaudeError, extractTextFromResponse, CLAUDE_MODEL } from './claude.ts'
+import { logAiUsage } from '../_shared/aiUsage.ts'
 import { buildSystemPrompt, buildUserMessage, parseClaudeResponse, DEFAULT_AI_LOCALE } from './prompt.ts'
 import type {
   AiLocale,
@@ -295,10 +296,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
     assistant_message: string
   }
 
+  // Mesuré ici pour être écrit plus bas : jusqu'à présent les tokens de
+  // l'analyse mono partaient dans les logs et nulle part ailleurs, si bien
+  // que le tableau de bord admin ne connaissait que le forfait déclaré à
+  // la main — sur la fonctionnalité la plus utilisée de l'app.
+  const startedAt = Date.now()
+  let claudeUsage = { input_tokens: 0, output_tokens: 0 }
+
   try {
     console.log(`[chat-turn] Appel Claude ${CLAUDE_MODEL}...`)
     const claudeResponse = await callClaude(claudeRequest, anthropicApiKey)
     const rawText = extractTextFromResponse(claudeResponse)
+    claudeUsage = claudeResponse.usage
 
     console.log(
       `[chat-turn] Claude OK — tokens: ${claudeResponse.usage.input_tokens}in / ${claudeResponse.usage.output_tokens}out`,
@@ -337,6 +346,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   console.log(`[chat-turn] Draft ${draft_id} → pending ✓`)
+
+  logAiUsage(adminClient, {
+    userId: user.id,
+    feature: 'chat_turn',
+    model: CLAUDE_MODEL,
+    usage: claudeUsage,
+    durationMs: Date.now() - startedAt,
+    meta: { draft_id, images: imagesWithData.length, locale },
+  })
 
   // ── Réponse succès ────────────────────────────────────────────
   const responseBody: ChatTurnResponse = {

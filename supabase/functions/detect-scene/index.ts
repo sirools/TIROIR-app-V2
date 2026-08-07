@@ -13,27 +13,13 @@
 // Réservé au drapeau `multi_add_audience` (défaut : admin).
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { PRICING, costUsd, logAiUsage, quotaUnits } from '../_shared/aiUsage.ts'
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-/**
- * Tarifs en dollars par MILLION de tokens, au 2026-08-07.
- *
- * Codés ici et non en base : le coût est calculé à l'écriture, donc un
- * changement de tarif ne réécrit pas l'historique déjà mesuré.
- *
- * NB : Sonnet 5 est à 2 $/10 $ en tarif d'introduction jusqu'au 2026-08-31.
- * On retient le tarif plein — sous-estimer un coût est plus dangereux que
- * le surestimer quand il sert de garde-fou budgétaire.
- */
-const PRICING: Record<string, { input: number; output: number }> = {
-  'claude-haiku-4-5': { input: 1.0, output: 5.0 },
-  'claude-sonnet-5': { input: 3.0, output: 15.0 },
-  'claude-opus-5': { input: 5.0, output: 25.0 },
-}
 
 /** Modèle de production. Les autres ne servent qu'au banc d'essai. */
 const DEFAULT_MODEL = 'claude-haiku-4-5'
@@ -149,6 +135,33 @@ Deno.serve(async (req: Request) => {
       return err(500, 'AI_NOT_CONFIGURED')
     }
 
+    // ── Quota, pondéré par le modèle ───────────────────────────────────
+    // Une scène en Opus coûte dix-sept fois une scène en Haiku : la
+    // décompter pour une seule analyse laisserait la porte ouverte à une
+    // facture que personne n'a décidée. Prélevé AVANT l'appel — sinon
+    // rien n'empêche d'enchaîner les tentatives — et rendu si le modèle
+    // ne produit rien.
+    const units = quotaUnits('detect_scene', model)
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
+    )
+
+    const { data: quotaOk, error: quotaError } = await userClient.rpc(
+      'consume_ai_quota', { p_units: units },
+    )
+    if (quotaError) {
+      console.error('[detect-scene] quota', quotaError.message)
+      return err(500, 'INTERNAL_ERROR')
+    }
+    if (quotaOk === false) {
+      return err(429, 'QUOTA_EXCEEDED',
+        `Quota d'analyses atteint. Une scène en ${model.includes('opus') ? 'Opus' : model.includes('sonnet') ? 'Sonnet' : 'Haiku'} en consomme ${units}.`)
+    }
+
+    const refund = () => userClient.rpc('refund_ai_quota_units', { p_units: units })
+
     // ── Appel du modèle ────────────────────────────────────────────────
     // Sortie structurée : le schéma est garanti par l'API, il n'y a pas de
     // texte libre à parser ni de réponse à moitié valide à rattraper.
@@ -184,22 +197,24 @@ Deno.serve(async (req: Request) => {
     if (!anthropicRes.ok) {
       const detail = await anthropicRes.text()
       console.error('[detect-scene] Anthropic', anthropicRes.status, detail)
+      await refund()
       return err(502, 'AI_CALL_FAILED')
     }
 
     const payload = await anthropicRes.json()
 
     // Les classificateurs peuvent décliner : content est alors vide.
-    if (payload.stop_reason === 'refusal') return err(422, 'AI_REFUSED')
+    if (payload.stop_reason === 'refusal') { await refund(); return err(422, 'AI_REFUSED') }
 
     const textBlock = (payload.content ?? []).find((b: { type: string }) => b.type === 'text')
-    if (!textBlock?.text) return err(502, 'AI_EMPTY_RESPONSE')
+    if (!textBlock?.text) { await refund(); return err(502, 'AI_EMPTY_RESPONSE') }
 
     let result: Record<string, unknown>
     try {
       result = JSON.parse(textBlock.text)
     } catch {
       console.error('[detect-scene] JSON invalide', textBlock.text.slice(0, 500))
+      await refund()
       return err(502, 'AI_BAD_JSON')
     }
 
@@ -211,10 +226,7 @@ Deno.serve(async (req: Request) => {
     const usage = payload.usage ?? {}
     const inputTokens = usage.input_tokens ?? 0
     const outputTokens = usage.output_tokens ?? 0
-    const price = PRICING[model]
-    const costUsd =
-      (inputTokens / 1_000_000) * price.input +
-      (outputTokens / 1_000_000) * price.output
+    const cost = costUsd(model, usage)
 
     // ── Persistance de la scène ────────────────────────────────────────
     // La photo et le résultat sont écrits ICI, pas au moment où l'utilisateur
@@ -259,7 +271,7 @@ Deno.serve(async (req: Request) => {
       model,
       input_tokens: inputTokens,
       output_tokens: outputTokens,
-      cost_usd: costUsd,
+      cost_usd: cost,
       duration_ms: Date.now() - startedAt,
       result,
       object_count: objects.length,
@@ -267,29 +279,22 @@ Deno.serve(async (req: Request) => {
     })
     if (sceneErr) console.error('[detect-scene] scene_analyses', sceneErr.message)
 
-    // Jamais bloquant : une écriture de télémétrie ne doit pas faire
-    // échouer une analyse que l'utilisateur a déjà payée en tokens.
-    supabase.from('ai_usage').insert({
-      user_id: user.id,
+    logAiUsage(supabase, {
+      userId: user.id,
       feature: 'detect_scene',
       model,
-      input_tokens: inputTokens,
-      output_tokens: outputTokens,
-      cache_read_input_tokens: usage.cache_read_input_tokens ?? 0,
-      cache_creation_input_tokens: usage.cache_creation_input_tokens ?? 0,
-      cost_usd: costUsd,
-      duration_ms: Date.now() - startedAt,
+      usage,
+      durationMs: Date.now() - startedAt,
       meta: {
         object_count: objects.length,
         scene_type: result.scene_type ?? null,
         truncated,
         image_bytes: Math.round((image.data.length * 3) / 4),
+        quota_units: units,
         // Rattache le coût à la scène : sans cela, impossible de savoir a
         // posteriori ce qu'une analyse abandonnée a coûté.
         scene_id: sceneErr ? null : sceneId,
       },
-    }).then(({ error }) => {
-      if (error) console.error('[detect-scene] ai_usage', error.message)
     })
 
     return new Response(JSON.stringify({
@@ -304,7 +309,7 @@ Deno.serve(async (req: Request) => {
         model,
         input_tokens: inputTokens,
         output_tokens: outputTokens,
-        cost_usd: Number(costUsd.toFixed(6)),
+        cost_usd: Number(cost.toFixed(6)),
         duration_ms: Date.now() - startedAt,
       },
     }), {
@@ -318,8 +323,8 @@ Deno.serve(async (req: Request) => {
   }
 })
 
-function err(status: number, code: string) {
-  return new Response(JSON.stringify({ error: { code } }), {
+function err(status: number, code: string, message?: string) {
+  return new Response(JSON.stringify({ error: { code, message } }), {
     status,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   })

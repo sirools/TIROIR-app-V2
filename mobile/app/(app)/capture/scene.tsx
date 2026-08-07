@@ -390,8 +390,10 @@ export default function SceneDetectionScreen() {
       const { data: res, error: fnError } = await supabase.functions.invoke('detect-scene', {
         body: { image: { data, media_type: 'image/jpeg' }, model },
       })
-      if (fnError) throw new Error(fnError.message)
-      if (res?.error) throw new Error(res.error.code)
+      // Le motif — quota atteint, modèle indisponible — vit dans le corps
+      // de la réponse ; `invoke` ne rend qu'un « non-2xx status code ».
+      if (fnError) throw new Error(await functionMessage(fnError))
+      if (res?.error) throw new Error(res.error.message ?? res.error.code)
       setRemoved(new Set())
       setQuantities({})
       setCrops({})

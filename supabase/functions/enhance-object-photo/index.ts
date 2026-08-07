@@ -11,6 +11,7 @@
 // ================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { logAiUsage } from '../_shared/aiUsage.ts'
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -27,6 +28,7 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+    const startedAt = Date.now()
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
 
     if (!geminiApiKey) return err(500, 'INTERNAL_ERROR', 'Clé API IA non configurée')
@@ -185,6 +187,22 @@ Deno.serve(async (req: Request) => {
       console.error('[enhance-object-photo] insert error', insertError?.message)
       return err(500, 'INTERNAL_ERROR', "Impossible d'enregistrer la photo améliorée")
     }
+
+    // La retouche était comptée au forfait déclaré dans app_settings
+    // (3,9 c). C'est le bon ordre de grandeur, mais un forfait ne bouge pas
+    // quand le tarif du modèle bouge : on mesure.
+    const usage = geminiJson?.usageMetadata ?? {}
+    logAiUsage(adminClient, {
+      userId: user.id,
+      feature: 'photo_enhance',
+      model: GEMINI_MODEL,
+      usage: {
+        input_tokens: usage.promptTokenCount ?? 0,
+        output_tokens: usage.candidatesTokenCount ?? 0,
+      },
+      durationMs: Date.now() - startedAt,
+      meta: { object_id: objectId, source_image_id: imageId, bytes: outputBytes.byteLength },
+    })
 
     const { data: signed } = await adminClient.storage
       .from('object-images')
