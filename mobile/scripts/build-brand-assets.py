@@ -133,12 +133,10 @@ print('Android')
 ecrire(icone(1024, (0, 0, 0, 0), BLANC, ANDROID_PART, mode='RGBA'),
        MOBILE, 'assets', 'android-icon-foreground.png')
 
-# Le fond d'une icône adaptative est UNI, sans mannequin : le lanceur le
-# fait glisser derrière le premier plan pour l'effet de parallaxe. Y
-# remettre le meuble donnerait deux commodes désalignées dès que
-# l'utilisateur incline son téléphone.
-ecrire(Image.new('RGB', (1024, 1024), ORANGE),
-       MOBILE, 'assets', 'android-icon-background.png')
+# Pas de fichier de fond : `adaptiveIcon.backgroundColor` suffit, et une
+# image d'aplat orange ne ferait que dire deux fois la même chose — avec
+# le risque qu'une des deux dérive un jour. (Si un fond dégradé devenait
+# nécessaire, la clé à remplir serait `backgroundImage`.)
 
 # Monochrome (Android 13+, icônes teintées) : le système ne lit QUE le
 # canal alpha et applique sa propre couleur. Les poignées et la fente
