@@ -1145,41 +1145,82 @@ interface ProAccount {
   email: string
   display_name: string | null
   plan: string
+  /** Palier réellement appliqué : un Pro dont la date de fin est passée
+   *  est déjà retombé en gratuit pour les quotas. */
+  effective_plan: string
   pro_since: string | null
   pro_expires_at: string | null
   pro_invoice_ref: string | null
   pro_company: string | null
   created_at: string
+  objects_count: number
+  ai_analyses_used: number
 }
 
 const EMPTY_PRO_FORM = { pro_expires_at: '', pro_invoice_ref: '', pro_company: '' }
 
+type PlanKey = 'pro' | 'premium' | 'free'
+
+const PLAN_META: Record<PlanKey, { label: string; color: string; bg: string }> = {
+  pro:     { label: 'Professionnel', color: '#7C3AED', bg: '#F3EDFF' },
+  premium: { label: 'Premium',       color: '#B45309', bg: '#FEF3C7' },
+  free:    { label: 'Gratuit',       color: '#5b5b5b', bg: '#F0EBE3' },
+}
+
+function PlanBadge({ plan }: { plan: string }) {
+  const meta = PLAN_META[plan as PlanKey] ?? PLAN_META.free
+  return (
+    <span style={{ ...s.planBadge, color: meta.color, background: meta.bg }}>{meta.label}</span>
+  )
+}
+
 function ProAccountsPanel({ settings }: { settings: AppSettings }) {
+  const [tab, setTab] = useState<PlanKey>('pro')
   const [query, setQuery] = useState('')
+  const [submittedQuery, setSubmittedQuery] = useState('')
+  const [page, setPage] = useState(0)
+
   const [accounts, setAccounts] = useState<ProAccount[]>([])
+  const [total, setTotal] = useState(0)
+  const [pageSize, setPageSize] = useState(25)
+  const [counts, setCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
   const [openId, setOpenId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_PRO_FORM)
   const [busy, setBusy] = useState(false)
 
-  // q vide → l'API renvoie la liste des clients Pro actuels.
-  async function load(q: string) {
+  const isSearch = submittedQuery.trim().length >= 2
+
+  async function load(nextPage = page) {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/admin/pro-accounts?q=${encodeURIComponent(q)}`)
+      const params = new URLSearchParams({ page: String(nextPage) })
+      // Une recherche traverse les paliers : on ne sait pas dans lequel
+      // se trouve la personne qu'on cherche.
+      if (submittedQuery.trim().length >= 2) params.set('q', submittedQuery.trim())
+      else params.set('plan', tab)
+
+      const res = await fetch(`/api/admin/pro-accounts?${params}`)
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Erreur inconnue')
       setAccounts(json.accounts ?? [])
+      setTotal(json.total ?? 0)
+      setPageSize(json.pageSize ?? 25)
+      setCounts(json.counts ?? {})
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur inconnue')
       setAccounts([])
+      setTotal(0)
     }
     setLoading(false)
   }
 
-  useEffect(() => { load('') }, [])
+  // Changer d'onglet ou de recherche ramène à la première page : rester
+  // page 3 d'une liste qu'on vient de remplacer n'a aucun sens.
+  useEffect(() => { setPage(0); load(0) /* eslint-disable-next-line */ }, [tab, submittedQuery])
 
   function openForm(a: ProAccount) {
     setOpenId(a.id)
@@ -1190,14 +1231,23 @@ function ProAccountsPanel({ settings }: { settings: AppSettings }) {
     })
   }
 
-  async function submit(a: ProAccount, action: 'grant' | 'revoke') {
-    if (action === 'revoke' && !window.confirm(`Repasser ${a.email} en gratuit ?`)) return
+  async function setPlan(a: ProAccount, target: PlanKey) {
+    if (target === a.effective_plan) return
+    const label = PLAN_META[target].label
+    if (!window.confirm(`Passer ${a.email} en « ${label} » ?`)) return
+
     setBusy(true)
     setError(null)
     const res = await fetch('/api/admin/pro-accounts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: a.id, action, ...form }),
+      body: JSON.stringify({
+        user_id: a.id,
+        action: 'set_plan',
+        plan: target,
+        // Les champs de facturation n'ont de sens que sur le palier Pro.
+        ...(target === 'pro' ? form : {}),
+      }),
     })
     setBusy(false)
     if (!res.ok) {
@@ -1207,37 +1257,50 @@ function ProAccountsPanel({ settings }: { settings: AppSettings }) {
     }
     setOpenId(null)
     setForm(EMPTY_PRO_FORM)
-    load(query)
+    load()
   }
 
-  const isSearch = query.trim().length >= 2
+  const lastPage = Math.max(0, Math.ceil(total / pageSize) - 1)
 
   return (
     <>
+      {/* ── Filtres ── */}
       <div style={s.settingsCard}>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={s.planTabs}>
+          {(['pro', 'premium', 'free'] as PlanKey[]).map(k => (
+            <button
+              key={k}
+              style={{ ...s.planTab, ...(tab === k && !isSearch ? s.planTabActive : {}) }}
+              onClick={() => { setQuery(''); setSubmittedQuery(''); setTab(k) }}
+            >
+              {PLAN_META[k].label}
+              <span style={s.planTabCount}>{counts[k] ?? 0}</span>
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 16 }}>
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') load(query) }}
-            placeholder="Rechercher un compte par e-mail ou nom…"
-            style={{ ...s.settingsInput, width: 340, textAlign: 'left', fontSize: 14, fontWeight: 500 }}
+            onKeyDown={e => { if (e.key === 'Enter') setSubmittedQuery(query) }}
+            placeholder="Rechercher par e-mail ou nom, tous paliers confondus…"
+            style={{ ...s.settingsInput, width: 360, textAlign: 'left', fontSize: 14, fontWeight: 500 }}
           />
-          <button style={s.saveBtn} onClick={() => load(query)} disabled={loading}>
+          <button style={s.saveBtn} onClick={() => setSubmittedQuery(query)} disabled={loading}>
             {loading ? 'Recherche…' : 'Rechercher'}
           </button>
           {isSearch && (
-            <button
-              style={{ ...s.scenarioBtn }}
-              onClick={() => { setQuery(''); load('') }}
-            >
-              Voir les clients Pro
+            <button style={s.scenarioBtn} onClick={() => { setQuery(''); setSubmittedQuery('') }}>
+              Effacer la recherche
             </button>
           )}
         </div>
-        <div style={{ ...s.settingsHint, marginTop: 10 }}>
-          Quotas appliqués au palier Pro : {settings.pro_ai_quota_monthly} analyses IA et{' '}
-          {settings.pro_photo_enhance_quota_monthly} améliorations photo par mois — modifiables dans l&apos;onglet Quotas.
+
+        <div style={{ ...s.settingsHint, marginTop: 12 }}>
+          Quotas du palier Professionnel : {settings.pro_ai_quota_monthly} analyses IA,{' '}
+          {settings.pro_photo_enhance_quota_monthly} retouches photo et {settings.pro_value_estimate_monthly} estimations
+          par mois — modifiables dans l&apos;onglet Quotas.
         </div>
       </div>
 
@@ -1248,67 +1311,72 @@ function ProAccountsPanel({ settings }: { settings: AppSettings }) {
       )}
 
       <h2 style={s.sectionTitle}>
-        {isSearch ? 'Résultats de recherche' : 'Clients Professionnels'}
+        {isSearch ? `Résultats pour « ${submittedQuery} »` : PLAN_META[tab].label}
+        <span style={s.sectionCount}>{total} compte{total > 1 ? 's' : ''}</span>
       </h2>
-      <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
-        {isSearch
-          ? 'Sélectionne un compte pour lui attribuer le palier Professionnel.'
-          : 'Comptes actuellement au palier Professionnel. Une date de fin dépassée les fait retomber automatiquement en gratuit.'}
-      </p>
 
-      <div style={s.eventsTable}>
-        {loading && <div style={{ ...s.eventRow, borderBottom: 'none' }}>Chargement…</div>}
+      <div style={s.spendTable}>
+        <div style={s.spendHead}>
+          <span style={{ ...s.spendHeadCell, flex: 3 }}>Compte</span>
+          <span style={{ ...s.spendHeadCell, flex: 1.4, textAlign: 'right' }}>Palier</span>
+          <span style={{ ...s.spendHeadCell, flex: 1, textAlign: 'right' }}>Objets</span>
+          <span style={{ ...s.spendHeadCell, flex: 1, textAlign: 'right' }}>Analyses</span>
+          <span style={{ ...s.spendHeadCell, flex: 2.4, textAlign: 'right' }}>Changer de palier</span>
+        </div>
+
+        {loading && <div style={{ padding: '18px 0', color: '#8a8a8a', fontSize: 14 }}>Chargement…</div>}
 
         {!loading && accounts.length === 0 && (
-          <div style={{ ...s.eventRow, borderBottom: 'none', color: '#8a8a8a' }}>
-            {isSearch ? 'Aucun compte trouvé.' : 'Aucun client Professionnel pour le moment.'}
+          <div style={{ padding: '18px 0', color: '#8a8a8a', fontSize: 14 }}>
+            {isSearch ? 'Aucun compte trouvé.' : 'Aucun compte sur ce palier.'}
           </div>
         )}
 
         {!loading && accounts.map(a => {
           const expired = !!a.pro_expires_at && a.pro_expires_at < new Date().toISOString().slice(0, 10)
-          const isPro = a.plan === 'pro'
           return (
-            <div key={a.id} style={{ padding: '14px 0', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-                <div>
-                  <div style={s.eventAction}>
-                    {a.email}
-                    <span style={{
-                      marginLeft: 8, padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-                      background: isPro ? '#FFF4E6' : '#F4F4F2',
-                      color: isPro ? '#B4690E' : '#8a8a8a',
-                    }}>
-                      {isPro ? 'Professionnel' : a.plan === 'premium' ? 'Premium' : 'Gratuit'}
-                    </span>
-                    {expired && isPro && (
-                      <span style={{ ...s.alertText, marginLeft: 8 }}>période échue</span>
-                    )}
-                  </div>
-                  <div style={s.settingsHint}>
-                    {a.display_name ?? '—'}
+            <div key={a.id} style={s.accountRow}>
+              <div style={s.spendRow}>
+                <div style={{ flex: 3, minWidth: 0 }}>
+                  <div style={s.accountEmail}>{a.email}</div>
+                  <div style={s.accountMeta}>
+                    {a.display_name ? `${a.display_name} · ` : ''}
+                    inscrit le {fmtDate(a.created_at)}
                     {a.pro_company ? ` · ${a.pro_company}` : ''}
-                    {a.pro_since ? ` · client depuis le ${a.pro_since}` : ''}
-                    {a.pro_expires_at ? ` · jusqu'au ${a.pro_expires_at}` : isPro ? ' · sans date de fin' : ''}
+                    {a.pro_since ? ` · Pro depuis le ${a.pro_since}` : ''}
+                    {a.pro_expires_at ? ` · ${expired ? 'expiré le' : "jusqu'au"} ${a.pro_expires_at}` : ''}
                     {a.pro_invoice_ref ? ` · facture ${a.pro_invoice_ref}` : ''}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button style={s.scenarioBtn} onClick={() => (openId === a.id ? setOpenId(null) : openForm(a))}>
-                    {openId === a.id ? 'Fermer' : isPro ? 'Modifier' : 'Passer en Pro'}
-                  </button>
-                  {isPro && (
+                <div style={{ flex: 1.4, textAlign: 'right' }}>
+                  <PlanBadge plan={a.effective_plan} />
+                  {/* Un Pro expiré affiche encore plan='pro' en base : dire
+                      lequel des deux s'applique évite de croire à un bug. */}
+                  {expired && a.plan === 'pro' && <div style={s.accountExpired}>période close</div>}
+                </div>
+                <span style={{ ...s.spendCell, flex: 1, textAlign: 'right' }}>{fmtInt(a.objects_count)}</span>
+                <span style={{ ...s.spendCell, flex: 1, textAlign: 'right' }}>{fmtInt(a.ai_analyses_used)}</span>
+
+                <div style={{ flex: 2.4, display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                  {(['free', 'premium', 'pro'] as PlanKey[]).map(k => (
                     <button
-                      style={{ ...s.scenarioBtn, borderColor: '#C0392B', color: '#C0392B' }}
-                      disabled={busy}
-                      onClick={() => submit(a, 'revoke')}
+                      key={k}
+                      disabled={busy || k === a.effective_plan}
+                      onClick={() => (k === 'pro' && openId !== a.id ? openForm(a) : setPlan(a, k))}
+                      style={{
+                        ...s.planSwitchBtn,
+                        ...(k === a.effective_plan ? s.planSwitchBtnCurrent : {}),
+                      }}
+                      title={k === 'pro' ? 'Ouvre les champs de facturation' : `Passer en ${PLAN_META[k].label}`}
                     >
-                      Révoquer
+                      {PLAN_META[k].label}
                     </button>
-                  )}
+                  ))}
                 </div>
               </div>
 
+              {/* Le palier Pro se vend sur facture : ses champs s'ouvrent
+                  avant la bascule, pas après. */}
               {openId === a.id && (
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end', marginTop: 14 }}>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -1338,9 +1406,10 @@ function ProAccountsPanel({ settings }: { settings: AppSettings }) {
                       style={{ ...s.settingsInput, width: 200, textAlign: 'left', fontSize: 14, fontWeight: 500 }}
                     />
                   </label>
-                  <button style={s.saveBtn} disabled={busy} onClick={() => submit(a, 'grant')}>
-                    {busy ? 'Enregistrement…' : isPro ? 'Mettre à jour' : 'Activer le Professionnel'}
+                  <button style={s.saveBtn} disabled={busy} onClick={() => setPlan(a, 'pro')}>
+                    {busy ? 'Enregistrement…' : a.effective_plan === 'pro' ? 'Mettre à jour' : 'Activer le Professionnel'}
                   </button>
+                  <button style={s.scenarioBtn} onClick={() => setOpenId(null)}>Annuler</button>
                 </div>
               )}
             </div>
@@ -1348,9 +1417,33 @@ function ProAccountsPanel({ settings }: { settings: AppSettings }) {
         })}
       </div>
 
+      {/* ── Pagination ── */}
+      {total > pageSize && (
+        <div style={s.pager}>
+          <button
+            style={s.scenarioBtn}
+            disabled={page === 0 || loading}
+            onClick={() => { const p = page - 1; setPage(p); load(p) }}
+          >
+            ← Précédents
+          </button>
+          <span style={s.pagerLabel}>
+            {page * pageSize + 1}–{Math.min((page + 1) * pageSize, total)} sur {total}
+          </span>
+          <button
+            style={s.scenarioBtn}
+            disabled={page >= lastPage || loading}
+            onClick={() => { const p = page + 1; setPage(p); load(p) }}
+          >
+            Suivants →
+          </button>
+        </div>
+      )}
+
       <p style={s.footnote}>
-        Laisser la date de fin vide = abonnement ouvert, sans échéance. La révocation repasse le compte en gratuit :
-        elle n&apos;affecte aucun abonnement store, puisque le Professionnel n&apos;en utilise pas.
+        Le palier Professionnel se vend sur facture : laisser la date de fin vide = abonnement ouvert, sans échéance.
+        Passer un compte en Premium à la main reste possible, mais une synchronisation RevenueCat le réécrira s&apos;il
+        possède un abonnement store — les comptes Pro, eux, sont exclus de cette synchronisation.
       </p>
     </>
   )
@@ -2163,6 +2256,22 @@ const s: Record<string, React.CSSProperties> = {
   sparkBar:          { flex: 1, borderRadius: 3, minHeight: 2 },
   sparkAxis:         { display: 'flex', justifyContent: 'space-between', marginTop: 8 },
   sparkAxisLabel:    { fontSize: 11, color: '#a0a0a0', fontWeight: 600 },
+
+  // ── Comptes ──
+  planTabs:          { display: 'flex', gap: 8, flexWrap: 'wrap' },
+  planTab:           { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 99, border: '1.5px solid #e0e0e0', background: 'white', fontSize: 14, fontWeight: 700, color: '#5b5b5b', cursor: 'pointer' },
+  planTabActive:     { borderColor: '#F26900', color: '#F26900', background: '#FFF6F0' },
+  planTabCount:      { fontSize: 12, fontWeight: 800, color: '#8a8a8a', fontVariantNumeric: 'tabular-nums' },
+  planBadge:         { display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 12, fontWeight: 700 },
+  sectionCount:      { fontSize: 13, fontWeight: 600, color: '#8a8a8a', marginLeft: 10 },
+  accountRow:        { padding: '14px 0 12px', borderBottom: '1px solid rgba(0,0,0,0.04)' },
+  accountEmail:      { fontSize: 14, fontWeight: 700, color: '#121212', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  accountMeta:       { fontSize: 12, color: '#8a8a8a', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  accountExpired:    { fontSize: 11, color: '#C0392B', fontWeight: 700, marginTop: 3 },
+  planSwitchBtn:     { padding: '6px 12px', borderRadius: 8, border: '1.5px solid #e0e0e0', background: 'white', fontSize: 12, fontWeight: 700, color: '#5b5b5b', cursor: 'pointer' },
+  planSwitchBtnCurrent: { borderColor: '#F26900', color: '#F26900', background: '#FFF6F0', cursor: 'default' },
+  pager:             { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 32 },
+  pagerLabel:        { fontSize: 13, color: '#5b5b5b', fontWeight: 600, fontVariantNumeric: 'tabular-nums' },
 
   eventsTable:       { background: 'white', borderRadius: 16, padding: '8px 24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 40 },
   eventRow:          { display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid rgba(0,0,0,0.04)' },
