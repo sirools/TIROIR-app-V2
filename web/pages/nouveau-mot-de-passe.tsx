@@ -87,7 +87,7 @@ export default function NouveauMotDePasse() {
         <div style={s.card}>
           <div style={s.logo}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icons/app-icon-v2.png" alt="" width={36} height={36} style={{ borderRadius: 10 }} />
+            <img src="/icons/app-icon.png" alt="" width={36} height={36} style={{ borderRadius: 10 }} />
             <strong style={s.logoText}>Tiroir</strong>
           </div>
 

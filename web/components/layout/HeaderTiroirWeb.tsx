@@ -202,7 +202,7 @@ export default function HeaderTiroirWeb() {
           {/* Logo */}
           <Link href="/" legacyBehavior passHref>
             <a className="ti-logo">
-              <img className="ti-logo__box" src="/icons/app-icon-v2.png" alt="" width={32} height={32} />
+              <img className="ti-logo__box" src="/icons/app-icon.png" alt="" width={32} height={32} />
               <strong className="ti-logo__text">TiROiR</strong>
             </a>
           </Link>
@@ -301,7 +301,7 @@ export default function HeaderTiroirWeb() {
           <div className="ti-mobile-menu__header">
             <Link href="/" legacyBehavior passHref>
               <a className="ti-logo" onClick={() => setMenuOpen(false)}>
-                <img className="ti-logo__box" src="/icons/app-icon-v2.png" alt="" width={32} height={32} />
+                <img className="ti-logo__box" src="/icons/app-icon.png" alt="" width={32} height={32} />
                 <strong className="ti-logo__text">TiROiR</strong>
               </a>
             </Link>

@@ -23,7 +23,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundColor": "#E97028"
+        "monochromeImage": "./assets/android-icon-monochrome.png",
+        "backgroundColor": "#F26900"
       },
       "package": "com.tiroir.app",
       "permissions": [

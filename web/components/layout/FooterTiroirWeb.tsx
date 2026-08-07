@@ -47,7 +47,7 @@ export default function FooterTiroirWeb() {
           <div className="ti-footer__brand">
             <Link href="/" legacyBehavior passHref>
               <a className="ti-footer__logo">
-                <img src="/icons/app-icon-v2.png" alt="" width={36} height={36} />
+                <img src="/icons/app-icon.png" alt="" width={36} height={36} />
                 <strong>TiROiR</strong>
               </a>
             </Link>

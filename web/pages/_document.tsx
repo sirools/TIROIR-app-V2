@@ -29,10 +29,14 @@ export default class MyDocument extends Document<{ locale: string }> {
           <meta name="theme-color" content="#F26900" />
           <meta name="color-scheme" content="light dark" />
 
-          {/* Favicon / PWA (optionnel, mets tes fichiers si dispo) */}
-          {/* <link rel="icon" href="/favicon.ico" /> */}
-          {/* <link rel="apple-touch-icon" href="/apple-touch-icon.png" /> */}
-          {/* <link rel="manifest" href="/manifest.webmanifest" /> */}
+          {/* Favicon. Le .ico embarque 16 → 256 px : les onglets, la barre
+              des tâches et les raccourcis ne piochent pas la même taille,
+              et un .ico à résolution unique se fait redimensionner par le
+              système, qui le fait mal. Le SVG passe devant quand le
+              navigateur le sait — il reste net à toutes les densités. */}
+          <link rel="icon" href="/favicon.ico" sizes="any" />
+          <link rel="icon" href="/logo-tiroir.svg" type="image/svg+xml" />
+          <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         </Head>
         <body>
           {/* Pas de Tamagui ici */}
