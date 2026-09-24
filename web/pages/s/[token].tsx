@@ -754,7 +754,15 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                           download
                           onClick={(e) => { if (selectedIds.size === 0) e.preventDefault() }}
                         >
-                          ↓ Télécharger la sélection
+                          ↓ CSV
+                        </a>
+                        <a
+                          className={`download-btn ${selectedIds.size === 0 ? 'btn-disabled' : ''}`}
+                          href={`/api/shares/${encodeURIComponent(token)}/export.pdf?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}`}
+                          download
+                          onClick={(e) => { if (selectedIds.size === 0) e.preventDefault() }}
+                        >
+                          ↓ PDF
                         </a>
                         <button type="button" className="text-link" onClick={() => setExportMode(false)}>
                           Annuler

@@ -1,64 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { adminSupabase } from '../../../../lib/supabase'
-import { makeCookieName } from '../../../../lib/shareAuth'
 import { lotTotal } from '../../../../lib/quantity'
-
-type ShareLinkRow = {
-  title: string | null
-  object_ids: string[]
-  options: {
-    allow_download?: boolean
-    password_protected?: boolean
-    fields?: {
-      values?: boolean
-      location?: boolean
-      attributes?: boolean
-      description?: boolean
-      insurance?: boolean
-    }
-  } | null
-  expires_at: string | null
-  is_archived: boolean
-}
-
-type ExportObjectRow = {
-  id: string
-  collection_id: string | null
-  title: string
-  description: string | null
-  status: string | null
-  location_note: string | null
-  attributes: Record<string, string | number | boolean | null> | null
-  market_value: number | null
-  user_value: number | null
-  value_currency: string | null
-  value_estimated_at: string | null
-  purchase_price: number | null
-  purchase_currency: string | null
-  purchase_date: string | null
-  sale_price: number | null
-  sale_price_lot: number | null
-  deposit_amount: number | null
-  quantity: number | null
-  insured: boolean | null
-  insurance_type: string | null
-  insurance_coverage: number | null
-  insurance_policy_ref: string | null
-  insurance_provider: string | null
-  insurance_expires_at: string | null
-  created_at: string
-  updated_at: string
-}
-
-type InsuranceRow = {
-  object_id: string
-  label: string | null
-  price: number | null
-  billing_period: 'monthly' | 'yearly' | null
-  coverage: number | null
-  date: string | null
-  position: number | null
-}
+import {
+  resolveShareExport, STATUS_LABEL, formatDate, formatInsurances, safeFilename,
+  type ExportObjectRow, type InsuranceRow, type ShareFields,
+} from '../../../../lib/shareExportData'
 
 /**
  * Colonnes rattachées à un bloc masquable. Celles qui n'y figurent pas —
@@ -88,47 +33,6 @@ const COLUMN_GROUP: Record<string, 'values' | 'location' | 'description' | 'insu
   insurance_coverage: 'insurance',
   insurance_policy_ref: 'insurance',
   insurance_expires_at: 'insurance',
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  owned: 'Possédé',
-  stored: 'En stockage',
-  loaned: 'Prêté',
-  sold: 'Vendu',
-  given: 'Donné',
-  lost: 'Perdu',
-}
-
-const BILLING_LABEL: Record<string, string> = {
-  monthly: '/mois',
-  yearly: '/an',
-}
-
-function currencySymbol(raw: string | null | undefined): string {
-  const c = raw ?? 'EUR'
-  if (c === 'EUR' || c === '€') return '€'
-  if (c === 'USD' || c === '$') return '$'
-  if (c === 'GBP' || c === '£') return '£'
-  return c
-}
-
-function formatInsurances(rows: InsuranceRow[], currency: string | null): string | null {
-  if (!rows.length) return null
-  const sym = currencySymbol(currency)
-  return rows
-    .map(row => {
-      const head = row.label?.trim() || 'Contrat'
-      const parts: string[] = []
-      if (row.price != null) {
-        const period = row.billing_period ? ` ${BILLING_LABEL[row.billing_period] ?? ''}`.trimEnd() : ''
-        parts.push(`${row.price} ${sym}${period}`)
-      }
-      if (row.coverage != null) parts.push(`couverture ${row.coverage} ${sym}`)
-      const due = formatDate(row.date)
-      if (due) parts.push(`échéance ${due}`)
-      return parts.length ? `${head} (${parts.join(', ')})` : head
-    })
-    .join(' | ')
 }
 
 const FIXED_COLUMNS = [
@@ -172,138 +76,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const token = String(req.query.token ?? '').trim()
-  if (!token) {
-    res.status(400).json({ error: 'MISSING_TOKEN' })
+  const result = await resolveShareExport(req, token, req.query.ids)
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.error })
     return
   }
 
-  const supabase = adminSupabase()
-  const { data: link, error: linkError } = await supabase
-    .from('share_links')
-    .select('title, object_ids, options, expires_at, is_archived')
-    .eq('token', token)
-    .single()
-
-  if (linkError || !link) {
-    res.status(404).json({ error: 'SHARE_NOT_FOUND' })
-    return
-  }
-
-  const shareLink = link as ShareLinkRow
-  if (shareLink.is_archived || (shareLink.expires_at && new Date(shareLink.expires_at) < new Date())) {
-    res.status(410).json({ error: 'SHARE_EXPIRED' })
-    return
-  }
-
-  // Un export ne doit pas contourner ce que la page masque.
-  const shareFields = {
-    values: true, location: true, attributes: true, description: true, insurance: true,
-    ...(shareLink.options?.fields ?? {}),
-  }
-
-  if (!shareLink.options?.allow_download) {
-    res.status(403).json({ error: 'DOWNLOAD_DISABLED' })
-    return
-  }
-
-  if (shareLink.options?.password_protected && !hasSignedShareCookie(req, token)) {
-    res.status(403).json({ error: 'PASSWORD_REQUIRED' })
-    return
-  }
-
-  const shareObjectIds = Array.isArray(shareLink.object_ids) ? shareLink.object_ids : []
-
-  // Optional row selection from the export UI. Never trust client-supplied ids
-  // blindly — only keep the ones that actually belong to this share link.
-  const requestedIds = req.query.ids
-  const objectIds = typeof requestedIds === 'string' && requestedIds.length > 0
-    ? shareObjectIds.filter(id => requestedIds.split(',').includes(id))
-    : shareObjectIds
-
-  if (objectIds.length === 0) {
-    sendCsv(res, safeFilename(shareLink.title ?? 'tiroir-export'), buildCsv([], new Map(), new Map(), shareFields))
-    return
-  }
-
-  // Même règle que la page : ce que le partage masque n'est pas chargé.
-  const exportColumns = [
-    'id', 'collection_id', 'title', 'status', 'quantity', 'created_at', 'updated_at',
-    ...(shareFields.description ? ['description'] : []),
-    ...(shareFields.location ? ['location_note'] : []),
-    ...(shareFields.attributes ? ['attributes'] : []),
-    ...(shareFields.values ? [
-      'market_value', 'user_value', 'value_currency', 'value_estimated_at',
-      'purchase_price', 'purchase_currency', 'purchase_date',
-      'sale_price', 'sale_price_lot', 'deposit_amount',
-    ] : []),
-    ...(shareFields.insurance ? [
-      'insured', 'insurance_type', 'insurance_coverage',
-      'insurance_policy_ref', 'insurance_provider', 'insurance_expires_at',
-    ] : []),
-  ].join(', ')
-
-  const { data: objectsData, error: objectsError } = await supabase
-    .from('objects')
-    .select(exportColumns)
-    .in('id', objectIds)
-
-  if (objectsError || !objectsData) {
-    res.status(500).json({ error: 'OBJECTS_FETCH_FAILED' })
-    return
-  }
-
-  // Colonnes non demandées : `null`, comme un champ vide.
-  const objectRows = (objectsData as unknown as Record<string, unknown>[]).map(row => ({
-    description: null, location_note: null, attributes: null,
-    market_value: null, user_value: null, value_currency: null, value_estimated_at: null,
-    purchase_price: null, purchase_currency: null, purchase_date: null,
-    sale_price: null, sale_price_lot: null, deposit_amount: null,
-    insured: null, insurance_type: null, insurance_coverage: null,
-    insurance_policy_ref: null, insurance_provider: null, insurance_expires_at: null,
-    ...row,
-  })) as unknown as ExportObjectRow[]
-
-  const objectsById = new Map(objectRows.map(object => [object.id, object]))
-  const orderedObjects = objectIds
-    .map(objectId => objectsById.get(objectId))
-    .filter((object): object is ExportObjectRow => Boolean(object))
-
-  const collectionIds = Array.from(new Set(orderedObjects.map(object => object.collection_id).filter(Boolean))) as string[]
-  const collectionNames = new Map<string, string>()
-  if (collectionIds.length > 0) {
-    const { data: collectionsData } = await supabase
-      .from('collections')
-      .select('id, name')
-      .in('id', collectionIds)
-
-    for (const collection of collectionsData ?? []) {
-      collectionNames.set(collection.id, collection.name)
-    }
-  }
-
-  // Contrats d'assurance (table object_insurances, multi-contrats par objet)
-  const insurancesByObject = new Map<string, InsuranceRow[]>()
-  const { data: insuranceData } = shareFields.insurance
-    ? await supabase
-        .from('object_insurances')
-        .select('object_id, label, price, billing_period, coverage, date, position')
-        .in('object_id', objectIds)
-        .order('position')
-    : { data: null }
-
-  for (const row of (insuranceData ?? []) as InsuranceRow[]) {
-    const list = insurancesByObject.get(row.object_id) ?? []
-    list.push(row)
-    insurancesByObject.set(row.object_id, list)
-  }
-
-  const csv = buildCsv(orderedObjects, collectionNames, insurancesByObject, shareFields)
-  sendCsv(res, safeFilename(shareLink.title ?? 'tiroir-export'), csv)
-}
-
-type ShareFields = {
-  values: boolean; location: boolean; attributes: boolean
-  description: boolean; insurance: boolean
+  const { objects, collectionNames, insurancesByObject, shareFields, title } = result.data
+  const csv = buildCsv(objects, collectionNames, insurancesByObject, shareFields)
+  sendCsv(res, safeFilename(title), csv)
 }
 
 function buildCsv(
@@ -381,7 +162,7 @@ function sendCsv(res: NextApiResponse, filename: string, csv: string) {
   res.setHeader('Content-Disposition', `attachment; filename="${filename}.csv"`)
   res.setHeader('Cache-Control', 'no-store')
   res.setHeader('X-Content-Type-Options', 'nosniff')
-  res.status(200).send('\uFEFF' + csv)
+  res.status(200).send('﻿' + csv)
 }
 
 function toCsvCell(value: string | number | boolean | null | undefined) {
@@ -392,31 +173,4 @@ function toCsvCell(value: string | number | boolean | null | undefined) {
 
 function escapeSpreadsheetFormula(value: string) {
   return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value
-}
-
-function hasSignedShareCookie(req: NextApiRequest, token: string) {
-  const cookieName = makeCookieName(token)
-  const cookieHeader = req.headers.cookie || ''
-  return cookieHeader
-    .split(';')
-    .map(c => c.trim())
-    .some(c => c.startsWith(`${cookieName}=`))
-}
-
-function formatDate(value: string | null) {
-  if (!value) return null
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toISOString().slice(0, 10)
-}
-
-function safeFilename(value: string) {
-  const normalized = value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9-_]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .toLowerCase()
-
-  return normalized || 'tiroir-export'
 }

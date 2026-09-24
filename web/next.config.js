@@ -12,6 +12,15 @@ const nextConfig = {
   // (règles cosmétiques type react/no-unescaped-entities sur du texte FR).
   eslint: { ignoreDuringBuilds: true },
 
+  // pdfkit lit ses métriques de polices (.afm) depuis son paquet au runtime.
+  // Le tracing par défaut ne les voit pas (require dynamique) → les inclure
+  // explicitement pour la route d'export PDF (sinon 500 sur Vercel).
+  experimental: {
+    outputFileTracingIncludes: {
+      '/api/shares/[token]/export.pdf': ['./node_modules/pdfkit/js/data/**/*'],
+    },
+  },
+
   // i18n natif (Pages Router). FR = défaut sans préfixe (tiroir.app/...),
   // EN préfixé (tiroir.app/en/...). Détection auto désactivée tant que
   // toutes les pages publiques ne sont pas traduites — les liens App Store
