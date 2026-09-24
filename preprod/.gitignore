@@ -1,0 +1,6 @@
+# Secrets & état — jamais commités
+tiroir/.env.preprod
+ssh/
+filebrowser/database.db
+# Contexte de build synchronisé depuis web/ (recréé par deploy.sh)
+tiroir/app/
