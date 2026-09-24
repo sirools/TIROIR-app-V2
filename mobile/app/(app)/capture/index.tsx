@@ -31,7 +31,7 @@ interface PickedImage {
  * À déplacer dans app_settings quand le mode sortira de la V1.
  */
 const BATCH_MAX_FREE = 10
-const BATCH_MAX_PREMIUM = 10
+const BATCH_MAX_PREMIUM = 50
 
 export default function CaptureScreen() {
   const router = useRouter()
