@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Zap, Package, Brain, Camera, Check, Sparkles } from 'lucide-react-native'
 import Purchases, { PurchasesPackage } from 'react-native-purchases'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { supabase } from '@/lib/supabase'
 
 const MOCK_PACKAGES: PurchasesPackage[] = Platform.OS === 'web' ? [
   { identifier: '$rc_monthly', packageType: 'MONTHLY', product: { identifier: 'tiroir_premium_monthly', price: 6.99, priceString: '6,99 €', introPrice: { price: 0, priceString: '0 €', periodNumberOfUnits: 7, periodUnit: 'DAY' } } } as any,
@@ -34,6 +35,15 @@ export default function PaywallScreen() {
   const [purchasing, setPurchasing] = useState(false)
 
   useEffect(() => {
+    // Funnel : vue du paywall (fire-and-forget, ne bloque pas l'écran)
+    void (async () => {
+      try {
+        await supabase.rpc('log_client_event', { p_action: 'paywall.viewed', p_payload: {} })
+      } catch {
+        // silencieux : un log manqué ne doit pas gêner l'utilisateur
+      }
+    })()
+
     if (Platform.OS === 'web') {
       setMonthly(MOCK_PACKAGES[0])
       setAnnual(MOCK_PACKAGES[1])

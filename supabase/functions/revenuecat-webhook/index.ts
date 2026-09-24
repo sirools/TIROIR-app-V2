@@ -73,5 +73,30 @@ Deno.serve(async (req) => {
     console.log(`[revenuecat-webhook] plan → ${newPlan} for ${appUserId} (comptes Pro exclus)`)
   }
 
+  // Funnel : conversion (achat initial) + renouvellements, tracés dans activity_log.
+  // Source serveur fiable (le client peut fermer l'app avant de confirmer).
+  const purchaseAction =
+    eventType === 'INITIAL_PURCHASE' ? 'purchase.completed'
+    : eventType === 'RENEWAL'        ? 'purchase.renewed'
+    : null
+  if (purchaseAction && appUserId) {
+    const { error: logError } = await admin
+      .from('activity_log')
+      .insert({
+        user_id: appUserId,
+        action: purchaseAction,
+        payload: {
+          event_type: eventType,
+          product_id: event.product_id ?? null,
+          period_type: event.period_type ?? null,
+          store: event.store ?? null,
+        },
+      })
+    if (logError) {
+      // Ne jamais faire échouer le webhook pour un log manqué.
+      console.warn(`[revenuecat-webhook] activity_log insert failed:`, logError.message)
+    }
+  }
+
   return new Response('OK', { status: 200 })
 })
