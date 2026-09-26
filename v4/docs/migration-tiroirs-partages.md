@@ -10,7 +10,8 @@ privé », et comment le lever sans casser le web ni l'app en production.
 | `drawers` (`20260622214158_foundations.sql`) | `UNIQUE (user_id)` : un seul Tiroir par compte. | Pas bloquant pour partager *son* Tiroir ; bloquant pour en posséder plusieurs. |
 | RLS de `drawers`, `collections`, `objects` | `auth.uid() = user_id` partout. | Un membre ne voit rien du Tiroir d'un autre. |
 | FK composites `(collection_id, user_id)`, `(drawer_id, user_id)` | Collection et objet appartiennent au même compte que le Tiroir. | Un membre qui ajoute un objet dans le Tiroir d'un autre casse la contrainte. |
-| `mobile/src/components/ui/CollectionPickerSheet.tsx:97`, `mobile/app/(app)/collections/index.tsx:101`, `mobile/app/(app)/index.tsx:124` | `from('drawers').select('id').single()` | **Casse l'app** dès que la RLS laisse voir plus d'un Tiroir : `.single()` renvoie une erreur. |
+| `mobile/src/components/ui/CollectionPickerSheet.tsx:97`, `mobile/app/(app)/collections/index.tsx:101`, `mobile/app/(app)/index.tsx:124` | `from('drawers').select('id').single()` | **Casse l'app** dès que la RLS laisse voir plus d'un Tiroir : `.single()` renvoie une erreur. **Corrigé** (phase 2) par `fetchOwnDrawerId`, pour les versions à venir. |
+| ~40 lectures sans filtre de propriétaire sur `objects`, `collections`, `object_images` (recherche, stats du profil, sélecteurs de collection, assistant, pages web…) | La RLS ne laisse voir que ses propres lignes. | Si la RLS s'ouvre aux membres, les objets d'un Tiroir partagé se mêlent à ceux de l'utilisateur partout : recherche, compteurs, quotas affichés. |
 | `supabase/functions/delete-account/index.ts:81` | Supprime les Tiroirs par `user_id`. | À revoir : que deviennent les membres d'un Tiroir supprimé ? |
 | `objects.status = 'loaned'` | Le prêt est un statut, sans emprunteur ni échéance. | Reste valable ; un prêt V4.0 le met à jour. |
 
@@ -31,16 +32,27 @@ Docs, brouillons SQL non appliqués, logique métier pure. Aucun effet.
 Validation : rejouer sur le Supabase de preprod, vérifier que le web (preprod
 NAS) et l'app pointée sur la preprod se comportent exactement comme avant.
 
-### Phase 2 — préparer les clients (code web + app, PR séparée)
-- Remplacer les `from('drawers').select('id').single()` par une lecture
-  explicite du Tiroir de l'utilisateur (`.eq('user_id', user.id)`), avant toute
-  ouverture de la RLS.
+### Phase 2 — préparer les clients (fait pour l'app)
+- ✅ Les trois `from('drawers').select('id').single()` sont remplacés par
+  `fetchOwnDrawerId` (`mobile/src/features/collections/ownDrawer.ts`), qui
+  filtre sur le propriétaire.
 - Publier cette version de l'app **et attendre qu'elle soit adoptée** : les
   anciennes versions installées gardent le `.single()`.
 
-### Phase 3 — ouverture de la lecture
-- Policies `SELECT` supplémentaires sur `drawers`, `collections`, `objects`
-  pour les membres (`is_drawer_member(drawer_id)`), derrière un feature flag.
+### Phase 3 — ouverture de la lecture, par une porte dédiée
+Constat de la phase 2 : une quarantaine de lectures de l'app et du web
+comptent sur la RLS pour ne renvoyer que les données de l'utilisateur. Ouvrir
+les policies `SELECT` existantes aux membres ferait apparaître les objets
+partagés dans la recherche, les statistiques ou les sélecteurs — y compris
+dans les versions déjà installées, qu'on ne peut plus corriger.
+
+On ne touche donc **pas** aux policies de `drawers`, `collections`, `objects` :
+- la lecture partagée passe par des RPC dédiées (par exemple
+  `list_shared_drawers()`, `list_drawer_objects(p_drawer_id)`), en
+  `SECURITY DEFINER`, qui vérifient `is_drawer_member` et la serrure ;
+- seuls les nouveaux écrans « Tiroirs partagés » les appellent ;
+- les anciennes versions de l'app ne voient rien de nouveau, et le
+  correctif `.single()` devient une sécurité de plus plutôt qu'un prérequis.
 - Toujours aucune écriture partagée.
 
 ### Phase 4 — écriture partagée et prêts

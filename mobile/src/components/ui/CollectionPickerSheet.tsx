@@ -5,6 +5,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Inbox, Pin } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
+import { fetchOwnDrawerId } from '@/features/collections/ownDrawer'
 import { applyIconOverride } from '@/utils/collectionIconCache'
 import {
   CollectionSort, DEFAULT_COLLECTION_SORT,
@@ -94,12 +95,12 @@ export function CollectionPickerSheet({
 
   async function handleCreate(name: string, emoji: string, color: string): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: drawer } = await supabase.from('drawers').select('id').single()
-    if (!drawer || !user) return false
+    const drawerId = user ? await fetchOwnDrawerId(user.id) : null
+    if (!drawerId || !user) return false
 
     const { data, error } = await supabase
       .from('collections')
-      .insert({ name, drawer_id: drawer.id, user_id: user.id, emoji, icon_color: color })
+      .insert({ name, drawer_id: drawerId, user_id: user.id, emoji, icon_color: color })
       .select('id, name, emoji, icon_color, created_at, pinned_at')
       .single()
     if (error || !data) return false
