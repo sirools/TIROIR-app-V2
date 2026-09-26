@@ -160,7 +160,11 @@
     "manageSubscription": "Gestionar mi suscripción",
     "required": "Obligatorio",
     "nameRequired": "El nombre no puede estar vacío.",
-    "manageSubError": "No se pudo abrir la gestión de la suscripción en este momento."
+    "manageSubError": "No se pudo abrir la gestión de la suscripción en este momento.",
+    "photoChange": "Cambiar la foto de perfil",
+    "photoTake": "Hacer una foto",
+    "photoLibrary": "Elegir de la fototeca",
+    "photoRemove": "Quitar la foto"
   },
   "shares": {
     "title": "Enlaces activos",
