@@ -34,9 +34,9 @@ interface Stats {
   photoEnhanceIsPremium: boolean
 }
 
-/** Côté de la photo de profil stockée : elle s'affiche au plus en 80 px,
- *  le double couvre les écrans haute densité. */
-const AVATAR_SIZE = 320
+/** Côté de la photo de profil stockée, comme sur le site : assez grand
+ *  pour la voir en grand (web/lib/avatar.ts). */
+const AVATAR_SIZE = 1024
 
 export default function ProfileScreen() {
   const router = useRouter()
