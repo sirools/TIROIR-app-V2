@@ -160,7 +160,11 @@
     "manageSubscription": "Manage my subscription",
     "required": "Required",
     "nameRequired": "The name can't be empty.",
-    "manageSubError": "Couldn't open subscription management right now."
+    "manageSubError": "Couldn't open subscription management right now.",
+    "photoChange": "Change profile photo",
+    "photoTake": "Take a photo",
+    "photoLibrary": "Choose from library",
+    "photoRemove": "Remove photo"
   },
   "shares": {
     "title": "Active shares",

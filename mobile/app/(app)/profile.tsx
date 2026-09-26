@@ -5,12 +5,16 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, User, Edit3, Check, Package, FolderOpen, TrendingUp, Link2, Brain, Camera, Zap, Sparkles } from 'lucide-react-native'
+import * as ImagePicker from 'expo-image-picker'
+import * as ImageManipulator from 'expo-image-manipulator'
+import * as FileSystem from 'expo-file-system/legacy'
+import { ArrowLeft, Edit3, Check, Package, FolderOpen, TrendingUp, Link2, Brain, Camera, Zap, Sparkles } from 'lucide-react-native'
 import Purchases from 'react-native-purchases'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan, isProPlan, planLabelKey } from '@/lib/plan'
-import { Screen, Input, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { Screen, Input, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { UserAvatar } from '@/components/ui/UserAvatar'
 import { sumLots } from '@/features/objects/quantity'
 
 interface Stats {
@@ -30,14 +34,21 @@ interface Stats {
   photoEnhanceIsPremium: boolean
 }
 
+/** Côté de la photo de profil stockée : elle s'affiche au plus en 80 px,
+ *  le double couvre les écrans haute densité. */
+const AVATAR_SIZE = 320
+
 export default function ProfileScreen() {
   const router = useRouter()
   const { t, i18n } = useTranslation()
-  const { user, profile } = useAuth()
+  const { user, profile, refreshProfile } = useAuth()
   const [editing, setEditing] = useState(false)
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
   const [saving, setSaving] = useState(false)
   const [stats, setStats] = useState<Stats | null>(null)
+  const [avatarSheet, setAvatarSheet] = useState(false)
+  const [avatarBusy, setAvatarBusy] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
   const plan: string = (profile as any)?.plan ?? 'free'
   const isPaid = isPaidPlan(plan)
@@ -118,6 +129,92 @@ export default function ProfileScreen() {
     setSaving(false)
     if (error) { Alert.alert(t('common.error'), error.message); return }
     setEditing(false)
+    await refreshProfile()
+  }
+
+  async function pickAvatar(from: 'camera' | 'library') {
+    if (!user) return
+    const perm = from === 'camera'
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (perm.status !== 'granted') {
+      Alert.alert(t('capture.permissionDeniedTitle'),
+        t(from === 'camera' ? 'capture.permissionCamera' : 'capture.permissionLibrary'))
+      return
+    }
+
+    const options: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ['images'], quality: 0.9, allowsEditing: true, aspect: [1, 1],
+    }
+    const res = from === 'camera'
+      ? await ImagePicker.launchCameraAsync({ ...options, cameraType: ImagePicker.CameraType.front })
+      : await ImagePicker.launchImageLibraryAsync(options)
+    if (res.canceled || !res.assets[0]) return
+
+    setAvatarBusy(true)
+    try {
+      const rendered = await ImageManipulator.ImageManipulator
+        .manipulate(res.assets[0].uri)
+        .resize({ width: AVATAR_SIZE })
+        .renderAsync()
+      const saved = await rendered.saveAsync({
+        compress: 0.85, format: ImageManipulator.SaveFormat.JPEG,
+      })
+      setAvatarPreview(saved.uri)
+
+      const b64 = await FileSystem.readAsStringAsync(saved.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      })
+      const binary = atob(b64)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+
+      const path = `${user.id}/avatar/${Date.now()}.jpg`
+      const { error: upErr } = await supabase.storage
+        .from('object-images')
+        .upload(path, bytes, { contentType: 'image/jpeg', upsert: false })
+      if (upErr) throw new Error(upErr.message)
+
+      const { error: dbErr } = await supabase
+        .from('profiles')
+        .update({ avatar_path: path, updated_at: new Date().toISOString() })
+        .eq('id', user.id)
+      if (dbErr) {
+        await supabase.storage.from('object-images').remove([path])
+        throw new Error(dbErr.message)
+      }
+
+      // L'ancienne photo part une fois la nouvelle enregistrée : si
+      // l'envoi échoue, on n'a rien perdu.
+      const previous = profile?.avatar_path
+      if (previous && previous !== path) {
+        await supabase.storage.from('object-images').remove([previous])
+      }
+      await refreshProfile()
+    } catch (e) {
+      Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e))
+    } finally {
+      setAvatarPreview(null)
+      setAvatarBusy(false)
+    }
+  }
+
+  async function removeAvatar() {
+    const previous = profile?.avatar_path
+    if (!user || !previous) return
+    setAvatarBusy(true)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ avatar_path: null, updated_at: new Date().toISOString() })
+      .eq('id', user.id)
+    if (error) {
+      setAvatarBusy(false)
+      Alert.alert(t('common.error'), error.message)
+      return
+    }
+    await supabase.storage.from('object-images').remove([previous])
+    await refreshProfile()
+    setAvatarBusy(false)
   }
 
   const photosMax = stats ? (stats.objectsMax !== null ? stats.objectsMax * (stats.photosPerObject ?? 1) : null) : null
@@ -147,9 +244,25 @@ export default function ProfileScreen() {
 
         {/* Avatar + nom + badge plan */}
         <View style={styles.avatarWrap}>
-          <View style={styles.avatar}>
-            <User size={36} color={Colors.accent} strokeWidth={1.5} />
-          </View>
+          <TouchableOpacity
+            onPress={() => setAvatarSheet(true)}
+            disabled={avatarBusy}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={t('profile.photoChange')}
+          >
+            <UserAvatar
+              size={80}
+              avatarPath={profile?.avatar_path}
+              displayName={profile?.display_name}
+              localUri={avatarPreview}
+            />
+            <View style={styles.avatarBadge}>
+              {avatarBusy
+                ? <ActivityIndicator size="small" color="white" />
+                : <Camera size={14} color="white" strokeWidth={2} />}
+            </View>
+          </TouchableOpacity>
           {profile?.display_name && (
             <Text style={styles.avatarName}>{profile.display_name}</Text>
           )}
@@ -321,6 +434,19 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         ) : null}
       </ScrollView>
+
+      <ActionSheet
+        visible={avatarSheet}
+        onClose={() => setAvatarSheet(false)}
+        options={[
+          { label: t('profile.photoTake'), onPress: () => pickAvatar('camera') },
+          { label: t('profile.photoLibrary'), onPress: () => pickAvatar('library') },
+          ...(profile?.avatar_path
+            ? [{ label: t('profile.photoRemove'), onPress: removeAvatar, destructive: true }]
+            : []),
+          { label: t('common.cancel'), onPress: () => {}, cancel: true },
+        ]}
+      />
     </Screen>
   )
 }
@@ -360,9 +486,11 @@ const styles = StyleSheet.create({
   content: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: Spacing.xxl },
 
   avatarWrap: { alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.sm },
-  avatar: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: Colors.accentLight,
+  avatarBadge: {
+    position: 'absolute', right: -2, bottom: -2,
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: Colors.accent,
+    borderWidth: 2, borderColor: Colors.background,
     alignItems: 'center', justifyContent: 'center',
   },
   avatarName: { fontSize: Typography.lg, fontWeight: Typography.bold, color: Colors.textPrimary },

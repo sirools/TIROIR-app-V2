@@ -160,7 +160,11 @@
     "manageSubscription": "Mein Abo verwalten",
     "required": "Erforderlich",
     "nameRequired": "Der Name darf nicht leer sein.",
-    "manageSubError": "Die Abo-Verwaltung konnte gerade nicht geöffnet werden."
+    "manageSubError": "Die Abo-Verwaltung konnte gerade nicht geöffnet werden.",
+    "photoChange": "Profilfoto ändern",
+    "photoTake": "Foto aufnehmen",
+    "photoLibrary": "Aus der Mediathek wählen",
+    "photoRemove": "Foto entfernen"
   },
   "shares": {
     "title": "Aktive Freigaben",

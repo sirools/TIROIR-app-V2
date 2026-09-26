@@ -9,6 +9,9 @@ interface AuthContextValue {
   profile: Profile | null
   loading: boolean
   signOut: () => Promise<void>
+  /** Relit le profil après une écriture (nom, photo) pour que tous les
+   *  écrans qui l'affichent se mettent à jour. */
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -49,12 +52,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false)
   }
 
+  async function refreshProfile() {
+    if (session?.user) await loadProfile(session.user.id)
+  }
+
   async function signOut() {
     await supabase.auth.signOut()
   }
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )
