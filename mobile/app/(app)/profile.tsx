@@ -15,6 +15,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan, isProPlan, planLabelKey } from '@/lib/plan'
 import { Screen, Input, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { UserAvatar } from '@/components/ui/UserAvatar'
+import { AvatarViewer } from '@/components/ui/AvatarViewer'
 import { sumLots } from '@/features/objects/quantity'
 
 interface Stats {
@@ -47,6 +48,7 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false)
   const [stats, setStats] = useState<Stats | null>(null)
   const [avatarSheet, setAvatarSheet] = useState(false)
+  const [avatarViewer, setAvatarViewer] = useState(false)
   const [avatarBusy, setAvatarBusy] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
@@ -244,25 +246,36 @@ export default function ProfileScreen() {
 
         {/* Avatar + nom + badge plan */}
         <View style={styles.avatarWrap}>
-          <TouchableOpacity
-            onPress={() => setAvatarSheet(true)}
-            disabled={avatarBusy}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel={t('profile.photoChange')}
-          >
-            <UserAvatar
-              size={80}
-              avatarPath={profile?.avatar_path}
-              displayName={profile?.display_name}
-              localUri={avatarPreview}
-            />
-            <View style={styles.avatarBadge}>
+          <View>
+            {/* Comme sur le site : avec une photo, un toucher l'agrandit ;
+                sans photo, il en propose une. La pastille sert à la changer. */}
+            <TouchableOpacity
+              onPress={() => profile?.avatar_path ? setAvatarViewer(true) : setAvatarSheet(true)}
+              disabled={avatarBusy}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t(profile?.avatar_path ? 'profile.photoView' : 'profile.photoChange')}
+            >
+              <UserAvatar
+                size={80}
+                avatarPath={profile?.avatar_path}
+                displayName={profile?.display_name}
+                localUri={avatarPreview}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.avatarBadge}
+              onPress={() => setAvatarSheet(true)}
+              disabled={avatarBusy}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.photoChange')}
+            >
               {avatarBusy
                 ? <ActivityIndicator size="small" color="white" />
                 : <Camera size={14} color="white" strokeWidth={2} />}
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
           {profile?.display_name && (
             <Text style={styles.avatarName}>{profile.display_name}</Text>
           )}
@@ -434,6 +447,18 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         ) : null}
       </ScrollView>
+
+      <AvatarViewer
+        visible={avatarViewer}
+        avatarPath={profile?.avatar_path}
+        onClose={() => setAvatarViewer(false)}
+        onChange={() => {
+          setAvatarViewer(false)
+          // Deux fenêtres modales ne s'enchaînent pas sur iOS tant que la
+          // première se ferme : on laisse passer l'animation.
+          setTimeout(() => setAvatarSheet(true), 350)
+        }}
+      />
 
       <ActionSheet
         visible={avatarSheet}

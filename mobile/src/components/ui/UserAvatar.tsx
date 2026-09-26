@@ -18,7 +18,8 @@ interface Props {
  * Photo de profil. À défaut, l'initiale du nom ; à défaut du nom, une
  * silhouette.
  */
-export function UserAvatar({ size, avatarPath, displayName, localUri }: Props) {
+/** URL signée (1 h) d'une photo du bucket privé object-images. */
+export function useSignedAvatarUrl(avatarPath: string | null | undefined): string | null {
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -30,6 +31,12 @@ export function UserAvatar({ size, avatarPath, displayName, localUri }: Props) {
       .then(({ data }) => { if (!cancelled) setSignedUrl(data?.signedUrl ?? null) })
     return () => { cancelled = true }
   }, [avatarPath])
+
+  return signedUrl
+}
+
+export function UserAvatar({ size, avatarPath, displayName, localUri }: Props) {
+  const signedUrl = useSignedAvatarUrl(avatarPath)
 
   const frame = { width: size, height: size, borderRadius: size / 2 }
   const uri = localUri ?? (avatarPath ? signedUrl : null)

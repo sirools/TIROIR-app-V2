@@ -164,7 +164,10 @@
     "photoChange": "Profilfoto ändern",
     "photoTake": "Foto aufnehmen",
     "photoLibrary": "Aus der Mediathek wählen",
-    "photoRemove": "Foto entfernen"
+    "photoRemove": "Foto entfernen",
+    "photoView": "Foto groß anzeigen",
+    "photoClose": "Schließen",
+    "photoChangeShort": "Foto ändern"
   },
   "shares": {
     "title": "Aktive Freigaben",
