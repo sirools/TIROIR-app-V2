@@ -13,6 +13,7 @@ import { useRouter, useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { Pin } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
+import { fetchOwnDrawerId } from '@/features/collections/ownDrawer'
 import {
   Screen, ActionSheet, CollectionComposer, PromptDialog,
   CollectionEditSheet, EditableCollection, CollectionPatch,
@@ -98,16 +99,16 @@ export default function CollectionsScreen() {
 
   async function handleCreate(name: string, emoji: string, color: string): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: drawer } = await supabase.from('drawers').select('id').single()
+    const drawerId = user ? await fetchOwnDrawerId(user.id) : null
 
-    if (!drawer || !user) {
+    if (!drawerId || !user) {
       Alert.alert(t('common.error'), t('home.drawerNotFound'))
       return false
     }
 
     const { data, error } = await supabase
       .from('collections')
-      .insert({ name, drawer_id: drawer.id, user_id: user.id, emoji, icon_color: color })
+      .insert({ name, drawer_id: drawerId, user_id: user.id, emoji, icon_color: color })
       .select()
       .single()
 
