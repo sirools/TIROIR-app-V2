@@ -24,7 +24,7 @@ Tant que la V4.0 est en chantier :
    fois rejoué et validé sur le **Supabase de preprod** (voir
    `preprod/RUNBOOK-supabase-preprod.md`, et vérifier le `link` avant tout `db push`).
 3. Chaque étape qui touche le schéma partagé suit le plan de
-   `docs/migration-tiroirs-partages.md` (additif d'abord, bascule ensuite).
+   `docs/migration-tiroir-partage.md` (additif d'abord, bascule ensuite).
 
 ## Contenu
 
@@ -33,7 +33,7 @@ v4/
 ├── README.md
 ├── docs/
 │   ├── vision.md                         # la vision V4.0, résumée depuis Notion
-│   └── migration-tiroirs-partages.md     # ce qui bloque en V2, et le plan par phases
+│   └── migration-tiroir-partage.md     # ce qui bloque en V2, et le plan par phases
 ├── supabase/
 │   ├── drafts/
 │   │   ├── 0001_drawer_members.sql       # trousseau, serrure, invitations, lecture dédiée

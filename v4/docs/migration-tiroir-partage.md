@@ -1,4 +1,4 @@
-# Migration vers des Tiroirs partagés
+# Migration vers le Tiroir partagé
 
 Ce qui, dans le schéma et le code V2, suppose « un utilisateur = un Tiroir
 privé », et comment le lever sans casser le web ni l'app en production.
@@ -64,7 +64,7 @@ On ne touche donc **pas** aux policies de `drawers`, `collections`, `objects` :
 - la lecture partagée passe par des RPC dédiées (par exemple
   `list_shared_drawers()`, `list_drawer_objects(p_drawer_id)`), en
   `SECURITY DEFINER`, qui vérifient `is_drawer_member` et la serrure ;
-- seuls les nouveaux écrans « Tiroirs partagés » les appellent ;
+- seuls les nouveaux écrans « Tiroir partagé » les appellent ;
 - les anciennes versions de l'app ne voient rien de nouveau, et le
   correctif `.single()` devient une sécurité de plus plutôt qu'un prérequis.
 - Toujours aucune écriture partagée.

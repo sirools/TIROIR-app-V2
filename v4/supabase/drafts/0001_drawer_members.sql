@@ -1,14 +1,14 @@
 -- ================================================================
 -- BROUILLON V4.0 — À TESTER EN PREPROD, NE PAS APPLIQUER EN PROD
 -- 0001_drawer_members.sql
--- Tiroirs partagés, étape 1 : le trousseau (membres), la serrure,
+-- Tiroir partagé, étape 1 : le trousseau (membres), la serrure,
 -- les invitations, et une porte d'entrée dédiée en lecture.
 --
--- Purement additif (v4/docs/migration-tiroirs-partages.md) :
+-- Purement additif (v4/docs/migration-tiroir-partage.md) :
 --   · aucune policy existante n'est modifiée — drawers, collections,
 --     objects et le stockage restent visibles de leur seul propriétaire ;
 --   · tout accès partagé passe par les fonctions de ce fichier, que seuls
---     les futurs écrans « Tiroirs partagés » appelleront. L'app et le site
+--     les futurs écrans « Tiroir partagé » appelleront. L'app et le site
 --     actuels, y compris les versions déjà installées, ne voient rien de
 --     nouveau.
 --
