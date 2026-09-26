@@ -29,7 +29,8 @@ export function AvatarViewer({ visible, avatarPath, onClose, onChange }: Props) 
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel={t('profile.photoClose')}>
+      {/* Le fond ferme aussi la vue ; pas de libellé pour ne pas doubler la croix. */}
+      <Pressable style={styles.backdrop} onPress={onClose} accessible={false}>
         <TouchableOpacity
           style={[styles.close, { top: insets.top + Spacing.sm }]}
           onPress={onClose}
