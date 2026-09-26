@@ -1,7 +1,8 @@
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { supabase, serverSupabase, signOutEverywhere } from '../lib/supabase'
+import { uploadAvatar, removeAvatar } from '../lib/avatar'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 
 interface Props {
@@ -9,15 +10,22 @@ interface Props {
   email: string
   displayName: string
   avatarUrl: string | null
+  /** Photo choisie par l'utilisateur, chemin dans object-images. */
+  avatarPath: string | null
   memberSince: string | null
 }
 
-export default function Profil({ userId, email, displayName, avatarUrl, memberSince }: Props) {
+export default function Profil({ userId, email, displayName, avatarUrl, avatarPath, memberSince }: Props) {
   const [name, setName] = useState(displayName)
   const [savedName, setSavedName] = useState(displayName)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [photoUrl, setPhotoUrl] = useState(avatarUrl)
+  const [photoPath, setPhotoPath] = useState(avatarPath)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
 
   const initial = (savedName || email).charAt(0).toUpperCase()
   const dirty = name.trim() !== savedName
@@ -46,6 +54,41 @@ export default function Profil({ userId, email, displayName, avatarUrl, memberSi
     )
   }
 
+  async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setPhotoBusy(true)
+    setPhotoError(null)
+    try {
+      const path = await uploadAvatar(userId, file, photoPath)
+      setPhotoPath(path)
+      setPhotoUrl(URL.createObjectURL(file))
+    } catch (err) {
+      const unreadable = err instanceof DOMException || (err instanceof Error && err.message === 'ENCODE')
+      setPhotoError(unreadable
+        ? 'Ce format d\'image n\'est pas pris en charge par ton navigateur. Essaie un JPEG ou un PNG.'
+        : 'Impossible d\'enregistrer la photo. Réessaie.')
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
+  async function handleRemovePhoto() {
+    if (!photoPath) return
+    setPhotoBusy(true)
+    setPhotoError(null)
+    try {
+      await removeAvatar(userId, photoPath)
+      setPhotoPath(null)
+      setPhotoUrl(null)
+    } catch {
+      setPhotoError('Impossible de retirer la photo. Réessaie.')
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
   async function handleSignOut() {
     await signOutEverywhere()
     window.location.assign('/')
@@ -68,15 +111,42 @@ export default function Profil({ userId, email, displayName, avatarUrl, memberSi
 
         <section className="card">
           <div className="identity">
-            {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img className="avatar" src={avatarUrl} alt="" />
-            ) : (
-              <div className="avatar avatar--initial">{initial}</div>
-            )}
+            <button
+              type="button"
+              className="avatar-btn"
+              onClick={() => fileInput.current?.click()}
+              disabled={photoBusy}
+              aria-label="Changer la photo de profil"
+            >
+              {photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="avatar" src={photoUrl} alt="" />
+              ) : (
+                <div className="avatar avatar--initial">{initial}</div>
+              )}
+              <span className="avatar-badge" aria-hidden="true">{photoBusy ? '…' : '✎'}</span>
+            </button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/heic"
+              hidden
+              onChange={handlePhoto}
+            />
             <div>
               <p className="identity-name">{savedName || email.split('@')[0]}</p>
               <p className="identity-email">{email}</p>
+              <div className="photo-actions">
+                <button type="button" className="link-btn" onClick={() => fileInput.current?.click()} disabled={photoBusy}>
+                  {photoBusy ? 'Envoi…' : photoPath ? 'Changer la photo' : 'Ajouter une photo'}
+                </button>
+                {photoPath && (
+                  <button type="button" className="link-btn link-btn--muted" onClick={handleRemovePhoto} disabled={photoBusy}>
+                    Retirer
+                  </button>
+                )}
+              </div>
+              {photoError && <p className="feedback feedback--error">{photoError}</p>}
             </div>
           </div>
 
@@ -159,6 +229,43 @@ export default function Profil({ userId, email, displayName, avatarUrl, memberSi
           padding-bottom: 20px;
           border-bottom: 1px solid rgba(0,0,0,0.06);
         }
+        .avatar-btn {
+          position: relative;
+          padding: 0;
+          border: 0;
+          background: none;
+          cursor: pointer;
+          flex-shrink: 0;
+          border-radius: 50%;
+        }
+        .avatar-btn:disabled { cursor: default; opacity: 0.7; }
+        .avatar-badge {
+          position: absolute;
+          right: -2px;
+          bottom: -2px;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: #F26900;
+          color: #fff;
+          border: 2px solid #fff;
+          display: grid;
+          place-items: center;
+          font-size: 11px;
+          line-height: 1;
+        }
+        .photo-actions { display: flex; gap: 14px; margin-top: 6px; }
+        .link-btn {
+          padding: 0;
+          border: 0;
+          background: none;
+          color: #F26900;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .link-btn:disabled { opacity: 0.5; cursor: default; }
+        .link-btn--muted { color: #6B6158; }
         .avatar {
           width: 56px;
           height: 56px;
@@ -265,16 +372,27 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   const { data: profile } = await sb
     .from('profiles')
-    .select('display_name, avatar_url, created_at')
+    .select('display_name, avatar_url, avatar_path, created_at')
     .eq('id', session.user.id)
     .single()
+
+  // Bucket privé : la photo choisie s'affiche par URL signée, valable le
+  // temps d'une visite de la page.
+  let avatarUrl: string | null = profile?.avatar_url ?? null
+  if (profile?.avatar_path) {
+    const { data: signed } = await sb.storage
+      .from('object-images')
+      .createSignedUrl(profile.avatar_path, 3600)
+    avatarUrl = signed?.signedUrl ?? avatarUrl
+  }
 
   return {
     props: {
       userId: session.user.id,
       email: session.user.email ?? '',
       displayName: profile?.display_name ?? '',
-      avatarUrl: profile?.avatar_url ?? null,
+      avatarUrl,
+      avatarPath: profile?.avatar_path ?? null,
       memberSince: profile?.created_at ?? null,
     },
   }
