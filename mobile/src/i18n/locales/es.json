@@ -164,7 +164,10 @@
     "photoChange": "Cambiar la foto de perfil",
     "photoTake": "Hacer una foto",
     "photoLibrary": "Elegir de la fototeca",
-    "photoRemove": "Quitar la foto"
+    "photoRemove": "Quitar la foto",
+    "photoView": "Ver la foto en grande",
+    "photoClose": "Cerrar",
+    "photoChangeShort": "Cambiar la foto"
   },
   "shares": {
     "title": "Enlaces activos",
