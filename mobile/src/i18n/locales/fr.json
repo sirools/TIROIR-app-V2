@@ -160,7 +160,11 @@
     "manageSubscription": "Gérer mon abonnement",
     "required": "Requis",
     "nameRequired": "Le nom ne peut pas être vide.",
-    "manageSubError": "Impossible d'ouvrir la gestion de l'abonnement pour le moment."
+    "manageSubError": "Impossible d'ouvrir la gestion de l'abonnement pour le moment.",
+    "photoChange": "Changer la photo de profil",
+    "photoTake": "Prendre une photo",
+    "photoLibrary": "Choisir dans la photothèque",
+    "photoRemove": "Retirer la photo"
   },
   "shares": {
     "title": "Partages actifs",

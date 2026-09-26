@@ -10,6 +10,8 @@ export interface Profile {
   id: string
   display_name: string | null
   avatar_url: string | null
+  /** Photo de profil choisie par l'utilisateur, chemin dans object-images. */
+  avatar_path: string | null
   plan: 'free' | 'premium' | 'pro'
   /** Compte d'administration : donne accès aux instruments de mesure. */
   is_admin: boolean

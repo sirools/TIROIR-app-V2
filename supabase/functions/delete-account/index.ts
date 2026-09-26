@@ -66,6 +66,13 @@ Deno.serve(async (req: Request) => {
       ...(draftImages ?? []).map((r: { storage_path: string }) => r.storage_path),
     ]
 
+    // Photos de profil : toutes celles du dossier, pas seulement la
+    // courante, au cas où un remplacement aurait laissé l'ancienne.
+    const { data: avatarFiles } = await adminClient.storage
+      .from('object-images')
+      .list(`${user.id}/avatar`, { limit: 100 })
+    paths.push(...(avatarFiles ?? []).map((f: { name: string }) => `${user.id}/avatar/${f.name}`))
+
     if (paths.length > 0) {
       await adminClient.storage.from('object-images').remove(paths)
     }

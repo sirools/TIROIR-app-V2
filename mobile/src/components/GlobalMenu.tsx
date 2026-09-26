@@ -6,8 +6,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { User, Settings, LogOut, Link, Zap, MessageCircle } from 'lucide-react-native'
+import { Settings, LogOut, Link, Zap, MessageCircle } from 'lucide-react-native'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { UserAvatar } from '@/components/ui/UserAvatar'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan, isProPlan, planLabelKey } from '@/lib/plan'
 import { useFeatureFlags } from '@/features/objects/useFeatureFlags'
@@ -89,9 +90,7 @@ export function GlobalMenu({ visible, onClose }: GlobalMenuProps) {
       >
         {/* Profil */}
         <TouchableOpacity style={styles.profileRow} onPress={() => navigate('/profile')} activeOpacity={0.7}>
-          <View style={styles.avatar}>
-            <User size={22} color={Colors.accent} strokeWidth={1.5} />
-          </View>
+          <UserAvatar size={44} avatarPath={profile?.avatar_path} displayName={profile?.display_name} />
           <View style={{ flex: 1 }}>
             <Text style={styles.profileName}>{profile?.display_name ?? t('menu.profileDefault')}</Text>
             <View style={[
@@ -212,14 +211,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.md,
     paddingVertical: Spacing.sm,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.accentLight,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   profileName: {
     fontSize: Typography.md,
