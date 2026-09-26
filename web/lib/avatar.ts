@@ -1,7 +1,8 @@
 import { supabase } from './supabase'
 
-/** Côté de la photo stockée : comme l'app mobile (mobile/app/(app)/profile.tsx). */
-const AVATAR_SIZE = 320
+/** Côté de la photo stockée, comme dans l'app mobile : assez grand pour la
+ *  visionneuse (640 px à l'écran, net sur écran haute densité). */
+const AVATAR_SIZE = 1024
 
 /**
  * Recadre au centre en carré et réduit à AVATAR_SIZE, en JPEG.

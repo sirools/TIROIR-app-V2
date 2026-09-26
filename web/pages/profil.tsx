@@ -1,6 +1,6 @@
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase, serverSupabase, signOutEverywhere } from '../lib/supabase'
 import { uploadAvatar, removeAvatar } from '../lib/avatar'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
@@ -25,7 +25,26 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
   const [photoPath, setPhotoPath] = useState(avatarPath)
   const [photoBusy, setPhotoBusy] = useState(false)
   const [photoError, setPhotoError] = useState<string | null>(null)
+  const [viewerOpen, setViewerOpen] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
+
+  function pickPhoto() {
+    setViewerOpen(false)
+    fileInput.current?.click()
+  }
+
+  // Visionneuse : Échap la ferme, et la page ne défile pas derrière.
+  useEffect(() => {
+    if (!viewerOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setViewerOpen(false) }
+    document.addEventListener('keydown', onKey)
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = previousOverflow
+    }
+  }, [viewerOpen])
 
   const initial = (savedName || email).charAt(0).toUpperCase()
   const dirty = name.trim() !== savedName
@@ -111,33 +130,51 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
 
         <section className="card">
           <div className="identity">
-            <button
-              type="button"
-              className="avatar-btn"
-              onClick={() => fileInput.current?.click()}
-              disabled={photoBusy}
-              aria-label="Changer la photo de profil"
-            >
-              {photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img className="avatar" src={photoUrl} alt="" />
-              ) : (
-                <div className="avatar avatar--initial">{initial}</div>
-              )}
-              <span className="avatar-badge" aria-hidden="true">{photoBusy ? '…' : '✎'}</span>
-            </button>
+            <div className="avatar-wrap">
+              {/* Avec une photo, un clic l'agrandit ; sans photo, il en propose une. */}
+              <button
+                type="button"
+                className="avatar-btn"
+                onClick={() => (photoUrl ? setViewerOpen(true) : pickPhoto())}
+                disabled={photoBusy}
+                aria-label={photoUrl ? 'Voir la photo de profil en grand' : 'Ajouter une photo de profil'}
+              >
+                {photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="avatar" src={photoUrl} alt="" />
+                ) : (
+                  <div className="avatar avatar--initial">{initial}</div>
+                )}
+              </button>
+              <button
+                type="button"
+                className="avatar-badge"
+                onClick={pickPhoto}
+                disabled={photoBusy}
+                aria-label="Changer la photo de profil"
+              >
+                {photoBusy ? '…' : '✎'}
+              </button>
+            </div>
+            {/* Masqué aussi par style : l'attribut hidden seul n'a pas suffi en
+                prod (vu sur iPhone), le bouton natif « Choisir le fichier »
+                s'affichait et poussait le nom hors de la carte. */}
             <input
               ref={fileInput}
+              className="file-input"
               type="file"
               accept="image/jpeg,image/png,image/webp,image/heic"
               hidden
+              style={{ display: 'none' }}
+              tabIndex={-1}
+              aria-hidden="true"
               onChange={handlePhoto}
             />
-            <div>
+            <div className="identity-text">
               <p className="identity-name">{savedName || email.split('@')[0]}</p>
               <p className="identity-email">{email}</p>
               <div className="photo-actions">
-                <button type="button" className="link-btn" onClick={() => fileInput.current?.click()} disabled={photoBusy}>
+                <button type="button" className="link-btn" onClick={pickPhoto} disabled={photoBusy}>
                   {photoBusy ? 'Envoi…' : photoPath ? 'Changer la photo' : 'Ajouter une photo'}
                 </button>
                 {photoPath && (
@@ -201,6 +238,24 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
         </section>
       </main>
 
+      {viewerOpen && photoUrl && (
+        <div
+          className="viewer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo de profil"
+          onClick={() => setViewerOpen(false)}
+        >
+          <button type="button" className="viewer-close" aria-label="Fermer" onClick={() => setViewerOpen(false)}>✕</button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="viewer-img" src={photoUrl} alt="Photo de profil" onClick={e => e.stopPropagation()} />
+          <div className="viewer-actions" onClick={e => e.stopPropagation()}>
+            <button type="button" className="viewer-btn" onClick={pickPhoto}>Changer la photo</button>
+            <button type="button" className="viewer-btn viewer-btn--ghost" onClick={() => setViewerOpen(false)}>Fermer</button>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .main {
           max-width: 640px;
@@ -229,8 +284,12 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
           padding-bottom: 20px;
           border-bottom: 1px solid rgba(0,0,0,0.06);
         }
+        .avatar-wrap { position: relative; flex-shrink: 0; }
+        .file-input { display: none !important; }
+        .identity-text { min-width: 0; flex: 1; }
+        .identity-text .identity-email { overflow-wrap: anywhere; }
         .avatar-btn {
-          position: relative;
+          display: block;
           padding: 0;
           border: 0;
           background: none;
@@ -240,6 +299,8 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
         }
         .avatar-btn:disabled { cursor: default; opacity: 0.7; }
         .avatar-badge {
+          padding: 0;
+          cursor: pointer;
           position: absolute;
           right: -2px;
           bottom: -2px;
@@ -254,6 +315,55 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
           font-size: 11px;
           line-height: 1;
         }
+        .avatar-badge:disabled { cursor: default; }
+        .viewer {
+          position: fixed;
+          inset: 0;
+          z-index: 10000;
+          background: rgba(26, 22, 18, 0.96);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 20px;
+          padding: 24px;
+          box-sizing: border-box;
+        }
+        .viewer-img {
+          width: min(88vw, 70vh, 640px);
+          height: min(88vw, 70vh, 640px);
+          object-fit: cover;
+          border-radius: 20px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+          background: #2A241F;
+        }
+        .viewer-close {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: 0;
+          background: rgba(255,255,255,0.14);
+          color: #fff;
+          font-size: 18px;
+          cursor: pointer;
+        }
+        .viewer-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .viewer-btn {
+          padding: 10px 18px;
+          border-radius: 10px;
+          border: 0;
+          background: #F26900;
+          color: #fff;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .viewer-btn--ghost { background: rgba(255,255,255,0.14); }
         .photo-actions { display: flex; gap: 14px; margin-top: 6px; }
         .link-btn {
           padding: 0;
@@ -272,6 +382,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
           border-radius: 50%;
           object-fit: cover;
           flex-shrink: 0;
+          background: #FFF4E6;
         }
         .avatar--initial {
           background: #FFF4E6;
