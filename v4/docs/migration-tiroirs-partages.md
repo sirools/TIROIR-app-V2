@@ -22,15 +22,29 @@ Chaque phase est déployable seule et laisse la V2 fonctionner à l'identique.
 ### Phase 0 — chantier isolé (ce commit)
 Docs, brouillons SQL non appliqués, logique métier pure. Aucun effet.
 
-### Phase 1 — additif pur (brouillon `0001`)
-- Table `drawer_members` (rôles `owner` / `editor` / `viewer`), remplie avec un
-  `owner` par Tiroir existant, et tenue à jour par un trigger sur `drawers`.
-- Colonne `drawers.serrure` (`ferme` par défaut).
-- **Aucune** policy existante modifiée : les membres non propriétaires ne voient
-  encore rien. Le web et l'app ne lisent pas ces nouveautés.
+### Phase 1 — trousseau, serrure et lecture dédiée (brouillon `0001`, prêt pour la preprod)
+Purement additif ; **aucune** policy existante n'est modifiée.
+- Table `drawer_members` (rôles `owner` / `editor` / `viewer`, expiration
+  possible), remplie avec un `owner` par Tiroir existant et tenue à jour par
+  un trigger sur `drawers`.
+- Colonne `drawers.serrure` (`ferme` par défaut : rien ne change tant que le
+  propriétaire n'ouvre pas).
+- Invitations par lien à usage unique (`drawer_invites`) : pas de recherche de
+  compte par e-mail, qui révélerait qui est inscrit.
+- Fonctions, seule porte d'entrée vers les données partagées :
+  `drawer_can` (miroir de `domain/serrure.ts`), `list_my_drawers`,
+  `list_drawer_collections`, `list_drawer_objects`, `list_drawer_members`,
+  `set_drawer_serrure`, `create_drawer_invite`, `revoke_drawer_invite`,
+  `accept_drawer_invite`, `remove_drawer_member`.
+- Tests : `supabase/tests/run.sh` (45 cas, sur une base jetable).
 
-Validation : rejouer sur le Supabase de preprod, vérifier que le web (preprod
-NAS) et l'app pointée sur la preprod se comportent exactement comme avant.
+Reste à faire avant les écrans : les photos. Le bucket est privé et ses
+policies ne laissent lire que son propre dossier ; il faudra une fonction
+serveur qui signe les URL après avoir vérifié `drawer_can`.
+
+Validation : coller `0001` dans l'éditeur SQL de la **preprod**, vérifier que
+le web (preprod NAS) et l'app pointée sur la preprod se comportent exactement
+comme avant, puis rejouer les scénarios des tests à la main.
 
 ### Phase 2 — préparer les clients (fait pour l'app)
 - ✅ Les trois `from('drawers').select('id').single()` sont remplacés par
