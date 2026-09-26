@@ -24,7 +24,7 @@ Tant que la V4.0 est en chantier :
    fois rejoué et validé sur le **Supabase de preprod** (voir
    `preprod/RUNBOOK-supabase-preprod.md`, et vérifier le `link` avant tout `db push`).
 3. Chaque étape qui touche le schéma partagé suit le plan de
-   `docs/migration-tiroirs-partages.md` (additif d'abord, bascule ensuite).
+   `docs/migration-tiroir-partage.md` (additif d'abord, bascule ensuite).
 
 ## Contenu
 
@@ -33,10 +33,12 @@ v4/
 ├── README.md
 ├── docs/
 │   ├── vision.md                         # la vision V4.0, résumée depuis Notion
-│   └── migration-tiroirs-partages.md     # ce qui bloque en V2, et le plan par phases
-├── supabase/drafts/
-│   ├── 0001_drawer_members.sql           # membres d'un Tiroir + serrure (additif)
-│   └── 0002_object_loans.sql             # le prêt comme objet de première classe
+│   └── migration-tiroir-partage.md     # ce qui bloque en V2, et le plan par phases
+├── supabase/
+│   ├── drafts/
+│   │   ├── 0001_drawer_members.sql       # trousseau, serrure, invitations, lecture dédiée
+│   │   └── 0002_object_loans.sql         # le prêt comme objet de première classe
+│   └── tests/                            # 45 tests du brouillon 0001 (./run.sh URL_BASE_JETABLE)
 └── domain/
     ├── serrure.ts                        # niveaux de serrure, rôles, droits
     ├── pret.ts                           # cycle de vie d'un prêt
@@ -45,8 +47,10 @@ v4/
 
 ## Lancer les tests
 
-Aucune dépendance à installer (Node 22 lit le TypeScript nativement) :
+Les règles ne demandent rien à installer (Node 22 lit le TypeScript nativement) ;
+les brouillons SQL demandent `psql` et une base Postgres vide et jetable :
 
 ```bash
-cd v4 && npm test
+cd v4 && npm test                                        # règles (TypeScript)
+./supabase/tests/run.sh "postgresql://…/base_jetable"    # brouillons SQL
 ```

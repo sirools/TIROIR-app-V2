@@ -4,7 +4,7 @@
 -- Le prêt comme objet de première classe : demande → acceptation →
 -- remise → retour, avec emprunteur, usage et échéance.
 --
--- Phase 4 du plan (v4/docs/migration-tiroirs-partages.md).
+-- Phase 4 du plan (v4/docs/migration-tiroir-partage.md).
 -- Le statut V2 objects.status = 'loaned' est conservé : les futures RPC
 -- de prêt le poseront à la remise et le retireront au retour
 -- (voir statutObjetPendant dans v4/domain/pret.ts).

@@ -5,8 +5,8 @@ import { supabase } from '@/lib/supabase'
  * nouvelles collections.
  *
  * Ne pas écrire `from('drawers').select('id').single()` : cette lecture ne
- * tient que tant que la RLS ne laisse voir qu'un seul Tiroir. Avec les
- * Tiroirs partagés (V4.0, v4/docs/migration-tiroirs-partages.md), un membre
+ * tient que tant que la RLS ne laisse voir qu'un seul Tiroir. Avec le
+ * Tiroir partagé (V4.0, v4/docs/migration-tiroir-partage.md), un membre
  * verra aussi ceux des autres, et `.single()` échouerait — y compris dans
  * les versions de l'app déjà installées. On filtre donc explicitement sur
  * le propriétaire, et on prend le plus ancien s'il en possède plusieurs.
