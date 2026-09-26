@@ -1,9 +1,9 @@
 -- ================================================================
--- BROUILLON V3 — NON APPLIQUÉ
+-- BROUILLON V4.0 — NON APPLIQUÉ
 -- 0001_drawer_members.sql
 -- Membres d'un Tiroir (le trousseau) + niveau de serrure.
 --
--- Phase 1 du plan (v3/docs/migration-tiroirs-partages.md) : purement
+-- Phase 1 du plan (v4/docs/migration-tiroirs-partages.md) : purement
 -- additif. Aucune policy existante n'est modifiée ; un membre non
 -- propriétaire ne voit donc encore rien du Tiroir d'un autre.
 --
@@ -15,7 +15,7 @@
 -- ferme      : visible du seul propriétaire (comportement V2)
 -- entrouvert : visible des membres, selon leur rôle
 -- ouvert     : visible des membres, et en lecture publique (vitrine)
--- Doit rester aligné avec v3/domain/serrure.ts.
+-- Doit rester aligné avec v4/domain/serrure.ts.
 
 ALTER TABLE public.drawers
   ADD COLUMN IF NOT EXISTS serrure TEXT NOT NULL DEFAULT 'ferme'

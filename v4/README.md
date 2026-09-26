@@ -1,9 +1,9 @@
-# Tiroir V3 — chantier isolé
+# Tiroir V4.0 — chantier isolé
 
-Point de départ de la V3 : le Tiroir collaboratif, le prêt d'objets et leur
+Point de départ de la V4.0 : le Tiroir collaboratif, le prêt d'objets et leur
 circulation (métaphore du **trousseau de clés** et de la **serrure**).
 
-Source produit (Notion) :
+Source produit (Notion — les pages y portent encore le nom « V3 ») :
 - [TIROIR V3](https://app.notion.com/p/3e15ccb8cef1817a90f1e4dc6ec67ff6)
 - [Vision long terme — Tiroir collaboratif mobile V3+](https://app.notion.com/p/3905ccb8cef181d09288e19eff228d56)
 
@@ -18,8 +18,8 @@ même base Supabase. Ce dossier est volontairement **hors de leur chemin** :
 | `supabase/drafts/*.sql` | Brouillons **non appliqués** : `supabase db push` ne lit que `supabase/migrations/`. |
 | `domain/*.ts` | Logique métier pure, sans dépendance. Ni `web/` ni `mobile/` ne l'importent. |
 
-Tant que la V3 est en chantier :
-1. Ne rien importer de `v3/` depuis `web/` ou `mobile/`, et inversement.
+Tant que la V4.0 est en chantier :
+1. Ne rien importer de `v4/` depuis `web/` ou `mobile/`, et inversement.
 2. Ne rien déposer dans `supabase/migrations/` : un brouillon n'y entre qu'une
    fois rejoué et validé sur le **Supabase de preprod** (voir
    `preprod/RUNBOOK-supabase-preprod.md`, et vérifier le `link` avant tout `db push`).
@@ -29,10 +29,10 @@ Tant que la V3 est en chantier :
 ## Contenu
 
 ```
-v3/
+v4/
 ├── README.md
 ├── docs/
-│   ├── vision.md                         # la vision V3, résumée depuis Notion
+│   ├── vision.md                         # la vision V4.0, résumée depuis Notion
 │   └── migration-tiroirs-partages.md     # ce qui bloque en V2, et le plan par phases
 ├── supabase/drafts/
 │   ├── 0001_drawer_members.sql           # membres d'un Tiroir + serrure (additif)
@@ -48,5 +48,5 @@ v3/
 Aucune dépendance à installer (Node 22 lit le TypeScript nativement) :
 
 ```bash
-node --test v3/domain/
+cd v4 && npm test
 ```

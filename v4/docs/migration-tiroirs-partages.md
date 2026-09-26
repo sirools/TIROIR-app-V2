@@ -12,7 +12,7 @@ privé », et comment le lever sans casser le web ni l'app en production.
 | FK composites `(collection_id, user_id)`, `(drawer_id, user_id)` | Collection et objet appartiennent au même compte que le Tiroir. | Un membre qui ajoute un objet dans le Tiroir d'un autre casse la contrainte. |
 | `mobile/src/components/ui/CollectionPickerSheet.tsx:97`, `mobile/app/(app)/collections/index.tsx:101`, `mobile/app/(app)/index.tsx:124` | `from('drawers').select('id').single()` | **Casse l'app** dès que la RLS laisse voir plus d'un Tiroir : `.single()` renvoie une erreur. |
 | `supabase/functions/delete-account/index.ts:81` | Supprime les Tiroirs par `user_id`. | À revoir : que deviennent les membres d'un Tiroir supprimé ? |
-| `objects.status = 'loaned'` | Le prêt est un statut, sans emprunteur ni échéance. | Reste valable ; un prêt V3 le met à jour. |
+| `objects.status = 'loaned'` | Le prêt est un statut, sans emprunteur ni échéance. | Reste valable ; un prêt V4.0 le met à jour. |
 
 ## Plan par phases
 
@@ -50,7 +50,7 @@ NAS) et l'app pointée sur la preprod se comportent exactement comme avant.
 
 ## Garde-fous
 
-- Un brouillon passe de `v3/supabase/drafts/` à `supabase/migrations/` seulement
+- Un brouillon passe de `v4/supabase/drafts/` à `supabase/migrations/` seulement
   après validation en preprod, renommé avec un horodatage.
 - Les types de `mobile/src/types/database.ts` ne sont mis à jour qu'à la phase
   où le client lit réellement les nouvelles tables.

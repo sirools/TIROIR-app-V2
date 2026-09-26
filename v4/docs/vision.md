@@ -1,4 +1,4 @@
-# Vision V3 — résumé
+# Vision V4.0 — résumé
 
 Résumé de travail des pages Notion
 [TIROIR V3](https://app.notion.com/p/3e15ccb8cef1817a90f1e4dc6ec67ff6) et
@@ -51,5 +51,5 @@ Ce qui est ouvert, à qui, et combien de temps :
   → Le brouillon `0001` part des **membres d'un Tiroir**, le plus petit pas.
 - Que se passe-t-il quand un objet prêté n'est pas rendu ? Relance,
   historique, trace ?
-- Le prêt peut-il apparaître avant la V3 collaborative, en version minimale ?
+- Le prêt peut-il apparaître avant la V4.0 collaborative, en version minimale ?
 - Comparable à étudier : Getaround (mise à disposition entre particuliers).

@@ -1,13 +1,13 @@
 -- ================================================================
--- BROUILLON V3 — NON APPLIQUÉ
+-- BROUILLON V4.0 — NON APPLIQUÉ
 -- 0002_object_loans.sql
 -- Le prêt comme objet de première classe : demande → acceptation →
 -- remise → retour, avec emprunteur, usage et échéance.
 --
--- Phase 4 du plan (v3/docs/migration-tiroirs-partages.md).
+-- Phase 4 du plan (v4/docs/migration-tiroirs-partages.md).
 -- Le statut V2 objects.status = 'loaned' est conservé : les futures RPC
 -- de prêt le poseront à la remise et le retireront au retour
--- (voir statutObjetPendant dans v3/domain/pret.ts).
+-- (voir statutObjetPendant dans v4/domain/pret.ts).
 -- ================================================================
 
 CREATE TABLE IF NOT EXISTS public.object_loans (
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.object_loans (
   -- Emprunteur avec compte Tiroir, ou simple nom (un proche sans compte).
   borrower_id   UUID                 REFERENCES auth.users(id)     ON DELETE SET NULL,
   borrower_name TEXT,
-  -- Doit rester aligné avec v3/domain/pret.ts.
+  -- Doit rester aligné avec v4/domain/pret.ts.
   status        TEXT        NOT NULL DEFAULT 'demande'
                               CHECK (status IN ('demande', 'accepte', 'en_cours', 'rendu', 'refuse', 'annule')),
   usage_note    TEXT,

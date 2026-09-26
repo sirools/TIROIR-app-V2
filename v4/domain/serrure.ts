@@ -1,5 +1,5 @@
 // Serrure et trousseau de clés : qui peut faire quoi sur un Tiroir.
-// Doit rester aligné avec v3/supabase/drafts/0001_drawer_members.sql.
+// Doit rester aligné avec v4/supabase/drafts/0001_drawer_members.sql.
 
 /** Niveau d'ouverture d'un Tiroir. */
 export type Serrure = 'ferme' | 'entrouvert' | 'ouvert'

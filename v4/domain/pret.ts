@@ -1,5 +1,5 @@
 // Cycle de vie d'un prêt d'objet.
-// Doit rester aligné avec v3/supabase/drafts/0002_object_loans.sql.
+// Doit rester aligné avec v4/supabase/drafts/0002_object_loans.sql.
 
 export type StatutPret = 'demande' | 'accepte' | 'en_cours' | 'rendu' | 'refuse' | 'annule'
 
