@@ -107,11 +107,11 @@ export default function SuggestModal({ token, initialStep, onClose, onCreated }:
               <input className="input" value={title} onChange={e => setTitle(e.target.value)} maxLength={120} placeholder="Ex. : Couteau de chef" autoFocus required />
             </label>
             <label className="label">
-              Lien <span className="optional">(optionnel)</span>
-              <input className="input" type="url" inputMode="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://…" />
+              <span>Lien <span className="optional">(optionnel)</span></span>
+              <input className="input" type="text" inputMode="url" autoComplete="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://…" />
             </label>
             <label className="label">
-              Prix <span className="optional">(optionnel)</span>
+              <span>Prix <span className="optional">(optionnel)</span></span>
               <input className="input" inputMode="decimal" value={price} onChange={e => setPrice(e.target.value)} placeholder="Ex. : 49,90" />
             </label>
             {error && <p className="error">{error}</p>}

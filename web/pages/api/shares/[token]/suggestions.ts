@@ -7,7 +7,7 @@
 //   3. côté base (create_collection_suggestion) : lien valide, collection
 //      déterminée, suggestions activées, quota d'attente.
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { adminSupabase } from '../../../../lib/supabase'
 import { hasSignedCookie } from '../../../../lib/shareCookieSignature'
 import { parseSuggestionInput } from '../../../../lib/suggestions'
@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!token) return res.status(400).json({ error: 'MISSING_TOKEN' })
 
   // getUser() et non getSession() : le jeton est vérifié auprès de Supabase.
-  const userClient = createServerSupabaseClient({ req, res })
+  const userClient = createPagesServerClient({ req, res })
   const { data: { user } } = await userClient.auth.getUser()
   if (!user) return res.status(401).json({ error: 'AUTH_REQUIRED' })
 
