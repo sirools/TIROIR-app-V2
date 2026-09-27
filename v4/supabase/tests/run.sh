@@ -11,3 +11,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 psql "$DB" -q -f "$HERE/stub.sql" >/dev/null 2>&1 || true   # rôles déjà présents : sans gravité
 psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../drafts/0001_drawer_members.sql" 2>&1 | grep -v NOTICE || true
 psql "$DB" -q -f "$HERE/0001_drawer_members.test.sql" | tee /dev/stderr | grep -q "| *0$"
+
+# 0003 — suggestions sur une collection partagée
+psql "$DB" -q -f "$HERE/stub_0003.sql" >/dev/null 2>&1 || true
+psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../drafts/0003_collection_suggestions.sql" 2>&1 | grep -v NOTICE || true
+psql "$DB" -q -f "$HERE/0003_collection_suggestions.test.sql" | tee /dev/stderr | grep -q "| *0$"
