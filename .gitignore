@@ -37,3 +37,8 @@ npm-debug.log*
 /tmp/
 /output/
 /candidatures/
+
+# Banc e2e local des suggestions (v4)
+v4/e2e/suggestions/shots/
+v4/e2e/suggestions/.pgrst.*
+v4/e2e/suggestions/.*.log
