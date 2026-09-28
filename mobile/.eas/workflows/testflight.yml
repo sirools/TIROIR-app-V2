@@ -1,0 +1,35 @@
+# Build iOS + envoi TestFlight, sans Mac.
+#
+# Se déclenche à chaque push sur la branche `testflight`. Pour publier une
+# version de test : sur GitHub (même depuis l'iPhone), mettre `testflight`
+# au niveau de la branche voulue (en général main), ou la recréer depuis elle.
+#
+# Prérequis (une fois) : sur expo.dev, projet sirools/tiroir-v2 →
+# Project settings → GitHub : relier sirools/TIROIR-app-V2, dossier de base
+# `mobile`. La soumission réutilise la clé App Store Connect déjà connue
+# d'EAS (celle de `eas submit`) ; sinon, la configurer une fois avec
+# `eas credentials` depuis le Mac.
+#
+# Syntaxe écrite sans accès à docs.expo.dev : à vérifier sur
+# https://docs.expo.dev/eas/workflows/ avant le premier déclenchement.
+name: TestFlight
+
+on:
+  push:
+    branches: ['testflight']
+
+jobs:
+  build_ios:
+    name: Build iOS (production)
+    type: build
+    params:
+      platform: ios
+      profile: production
+
+  submit_ios:
+    name: Envoi vers TestFlight
+    needs: [build_ios]
+    type: submit
+    params:
+      build_id: ${{ needs.build_ios.outputs.build_id }}
+      profile: production
