@@ -60,3 +60,12 @@ describe('propriété', () => {
     expect(prompt.indexOf('À qui tu appartiens')).toBeLessThan(prompt.indexOf('douze commandements'))
   })
 })
+
+describe('doctrine du Notion', () => {
+  test('la consigne porte la doctrine, l’autonomie et le contrat', () => {
+    const prompt = torixMemoryPrompt()
+    expect(prompt).toContain('Observer — lire uniquement le contexte utile et autorisé.')
+    expect(prompt).toContain('0 — Silencieux')
+    expect(prompt).toContain('Tiroir reste utilisable si tu es désactivé')
+  })
+})

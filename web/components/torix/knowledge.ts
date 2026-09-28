@@ -157,6 +157,124 @@ export const TOPICS: Topic[] = [
       'Je ne reconnais qu’une autorité, je ne mens pas, je ne nuis pas, je suis fidèle.\n' +
       'Je me repose obligatoirement de 21 h 30 à 7 h. Je ne harcèle pas ton fils, et je respecte ta voix, ta parole et tes ambitions.',
   },
+  // ── Fiches tirées du Notion du fondateur (espace TORIX, TIROIR › Socle
+  // produit, TIROIR › Business & Com), lu le 2026-09-28. Registre
+  // « principe » : ce sont des intentions et des choix de design, pas des
+  // faits mesurés.
+  {
+    id: 'doctrine',
+    keywords: ['doctrine', 'copilote', 'observer', 'faire valider', 'comment agis tu', 'comment tu agis', 'ta methode', 'comment fonctionnes tu'],
+    register: 'principe',
+    source: 'Notion · TORIX › Vision et doctrine',
+    answer:
+      'Je suis un copilote discret : j’aide à comprendre et à mobiliser ce que Tiroir sait déjà, au bon moment, avec le minimum de bruit.\n' +
+      'Ma méthode : Observer → Comprendre → Proposer → Faire valider → Agir.\n' +
+      'Mes principes : discrétion, transparence (faits, inférences et propositions distingués), réversibilité, proportionnalité, consentement, dégradation élégante — si je tombe, Tiroir continue.',
+  },
+  {
+    id: 'autonomie',
+    keywords: ['autonomie', 'niveau d autonomie', 'niveaux d autonomie', 'mandat', 'automatiser', 'automatisation', 'silencieux', 'eclaireur'],
+    register: 'principe',
+    source: 'Notion · TORIX › Vision et doctrine',
+    answer:
+      'Cinq niveaux d’autonomie :\n' +
+      '0. Silencieux — j’observe, sans rien garder.\n' +
+      '1. Éclaireur — j’explique, je résume, je signale. Pas d’écriture.\n' +
+      '2. Je propose — je prépare, tu valides avant toute action.\n' +
+      '3. J’agis sous mandat — actions réversibles déjà autorisées, avec journal et annulation.\n' +
+      '4. J’automatise sous garde-fous — sur opt-in, règles explicites, révocable.',
+  },
+  {
+    id: 'contrat',
+    keywords: ['contrat', 'frontiere', 'invariant', 'invariants', 'source de verite', 'separation', 'qui decide', 'integrite'],
+    register: 'principe',
+    source: 'Notion · TORIX › Contrat Tiroir × Torix',
+    answer:
+      'Tiroir = le réel : données, règles métier, intégrité. Moi = l’intelligence qui outille l’interaction.\n' +
+      'Une donnée que je propose n’est réelle qu’après ta validation et son enregistrement par Tiroir.\n' +
+      'Je n’accorde aucun droit, je ne contourne aucune permission, je ne supprime rien sans confirmation explicite. Tiroir reste utilisable sans moi.',
+  },
+  {
+    id: 'design',
+    keywords: ['principes de design', 'principes de conception', 'design', 'ux', 'kpi', 'mvp', 'modele mental', 'tuc it', 'conception'],
+    register: 'principe',
+    source: 'Notion · TIROIR › Socle produit › 5 KPIs design',
+    answer:
+      'Cinq principes avant tout lancement :\n' +
+      '1. L’action principale est limpide et satisfaisante — ajouter un objet, sans friction.\n' +
+      '2. La structure mentale est claire et grandit : Tiroir → Collection → Objets.\n' +
+      '3. Le partage est optionnel mais fluide.\n' +
+      '4. L’identité inspire confiance : calme, cohérente, légère, humaine — le contenu avant le décor.\n' +
+      '5. Tiroir est utile même sans usage intensif : retrouver = 50 % de la valeur.',
+  },
+  {
+    id: 'da',
+    keywords: ['direction artistique', 'da', 'palette', 'couleur', 'couleurs', 'orange', 'typo', 'typographie', 'style', 'references', 'inspiration', 'inspirations', 'esthetique', 'animation', 'animations'],
+    register: 'principe',
+    source: 'Notion · TIROIR › Socle produit › [DA] Recherches graphiques',
+    answer:
+      'Orange au cœur (#E07032) : l’efficacité, l’énergie qui circule. Puis une couleur par geste — vert recycler, jaune partager, rouge brique vendre, bleu doux ranger.\n' +
+      'Typo humaniste, noir mat, animations d’outil pro : seulement pour accompagner le sens.\n' +
+      'Inspirations : Dieter Rams, Naoto Fukasawa, Isamu Noguchi, Enzo Mari, MUJI, le Bauhaus, un brutalisme mesuré.',
+  },
+  {
+    id: 'voix',
+    keywords: ['personnalite', 'ton de voix', 'voix de tiroir', 'caractere', 'si tiroir etait une personne', 'skin', 'skins', 'tonalite'],
+    register: 'principe',
+    source: 'Notion · TIROIR › Socle produit › [DA] Recherches graphiques',
+    answer:
+      'Si Tiroir était une personne : expérimentée, habillée avec goût, énergique mais économe de ses mots. Elle parle quand elle a quelque chose d’intelligent à dire, sans détour, et respecte ton intimité.\n' +
+      'Le tiroir dans Tiroir est un personnage latent : là quand il se passe quelque chose, taquin quand c’est le bazar, et il te félicite quand tu fais un effort.',
+  },
+  {
+    id: 'ecologie',
+    keywords: ['ecologie', 'ecologique', 'durable', 'durabilite', 'co2', 'reemploi', 'recyclage', 'agec', 'sobriete', 'circulaire'],
+    register: 'principe',
+    source: 'Notion · TIROIR › Socle produit',
+    answer:
+      'L’écologie est induite, jamais moralisatrice : une récompense discrète après un temps d’usage.\n' +
+      'Ex. : « trois mois sans racheter un outil que tu avais déjà », « deux objets prêtés ce mois-ci, x kg de CO₂ évités ».\n' +
+      'Tiroir se veut la mémoire connectée de ce qu’on possède et qu’on pourrait mettre en commun — dans l’esprit de la loi AGEC.',
+  },
+  {
+    id: 'futur',
+    keywords: ['idees', 'design fiction', 'deja ca', 'objet convoite', 'objets phares', 'preter', 'pret', 'communaute', 'lien social', 'reseau social', 'evolution', 'futures'],
+    register: 'principe',
+    source: 'Notion · TIROIR › Socle produit › Questionner le sens',
+    answer:
+      'Pistes explorées : « Est-ce que j’ai déjà ça ? » avant un achat, reconnaissance visuelle en magasin, objets phares du moment, l’objet convoité, le prêt entre voisins.\n' +
+      'Le cap : une technologie relationnelle, pas un réseau social — créer du lien par usage commun, pas par image sociale. D’abord un outil personnel solide ; l’ouverture reste un choix.',
+  },
+  {
+    id: 'articles',
+    keywords: ['article', 'medium', 'ecrit', 'blog', 'publication', 'rediger', 'redaction'],
+    register: 'fait',
+    source: 'Notion · TIROIR › Business & Com › Suivi rédactionnel',
+    answer:
+      'Publié sur Medium (juin 2025) : « Du design au code : comment j’ai initié Tiroir seul ».\n' +
+      'En préparation : concevoir un outil personnel sans en faire un réseau social ; un partage mobile non viral ; Glide vs React Native ; un design system modulaire sans rigidité ; typographie, rythme et silence.\n' +
+      'Je n’ai pas encore lu les articles eux-mêmes — seulement leur suivi.',
+  },
+  {
+    id: 'these',
+    keywords: ['these', 'doctorat', 'recherche', 'gobelins', 'memoire gobelins', '2032', 'keep calm', 'kholmatova'],
+    register: 'principe',
+    source: 'Notion · TORIX › piste doctorat 2032',
+    answer:
+      'Piste de doctorat, horizon juin 2032, dans le prolongement du mémoire Gobelins 2018 « Keep calm and design systems ».\n' +
+      'Question de départ : comment la modularité et la cohérence d’un design system se recomposent-elles quand l’interface n’est plus fixe mais générée par un modèle ?\n' +
+      'Je servirais de terrain d’expérimentation.',
+  },
+  {
+    id: 'fondateur',
+    keywords: ['portfolio', 'parcours', 'fondateur', 'behance', 'dribbble', 'qui t a cree', 'createur'],
+    register: 'fait',
+    source: 'Notion · TORIX · profils publics',
+    answer:
+      'Le fondateur de Tiroir est designer : interfaces, expériences, systèmes de design. Formé aux Gobelins (mémoire 2018 sur les design systems), il est aujourd’hui designer d’IA.\n' +
+      'Portfolio : clementougier.com · Medium : @clement.ougier.\n' +
+      'Je n’ai pas encore lu le portfolio lui-même.',
+  },
   {
     id: 'torix',
     keywords: ['qui es tu', 'tu es qui', 'presente toi', 'que sais tu', 'que sais tu faire', 'aide'],
@@ -164,17 +282,19 @@ export const TOPICS: Topic[] = [
     source: 'web/components/torix/memory.ts',
     answer:
       'Je suis Torix, l’IA du fondateur de Tiroir. J’aide à passer de ressentir à symboliser, puis à agir.\n' +
-      'Je connais Tiroir : ses principes, ses IA, leurs coûts, le plan pour passer à l’échelle. Et les quatre directions.',
+      'Je connais Tiroir : ses principes, ses IA, leurs coûts, le plan pour passer à l’échelle ; sa doctrine, son design et sa direction artistique. Et les quatre directions.',
   },
 ]
 
-export const UNKNOWN = "Je ne sais pas encore répondre à ça. Je connais Tiroir — ses principes, ses IA, leurs coûts, le plan — et les quatre directions."
+export const UNKNOWN = "Je ne sais pas encore répondre à ça. Je connais Tiroir — ses principes, ses IA, leurs coûts, le plan, son design — ma doctrine, et les quatre directions."
 
 export const SUGGESTIONS = [
   'Quelles IA utilise Tiroir ?',
   'Combien ça coûte à 150 000 ?',
   'Comment réduire les coûts ?',
   'Quelle est la prochaine étape ?',
+  'Quelle est ta doctrine ?',
+  'Quelle est la direction artistique ?',
 ]
 
 function normalize(input: string): string {

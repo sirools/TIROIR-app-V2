@@ -19,6 +19,19 @@ describe('Torix trouve la bonne fiche', () => {
     ['Quels sont tes commandements ?', 'commandements'],
     ['Qui es-tu ?', 'torix'],
     ['Est-ce que Tiroir dépend de Claude ?', 'ia'],
+    // Fiches tirées du Notion du fondateur
+    ['Quelle est ta doctrine ?', 'doctrine'],
+    ['Quels sont tes niveaux d’autonomie ?', 'autonomie'],
+    ['Que dit le contrat entre Tiroir et Torix ?', 'contrat'],
+    ['Quels sont les principes de design de Tiroir ?', 'design'],
+    ['Quelle est la direction artistique ?', 'da'],
+    ['Pourquoi l’orange ?', 'da'],
+    ['Si Tiroir était une personne ?', 'voix'],
+    ['Et l’écologie dans Tiroir ?', 'ecologie'],
+    ['Quelles idées pour le futur ?', 'futur'],
+    ['Quels articles ai-je écrits sur Medium ?', 'articles'],
+    ['Parle-moi de la piste de doctorat', 'these'],
+    ['Où est mon portfolio ?', 'fondateur'],
   ])('%s → %s', (question, id) => {
     expect(findTopic(question)?.id).toBe(id)
   })
@@ -39,6 +52,12 @@ describe('answerQuestion', () => {
     expect(a.register).toBe('estimation')
     expect(a.source).toBe('strategie/torix-et-tiroir.md')
     for (const t of TOPICS) expect(t.source.length).toBeGreaterThan(0)
+  })
+
+  test('les fiches Notion disent d’où elles viennent', () => {
+    for (const id of ['doctrine', 'autonomie', 'contrat', 'design', 'da', 'voix', 'ecologie', 'futur', 'articles', 'these']) {
+      expect(TOPICS.find(t => t.id === id)!.source.startsWith('Notion')).toBe(true)
+    }
   })
 
   test('hors de son savoir, il le dit', () => {

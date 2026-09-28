@@ -176,6 +176,14 @@ Chaque phase est **conditionnée aux chiffres réels**, pas aux projections.
 
 ## 9. Mises en garde
 
+- **À trancher — Torix local ou non ?** La page Notion « TORIX — piste
+  doctorat 2032 » pose : *« IA strictement locale, jamais connectée à
+  Internet. Pas de cloud »*. Ce document-ci repose au contraire sur des
+  fournisseurs d'API (Claude, Gemini) jusqu'à la phase 2. Les deux
+  peuvent se rejoindre — un modèle local est l'aboutissement possible de
+  la phase 2 — mais c'est au fondateur de dire si « local » est un
+  principe dès maintenant ou un horizon.
+
 - L'hypothèse de 100 000 à 200 000 utilisateurs en un ou deux mois est
   ambitieuse : avancer de phase en phase sur les chiffres de `ai_usage`.
 - Les coûts non mesurés (estimation de valeur surtout) sont les premiers à
