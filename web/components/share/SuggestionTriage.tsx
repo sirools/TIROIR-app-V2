@@ -112,7 +112,10 @@ export default function SuggestionTriage({ pending, canUndo, busy, error, onDeci
             >
               <span className={`stamp stamp-keep ${intent === 'keep' ? 'on' : ''}`}>GARDER</span>
               <span className={`stamp stamp-dismiss ${intent === 'dismiss' ? 'on' : ''}`}>ÉCARTER</span>
-              <div className="card-icon" aria-hidden>🎁</div>
+              {current.imageUrl
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img className="card-img" src={current.imageUrl} alt="" draggable={false} />
+                : <div className="card-icon" aria-hidden>🎁</div>}
               <h3 className="card-title">{current.title}</h3>
               <p className="card-meta">
                 {formatPrice(current) && <strong className="price">{formatPrice(current)}</strong>}
@@ -190,6 +193,7 @@ export default function SuggestionTriage({ pending, canUndo, busy, error, onDeci
         .stamp-keep { left: 16px; color: #15803D; border: 2px solid #15803D; transform: rotate(-10deg); }
         .stamp-dismiss { right: 16px; color: #B91C1C; border: 2px solid #B91C1C; transform: rotate(10deg); }
         .card-icon { font-size: 40px; }
+        .card-img { width: 96px; height: 96px; border-radius: 14px; object-fit: cover; pointer-events: none; }
         .card-title { font-size: 20px; font-weight: 800; color: #1A1612; margin: 0; line-height: 1.25; }
         .card-meta { display: flex; gap: 10px; align-items: center; font-size: 14px; margin: 0; flex-wrap: wrap; justify-content: center; }
         .card-meta a { color: #6B6158; }

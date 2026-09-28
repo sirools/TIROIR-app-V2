@@ -9,7 +9,7 @@ import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
 import WishCard from '../../components/share/WishCard'
 import SuggestModal, { type SuggestStep } from '../../components/share/SuggestModal'
 import SuggestionTriage from '../../components/share/SuggestionTriage'
-import SuggestionsToggle from '../../components/share/SuggestionsToggle'
+import AddTile from '../../components/share/AddTile'
 import { hasValidCookie } from '../../lib/shareAuth'
 import { hasSignedCookie } from '../../lib/shareCookieSignature'
 import { isLot, lotTotal } from '../../lib/quantity'
@@ -61,11 +61,13 @@ const ALL_FIELDS: ShareFields = {
 }
 
 /**
- * Idées et suggestions de la collection partagée (brouillon v4 0003).
+ * Idées et suggestions de la collection partagée (migrations 0003 et 0004).
  * Absent ou `collection: null` : la page se comporte exactement comme avant.
+ * Les ajouts s'ouvrent PAR PARTAGE, depuis l'app (options.allow_suggestions).
  */
 interface SuggestionsProps {
   collection: ShareCollection | null
+  allowSuggestions: boolean
   wishes: Wish[]
   isOwner: boolean
   isLoggedIn: boolean
@@ -264,9 +266,10 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   } catch {
     viewerId = null
   }
-  const { collection, wishes } = await loadShareSuggestions(supabase, link, viewerId)
+  const { collection, allowSuggestions, wishes } = await loadShareSuggestions(supabase, link, viewerId)
   const suggestions: SuggestionsProps = {
     collection,
+    allowSuggestions,
     wishes,
     isOwner: viewerId !== null && viewerId === link.user_id,
     isLoggedIn: viewerId !== null,
@@ -394,15 +397,16 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
   const router = useRouter()
   const collection = suggestions?.collection ?? null
   const isOwner = suggestions?.isOwner ?? false
-  const [suggestionsEnabled, setSuggestionsEnabled] = useState(collection?.suggestionsEnabled ?? false)
+  const allowSuggestions = suggestions?.allowSuggestions ?? false
   const [triage, dispatch] = useReducer(triageReducer, suggestions?.wishes ?? [], initialTriageState)
   const [triageBusy, setTriageBusy] = useState(false)
   const [triageError, setTriageError] = useState<string | null>(null)
   const [suggestStep, setSuggestStep] = useState<SuggestStep | null>(null)
   const [justSuggested, setJustSuggested] = useState(false)
 
-  // Le « + » : collection déterminée, suggestions activées, pas le propriétaire.
-  const canSuggest = Boolean(collection) && suggestionsEnabled && !isOwner
+  // La tuile « + » : partage ouvert aux ajouts (réglé dans l'app), collection
+  // déterminée, et pas le propriétaire.
+  const canSuggest = Boolean(collection) && allowSuggestions && !isOwner
   const wishesInGrid = visibleWishes(triage)
   const pending = pendingWishes(triage)
 
@@ -613,11 +617,6 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                   )}
                 </div>
                 <div className="hero-actions">
-                {canSuggest && (
-                  <button type="button" className="suggest-btn" onClick={openSuggest}>
-                    <span aria-hidden>+</span> Suggérer un objet
-                  </button>
-                )}
                 <div className="view-toggle" role="group" aria-label="Mode d'affichage">
                   <button
                     type="button"
@@ -641,17 +640,15 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
 
               {justSuggested && (
                 <p className="suggest-ok" role="status">
-                  Suggestion envoyée. Elle apparaît en pointillé jusqu’à ce que le propriétaire la trie.
+                  Ajout envoyé. Il apparaît en pointillé jusqu’à ce que le propriétaire le trie.
                 </p>
               )}
 
-              {isOwner && collection && (
-                <SuggestionsToggle
-                  collectionId={collection.id}
-                  collectionName={collection.name}
-                  enabled={suggestionsEnabled}
-                  onChange={setSuggestionsEnabled}
-                />
+              {isOwner && collection && allowSuggestions && (
+                <p className="owner-note">
+                  Ce partage est ouvert aux ajouts : ses destinataires peuvent proposer des objets.
+                  Réglage dans l’app Tiroir, sur le partage.
+                </p>
               )}
 
               {isOwner && showTriage(triage) && (
@@ -710,6 +707,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                   ))}
                   {/* Idées et suggestions : après les objets possédés, en « fantôme ». */}
                   {wishesInGrid.map(w => <WishCard key={w.id} wish={w} />)}
+                  {canSuggest && <AddTile onClick={openSuggest} />}
                 </div>
               ) : (
                 <div className="table-wrap">
@@ -844,6 +842,13 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                 </div>
               )}
 
+              {/* En tableau, pas de tuile : l'ajout reste accessible en dessous. */}
+              {canSuggest && view === 'list' && (
+                <div className="add-row">
+                  <button type="button" className="add-link" onClick={openSuggest}>+ Ajouter à la liste</button>
+                </div>
+              )}
+
               {allowDownload && (
                 <div className="download-row">
                   {!exportMode ? (
@@ -962,13 +967,15 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
 
         /* Suggestions */
         .hero-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .suggest-btn {
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 9px 16px; border-radius: 999px; border: 0;
-          background: #F26900; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+        .owner-note {
+          background: #fff; border: 1px solid #E8E2DA; border-radius: 12px;
+          padding: 10px 14px; font-size: 13px; color: #6B6158; margin-bottom: 20px; line-height: 1.45;
         }
-        .suggest-btn span { font-size: 18px; line-height: 1; }
-        .suggest-btn:hover { background: #D85E00; }
+        .add-row { display: flex; justify-content: center; margin: -12px 0 32px; }
+        .add-link {
+          background: none; border: 1.5px dashed #F2A766; border-radius: 999px;
+          padding: 9px 18px; font-size: 14px; font-weight: 700; color: #B04E00; cursor: pointer;
+        }
         .suggest-ok {
           background: #FDF1E6; border: 1px solid #F8D2AE; color: #8A3D00;
           border-radius: 12px; padding: 10px 14px; font-size: 14px; margin-bottom: 20px;

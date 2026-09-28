@@ -30,6 +30,10 @@ export interface Wish {
   currency: string
   createdAt: string
   author: WishAuthor | null
+  /** Photo de l'objet quand il vient du Tiroir de l'auteur (URL signée). */
+  imageUrl: string | null
+  /** Proposé depuis le Tiroir de l'auteur plutôt que saisi à la main. */
+  fromTiroir: boolean
 }
 
 export const TITLE_MAX = 120
@@ -37,18 +41,23 @@ export const URL_MAX = 2000
 export const PRICE_MAX = 10_000_000
 
 export interface SuggestionInput {
+  /** Vide pour un objet du Tiroir : la base reprend son titre. */
   title: string
   url: string | null
   price: number | null
+  sourceObjectId: string | null
 }
 
-export type SuggestionInputError = 'title_required' | 'title_too_long' | 'url_invalid' | 'price_invalid'
+export type SuggestionInputError = 'title_required' | 'title_too_long' | 'url_invalid' | 'price_invalid' | 'source_invalid'
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export const INPUT_ERROR_LABEL: Record<SuggestionInputError, string> = {
   title_required: 'Donne un nom à l’objet.',
   title_too_long: `Le nom ne doit pas dépasser ${TITLE_MAX} caractères.`,
   url_invalid: 'Le lien doit commencer par http:// ou https://.',
   price_invalid: 'Le prix doit être un nombre positif.',
+  source_invalid: 'Cet objet est introuvable dans ton Tiroir.',
 }
 
 /**
@@ -60,9 +69,16 @@ export function parseSuggestionInput(raw: {
   title?: unknown
   url?: unknown
   price?: unknown
+  sourceObjectId?: unknown
 }): { ok: true; value: SuggestionInput } | { ok: false; error: SuggestionInputError } {
+  let sourceObjectId: string | null = null
+  if (raw.sourceObjectId !== undefined && raw.sourceObjectId !== null && raw.sourceObjectId !== '') {
+    if (typeof raw.sourceObjectId !== 'string' || !UUID_RE.test(raw.sourceObjectId)) return { ok: false, error: 'source_invalid' }
+    sourceObjectId = raw.sourceObjectId.toLowerCase()
+  }
+
   const title = typeof raw.title === 'string' ? raw.title.trim().replace(/\s+/g, ' ') : ''
-  if (!title) return { ok: false, error: 'title_required' }
+  if (!title && !sourceObjectId) return { ok: false, error: 'title_required' }
   if (title.length > TITLE_MAX) return { ok: false, error: 'title_too_long' }
 
   let url: string | null = null
@@ -92,7 +108,7 @@ export function parseSuggestionInput(raw: {
     price = Math.round(price * 100) / 100
   }
 
-  return { ok: true, value: { title, url, price } }
+  return { ok: true, value: { title, url, price, sourceObjectId } }
 }
 
 /** Prénom affiché pour un auteur : premier mot du nom de profil. */
