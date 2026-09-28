@@ -50,11 +50,31 @@ D'où la piste recommandée :
   pending|valid|rejected, created_at, validated_at)`
 - `referral_rewards (user_id, months, granted_at, until)`
 
-## Questions à trancher
+## Décisions (28 septembre 2026)
 
-- Seuil : 2 ou 3 filleuls ? Cumulable (chaque palier = un mois de plus),
-  avec un plafond ?
-- Le filleul gagne-t-il quelque chose (ex. un mois lui aussi) ?
+- **Seuil : 2 à 3 filleuls** pour commencer. Réglable depuis l'admin, comme
+  les quotas existants, pour ajuster sans nouvelle version.
+- **Après le mois offert : −50 % sur le premier abonnement Premium payant**
+  du parrain, pour convertir à la fin de l'essai.
+- Avantage des filleuls : **plus tard**, selon les premiers résultats.
+
+### Le −50 % côté App Store
+
+Le paiement passe par Apple (via RevenueCat) : pas de code promo « maison ».
+Trois mécanismes Apple existent :
+
+| Mécanisme | Qui y a droit | Adapté ? |
+| --- | --- | --- |
+| Offre de lancement (*introductory offer*) | Tout nouvel abonné | Non : profiterait à tout le monde, pas seulement aux parrains. |
+| Offre promotionnelle (*promotional offer*) | Abonnés actuels ou anciens abonnés | Non : un parrain n'a jamais payé, le mois offert ne passe pas par Apple. |
+| **Codes d'offre** (*offer codes*, codes à usage unique) | Qui détient un code | **Oui** : lot de codes généré dans App Store Connect, un code envoyé à chaque parrain à la fin de son mois, saisi dans l'app (fiche de saisie Apple, accessible via RevenueCat). |
+
+À vérifier au moment de coder : volumes et durée de validité des codes chez
+Apple, et l'équivalent Android (codes promo Google Play) si l'app y sort.
+
+## Questions encore ouvertes
+
+- Cumulable (chaque palier = un mois de plus), avec un plafond ?
 - Déjà abonné : mois reporté à la fin de l'abonnement, ou rien ?
 - Qu'est-ce qu'un parrainage valide (inscription seule, e-mail confirmé,
   premier objet) ?
