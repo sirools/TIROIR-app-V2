@@ -23,7 +23,7 @@ Deno.serve(async (req: Request) => {
     if (authError || !user) return err(401, 'AUTH_INVALID')
 
     const body = await req.json().catch(() => null)
-    const { object_ids, title, options = {}, contact = {} } = body ?? {}
+    const { object_ids, title, options = {}, contact = {}, collection_id } = body ?? {}
     if (!Array.isArray(object_ids) || object_ids.length === 0) return err(400, 'MISSING_OBJECT_IDS')
 
     const contactName = typeof contact?.name === 'string' ? contact.name.trim().slice(0, 200) : ''
@@ -50,6 +50,20 @@ Deno.serve(async (req: Request) => {
       return err(403, 'FORBIDDEN_OBJECTS')
     }
 
+    // Collection d'origine (partage créé depuis une collection) : les ajouts
+    // proposés par les destinataires y seront rattachés. Ignorée si elle
+    // n'appartient pas à l'utilisateur.
+    let collectionId: string | null = null
+    if (typeof collection_id === 'string' && collection_id) {
+      const { data: coll } = await supabase
+        .from('collections')
+        .select('id')
+        .eq('id', collection_id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+      collectionId = coll?.id ?? null
+    }
+
     // Générer un token court unique (8 chars)
     const token = Array.from(crypto.getRandomValues(new Uint8Array(5)))
       .map(b => b.toString(36).padStart(2, '0'))
@@ -66,12 +80,15 @@ Deno.serve(async (req: Request) => {
         user_id: user.id,
         token,
         object_ids,
+        ...(collectionId ? { collection_id: collectionId } : {}),
         title: title ?? null,
         options: {
           password_protected: options.password_protected ?? false,
           password_hash: passwordHash,
           allow_download: options.allow_download ?? false,
           include_documents: options.include_documents ?? false,
+          // Liste collaborative : les destinataires peuvent proposer des objets.
+          allow_suggestions: options.allow_suggestions === true,
           // Blocs d'informations exposés par le partage. Absent = tout est
           // visible : les liens créés avant cette option ne changent pas.
           fields: {

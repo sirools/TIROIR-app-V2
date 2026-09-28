@@ -26,7 +26,10 @@ export default function WishCard({ wish }: { wish: Wish }) {
   const body = (
     <>
       <div className="cover">
-        <span className="cover-icon" aria-hidden>{pending ? '🎁' : '💡'}</span>
+        {wish.imageUrl
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img className="cover-img" src={wish.imageUrl} alt="" />
+          : <span className="cover-icon" aria-hidden>{pending ? '🎁' : '💡'}</span>}
         <span className={`kind ${pending ? 'kind-pending' : 'kind-idea'}`}>
           {pending ? 'Suggestion' : 'Idée'}
         </span>
@@ -43,7 +46,10 @@ export default function WishCard({ wish }: { wish: Wish }) {
         {pending && wish.author && (
           <p className="author">
             <AuthorAvatar author={wish.author} size={22} />
-            <span>Suggéré par <strong>{wish.author.firstName}</strong></span>
+            <span>
+              {wish.fromTiroir ? 'Du Tiroir de ' : 'Suggéré par '}
+              <strong>{wish.author.firstName}</strong>
+            </span>
           </p>
         )}
       </div>
@@ -76,6 +82,8 @@ export default function WishCard({ wish }: { wish: Wish }) {
           background: repeating-linear-gradient(135deg, #F7F3EE 0 10px, #F0EBE3 10px 20px);
         }
         .card :global(.cover-icon) { font-size: 44px; opacity: 0.55; }
+        /* Photo estompée : l'objet n'est pas (encore) dans la collection. */
+        .card :global(.cover-img) { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.6; filter: saturate(0.7); }
         .card :global(.kind) {
           position: absolute; top: 8px; left: 8px;
           padding: 2px 8px; border-radius: 999px;

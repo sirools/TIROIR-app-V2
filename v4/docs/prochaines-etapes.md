@@ -9,11 +9,24 @@ PR en brouillon, **rien n'est fusionné dans `main`**.
 - [ ] **Avant** le SQL : `cd preprod && ./deploy.sh clementougier@192.168.1.23`,
       puis vérifier que les partages s'affichent comme avant (en clair,
       protégé, export CSV/PDF, `/mes-partages`).
-- [ ] Appliquer `v4/supabase/drafts/0003_collection_suggestions.sql` dans
-      l'éditeur SQL du projet Supabase **de preprod** (vérifier le nom du projet).
+- [x] SQL appliqué **en prod** le 28/09 depuis l'iPhone (SQL Editor),
+      résultat vérifié. Rangé dans `supabase/migrations/20260928120000_collection_suggestions.sql`.
+- [ ] Fusionner la PR #9 → déploiement Vercel de `tiroir.app`.
+- [ ] L'appliquer aussi sur le Supabase **de preprod** (même fichier).
 - [ ] Dérouler le scénario manuel de `suggestions.md` (16 étapes, 3 comptes).
 - [ ] Ouvrir l'app mobile pointée sur la preprod : collections, recherche,
       statistiques identiques (aucune idée ni suggestion n'y apparaît).
+
+## 1 bis. Étape 2 — ajouts réglés dans l'app, objets de son Tiroir
+
+- [ ] Appliquer `v4/supabase/drafts/0004_share_link_suggestions.sql` en prod
+      (SQL Editor, faisable depuis l'iPhone). Ordre indifférent avec la
+      fusion de la PR : chaque combinaison reste cohérente.
+- [ ] Fusionner la PR de `feature/v4-suggestions-ajouts` → Vercel.
+- [ ] Depuis le Mac : `supabase functions deploy create-share-link`
+      (sinon « Autoriser les ajouts » à la création n'est pas retenu ; le
+      réglage dans les réglages d'un partage existant marche sans).
+- [ ] Nouveau build de l'app (TestFlight) pour l'interrupteur dans l'app.
 
 ## 2. Mise à jour de la preprod sans le Mac (une fois)
 

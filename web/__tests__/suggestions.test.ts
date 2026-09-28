@@ -12,14 +12,22 @@ import {
 } from '../lib/suggestions'
 
 function wish(id: string, status: Wish['status'] = 'suggested', createdAt = `2026-09-0${id}T10:00:00Z`): Wish {
-  return { id, status, title: `Objet ${id}`, url: null, price: null, currency: 'EUR', createdAt, author: null }
+  return { id, status, title: `Objet ${id}`, url: null, price: null, currency: 'EUR', createdAt, author: null, imageUrl: null, fromTiroir: false }
 }
 
 describe('parseSuggestionInput', () => {
   test('nom seul', () => {
     expect(parseSuggestionInput({ title: '  Couteau   de chef ' })).toEqual({
-      ok: true, value: { title: 'Couteau de chef', url: null, price: null },
+      ok: true, value: { title: 'Couteau de chef', url: null, price: null, sourceObjectId: null },
     })
+  })
+
+  test('objet de son Tiroir : le titre devient facultatif', () => {
+    const id = '0b0f6f4e-1c2d-4e5f-8a9b-0c1d2e3f4a5b'
+    expect(parseSuggestionInput({ sourceObjectId: id })).toEqual({
+      ok: true, value: { title: '', url: null, price: null, sourceObjectId: id },
+    })
+    expect(parseSuggestionInput({ sourceObjectId: 'pas-un-uuid' })).toEqual({ ok: false, error: 'source_invalid' })
   })
 
   test('nom obligatoire', () => {

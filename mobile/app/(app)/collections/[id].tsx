@@ -1503,6 +1503,7 @@ export default function CollectionDetailScreen() {
         visible={sharePanelVisible}
         selectedObjects={objects.filter(o => selectedIds.has(o.id))}
         collectionName={collection.name}
+        collectionId={collection.id}
         onClose={() => setSharePanelVisible(false)}
         onDone={() => { setSharePanelVisible(false); exitSelectMode() }}
       />

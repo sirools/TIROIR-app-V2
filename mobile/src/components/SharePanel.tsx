@@ -15,12 +15,16 @@ interface ShareOptions {
   password_protected: boolean
   allow_download: boolean
   include_documents: boolean
+  /** Liste collaborative : les destinataires peuvent proposer des objets. */
+  allow_suggestions: boolean
 }
 
 interface SharePanelProps {
   visible: boolean
   selectedObjects: TiroirObject[]
   collectionName: string
+  /** Collection d'où part le partage : les ajouts proposés y seront rattachés. */
+  collectionId?: string
   onClose: () => void
   onDone: () => void
 }
@@ -88,7 +92,7 @@ function InfoInput({
   )
 }
 
-export function SharePanel({ visible, selectedObjects, collectionName, onClose, onDone }: SharePanelProps) {
+export function SharePanel({ visible, selectedObjects, collectionName, collectionId, onClose, onDone }: SharePanelProps) {
   const { t } = useTranslation()
   const slideAnim = useRef(new Animated.Value(600)).current
 
@@ -99,6 +103,7 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
     password_protected: false,
     allow_download: false,
     include_documents: false,
+    allow_suggestions: false,
   })
   const [fields, setFields] = useState<ShareFields>(DEFAULT_FIELDS)
   const [password, setPassword] = useState('')
@@ -204,6 +209,7 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
       const { data, error } = await supabase.functions.invoke('create-share-link', {
         body: {
           object_ids: selectedObjects.map(o => o.id),
+          collection_id: collectionId,
           title: shareName.trim() || collectionName,
           options: {
             ...options,
@@ -414,6 +420,21 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
               {/* Paramètres */}
               <View style={styles.section}>
                 <Text style={styles.sectionLabel}>{t('sharePanel.settings')}</Text>
+                {/* Liste collaborative : réglée ici, à l'envoi, et modifiable
+                    ensuite dans les réglages du partage. */}
+                <View style={styles.optionRow}>
+                  <Text style={styles.optionLabel}>{t('sharePanel.optSuggestions')}</Text>
+                  <Switch
+                    value={options.allow_suggestions}
+                    onValueChange={() => toggleOption('allow_suggestions')}
+                    trackColor={{ false: Colors.borderLight, true: Colors.accent }}
+                    thumbColor="white"
+                    style={styles.switch}
+                  />
+                </View>
+                {options.allow_suggestions && (
+                  <Text style={styles.sectionHelp}>{t('sharePanel.optSuggestionsHelp')}</Text>
+                )}
                 <View style={styles.optionRow}>
                   <Text style={styles.optionLabel}>{t('sharePanel.optPassword')}</Text>
                   <Switch

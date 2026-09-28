@@ -1,17 +1,19 @@
 // pages/api/shares/[token]/suggestions.ts — un visiteur suggère un objet
 // à la collection partagée par ce lien.
 //
-// Trois preuves avant d'écrire :
+// Un objet saisi (nom, lien, prix) ou un objet du Tiroir de l'auteur
+// (sourceObjectId). Trois preuves avant d'écrire :
 //   1. une session Tiroir (l'auteur est affiché au propriétaire) ;
 //   2. pour un lien protégé, le cookie SIGNÉ posé par /verify ;
-//   3. côté base (create_collection_suggestion) : lien valide, collection
-//      déterminée, suggestions activées, quota d'attente.
+//   3. côté base (create_collection_suggestion) : lien valide, ajouts
+//      autorisés sur ce partage, collection déterminée, objet source à
+//      l'auteur, quota d'attente.
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { adminSupabase } from '../../../../lib/supabase'
 import { hasSignedCookie } from '../../../../lib/shareCookieSignature'
 import { parseSuggestionInput } from '../../../../lib/suggestions'
-import { loadAuthors, toWish } from '../../../../lib/shareSuggestions'
+import { loadAuthors, loadSourceCovers, toWish } from '../../../../lib/shareSuggestions'
 
 const DB_ERRORS: Record<string, [number, string]> = {
   AUTH_REQUIRED: [401, 'AUTH_REQUIRED'],
@@ -19,6 +21,8 @@ const DB_ERRORS: Record<string, [number, string]> = {
   OWNER_CANNOT_SUGGEST: [403, 'OWNER_CANNOT_SUGGEST'],
   SUGGESTIONS_DISABLED: [403, 'SUGGESTIONS_DISABLED'],
   TOO_MANY_PENDING: [429, 'TOO_MANY_PENDING'],
+  SOURCE_NOT_FOUND: [404, 'SOURCE_NOT_FOUND'],
+  ALREADY_SUGGESTED: [409, 'ALREADY_SUGGESTED'],
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -50,12 +54,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(403).json({ error: 'PASSWORD_REQUIRED' })
   }
 
+  const { title, url, price, sourceObjectId } = parsed.value
   const { data: row, error } = await admin.rpc('create_collection_suggestion', {
     p_share_token: token,
     p_author_id: user.id,
-    p_title: parsed.value.title,
-    p_url: parsed.value.url,
-    p_price: parsed.value.price,
+    p_title: title || null,
+    p_url: url,
+    p_price: price,
+    // Seulement s'il y en a un : la signature sans objet source reste
+    // valable sur une base qui n'a pas encore la migration 0004.
+    ...(sourceObjectId ? { p_source_object_id: sourceObjectId } : {}),
   })
 
   if (error || !row) {
@@ -65,6 +73,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: 'INTERNAL_ERROR' })
   }
 
-  const authors = await loadAuthors(admin, [user.id])
-  return res.status(201).json({ wish: toWish(row, authors) })
+  const [authors, covers] = await Promise.all([
+    loadAuthors(admin, [user.id]),
+    loadSourceCovers(admin, row.source_object_id ? [row.source_object_id] : []),
+  ])
+  return res.status(201).json({ wish: toWish(row, authors, covers) })
 }
