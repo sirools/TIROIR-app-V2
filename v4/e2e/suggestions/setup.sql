@@ -34,3 +34,9 @@ GRANT anon, authenticated, service_role TO authenticator;
 ALTER ROLE service_role BYPASSRLS;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO service_role;
+
+-- Bob a son propre Tiroir : un wok, avec une photo.
+INSERT INTO public.objects (id, user_id, title) VALUES
+ ('b0000000-0000-0000-0000-0000000000b1','bbbbbbbb-0000-0000-0000-000000000000','Wok de Bob');
+INSERT INTO public.object_images (object_id, storage_path, is_cover) VALUES
+ ('b0000000-0000-0000-0000-0000000000b1','bbbbbbbb-0000-0000-0000-000000000000/b1/wok.jpg', true);

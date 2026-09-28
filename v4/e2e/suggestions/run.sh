@@ -5,8 +5,8 @@
 #   ./run.sh "postgresql://postgres@localhost:5432/tiroir_e2e" /chemin/vers/postgrest
 #
 # La base doit être VIDE et jetable (même règle que ../../supabase/tests).
-# Joue deux phases : « before » sans le brouillon 0003 (rien ne doit changer),
-# puis « after » avec. Captures dans ./shots. Ne touche ni prod ni preprod.
+# Joue deux phases : « before » sans les brouillons 0003-0004 (rien ne doit
+# changer), puis « after » avec. Captures dans ./shots. Ne touche ni prod ni preprod.
 set -euo pipefail
 DB="${1:?Usage : ./run.sh URL_BASE_VIDE CHEMIN_POSTGREST}"
 PGRST="${2:?Chemin du binaire postgrest (https://github.com/PostgREST/postgrest/releases)}"
@@ -45,5 +45,6 @@ sleep 6
 
 node "$HERE/scenario.mjs" before
 psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../../supabase/drafts/0003_collection_suggestions.sql" 2>&1 | grep -v NOTICE || true
+psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../../supabase/drafts/0004_share_link_suggestions.sql" 2>&1 | grep -v NOTICE || true
 psql "$DB" -q -c "NOTIFY pgrst, 'reload schema'"; sleep 1
 node "$HERE/scenario.mjs" after

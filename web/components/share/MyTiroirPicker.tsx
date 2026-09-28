@@ -80,7 +80,7 @@ export default function MyTiroirPicker({ selected, onToggle }: Props) {
             type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder={`Chercher parmi tes ${objects.length} objets`}
+            placeholder={objects.length > 1 ? `Chercher parmi tes ${objects.length} objets` : 'Chercher dans ton Tiroir'}
           />
           <ul className="list" role="listbox" aria-multiselectable="true">
             {filtered.map(o => {

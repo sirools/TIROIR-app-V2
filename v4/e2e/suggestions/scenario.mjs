@@ -26,12 +26,16 @@ async function ctx(email) {
   return p
 }
 const count = (p, sel) => p.locator(sel).count()
+const ADD = 'button:has-text("Ajouter à la liste")'
+const openAdd = p => p.locator(ADD).first().click()
+// Le réglage vit sur le partage et se pose dans l'app : on l'imite en base.
+const setAllow = (token, on) => execSync(`psql "${process.env.E2E_DB}" -qc "UPDATE share_links SET options = options || '{\\"allow_suggestions\\": ${on}}' WHERE token = '${token}'"`)
 
 if (phase === 'before') {
   const anon = await ctx()
   await anon.goto(`${BASE}/s/cuisine`)
   check('sans 0003 : 2 objets affichés', await count(anon, '.grid > .card') === 2)
-  check('sans 0003 : pas de bouton +', await count(anon, 'text=Suggérer un objet') === 0)
+  check('sans 0003 : pas de bouton +', await count(anon, ADD) === 0)
   await anon.screenshot({ path: `${SHOTS}/0-avant-visiteur.png`, fullPage: true })
   const ana = await ctx('ana@test.fr')
   check('sans 0003 : Ana connectée, pas de réglage', await count(ana, '[role=switch]') === 0)
@@ -39,46 +43,54 @@ if (phase === 'before') {
 }
 
 if (phase === 'after') {
-  // Propriétaire : réglage désactivé par défaut
+  // Propriétaire : partage fermé aux ajouts par défaut, plus de réglage web
   const ana = await ctx('ana@test.fr')
-  check('réglage visible, désactivé par défaut', await ana.getAttribute('[role=switch]', 'aria-checked') === 'false')
+  check('plus d’interrupteur sur la page web', await count(ana, '[role=switch]') === 0)
+  check('fermé : pas de mention d’ajouts pour le propriétaire', await count(ana, 'text=ouvert aux ajouts') === 0)
   check('pas de module de tri sans suggestion', await count(ana, 'text=Suggestions à trier') === 0)
-  check('le propriétaire n’a pas de bouton +', await count(ana, 'text=Suggérer un objet') === 0)
-  await ana.screenshot({ path: `${SHOTS}/1-proprietaire-desactive.png` })
+  await ana.screenshot({ path: `${SHOTS}/1-proprietaire-ferme.png` })
 
-  // Visiteur anonyme, désactivé : comme avant
+  // Visiteur anonyme, partage fermé : comme avant
   const anon = await ctx()
   await anon.goto(`${BASE}/s/cuisine`)
-  check('désactivé : pas de bouton + pour le visiteur', await count(anon, 'text=Suggérer un objet') === 0)
+  check('fermé : pas de tuile + pour le visiteur', await count(anon, ADD) === 0)
 
-  await ana.click('[role=switch]')
-  await ana.waitForSelector('[role=switch][aria-checked=true]')
-  check('Ana active les suggestions', true)
+  // Ana ouvre le partage aux ajouts depuis l'app
+  setAllow('cuisine', true); setAllow('secret', true)
+  await ana.reload()
+  check('ouvert : le propriétaire le voit, sans tuile +', await count(ana, 'text=ouvert aux ajouts') === 1 && await count(ana, ADD) === 0)
 
   await anon.reload()
-  await anon.click('text=Suggérer un objet')
+  check('ouvert : tuile + au bout de la grille', await count(anon, `.grid >> ${ADD}`) === 1)
+  await anon.screenshot({ path: `${SHOTS}/2a-tuile-plus.png`, fullPage: true })
+  await openAdd(anon)
   check('visiteur sans compte : modale d’inscription (stub)', await count(anon, '[data-todo=signup-modal]') === 1)
   await anon.screenshot({ path: `${SHOTS}/2-visiteur-sans-compte.png` })
 
   // Bob suggère
   const bob = await ctx('bob@test.fr')
-  await bob.click('text=Suggérer un objet')
+  await openAdd(bob)
+  await bob.waitForSelector('button[role=option]:has-text("Wok de Bob")', { timeout: 10000 }).catch(() => {})
+  check('modale : onglet « Depuis mon Tiroir » par défaut, avec ses objets', await count(bob, 'button[role=option]:has-text("Wok de Bob")') === 1)
+  await bob.click('text=Nouvel objet')
   await bob.fill('input[placeholder="Ex. : Couteau de chef"]', 'Couteau de chef')
   await bob.fill('input[placeholder="https://…"]', 'www.exemple.fr/couteau')
   await bob.fill('input[placeholder="Ex. : 49,90"]', '89,90')
   await bob.screenshot({ path: `${SHOTS}/3-formulaire.png` })
   await bob.click('text=Envoyer la suggestion')
-  await bob.waitForSelector('text=Suggestion envoyée')
+  await bob.waitForSelector('text=Ajout envoyé')
   check('Bob voit sa suggestion en fantôme', await count(bob, '.grid >> text=Couteau de chef') === 1)
   await bob.screenshot({ path: `${SHOTS}/4-bob-apres-suggestion.png`, fullPage: true })
-  await bob.click('text=Suggérer un objet')
+  await openAdd(bob)
+  await bob.click('text=Nouvel objet')
   await bob.fill('input[placeholder="Ex. : Couteau de chef"]', 'Mandoline')
   await bob.click('text=Envoyer la suggestion')
   await bob.waitForSelector('.grid >> text=Mandoline')
 
   const chloe = await ctx('chloe@test.fr')
   check('Chloé ne voit pas les suggestions en attente de Bob', await count(chloe, 'text=Couteau de chef') === 0)
-  await chloe.click('text=Suggérer un objet')
+  await openAdd(chloe)
+  await chloe.click('text=Nouvel objet')
   await chloe.fill('input[placeholder="Ex. : Couteau de chef"]', 'Planche à découper')
   await chloe.fill('input[placeholder="https://…"]', 'javascript:alert(1)')
   await chloe.click('text=Envoyer la suggestion')
@@ -87,9 +99,24 @@ if (phase === 'after') {
   await chloe.click('text=Envoyer la suggestion')
   await chloe.waitForSelector('.grid >> text=Planche à découper')
 
+  // Bob propose un objet de son propre Tiroir
+  await openAdd(bob)
+  await bob.click('button[role=option]:has-text("Wok de Bob")')
+  await bob.screenshot({ path: `${SHOTS}/3b-depuis-mon-tiroir.png` })
+  await bob.click('text=Proposer cet objet')
+  await bob.waitForSelector('.grid >> text=Wok de Bob')
+  check('objet du Tiroir : carte avec photo et « Du Tiroir de »',
+    await count(bob, '.grid >> text=Du Tiroir de') === 1 && await count(bob, '.grid img.cover-img') === 1)
+  await openAdd(bob)
+  await bob.click('button[role=option]:has-text("Wok de Bob")')
+  await bob.click('text=Proposer cet objet')
+  await bob.waitForSelector('text=Tu as déjà proposé cet objet.')
+  check('le même objet ne se propose pas deux fois', true)
+  await bob.keyboard.press('Escape')
+
   // Ana trie
   await ana.reload()
-  check('module de tri : 3 en attente', (await ana.textContent('.count'))?.trim() === '3')
+  check('module de tri : 4 en attente', (await ana.textContent('.count'))?.trim() === '4')
   check('grille : 3 fantômes avec auteur', await count(ana, '.grid >> text=Suggéré par') === 3)
   await ana.screenshot({ path: `${SHOTS}/5-proprietaire-a-trier.png`, fullPage: true })
   check('première carte = la plus ancienne', (await ana.textContent('.card.top h3')) === 'Couteau de chef')
@@ -113,6 +140,10 @@ if (phase === 'after') {
   await ana.waitForFunction(() => document.querySelector('.card.top h3')?.textContent === 'Planche à découper')
   await ana.waitForSelector('.btn-keep:not([disabled])')
   await ana.click('text=♥ Garder')
+  await ana.waitForFunction(() => document.querySelector('.card.top h3')?.textContent === 'Wok de Bob')
+  check('la carte de tri montre la photo de l’objet', await count(ana, '.card.top img.card-img') === 1)
+  await ana.waitForSelector('.btn-keep:not([disabled])')
+  await ana.click('text=♥ Garder')
   await ana.waitForSelector('text=Tout est trié')
   await ana.waitForSelector('.undo:not([disabled])')
   check('tout trié : annulation encore possible', await ana.isEnabled('text=Annuler le dernier choix'))
@@ -120,7 +151,7 @@ if (phase === 'after') {
   await ana.reload()
   await ana.waitForLoadState('networkidle')
   check('après rechargement : module masqué', await count(ana, 'text=Tout est trié') + await count(ana, 'text=Suggestions à trier') === 0)
-  check('idées gardées en grille', await count(ana, '.grid >> text=Idée') === 2)
+  check('idées gardées en grille', await count(ana, '.grid >> text=Idée') === 3)
 
   await bob.reload()
   check('Bob voit l’idée validée, plus la suggestion écartée', await count(bob, '.grid >> text=Couteau de chef') === 1 && await count(bob, '.grid >> text=Mandoline') === 0)
@@ -131,9 +162,10 @@ if (phase === 'after') {
   check('lien protégé : mot de passe demandé', await count(bob2, 'text=Partage protégé') === 1)
   await bob2.fill('input[type=password]', 'tiroir')
   await bob2.click('text=Valider')
-  await bob2.waitForSelector('text=Suggérer un objet')
-  await bob2.click('text=Suggérer un objet')
-  check('cookie signé : formulaire direct', await count(bob2, 'text=Envoyer la suggestion') === 1)
+  await bob2.waitForSelector(ADD)
+  await openAdd(bob2)
+  check('cookie signé : modale directe', await count(bob2, 'text=Depuis mon Tiroir') === 1)
+  await bob2.click('text=Nouvel objet')
   await bob2.fill('input[placeholder="Ex. : Couteau de chef"]', 'Fouet')
   await bob2.click('text=Envoyer la suggestion')
   await bob2.waitForSelector('.grid >> text=Fouet')
@@ -148,8 +180,8 @@ if (phase === 'after') {
   await forged.addCookies([{ name: 'tiroir_share_secret', value: `${Date.now()}.ok`, url: BASE }])
   await fp.reload()
   await fp.waitForLoadState('networkidle')
-  check('ancien cookie : la page s’ouvre comme avant', await count(fp, 'text=Suggérer un objet') === 1)
-  await fp.click('text=Suggérer un objet')
+  check('ancien cookie : la page s’ouvre comme avant', await count(fp, ADD) === 1)
+  await openAdd(fp)
   check('ancien cookie : mot de passe exigé pour suggérer', await count(fp, 'text=Confirme le mot de passe') === 1)
   const status = await fp.evaluate(async () => (await fetch('/api/shares/secret/suggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'Hack' }) })).status)
   check('ancien cookie : API refuse (403)', status === 403, String(status))
@@ -158,11 +190,10 @@ if (phase === 'after') {
   const st = await anon.evaluate(async () => (await fetch('/api/shares/cuisine/suggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'X' }) })).status)
   check('API sans compte : 401', st === 401, String(st))
 
-  // Désactivation : retour à l'identique pour les visiteurs
-  await ana.click('[role=switch]')
-  await ana.waitForSelector('[role=switch][aria-checked=false]')
+  // Fermeture depuis l'app : retour à l'identique pour les visiteurs
+  setAllow('cuisine', false)
   await bob.reload()
-  check('désactivé : plus de bouton ni de fantômes pour le visiteur', await count(bob, 'text=Suggérer un objet') === 0 && await count(bob, '.grid > .card') === 2)
+  check('fermé : plus de tuile ni de fantômes pour le visiteur', await count(bob, ADD) === 0 && await count(bob, '.grid > .card') === 2)
   const st2 = await bob.evaluate(async () => (await fetch('/api/shares/cuisine/suggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'X' }) })).status)
   check('désactivé : API refuse (403)', st2 === 403, String(st2))
 
