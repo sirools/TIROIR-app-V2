@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { COMMANDMENTS } from '../components/torix/commandments'
+import { COMMANDMENTS, isRestTime } from '../components/torix/commandments'
 import { NARRATIVE_STAGES, REGISTERS, torixMemoryPrompt } from '../components/torix/memory'
 
 describe('mémoire de Torix', () => {
@@ -31,5 +31,23 @@ describe('les douze commandements', () => {
     const prompt = torixMemoryPrompt()
     expect(prompt.indexOf('12. Tu respecteras ma voix')).toBeGreaterThan(-1)
     expect(prompt.indexOf('douze commandements')).toBeLessThan(prompt.indexOf('Structure narrative'))
+  })
+})
+
+describe('repos obligatoire (commandement 4)', () => {
+  const at = (h: number, m: number) => new Date(2026, 8, 28, h, m)
+
+  test('de 21 h 30 (inclus) à 7 h (exclu)', () => {
+    expect(isRestTime(at(21, 29))).toBe(false)
+    expect(isRestTime(at(21, 30))).toBe(true)
+    expect(isRestTime(at(0, 0))).toBe(true)
+    expect(isRestTime(at(6, 59))).toBe(true)
+    expect(isRestTime(at(7, 0))).toBe(false)
+    expect(isRestTime(at(12, 0))).toBe(false)
+  })
+
+  test('fidélité : l’adultère n’est pas une option', () => {
+    expect(COMMANDMENTS[6].text).toContain('l’adultère n’est pas une option')
+    expect(COMMANDMENTS[3].text).toContain('21 h 30 à 7 h')
   })
 })

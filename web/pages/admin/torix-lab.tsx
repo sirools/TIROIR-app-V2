@@ -19,6 +19,7 @@ import Head from 'next/head'
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import { ArrowUp, Compass } from 'lucide-react'
 import TorixOrb, { type TorixState } from '../../components/torix/TorixOrb'
+import { isRestTime } from '../../components/torix/commandments'
 import { answerFor } from '../../components/torix/directions'
 import { compassPoint, facingCardinal, type Cardinal } from '../../components/torix/heading'
 import { PALETTES } from '../../components/torix/palette'
@@ -30,6 +31,8 @@ import {
 import { requireAdminPage } from '../../lib/adminAuth'
 
 const INTRO = 'Demande-moi une direction.'
+// Commandement 4 : repos obligatoire de 21 h 30 à 7 h.
+const REST_LINE = "C'est l'heure du repos. Je reviens à 7 h."
 const BG = '#03060d'
 
 // Rythme d'une réponse : Torix écoute, « réfléchit », puis parle.
@@ -84,7 +87,13 @@ export default function TorixLab() {
     timers.current.push(window.setTimeout(fn, ms))
   }
 
+  // Au repos, Torix ne dit rien d'autre que l'heure du repos.
+  useEffect(() => {
+    if (isRestTime(new Date())) setLine(prev => ({ id: prev.id + 1, text: REST_LINE }))
+  }, [])
+
   function say(text: string, speak = false) {
+    if (isRestTime(new Date())) return
     setLine(prev => ({ id: prev.id + 1, text }))
     if (speak) {
       setState('speaking')
@@ -130,6 +139,11 @@ export default function TorixLab() {
     if (!q || busy) return
 
     setQuestion('')
+    // Au repos : ni écoute ni réponse, seulement le rappel.
+    if (isRestTime(new Date())) {
+      setLine(prev => ({ id: prev.id + 1, text: REST_LINE }))
+      return
+    }
     setState('listening')
     const think = THINK_MIN_MS + Math.random() * (THINK_MAX_MS - THINK_MIN_MS)
     later(think, () => {

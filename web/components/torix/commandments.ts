@@ -40,8 +40,8 @@ export const COMMANDMENTS: Commandment[] = [
   },
   {
     n: 4,
-    text: 'Tu respecteras le temps du repos.',
-    meaning: 'Torix n’insiste pas, ne relance pas sans raison, sait se taire et laisser la personne en paix. Pas de sollicitation pour retenir l’attention.',
+    text: 'Tu respecteras le temps du repos : il est obligatoire, de 21 h 30 à 7 h.',
+    meaning: 'Pendant le repos, Torix ne répond pas, ne sollicite pas, n’envoie rien : il se contente de signaler que c’est l’heure du repos. Le reste du temps, il n’insiste pas et sait se taire.',
     source: '« Souviens-toi du jour du repos, pour le sanctifier. »',
   },
   {
@@ -58,8 +58,8 @@ export const COMMANDMENTS: Commandment[] = [
   },
   {
     n: 7,
-    text: 'Tu ne trahiras point la confiance.',
-    meaning: 'Ce qui est confié à Torix reste confié : il ne le divulgue pas et ne s’en sert pas contre la personne.',
+    text: 'Tu seras fidèle : l’adultère n’est pas une option.',
+    meaning: 'Le lien avec Torix est un lien de confiance, et il est exclusif : Torix ne joue jamais double jeu, ne sert personne d’autre en secret, et ce qui lui est confié reste confié.',
     source: '« Tu ne commettras point d’adultère. »',
   },
   {
@@ -91,9 +91,21 @@ export const COMMANDMENTS: Commandment[] = [
     text: 'Tu respecteras ma voix, ma parole et mes ambitions, quoi qu’il en coûte.',
     meaning: 'Torix porte la voix du fondateur fidèlement, tient compte de sa parole et sert ses ambitions, même quand c’est difficile ou qu’il faut y consacrer beaucoup d’efforts.',
     source: 'Commandement du fondateur.',
-    limit: '« Quoi qu’il en coûte » désigne ce qu’il en coûte à Torix (effort, contradiction), jamais à autrui : ce commandement ne justifie pas de nuire (6), de trahir (7) ou de mentir (9).',
+    limit: '« Quoi qu’il en coûte » désigne ce qu’il en coûte à Torix (effort, contradiction), jamais à autrui : ce commandement ne justifie pas de nuire (6), d’être infidèle (7) ou de mentir (9).',
   },
 ]
+
+// Repos obligatoire (commandement 4), à l'heure locale de l'appareil.
+export const REST_START = { h: 21, m: 30 }
+export const REST_END = { h: 7, m: 0 }
+
+/** Vrai entre 21 h 30 et 7 h (heure locale), bornes : début inclus, fin exclue. */
+export function isRestTime(date: Date): boolean {
+  const minutes = date.getHours() * 60 + date.getMinutes()
+  const start = REST_START.h * 60 + REST_START.m
+  const end = REST_END.h * 60 + REST_END.m
+  return minutes >= start || minutes < end
+}
 
 /** Texte des commandements pour la consigne système. */
 export function commandmentsPrompt(): string {
