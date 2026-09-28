@@ -14,6 +14,8 @@ export interface ShareLinkOptions {
   password_protected?: boolean
   allow_download?: boolean
   include_documents?: boolean
+  /** Liste collaborative : les destinataires peuvent proposer des objets. */
+  allow_suggestions?: boolean
   fields?: Partial<ShareFields>
   contact_name?: string | null
   contact_email?: string | null
@@ -70,6 +72,7 @@ export function ShareSettingsSheet({ visible, link, onClose, onSaved }: Props) {
   const [fields, setFields] = useState<ShareFields>(ALL_FIELDS)
   const [allowDownload, setAllowDownload] = useState(false)
   const [includeDocuments, setIncludeDocuments] = useState(false)
+  const [allowSuggestions, setAllowSuggestions] = useState(false)
   const [passwordProtected, setPasswordProtected] = useState(false)
   const [expiresDays, setExpiresDays] = useState<number | null>(null)
   const [durationMenuOpen, setDurationMenuOpen] = useState(false)
@@ -84,6 +87,7 @@ export function ShareSettingsSheet({ visible, link, onClose, onSaved }: Props) {
     setFields({ ...ALL_FIELDS, ...(o.fields ?? {}) })
     setAllowDownload(o.allow_download ?? false)
     setIncludeDocuments(o.include_documents ?? false)
+    setAllowSuggestions(o.allow_suggestions ?? false)
     setPasswordProtected(o.password_protected ?? false)
     setExpiresDays(remainingDays(link.expires_at))
   }, [visible, link?.id])
@@ -107,6 +111,7 @@ export function ShareSettingsSheet({ visible, link, onClose, onSaved }: Props) {
       ...(link.options ?? {}),
       allow_download: allowDownload,
       include_documents: includeDocuments,
+      allow_suggestions: allowSuggestions,
       password_protected: passwordProtected,
       fields,
     }
@@ -162,6 +167,21 @@ export function ShareSettingsSheet({ visible, link, onClose, onSaved }: Props) {
             <TouchableOpacity style={s.field} onPress={() => setDurationMenuOpen(true)} activeOpacity={0.7}>
               <Text style={s.inputValue}>{t(durationLabel)}</Text>
             </TouchableOpacity>
+          </View>
+
+          <View style={s.section}>
+            <Text style={s.sectionLabel}>{t('sharePanel.collaborativeLabel')}</Text>
+            <View style={s.row}>
+              <Text style={s.rowLabel}>{t('sharePanel.optSuggestions')}</Text>
+              <Switch
+                value={allowSuggestions}
+                onValueChange={setAllowSuggestions}
+                trackColor={{ false: Colors.borderLight, true: Colors.accent }}
+                thumbColor="white"
+                style={s.switch}
+              />
+            </View>
+            <Text style={s.sectionHelp}>{t('sharePanel.optSuggestionsHelp')}</Text>
           </View>
 
           <View style={s.section}>
