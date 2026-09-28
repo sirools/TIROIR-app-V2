@@ -4,3 +4,6 @@ ssh/
 filebrowser/database.db
 # Contexte de build synchronisé depuis web/ (recréé par deploy.sh)
 tiroir/app/
+# Clone et jeton de nas-update.sh (sur le NAS uniquement)
+src/
+.github-token

@@ -5,6 +5,11 @@ import { supabase } from '../lib/supabase'
 // Passer à true une fois le Services ID + secret Apple configurés dans Supabase
 const APPLE_LOGIN_ENABLED = false
 
+/** Page de retour après connexion (?next=/s/abc) : chemin interne seulement. */
+function safeNext(raw: unknown): string {
+  return typeof raw === 'string' && /^\/(?![/\\])/.test(raw) ? raw : '/'
+}
+
 export default function Login() {
   const router = useRouter()
   const [email, setEmail]       = useState('')
@@ -29,14 +34,14 @@ export default function Login() {
       setLoading(false)
       return
     }
-    router.push('/')
+    router.push(safeNext(router.query.next))
   }
 
   async function handleOAuth(provider: 'google' | 'apple') {
     setError(null)
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${window.location.origin}${safeNext(router.query.next)}` },
     })
     if (error) setError(error.message)
   }

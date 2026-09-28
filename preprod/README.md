@@ -48,3 +48,26 @@ cat preprod/ssh/tiroir_preprod_ed25519.pub | ssh clementougier@192.168.1.23 \
 ## Déployer une nouvelle version (V4/V5/V6)
 Depuis `main` à jour : `cd preprod && ./deploy.sh clementougier@192.168.1.23`
 (rsync du code + rebuild de l'image + redémarrage — le drive et le hello world ne bougent pas).
+
+## Mettre à jour sans le Mac (depuis l'iPhone)
+
+`nas-update.sh` tourne **sur le NAS** : il garde un clone du repo dans
+`src/` (sauvegarde locale du code), se place sur la branche voulue, puis
+reconstruit la preprod avec le `.env.preprod` déjà présent.
+
+**Installation unique, depuis le Mac :**
+1. `./deploy.sh clementougier@192.168.1.23` (copie aussi `nas-update.sh`).
+2. Créer un jeton GitHub **en lecture seule** : github.com → Settings →
+   Developer settings → Fine-grained tokens → dépôt `sirools/TIROIR-app-V2`
+   uniquement, permission *Contents : Read-only*.
+3. Le déposer sur le NAS, sans qu'il passe dans l'historique du shell :
+   ```bash
+   ssh clementougier@192.168.1.23 'umask 077; cat > /volume1/docker/tiroir-preprod/.github-token'
+   # coller le jeton, Entrée, puis Ctrl+D
+   ```
+
+**Ensuite, depuis l'iPhone** (app SSH type Termius, sur le Wi-Fi de la maison) :
+```bash
+cd /volume1/docker/tiroir-preprod
+./nas-update.sh feature/v4-suggestions-web   # ou ./nas-update.sh main
+```

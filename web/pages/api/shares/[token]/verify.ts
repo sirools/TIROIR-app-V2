@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { serialize } from 'cookie'
 import { createHash } from 'crypto'
 import { makeCookieName, COOKIE_MAX_AGE_SEC } from '../../../../lib/shareAuth'
+import { signedCookieValue } from '../../../../lib/shareCookieSignature'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -34,7 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isProd = process.env.NODE_ENV === 'production'
   const cookieName = makeCookieName(token)
   const setAuthCookie = () => {
-    res.setHeader('Set-Cookie', serialize(cookieName, `${Date.now()}.ok`, {
+    // Signé : exigé pour suggérer (écriture). Reste lisible par hasValidCookie.
+    res.setHeader('Set-Cookie', serialize(cookieName, signedCookieValue(token), {
       httpOnly: true,
       sameSite: 'lax',
       secure: isProd,

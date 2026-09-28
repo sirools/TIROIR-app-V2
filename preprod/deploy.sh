@@ -45,7 +45,7 @@ echo "==> Copie du stack (rsync)…"
 ssh $SSH_OPTS "$TARGET" "mkdir -p '$REMOTE_DIR'"
 rsync -az --delete -e "ssh $SSH_OPTS" --exclude '.DS_Store' \
   "$HERE/docker-compose.yml" "$HERE/web" "$HERE/nginx" \
-  "$HERE/filebrowser" "$HERE/tiroir" \
+  "$HERE/filebrowser" "$HERE/tiroir" "$HERE/nas-update.sh" \
   "$TARGET:$REMOTE_DIR/"
 
 # 5. Build + up (les NEXT_PUBLIC_* du build viennent de .env.preprod)

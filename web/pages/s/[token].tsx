@@ -3,11 +3,22 @@ import type { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useReducer, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
+import WishCard from '../../components/share/WishCard'
+import SuggestModal, { type SuggestStep } from '../../components/share/SuggestModal'
+import SuggestionTriage from '../../components/share/SuggestionTriage'
+import SuggestionsToggle from '../../components/share/SuggestionsToggle'
 import { hasValidCookie } from '../../lib/shareAuth'
+import { hasSignedCookie } from '../../lib/shareCookieSignature'
 import { isLot, lotTotal } from '../../lib/quantity'
+import { serverSupabase, supabase as browserSupabase } from '../../lib/supabase'
+import { loadShareSuggestions, type ShareCollection } from '../../lib/shareSuggestions'
+import {
+  initialTriageState, pendingWishes, showTriage, triageReducer, visibleWishes,
+  type TriageDecision, type Wish,
+} from '../../lib/suggestions'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -49,7 +60,21 @@ const ALL_FIELDS: ShareFields = {
   values: true, location: true, attributes: true, description: true, insurance: true,
 }
 
+/**
+ * Idées et suggestions de la collection partagée (brouillon v4 0003).
+ * Absent ou `collection: null` : la page se comporte exactement comme avant.
+ */
+interface SuggestionsProps {
+  collection: ShareCollection | null
+  wishes: Wish[]
+  isOwner: boolean
+  isLoggedIn: boolean
+  /** Lien protégé ouvert avec un ancien cookie non signé : mot de passe à confirmer pour écrire. */
+  suggestLocked: boolean
+}
+
 interface Props {
+  suggestions?: SuggestionsProps
   token: string
   title: string
   objects: SharedObject[]
@@ -124,7 +149,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   const { data: link, error: linkErr } = await supabase
     .from('share_links')
-    .select('title, object_ids, options, expires_at, is_archived')
+    .select('id, user_id, title, object_ids, options, expires_at, is_archived')
     .eq('token', token)
     .single()
 
@@ -230,8 +255,27 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     cover_url: coverUrls[o.id] ?? null,
   }))
 
+  // Qui regarde : getUser() vérifie le jeton auprès de Supabase, une session
+  // simplement décodée ne suffit pas à montrer la vue du propriétaire.
+  let viewerId: string | null = null
+  try {
+    const { data } = await serverSupabase(ctx).auth.getUser()
+    viewerId = data.user?.id ?? null
+  } catch {
+    viewerId = null
+  }
+  const { collection, wishes } = await loadShareSuggestions(supabase, link, viewerId)
+  const suggestions: SuggestionsProps = {
+    collection,
+    wishes,
+    isOwner: viewerId !== null && viewerId === link.user_id,
+    isLoggedIn: viewerId !== null,
+    suggestLocked: Boolean(link.options?.password_protected) && !hasSignedCookie(token, ctx.req),
+  }
+
   return {
     props: {
+      suggestions,
       token,
       title: link.title ?? 'Partage TiROiR',
       objects,
@@ -346,8 +390,54 @@ function sortObjects(objects: SharedObject[], key: SortKey | null, dir: SortDir)
   })
 }
 
-export default function ShareV2Page({ token, title, objects, allowDownload, fields = ALL_FIELDS, expiresAt, error, gated }: Props) {
+export default function ShareV2Page({ token, title, objects, allowDownload, fields = ALL_FIELDS, expiresAt, error, gated, suggestions }: Props) {
   const router = useRouter()
+  const collection = suggestions?.collection ?? null
+  const isOwner = suggestions?.isOwner ?? false
+  const [suggestionsEnabled, setSuggestionsEnabled] = useState(collection?.suggestionsEnabled ?? false)
+  const [triage, dispatch] = useReducer(triageReducer, suggestions?.wishes ?? [], initialTriageState)
+  const [triageBusy, setTriageBusy] = useState(false)
+  const [triageError, setTriageError] = useState<string | null>(null)
+  const [suggestStep, setSuggestStep] = useState<SuggestStep | null>(null)
+  const [justSuggested, setJustSuggested] = useState(false)
+
+  // Le « + » : collection déterminée, suggestions activées, pas le propriétaire.
+  const canSuggest = Boolean(collection) && suggestionsEnabled && !isOwner
+  const wishesInGrid = visibleWishes(triage)
+  const pending = pendingWishes(triage)
+
+  function openSuggest() {
+    setJustSuggested(false)
+    if (!suggestions?.isLoggedIn) setSuggestStep('signup')
+    else if (suggestions.suggestLocked) setSuggestStep('password')
+    else setSuggestStep('form')
+  }
+
+  async function decide(id: string, decision: TriageDecision) {
+    const before = triage.history
+    setTriageBusy(true); setTriageError(null)
+    dispatch({ type: 'decide', id, decision })
+    const { error: rpcErr } = await browserSupabase.rpc('triage_collection_wish', { p_wish_id: id, p_decision: decision })
+    if (rpcErr) {
+      dispatch({ type: 'rollback', id, status: 'suggested', history: before })
+      setTriageError('Ce choix n’a pas pu être enregistré. Réessaie.')
+    }
+    setTriageBusy(false)
+  }
+
+  async function undo() {
+    const last = triage.history[triage.history.length - 1]
+    if (!last) return
+    const before = triage.history
+    setTriageBusy(true); setTriageError(null)
+    dispatch({ type: 'undo' })
+    const { error: rpcErr } = await browserSupabase.rpc('undo_collection_wish_triage', { p_wish_id: last.id })
+    if (rpcErr) {
+      dispatch({ type: 'rollback', id: last.id, status: last.decision === 'keep' ? 'idea' : 'dismissed', history: before })
+      setTriageError('L’annulation n’a pas pu être enregistrée. Réessaie.')
+    }
+    setTriageBusy(false)
+  }
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const [sortKey, setSortKey] = useState<SortKey | null>(null)
   const [sortDir, setSortDir] = useState<SortDir>('asc')
@@ -522,6 +612,12 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                     </p>
                   )}
                 </div>
+                <div className="hero-actions">
+                {canSuggest && (
+                  <button type="button" className="suggest-btn" onClick={openSuggest}>
+                    <span aria-hidden>+</span> Suggérer un objet
+                  </button>
+                )}
                 <div className="view-toggle" role="group" aria-label="Mode d'affichage">
                   <button
                     type="button"
@@ -540,7 +636,34 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                     ☰ Tableau
                   </button>
                 </div>
+                </div>
               </div>
+
+              {justSuggested && (
+                <p className="suggest-ok" role="status">
+                  Suggestion envoyée. Elle apparaît en pointillé jusqu’à ce que le propriétaire la trie.
+                </p>
+              )}
+
+              {isOwner && collection && (
+                <SuggestionsToggle
+                  collectionId={collection.id}
+                  collectionName={collection.name}
+                  enabled={suggestionsEnabled}
+                  onChange={setSuggestionsEnabled}
+                />
+              )}
+
+              {isOwner && showTriage(triage) && (
+                <SuggestionTriage
+                  pending={pending}
+                  canUndo={triage.history.length > 0}
+                  busy={triageBusy}
+                  error={triageError}
+                  onDecide={decide}
+                  onUndo={undo}
+                />
+              )}
 
               {view === 'grid' ? (
                 <div className="grid">
@@ -585,6 +708,8 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                       </div>
                     </div>
                   ))}
+                  {/* Idées et suggestions : après les objets possédés, en « fantôme ». */}
+                  {wishesInGrid.map(w => <WishCard key={w.id} wish={w} />)}
                 </div>
               ) : (
                 <div className="table-wrap">
@@ -784,6 +909,15 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
           )}
         </main>
 
+        {suggestStep && (
+          <SuggestModal
+            token={token}
+            initialStep={suggestStep}
+            onClose={() => setSuggestStep(null)}
+            onCreated={wish => { dispatch({ type: 'add', wish }); setJustSuggested(true); setView('grid') }}
+          />
+        )}
+
         <footer className="footer">
           <Link href="/privacy" legacyBehavior passHref>
             <a className="footer-link">Politique de confidentialité</a>
@@ -825,6 +959,20 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
         }
         .expiry.urgent { color: #C2410C; }
         .page-sub { font-size: 14px; color: #A89F96; margin-top: 6px; }
+
+        /* Suggestions */
+        .hero-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .suggest-btn {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 9px 16px; border-radius: 999px; border: 0;
+          background: #F26900; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+        }
+        .suggest-btn span { font-size: 18px; line-height: 1; }
+        .suggest-btn:hover { background: #D85E00; }
+        .suggest-ok {
+          background: #FDF1E6; border: 1px solid #F8D2AE; color: #8A3D00;
+          border-radius: 12px; padding: 10px 14px; font-size: 14px; margin-bottom: 20px;
+        }
 
         /* View toggle */
         .view-toggle {

@@ -33,12 +33,15 @@ v4/
 ├── README.md
 ├── docs/
 │   ├── vision.md                         # la vision V4.0, résumée depuis Notion
-│   └── migration-tiroir-partage.md     # ce qui bloque en V2, et le plan par phases
+│   ├── migration-tiroir-partage.md     # ce qui bloque en V2, et le plan par phases
+│   └── suggestions.md                    # suggestions sur une collection partagée + protocole de test
 ├── supabase/
 │   ├── drafts/
 │   │   ├── 0001_drawer_members.sql       # trousseau, serrure, invitations, lecture dédiée
-│   │   └── 0002_object_loans.sql         # le prêt comme objet de première classe
-│   └── tests/                            # 45 tests du brouillon 0001 (./run.sh URL_BASE_JETABLE)
+│   │   ├── 0002_object_loans.sql         # le prêt comme objet de première classe
+│   │   └── 0003_collection_suggestions.sql  # idées et suggestions d'une collection partagée
+│   └── tests/                            # 45 tests 0001 + 42 tests 0003 (./run.sh URL_BASE_JETABLE)
+├── e2e/suggestions/                      # banc e2e local des suggestions (Playwright)
 └── domain/
     ├── serrure.ts                        # niveaux de serrure, rôles, droits
     ├── pret.ts                           # cycle de vie d'un prêt
