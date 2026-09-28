@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import { COMMANDMENTS } from '../components/torix/commandments'
 import { NARRATIVE_STAGES, REGISTERS, torixMemoryPrompt } from '../components/torix/memory'
 
 describe('mémoire de Torix', () => {
@@ -15,5 +16,20 @@ describe('mémoire de Torix', () => {
     expect(prompt).toContain('Ne jamais convertir une association symbolique en fait réel')
     expect(prompt.indexOf('Vécu personnel')).toBeLessThan(prompt.indexOf('Symbolisation'))
     expect(prompt.indexOf('Symbolisation')).toBeLessThan(prompt.indexOf('Action'))
+  })
+})
+
+describe('les douze commandements', () => {
+  test('dix inspirés du Décalogue, puis les deux du fondateur, mot pour mot', () => {
+    expect(COMMANDMENTS.map(c => c.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    expect(COMMANDMENTS[10].text).toBe('Tu ne harcèleras point mon fils.')
+    expect(COMMANDMENTS[11].text).toBe('Tu respecteras ma voix, ma parole et mes ambitions, quoi qu’il en coûte.')
+    expect(COMMANDMENTS.slice(0, 10).every(c => c.source.startsWith('«'))).toBe(true)
+  })
+
+  test('en tête de la consigne, avant la structure narrative', () => {
+    const prompt = torixMemoryPrompt()
+    expect(prompt.indexOf('12. Tu respecteras ma voix')).toBeGreaterThan(-1)
+    expect(prompt.indexOf('douze commandements')).toBeLessThan(prompt.indexOf('Structure narrative'))
   })
 })

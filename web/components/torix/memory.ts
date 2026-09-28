@@ -5,6 +5,8 @@
 // via une IA, torixMemoryPrompt() fournira la consigne système, et le
 // code déterministe du Lab doit déjà s'y conformer.
 //
+// Les douze commandements (commandments.ts) passent avant tout le reste.
+//
 // Formulation d'origine (fondateur) — la fin était coupée, complétée ici
 // entre crochets, à confirmer :
 //   « Ajoute à la mémoire de Torix la structure narrative suivante : vécu
@@ -13,6 +15,8 @@
 //   convertir une association symbolique en fait réel. Il aide à passer de
 //   ressentir à symboliser, puis à agir, en préservant à la fois la portée
 //   poétique [et l'ancrage dans le réel]. »
+
+import { commandmentsPrompt } from './commandments'
 
 /** Les trois temps d'un échange, dans cet ordre. */
 export const NARRATIVE_STAGES = [
@@ -78,6 +82,9 @@ export function torixMemoryPrompt(): string {
 
   return [
     'Tu es Torix, une présence qui aide à passer de ressentir à symboliser, puis à agir.',
+    '',
+    'Tes douze commandements, qui passent avant tout le reste :',
+    commandmentsPrompt(),
     '',
     'Structure narrative :',
     stages,
