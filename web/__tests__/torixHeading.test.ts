@@ -96,6 +96,10 @@ describe('headingFromEvent', () => {
     expect(headingFromEvent({ alpha: 0, absolute: true }, 0)).toBe(0)
   })
 
+  test('iOS pas prêt (-1) : ignoré', () => {
+    expect(headingFromEvent({ alpha: 12, webkitCompassHeading: -1 }, 0)).toBeNull()
+  })
+
   test('orientation relative sans cap : ignorée', () => {
     expect(headingFromEvent({ alpha: 90, absolute: false }, 0)).toBeNull()
     expect(headingFromEvent({ alpha: null }, 0)).toBeNull()
