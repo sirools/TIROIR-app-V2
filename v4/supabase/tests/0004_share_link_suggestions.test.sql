@@ -21,7 +21,7 @@ SELECT pg_temp.check('report : les liens hors Cuisine restent fermés',
   NOT EXISTS (SELECT 1 FROM public.share_links WHERE token IN ('melange','velo') AND (options ->> 'allow_suggestions')::boolean));
 
 -- Le réglage du lien fait foi, plus celui de la collection
-UPDATE public.collections SET suggestions_enabled = false;
+-- (0004 a déjà éteint le drapeau par collection)
 SET ROLE service_role;
 SELECT (public.create_collection_suggestion('cuisine', :'B', 'Couteau')).id AS w1 \gset
 SELECT pg_temp.check('option du lien active : suggestion acceptée', :'w1' IS NOT NULL);
