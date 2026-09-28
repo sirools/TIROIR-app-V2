@@ -1,14 +1,15 @@
 import { describe, expect, test } from 'vitest'
 import {
   angleDelta,
+  CARDINAL_ENTER_DEG,
+  CARDINAL_EXIT_DEG,
+  compassPoint,
+  facingCardinal,
   headingFromEvent,
-  isFacingNorth,
-  NORTH_ENTER_DEG,
-  NORTH_EXIT_DEG,
   normalize,
-  offNorth,
   smoothHeading,
 } from '../components/torix/heading'
+import { PALETTES, paletteAt } from '../components/torix/palette'
 
 describe('normalize / angleDelta', () => {
   test('ramène dans [0, 360)', () => {
@@ -40,21 +41,47 @@ describe('smoothHeading', () => {
   })
 })
 
-describe('isFacingNorth (hystérésis)', () => {
-  test('entre sous le seuil d’entrée, des deux côtés du nord', () => {
-    expect(isFacingNorth(NORTH_ENTER_DEG - 1, false)).toBe(true)
-    expect(isFacingNorth(360 - NORTH_ENTER_DEG + 1, false)).toBe(true)
-    expect(isFacingNorth(NORTH_ENTER_DEG + 3, false)).toBe(false)
+describe('facingCardinal (hystérésis)', () => {
+  test('les quatre points, des deux côtés', () => {
+    expect(facingCardinal(360 - CARDINAL_ENTER_DEG + 1, null)).toBe('N')
+    expect(facingCardinal(90 + CARDINAL_ENTER_DEG - 1, null)).toBe('E')
+    expect(facingCardinal(180, null)).toBe('S')
+    expect(facingCardinal(265, null)).toBe('W')
   })
 
-  test('ne ressort qu’au-delà du seuil de sortie', () => {
-    expect(isFacingNorth(NORTH_ENTER_DEG + 3, true)).toBe(true)
-    expect(isFacingNorth(NORTH_EXIT_DEG + 1, true)).toBe(false)
+  test('rien entre deux points', () => {
+    expect(facingCardinal(45, null)).toBeNull()
+    expect(facingCardinal(CARDINAL_ENTER_DEG + 3, null)).toBeNull()
   })
 
-  test('offNorth', () => {
-    expect(offNorth(350)).toBe(10)
-    expect(offNorth(180)).toBe(180)
+  test('garde le point jusqu’au seuil de sortie', () => {
+    expect(facingCardinal(CARDINAL_ENTER_DEG + 3, 'N')).toBe('N')
+    expect(facingCardinal(CARDINAL_EXIT_DEG + 1, 'N')).toBeNull()
+  })
+})
+
+describe('compassPoint', () => {
+  test('huit points, en français', () => {
+    expect(compassPoint(0)).toBe('N')
+    expect(compassPoint(124)).toBe('SE')
+    expect(compassPoint(230)).toBe('SO')
+    expect(compassPoint(275)).toBe('O')
+    expect(compassPoint(350)).toBe('N')
+  })
+})
+
+describe('paletteAt', () => {
+  test('exacte sur chaque point cardinal', () => {
+    expect(paletteAt(0)).toEqual(PALETTES.N)
+    expect(paletteAt(90)).toEqual(PALETTES.E)
+    expect(paletteAt(180)).toEqual(PALETTES.S)
+    expect(paletteAt(270)).toEqual(PALETTES.W)
+    expect(paletteAt(360)).toEqual(PALETTES.N)
+  })
+
+  test('le sud est un petit feu', () => {
+    expect(paletteAt(180).scale).toBeLessThan(paletteAt(0).scale)
+    expect(paletteAt(135).scale).toBeGreaterThan(paletteAt(180).scale)
   })
 })
 

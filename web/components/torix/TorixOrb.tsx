@@ -10,10 +10,13 @@
 // Taille pilotée par la variable CSS --torix-core (diamètre du cœur),
 // posée par le parent.
 //
-// Boussole (facultative) : `bearing` fait pivoter la flamme autour du cœur
-// (0 = vers le haut de l'écran, sens horaire) et `found` signale que Torix
-// fait face au nord. Sans `bearing`, la flamme monte, comme avant.
+// Boussole (facultative) : la flamme reste dressée — elle montre la
+// direction où pointe le téléphone — et prend la couleur de ce cap
+// (palette.ts). `facing` signale qu'on fait face à un point cardinal : la
+// flamme s'élance. Sans `heading`, Torix reste bleu, comme au nord.
 import type { CSSProperties } from 'react'
+import type { Cardinal } from './heading'
+import { paletteAt, paletteVars } from './palette'
 
 export type TorixState = 'idle' | 'listening' | 'speaking'
 
@@ -39,8 +42,14 @@ const LIVELY: Tongue[] = [
   { x: 55, w: 0.34, h: 2.1, d: 1.5, delay: -0.9, sway: 14 },
 ]
 
-function tongueStyle(t: Tongue): CSSProperties {
+function tongueStyle(t: Tongue, i: number): CSSProperties {
+  // Chaque langue pioche l'une des quatre teintes de la palette : au sud,
+  // c'est ce qui fait le feu multicolore.
+  const slot = i % 4
   return {
+    '--c-hi': `var(--s${slot}-hi)`,
+    '--c-mid': `var(--s${slot}-mid)`,
+    '--c-lo': `var(--s${slot}-lo)`,
     '--x': `${t.x}%`,
     '--w': t.w,
     '--h': t.h,
@@ -52,33 +61,35 @@ function tongueStyle(t: Tongue): CSSProperties {
 
 type Props = {
   state?: TorixState
-  /** Direction de la flamme en degrés (0 = haut de l'écran, horaire). */
-  bearing?: number | null
-  /** Torix fait face au nord : la flamme se redresse et s'intensifie. */
-  found?: boolean
+  /** Cap du téléphone en degrés (0 = nord, horaire), ou null sans boussole. */
+  heading?: number | null
+  /** Point cardinal auquel on fait face : la flamme s'élance. */
+  facing?: Cardinal | null
 }
 
-export default function TorixOrb({ state = 'idle', bearing = null, found = false }: Props) {
-  const seeking = bearing !== null
+export default function TorixOrb({ state = 'idle', heading = null, facing = null }: Props) {
+  const seeking = heading !== null
   return (
     <div
       className="orb"
       data-state={state}
-      data-compass={seeking ? (found ? 'found' : 'seeking') : undefined}
+      data-compass={seeking ? (facing ? 'found' : 'seeking') : undefined}
+      style={paletteVars(paletteAt(heading ?? 0))}
       aria-hidden="true"
     >
       <div className="layer aura"><span className="aura__glow" /></div>
 
-      {/* L'aiguille a la taille de l'orbe : ses calques se placent comme
-          avant, et elle pivote autour du centre du cœur. La rotation est
-          déjà lissée en amont, d'où l'absence de transition. */}
-      <div className="needle" style={{ transform: `rotate(${seeking ? bearing : 0}deg)` }}>
+      {/* Enveloppe à la taille de l'orbe : ses calques se placent comme
+          avant, et elle se met à l'échelle autour du centre du cœur (le
+          sud est un petit feu). Le cap est lissé en amont : pas de
+          transition. */}
+      <div className="needle">
         <div className="layer fire fire--calm">
           <span className="fire__bed" />
-          {CALM.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t)} />)}
+          {CALM.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t, i)} />)}
         </div>
         <div className="layer fire fire--lively">
-          {LIVELY.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t)} />)}
+          {LIVELY.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t, i + 1)} />)}
         </div>
       </div>
 
@@ -124,18 +135,17 @@ export default function TorixOrb({ state = 'idle', bearing = null, found = false
         .aura { width: calc(var(--core) * 3.2); height: calc(var(--core) * 3.2); }
         .aura__glow {
           position: absolute; inset: 0; border-radius: 50%;
-          background: radial-gradient(circle, rgba(34, 86, 214, 0.28) 0%, rgba(18, 48, 140, 0.12) 40%, rgba(6, 16, 50, 0) 68%);
+          background: radial-gradient(circle, rgba(var(--glow-lo), 0.3) 0%, rgba(var(--glow-lo), 0.1) 40%, rgba(var(--glow-lo), 0) 68%);
           animation: breathe 9s ease-in-out infinite;
         }
 
-        /* ---------- Aiguille (boussole) ---------- */
+        /* ---------- Enveloppe des flammes ---------- */
         .needle {
           position: absolute;
           inset: 0;
+          transform: scale(var(--fire-scale, 1));
           will-change: transform;
         }
-        /* Boussole coupée : la flamme revient doucement vers le haut. */
-        .orb:not([data-compass]) .needle { transition: transform 900ms var(--ease); }
 
         /* ---------- Énergie / flammes ---------- */
         .fire {
@@ -151,7 +161,7 @@ export default function TorixOrb({ state = 'idle', bearing = null, found = false
           width: calc(var(--core) * 1.5); height: calc(var(--core) * 1.1);
           margin-left: calc(var(--core) * -0.75);
           border-radius: 50%;
-          background: radial-gradient(ellipse at 50% 60%, rgba(70, 150, 255, 0.55) 0%, rgba(30, 80, 230, 0.22) 45%, rgba(10, 30, 120, 0) 72%);
+          background: radial-gradient(ellipse at 50% 60%, rgba(var(--glow-mid), 0.55) 0%, rgba(var(--glow-lo), 0.22) 45%, rgba(var(--glow-lo), 0) 72%);
           filter: blur(6px);
           transform-origin: 50% 80%;
           animation: bed 5.5s ease-in-out infinite;
@@ -166,10 +176,10 @@ export default function TorixOrb({ state = 'idle', bearing = null, found = false
           /* Goutte inversée : large à la base, effilée en haut. */
           border-radius: 50% 50% 46% 46% / 72% 72% 28% 28%;
           background: radial-gradient(ellipse 50% 62% at 50% 72%,
-            rgba(185, 238, 255, 0.95) 0%,
-            rgba(85, 175, 255, 0.75) 30%,
-            rgba(34, 96, 240, 0.4) 60%,
-            rgba(12, 40, 160, 0) 100%);
+            rgba(var(--c-hi), 0.95) 0%,
+            rgba(var(--c-mid), 0.75) 30%,
+            rgba(var(--c-lo), 0.4) 60%,
+            rgba(var(--c-lo), 0) 100%);
           filter: blur(6px);
           mix-blend-mode: screen;
           transform-origin: 50% 100%;
@@ -187,10 +197,10 @@ export default function TorixOrb({ state = 'idle', bearing = null, found = false
         .halo__glow {
           position: absolute; inset: 0; border-radius: 50%;
           background: radial-gradient(circle,
-            rgba(150, 205, 255, 0.55) 0%,
-            rgba(80, 150, 255, 0.34) 30%,
-            rgba(40, 95, 235, 0.14) 50%,
-            rgba(20, 50, 160, 0) 70%);
+            rgba(var(--glow-hi), 0.55) 0%,
+            rgba(var(--glow-mid), 0.34) 30%,
+            rgba(var(--glow-lo), 0.14) 50%,
+            rgba(var(--glow-lo), 0) 70%);
           animation: breathe 6.5s ease-in-out infinite, flicker 11s ease-in-out infinite;
         }
 
@@ -198,7 +208,7 @@ export default function TorixOrb({ state = 'idle', bearing = null, found = false
         .rings { width: var(--core); height: var(--core); opacity: 0; }
         .ring {
           position: absolute; inset: 0; border-radius: 50%;
-          border: 1px solid rgba(170, 215, 255, 0.5);
+          border: 1px solid rgba(var(--glow-hi), 0.5);
           opacity: 0;
         }
         .ring--in { animation: gather 1.5s var(--ease) infinite; }
@@ -215,7 +225,7 @@ export default function TorixOrb({ state = 'idle', bearing = null, found = false
           position: absolute;
           inset: calc(var(--core) * -0.22);
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(235, 245, 255, 0.55) 30%, rgba(140, 200, 255, 0.18) 55%, rgba(80, 140, 255, 0) 72%);
+          background: radial-gradient(circle, rgba(235, 245, 255, 0.55) 30%, rgba(var(--glow-hi), 0.18) 55%, rgba(var(--glow-mid), 0) 72%);
           animation: breathe 5s ease-in-out infinite;
         }
         .skin {
@@ -252,8 +262,8 @@ export default function TorixOrb({ state = 'idle', bearing = null, found = false
         .orb[data-state='speaking'] .skin--lively { opacity: 1; }
 
         /* ---------- Boussole ----------
-           En quête : la flamme se tasse et pâlit, comme si elle cherchait.
-           Au nord : elle s'élance, le halo et le cœur s'illuminent. */
+           Entre deux points cardinaux : la flamme se tasse et pâlit.
+           Face à l'un d'eux : elle s'élance, halo et cœur s'illuminent. */
         .orb[data-compass='seeking'] .fire--calm { transform: translate(-50%, -92%) scale(0.82, 0.78); opacity: 0.7; }
         .orb[data-compass='found'] .fire--calm { transform: translate(-50%, -92%) scale(1.08, 1.22); }
         .orb[data-compass='found'] .fire--lively { opacity: 0.85; }

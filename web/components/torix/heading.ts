@@ -21,20 +21,36 @@ export function smoothHeading(prev: number | null, raw: number, factor: number):
   return normalize(prev + angleDelta(prev, raw) * factor)
 }
 
-/** Écart au nord, en valeur absolue, dans [0, 180]. */
-export function offNorth(heading: number): number {
-  return Math.abs(angleDelta(heading, 0))
+export type Cardinal = 'N' | 'E' | 'S' | 'W'
+
+const CARDINALS: { id: Cardinal; deg: number }[] = [
+  { id: 'N', deg: 0 },
+  { id: 'E', deg: 90 },
+  { id: 'S', deg: 180 },
+  { id: 'W', deg: 270 },
+]
+
+// Hystérésis : on « trouve » un point cardinal à moins de ENTER degrés, on
+// ne le « perd » qu'au-delà de EXIT. Sans cet écart, la main qui tremble
+// ferait clignoter l'état à la frontière.
+export const CARDINAL_ENTER_DEG = 12
+export const CARDINAL_EXIT_DEG = 22
+
+/** Point cardinal auquel on fait face, ou null entre deux. */
+export function facingCardinal(heading: number, current: Cardinal | null): Cardinal | null {
+  if (current) {
+    const deg = CARDINALS.find(c => c.id === current)!.deg
+    if (Math.abs(angleDelta(heading, deg)) <= CARDINAL_EXIT_DEG) return current
+  }
+  const hit = CARDINALS.find(c => Math.abs(angleDelta(heading, c.deg)) <= CARDINAL_ENTER_DEG)
+  return hit ? hit.id : null
 }
 
-// Hystérésis : on « trouve » le nord à moins de ENTER degrés, on ne le
-// « perd » qu'au-delà de EXIT. Sans cet écart, la main qui tremble ferait
-// clignoter l'état à la frontière.
-export const NORTH_ENTER_DEG = 12
-export const NORTH_EXIT_DEG = 22
+const POINTS_FR = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO']
 
-export function isFacingNorth(heading: number, wasFacing: boolean): boolean {
-  const off = offNorth(heading)
-  return wasFacing ? off <= NORTH_EXIT_DEG : off <= NORTH_ENTER_DEG
+/** Abréviation française à huit points, comme la boussole iPhone. */
+export function compassPoint(heading: number): string {
+  return POINTS_FR[Math.round(normalize(heading) / 45) % 8]
 }
 
 /**

@@ -5,8 +5,11 @@
 // envoyé au serveur ni conservé.
 //
 // Boussole : une fois activée (geste obligatoire sur iOS), la flamme de
-// Torix pointe vers le nord et s'élance quand on lui fait face. Sans
-// capteur (ordinateur, accès refusé) ou avec ?sim, un curseur simule le cap.
+// Torix montre la direction où pointe le téléphone et en prend la couleur
+// — nord bleu, est vert, sud petit feu multicolore, ouest violet — comme
+// une boussole qui s'allume. Elle s'élance face à chaque point cardinal.
+// Sans capteur (ordinateur, accès refusé) ou avec ?sim, un curseur simule
+// le cap.
 //
 // Pensé d'abord pour Safari iOS : hauteur calée sur le viewport visible
 // (clavier compris), safe areas, champ à 16 px pour éviter le zoom.
@@ -16,7 +19,8 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 
 import { ArrowUp, Compass } from 'lucide-react'
 import TorixOrb, { type TorixState } from '../../components/torix/TorixOrb'
 import { answerFor } from '../../components/torix/directions'
-import { isFacingNorth, offNorth } from '../../components/torix/heading'
+import { compassPoint, facingCardinal, type Cardinal } from '../../components/torix/heading'
+import { PALETTES } from '../../components/torix/palette'
 import { useCompass } from '../../components/torix/useCompass'
 import { requireAdminPage } from '../../lib/adminAuth'
 
@@ -28,8 +32,19 @@ const THINK_MIN_MS = 400
 const THINK_MAX_MS = 700
 const SPEAK_MS = 1300
 
-const SEEK_LINE = 'Tourne-toi doucement. Je cherche le nord.'
-const FOUND_LINE = 'Le nord est devant toi.'
+const SEEK_LINE = 'Tourne-toi doucement. Chaque direction a sa couleur.'
+const FACING_LINES: Record<Cardinal, string> = {
+  N: 'Tu fais face au nord.',
+  E: "Tu fais face à l'est.",
+  S: 'Tu fais face au sud.',
+  W: "Tu fais face à l'ouest.",
+}
+const DIAL: { id: Cardinal; label: string; deg: number }[] = [
+  { id: 'N', label: 'N', deg: 0 },
+  { id: 'E', label: 'E', deg: 90 },
+  { id: 'S', label: 'S', deg: 180 },
+  { id: 'W', label: 'O', deg: 270 },
+]
 const DENIED_LINE = "Je n'ai pas accès à la boussole. Ferme et rouvre l'onglet pour réessayer."
 const UNSUPPORTED_LINE = 'Pas de boussole ici. Fais tourner le cap à la main.'
 
@@ -44,7 +59,7 @@ export default function TorixLab() {
   const compass = useCompass()
   const [simForced, setSimForced] = useState(false)
   const [simHeading, setSimHeading] = useState(140)
-  const [found, setFound] = useState(false)
+  const [facing, setFacing] = useState<Cardinal | null>(null)
   const sim = simForced || compass.status === 'denied' || compass.status === 'unsupported'
   const heading = compass.status === 'active' ? compass.heading : sim ? simHeading : null
   const compassOn = compass.status === 'starting' || compass.status === 'active'
@@ -76,16 +91,16 @@ export default function TorixLab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compass.status])
 
-  // Nord trouvé / perdu, avec hystérésis (cf. heading.ts).
+  // Point cardinal atteint / quitté, avec hystérésis (cf. heading.ts).
   useEffect(() => {
     if (heading === null) {
-      setFound(false)
+      setFacing(null)
       return
     }
-    const next = isFacingNorth(heading, found)
-    if (next === found) return
-    setFound(next)
-    if (next) say(FOUND_LINE, state === 'idle')
+    const next = facingCardinal(heading, facing)
+    if (next === facing) return
+    setFacing(next)
+    if (next) say(FACING_LINES[next], state === 'idle')
     else say(SEEK_LINE)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [heading])
@@ -93,7 +108,7 @@ export default function TorixLab() {
   function toggleCompass() {
     if (compassOn) {
       compass.stop()
-      setFound(false)
+      setFacing(null)
       say(INTRO)
     } else {
       compass.start()
@@ -142,15 +157,29 @@ export default function TorixLab() {
       </header>
 
       <section className="stage">
-        <TorixOrb
-          state={state}
-          bearing={heading === null ? null : -heading}
-          found={found}
-        />
+        {heading !== null && (
+          // Cadran : tourne à l'inverse du cap, pour que la lettre du haut
+          // soit toujours la direction où pointe la flamme.
+          <div className="dial" style={{ transform: `rotate(${-heading}deg)` }} aria-hidden="true">
+            {DIAL.map(c => (
+              <span
+                key={c.id}
+                className={`dial__mark${facing === c.id ? ' dial__mark--on' : ''}`}
+                style={{
+                  transform: `rotate(${c.deg}deg) translateY(calc(var(--torix-core) * -1.42)) rotate(${heading - c.deg}deg)`,
+                  color: `rgb(${PALETTES[c.id].slots[1].mid.join(', ')})`,
+                }}
+              >
+                {c.label}
+              </span>
+            ))}
+          </div>
+        )}
+        <TorixOrb state={state} heading={heading} facing={facing} />
         {heading !== null && (
           <div className="readout" aria-live="off">
-            <span className={`readout__cap${found ? ' readout__cap--found' : ''}`}>
-              {found ? 'Nord' : `${Math.round(offNorth(heading))}° du nord`}
+            <span className={`readout__cap${facing ? ' readout__cap--found' : ''}`}>
+              {`${Math.round(heading) % 360}° ${compassPoint(heading)}`}
             </span>
             {compass.uncalibrated && compass.status === 'active' && (
               <span className="readout__hint">Boussole imprécise : dessine un 8 avec le téléphone.</span>
@@ -294,6 +323,32 @@ export default function TorixLab() {
           align-items: center;
           justify-content: center;
           min-height: 0;
+        }
+        .dial {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 0;
+          height: 0;
+          pointer-events: none;
+        }
+        .dial__mark {
+          position: absolute;
+          left: -0.6em;
+          top: -0.6em;
+          width: 1.2em;
+          height: 1.2em;
+          display: grid;
+          place-items: center;
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          opacity: 0.45;
+          transition: opacity 500ms ease, text-shadow 500ms ease;
+        }
+        .dial__mark--on {
+          opacity: 1;
+          text-shadow: 0 0 12px currentColor;
         }
         .readout {
           position: absolute;
