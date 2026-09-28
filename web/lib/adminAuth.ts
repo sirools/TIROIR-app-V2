@@ -13,6 +13,7 @@
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from 'next'
 import type { User } from '@supabase/supabase-js'
 import { serverSupabase, adminSupabase } from './supabase'
+import { isTorixOwner } from './torixOwner'
 
 export type AdminPageGuard =
   | { ok: true; user: User }
@@ -51,4 +52,18 @@ export async function requireAdminPage(
   if (!profile?.is_admin) return { ok: false, result: { notFound: true } }
 
   return { ok: true, user }
+}
+
+/**
+ * Pages de Torix : admin de Tiroir ET propriétaire de Torix (cf.
+ * torixOwner.ts). Un admin qui n'est pas le propriétaire reçoit un 404,
+ * comme un inconnu.
+ */
+export async function requireTorixOwnerPage(
+  ctx: GetServerSidePropsContext,
+): Promise<AdminPageGuard> {
+  const guard = await requireAdminPage(ctx)
+  if (!guard.ok) return guard
+  if (!isTorixOwner(guard.user)) return { ok: false, result: { notFound: true } }
+  return guard
 }
