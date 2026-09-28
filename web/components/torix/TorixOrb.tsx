@@ -10,10 +10,11 @@
 // Taille pilotée par la variable CSS --torix-core (diamètre du cœur),
 // posée par le parent.
 //
-// Boussole (facultative) : la flamme reste dressée — elle montre la
-// direction où pointe le téléphone — et prend la couleur de ce cap
-// (palette.ts). `facing` signale qu'on fait face à un point cardinal : la
-// flamme s'élance. Sans `heading`, Torix reste bleu, comme au nord.
+// Boussole (facultative) : la flamme est une aiguille qui pointe vers le
+// nord — en haut quand on fait face au nord, en bas face au sud — et prend
+// la couleur de la direction où pointe le téléphone (palette.ts). `facing`
+// signale qu'on fait face à un point cardinal : la flamme s'élance. Sans
+// `heading`, Torix reste bleu, flamme vers le haut.
 import type { CSSProperties } from 'react'
 import type { Cardinal } from './heading'
 import { paletteAt, paletteVars } from './palette'
@@ -42,10 +43,13 @@ const LIVELY: Tongue[] = [
   { x: 55, w: 0.34, h: 2.1, d: 1.5, delay: -0.9, sway: 14 },
 ]
 
+// Teinte de chaque langue parmi les quatre de la palette. La première
+// revient une fois sur deux : au sud, c'est ce qui fait un feu surtout jaune,
+// piqué de rouge, de vert et d'argent.
+const SLOT_PATTERN = [0, 1, 0, 2, 0, 3]
+
 function tongueStyle(t: Tongue, i: number): CSSProperties {
-  // Chaque langue pioche l'une des quatre teintes de la palette : au sud,
-  // c'est ce qui fait le feu multicolore.
-  const slot = i % 4
+  const slot = SLOT_PATTERN[i % SLOT_PATTERN.length]
   return {
     '--c-hi': `var(--s${slot}-hi)`,
     '--c-mid': `var(--s${slot}-mid)`,
@@ -79,11 +83,14 @@ export default function TorixOrb({ state = 'idle', heading = null, facing = null
     >
       <div className="layer aura"><span className="aura__glow" /></div>
 
-      {/* Enveloppe à la taille de l'orbe : ses calques se placent comme
-          avant, et elle se met à l'échelle autour du centre du cœur (le
-          sud est un petit feu). Le cap est lissé en amont : pas de
-          transition. */}
-      <div className="needle">
+      {/* Aiguille à la taille de l'orbe : ses calques se placent comme
+          avant, et elle pivote (vers le nord) et se met à l'échelle (le sud
+          est un petit feu) autour du centre du cœur. Le cap est lissé en
+          amont : pas de transition pendant la boussole. */}
+      <div
+        className="needle"
+        style={{ transform: `rotate(${seeking ? -heading : 0}deg) scale(var(--fire-scale, 1))` }}
+      >
         <div className="layer fire fire--calm">
           <span className="fire__bed" />
           {CALM.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t, i)} />)}
@@ -139,13 +146,14 @@ export default function TorixOrb({ state = 'idle', heading = null, facing = null
           animation: breathe 9s ease-in-out infinite;
         }
 
-        /* ---------- Enveloppe des flammes ---------- */
+        /* ---------- Aiguille (boussole) ---------- */
         .needle {
           position: absolute;
           inset: 0;
-          transform: scale(var(--fire-scale, 1));
           will-change: transform;
         }
+        /* Boussole coupée : la flamme revient doucement vers le haut. */
+        .orb:not([data-compass]) .needle { transition: transform 900ms var(--ease); }
 
         /* ---------- Énergie / flammes ---------- */
         .fire {

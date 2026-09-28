@@ -5,11 +5,12 @@
 // envoyé au serveur ni conservé.
 //
 // Boussole : une fois activée (geste obligatoire sur iOS), la flamme de
-// Torix montre la direction où pointe le téléphone et en prend la couleur
-// — nord bleu, est vert, sud petit feu multicolore, ouest violet — comme
-// une boussole qui s'allume. Elle s'élance face à chaque point cardinal.
-// Sans capteur (ordinateur, accès refusé) ou avec ?sim, un curseur simule
-// le cap.
+// Torix pointe vers le nord — en haut face au nord, en bas face au sud — et
+// prend la couleur de la direction où pointe le téléphone : nord bleu, est
+// vert, sud petit feu jaune, ouest violet. Elle s'élance face à chaque
+// point cardinal. Sans capteur (ordinateur, accès refusé) ou avec ?sim, un
+// curseur simule le cap. ?debug (ou un échec du capteur) affiche ce que le
+// capteur envoie réellement.
 //
 // Pensé d'abord pour Safari iOS : hauteur calée sur le viewport visible
 // (clavier compris), safe areas, champ à 16 px pour éviter le zoom.
@@ -21,7 +22,11 @@ import TorixOrb, { type TorixState } from '../../components/torix/TorixOrb'
 import { answerFor } from '../../components/torix/directions'
 import { compassPoint, facingCardinal, type Cardinal } from '../../components/torix/heading'
 import { PALETTES } from '../../components/torix/palette'
-import { useCompass } from '../../components/torix/useCompass'
+import {
+  useCompass,
+  type CompassDebug,
+  type CompassStatus,
+} from '../../components/torix/useCompass'
 import { requireAdminPage } from '../../lib/adminAuth'
 
 const INTRO = 'Demande-moi une direction.'
@@ -58,17 +63,21 @@ export default function TorixLab() {
 
   const compass = useCompass()
   const [simForced, setSimForced] = useState(false)
+  const [debugForced, setDebugForced] = useState(false)
   const [simHeading, setSimHeading] = useState(140)
   const [facing, setFacing] = useState<Cardinal | null>(null)
   const sim = simForced || compass.status === 'denied' || compass.status === 'unsupported'
   const heading = compass.status === 'active' ? compass.heading : sim ? simHeading : null
   const compassOn = compass.status === 'starting' || compass.status === 'active'
+  const showDebug = debugForced || compass.status === 'denied' || compass.status === 'unsupported'
 
   useEffect(() => () => timers.current.forEach(t => window.clearTimeout(t)), [])
   useDarkThemeColor(BG)
 
   useEffect(() => {
-    setSimForced(new URLSearchParams(window.location.search).has('sim'))
+    const params = new URLSearchParams(window.location.search)
+    setSimForced(params.has('sim'))
+    setDebugForced(params.has('debug'))
   }, [])
 
   function later(ms: number, fn: () => void) {
@@ -167,7 +176,7 @@ export default function TorixLab() {
                 className={`dial__mark${facing === c.id ? ' dial__mark--on' : ''}`}
                 style={{
                   transform: `rotate(${c.deg}deg) translateY(calc(var(--torix-core) * -1.42)) rotate(${heading - c.deg}deg)`,
-                  color: `rgb(${PALETTES[c.id].slots[1].mid.join(', ')})`,
+                  color: `rgb(${PALETTES[c.id].slots[0].mid.join(', ')})`,
                 }}
               >
                 {c.label}
@@ -187,6 +196,8 @@ export default function TorixLab() {
           </div>
         )}
       </section>
+
+      {showDebug && <CompassDebugPanel status={compass.status} heading={heading} debug={compass.debug} />}
 
       {sim && (
         <label className="sim">
@@ -531,6 +542,74 @@ function useDarkThemeColor(color: string) {
     meta.content = color
     return () => { meta.content = previous }
   }, [color])
+}
+
+const fmt = (v: number | null, digits = 0) => (v === null ? '—' : v.toFixed(digits))
+
+/** Diagnostic du capteur : ce que le navigateur envoie vraiment. */
+function CompassDebugPanel({
+  status,
+  heading,
+  debug,
+}: {
+  status: CompassStatus
+  heading: number | null
+  debug: CompassDebug
+}) {
+  let hint: string | null = null
+  if (status === 'denied') {
+    hint = "Accès refusé : ferme l'onglet, rouvre la page et accepte « Mouvement et orientation »."
+  } else if (status === 'unsupported' && debug.events === 0) {
+    hint = "Aucun événement d'orientation reçu. Sur iPhone : pas en navigation privée, et l'accès doit avoir été accepté."
+  } else if (debug.events > 0 && debug.compassHeading === null && !debug.absolute) {
+    hint = "Le capteur répond, mais sans cap. Sur iPhone : Réglages › Confidentialité et sécurité › Service de localisation (activé) › Services système › Calibrage de la boussole."
+  }
+
+  return (
+    <div className="dbg">
+      <div className="dbg__grid">
+        <span>état</span><b>{status}</b>
+        <span>permission</span><b>{debug.permission}</b>
+        <span>événements</span><b>{debug.events}{debug.source ? ` · ${debug.source}` : ''}</b>
+        <span>cap iOS</span><b>{fmt(debug.compassHeading)} ± {fmt(debug.compassAccuracy)}</b>
+        <span>α β γ</span><b>{fmt(debug.alpha)} · {fmt(debug.beta)} · {fmt(debug.gamma)}</b>
+        <span>absolu</span><b>{debug.absolute === null ? '—' : String(debug.absolute)}</b>
+        <span>cap retenu</span><b>{fmt(heading)}</b>
+      </div>
+      {hint && <p className="dbg__hint">{hint}</p>}
+
+      <style jsx>{`
+        .dbg {
+          width: 100%;
+          max-width: 460px;
+          margin: 0 auto 12px;
+          padding: 10px 14px;
+          box-sizing: border-box;
+          border-radius: 12px;
+          background: rgba(140, 175, 255, 0.06);
+          border: 1px solid rgba(150, 185, 255, 0.12);
+          font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+          color: rgba(190, 208, 240, 0.7);
+        }
+        .dbg__grid {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          column-gap: 12px;
+        }
+        .dbg__grid b {
+          font-weight: 500;
+          color: #e8efff;
+          overflow-wrap: anywhere;
+        }
+        .dbg__hint {
+          margin: 8px 0 0;
+          font-family: var(--font-body);
+          font-size: 12px;
+          color: #ffd98a;
+        }
+      `}</style>
+    </div>
+  )
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {

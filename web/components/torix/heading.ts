@@ -64,8 +64,10 @@ export function headingFromEvent(
   e: { alpha: number | null; absolute?: boolean; webkitCompassHeading?: number },
   screenAngle: number,
 ): number | null {
-  if (typeof e.webkitCompassHeading === 'number' && !Number.isNaN(e.webkitCompassHeading)) {
-    return normalize(e.webkitCompassHeading + screenAngle)
+  const ios = e.webkitCompassHeading
+  if (typeof ios === 'number' && !Number.isNaN(ios)) {
+    // iOS envoie -1 tant que la boussole n'est pas prête : pas un cap.
+    return ios < 0 ? null : normalize(ios + screenAngle)
   }
   if (e.absolute && typeof e.alpha === 'number') {
     return normalize(360 - e.alpha + screenAngle)

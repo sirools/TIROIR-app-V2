@@ -1,6 +1,6 @@
 // Couleurs de Torix selon le cap, comme une boussole qui s'allume :
-//   nord → bleu · est → vert · sud → petit feu vert, rouge, jaune, argent
-//   · ouest → violet.
+//   nord → bleu · est → vert · sud → petit feu surtout jaune, piqué de
+//   rouge, de vert et d'argent · ouest → violet.
 // Entre deux points cardinaux, les couleurs se fondent ; la courbe
 // (smoothstep) les laisse « tenir » autour de chaque point cardinal.
 //
@@ -44,8 +44,9 @@ export const PALETTES: Record<'N' | 'E' | 'S' | 'W', Palette> = {
     scale: 1,
   },
   S: {
-    slots: [FIRE_RED, FIRE_YELLOW, FIRE_GREEN, FIRE_SILVER],
-    glow: tone([255, 226, 200], [236, 146, 104], [150, 64, 60]),
+    // La première teinte domine (cf. SLOT_PATTERN dans TorixOrb).
+    slots: [FIRE_YELLOW, FIRE_RED, FIRE_GREEN, FIRE_SILVER],
+    glow: tone([255, 236, 190], [240, 190, 90], [170, 110, 40]),
     scale: 0.7,
   },
   W: {
