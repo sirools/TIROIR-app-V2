@@ -17,6 +17,17 @@ PR en brouillon, **rien n'est fusionné dans `main`**.
 - [ ] Ouvrir l'app mobile pointée sur la preprod : collections, recherche,
       statistiques identiques (aucune idée ni suggestion n'y apparaît).
 
+## 1 bis. Étape 2 — ajouts réglés dans l'app, objets de son Tiroir
+
+- [ ] Appliquer `v4/supabase/drafts/0004_share_link_suggestions.sql` en prod
+      (SQL Editor, faisable depuis l'iPhone). Ordre indifférent avec la
+      fusion de la PR : chaque combinaison reste cohérente.
+- [ ] Fusionner la PR de `feature/v4-suggestions-ajouts` → Vercel.
+- [ ] Depuis le Mac : `supabase functions deploy create-share-link`
+      (sinon « Autoriser les ajouts » à la création n'est pas retenu ; le
+      réglage dans les réglages d'un partage existant marche sans).
+- [ ] Nouveau build de l'app (TestFlight) pour l'interrupteur dans l'app.
+
 ## 2. Mise à jour de la preprod sans le Mac (une fois)
 
 - [ ] Créer un jeton GitHub fine-grained, lecture seule, limité au dépôt.

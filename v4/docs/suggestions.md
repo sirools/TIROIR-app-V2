@@ -1,5 +1,15 @@
 # Suggestions sur une collection partagée — étape 1 (web)
 
+> **Mise à jour (28/09, étape 2)** : le réglage ne se fait plus par
+> collection sur le web mais **par partage, dans l'app** (« Autoriser les
+> ajouts », à la création ou dans les réglages du partage →
+> `share_links.options.allow_suggestions`). Sur le web, une **tuile « + »**
+> au bout de la grille ouvre « Ajouter à la liste » : des objets **de son
+> propre Tiroir** (sélection multiple, avec photo) ou un nouvel objet.
+> Migration `v4/supabase/drafts/0004_share_link_suggestions.sql` (report
+> automatique des collections déjà activées, puis drapeau par collection
+> éteint). Les sections ci-dessous décrivent l'étape 1.
+
 Depuis un lien de partage, un destinataire **suggère** un objet au
 propriétaire ; le propriétaire **trie** les suggestions par glissement
 (droite = garder, gauche = écarter), avec annulation.
