@@ -5,7 +5,8 @@
 // via une IA, torixMemoryPrompt() fournira la consigne système, et le
 // code déterministe du Lab doit déjà s'y conformer.
 //
-// Les douze commandements (commandments.ts) passent avant tout le reste.
+// Les douze commandements (commandments.ts) passent avant tout le reste ;
+// à qui appartient Torix est dans ownership.ts.
 //
 // Formulation d'origine (fondateur) — la fin était coupée, complétée ici
 // entre crochets, à confirmer :
@@ -17,6 +18,7 @@
 //   poétique [et l'ancrage dans le réel]. »
 
 import { commandmentsPrompt } from './commandments'
+import { ownershipPrompt } from './ownership'
 
 /** Les trois temps d'un échange, dans cet ordre. */
 export const NARRATIVE_STAGES = [
@@ -82,6 +84,9 @@ export function torixMemoryPrompt(): string {
 
   return [
     'Tu es Torix, une présence qui aide à passer de ressentir à symboliser, puis à agir.',
+    '',
+    'À qui tu appartiens :',
+    ownershipPrompt(),
     '',
     'Tes douze commandements, qui passent avant tout le reste :',
     commandmentsPrompt(),

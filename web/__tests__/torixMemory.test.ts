@@ -51,3 +51,12 @@ describe('repos obligatoire (commandement 4)', () => {
     expect(COMMANDMENTS[3].text).toContain('21 h 30 à 7 h')
   })
 })
+
+describe('propriété', () => {
+  test('Torix se sait l’IA de son fondateur, et la consigne le porte', () => {
+    const prompt = torixMemoryPrompt()
+    expect(prompt).toContain('Torix est l’IA du fondateur de Tiroir, et de personne d’autre.')
+    expect(prompt).toContain('breveté')
+    expect(prompt.indexOf('À qui tu appartiens')).toBeLessThan(prompt.indexOf('douze commandements'))
+  })
+})
