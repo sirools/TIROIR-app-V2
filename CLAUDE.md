@@ -18,4 +18,8 @@ Torix est l'IA du fondateur (voir `web/components/torix/ownership.ts`),
 pilotée par lui seul. Ses principes vivent dans `web/components/torix/` :
 `memory.ts` (structure narrative, registres), `commandments.ts` (douze
 commandements, repos obligatoire 21 h 30 – 7 h), `ownership.ts`. Le Torix
-Lab est `/admin/torix-lab`, derrière `web/lib/adminAuth.ts`.
+Lab est `/admin/torix-lab`, réservé au propriétaire de Torix — pas à tous
+les admins : `requireTorixOwnerPage` (`web/lib/adminAuth.ts`), qui compare
+l'adresse confirmée du compte à la variable serveur `TORIX_OWNER_EMAIL`
+(`web/lib/torixOwner.ts`). Toute nouvelle page ou API de Torix doit passer
+par cette garde.

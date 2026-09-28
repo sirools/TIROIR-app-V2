@@ -28,7 +28,7 @@ import {
   type CompassDebug,
   type CompassStatus,
 } from '../../components/torix/useCompass'
-import { requireAdminPage } from '../../lib/adminAuth'
+import { requireTorixOwnerPage } from '../../lib/adminAuth'
 
 const INTRO = 'Demande-moi une direction.'
 // Commandement 4 : repos obligatoire de 21 h 30 à 7 h.
@@ -627,7 +627,8 @@ function CompassDebugPanel({
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const guard = await requireAdminPage(ctx)
+  // Réservé au propriétaire de Torix, pas à tous les admins de Tiroir.
+  const guard = await requireTorixOwnerPage(ctx)
   if (!guard.ok) return guard.result
   // Rien à transmettre au client : l'accès suffit.
   return { props: {} }
