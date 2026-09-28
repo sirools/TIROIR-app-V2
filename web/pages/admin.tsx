@@ -237,6 +237,10 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
               {TAB_META[t].label}
             </button>
           ))}
+          {/* Pas un onglet : une page à part, plein écran (sa propre garde admin). */}
+          <a href="/admin/torix-lab" style={{ ...s.tabBtn, ...s.tabLink }}>
+            Torix Lab
+          </a>
         </div>
 
         {tab === 'dashboard' && (<>
@@ -2500,6 +2504,7 @@ const s: Record<string, React.CSSProperties> = {
   tabBar:            { display: 'flex', gap: 4, marginBottom: 28, background: 'white', padding: 4, borderRadius: 12, border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', width: 'fit-content', flexWrap: 'wrap' },
   tabBtn:            { padding: '9px 18px', borderRadius: 9, background: 'transparent', color: '#5b5b5b', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer' },
   tabBtnActive:      { background: '#F26900', color: 'white' },
+  tabLink:           { background: '#0a1630', color: '#eaf3ff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' },
   saveBar:           { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', background: 'white', borderRadius: 16, padding: '16px 24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 40 },
   saveBarHint:       { fontSize: 13, color: '#5b5b5b', fontWeight: 600 },
   simToolbar:        { display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 20 },
