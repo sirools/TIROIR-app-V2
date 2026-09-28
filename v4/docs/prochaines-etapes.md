@@ -9,8 +9,10 @@ PR en brouillon, **rien n'est fusionné dans `main`**.
 - [ ] **Avant** le SQL : `cd preprod && ./deploy.sh clementougier@192.168.1.23`,
       puis vérifier que les partages s'affichent comme avant (en clair,
       protégé, export CSV/PDF, `/mes-partages`).
-- [ ] Appliquer `v4/supabase/drafts/0003_collection_suggestions.sql` dans
-      l'éditeur SQL du projet Supabase **de preprod** (vérifier le nom du projet).
+- [x] SQL appliqué **en prod** le 28/09 depuis l'iPhone (SQL Editor),
+      résultat vérifié. Rangé dans `supabase/migrations/20260928120000_collection_suggestions.sql`.
+- [ ] Fusionner la PR #9 → déploiement Vercel de `tiroir.app`.
+- [ ] L'appliquer aussi sur le Supabase **de preprod** (même fichier).
 - [ ] Dérouler le scénario manuel de `suggestions.md` (16 étapes, 3 comptes).
 - [ ] Ouvrir l'app mobile pointée sur la preprod : collections, recherche,
       statistiques identiques (aucune idée ni suggestion n'y apparaît).
