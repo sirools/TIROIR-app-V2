@@ -54,9 +54,11 @@ D'où la piste recommandée :
 
 - **Seuil : 2 à 3 filleuls** pour commencer. Réglable depuis l'admin, comme
   les quotas existants, pour ajuster sans nouvelle version.
-- **Après le mois offert : −50 % sur le premier abonnement Premium payant**
-  du parrain, pour convertir à la fin de l'essai.
-- Avantage des filleuls : **plus tard**, selon les premiers résultats.
+- **Gagnant-gagnant : −50 % sur le premier abonnement Premium payant, pour
+  les deux.**
+  - Parrain : un mois Premium offert au seuil atteint, puis le −50 % à la
+    fin de ce mois, pour convertir.
+  - Filleul : le −50 % dès son parrainage validé.
 
 ### Le −50 % côté App Store
 
@@ -67,7 +69,11 @@ Trois mécanismes Apple existent :
 | --- | --- | --- |
 | Offre de lancement (*introductory offer*) | Tout nouvel abonné | Non : profiterait à tout le monde, pas seulement aux parrains. |
 | Offre promotionnelle (*promotional offer*) | Abonnés actuels ou anciens abonnés | Non : un parrain n'a jamais payé, le mois offert ne passe pas par Apple. |
-| **Codes d'offre** (*offer codes*, codes à usage unique) | Qui détient un code | **Oui** : lot de codes généré dans App Store Connect, un code envoyé à chaque parrain à la fin de son mois, saisi dans l'app (fiche de saisie Apple, accessible via RevenueCat). |
+| **Codes d'offre** (*offer codes*, codes à usage unique) | Qui détient un code | **Oui** : lot de codes généré dans App Store Connect ; Tiroir en attribue un au parrain à la fin de son mois et un au filleul à la validation de son parrainage ; saisi dans l'app (fiche de saisie Apple, accessible via RevenueCat). |
+
+Il faut donc un stock de codes Apple côté serveur (`offer_codes (code,
+assigned_to, assigned_at, reason parrain|filleul)`), réapprovisionné depuis
+App Store Connect, et une alerte quand il s'épuise.
 
 À vérifier au moment de coder : volumes et durée de validité des codes chez
 Apple, et l'équivalent Android (codes promo Google Play) si l'app y sort.
