@@ -9,6 +9,10 @@
 //
 // Taille pilotée par la variable CSS --torix-core (diamètre du cœur),
 // posée par le parent.
+//
+// Boussole (facultative) : `bearing` fait pivoter la flamme autour du cœur
+// (0 = vers le haut de l'écran, sens horaire) et `found` signale que Torix
+// fait face au nord. Sans `bearing`, la flamme monte, comme avant.
 import type { CSSProperties } from 'react'
 
 export type TorixState = 'idle' | 'listening' | 'speaking'
@@ -46,17 +50,36 @@ function tongueStyle(t: Tongue): CSSProperties {
   } as CSSProperties
 }
 
-export default function TorixOrb({ state = 'idle' }: { state?: TorixState }) {
+type Props = {
+  state?: TorixState
+  /** Direction de la flamme en degrés (0 = haut de l'écran, horaire). */
+  bearing?: number | null
+  /** Torix fait face au nord : la flamme se redresse et s'intensifie. */
+  found?: boolean
+}
+
+export default function TorixOrb({ state = 'idle', bearing = null, found = false }: Props) {
+  const seeking = bearing !== null
   return (
-    <div className="orb" data-state={state} aria-hidden="true">
+    <div
+      className="orb"
+      data-state={state}
+      data-compass={seeking ? (found ? 'found' : 'seeking') : undefined}
+      aria-hidden="true"
+    >
       <div className="layer aura"><span className="aura__glow" /></div>
 
-      <div className="layer fire fire--calm">
-        <span className="fire__bed" />
-        {CALM.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t)} />)}
-      </div>
-      <div className="layer fire fire--lively">
-        {LIVELY.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t)} />)}
+      {/* L'aiguille a la taille de l'orbe : ses calques se placent comme
+          avant, et elle pivote autour du centre du cœur. La rotation est
+          déjà lissée en amont, d'où l'absence de transition. */}
+      <div className="needle" style={{ transform: `rotate(${seeking ? bearing : 0}deg)` }}>
+        <div className="layer fire fire--calm">
+          <span className="fire__bed" />
+          {CALM.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t)} />)}
+        </div>
+        <div className="layer fire fire--lively">
+          {LIVELY.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t)} />)}
+        </div>
       </div>
 
       <div className="layer halo"><span className="halo__glow" /></div>
@@ -104,6 +127,15 @@ export default function TorixOrb({ state = 'idle' }: { state?: TorixState }) {
           background: radial-gradient(circle, rgba(34, 86, 214, 0.28) 0%, rgba(18, 48, 140, 0.12) 40%, rgba(6, 16, 50, 0) 68%);
           animation: breathe 9s ease-in-out infinite;
         }
+
+        /* ---------- Aiguille (boussole) ---------- */
+        .needle {
+          position: absolute;
+          inset: 0;
+          will-change: transform;
+        }
+        /* Boussole coupée : la flamme revient doucement vers le haut. */
+        .orb:not([data-compass]) .needle { transition: transform 900ms var(--ease); }
 
         /* ---------- Énergie / flammes ---------- */
         .fire {
@@ -218,6 +250,16 @@ export default function TorixOrb({ state = 'idle' }: { state?: TorixState }) {
         .orb[data-state='speaking'] .fire--calm { transform: translate(-50%, -92%) scale(1.05, 1.12); }
         .orb[data-state='speaking'] .fire--lively { opacity: 1; }
         .orb[data-state='speaking'] .skin--lively { opacity: 1; }
+
+        /* ---------- Boussole ----------
+           En quête : la flamme se tasse et pâlit, comme si elle cherchait.
+           Au nord : elle s'élance, le halo et le cœur s'illuminent. */
+        .orb[data-compass='seeking'] .fire--calm { transform: translate(-50%, -92%) scale(0.82, 0.78); opacity: 0.7; }
+        .orb[data-compass='found'] .fire--calm { transform: translate(-50%, -92%) scale(1.08, 1.22); }
+        .orb[data-compass='found'] .fire--lively { opacity: 0.85; }
+        .orb[data-compass='found'] .halo { transform: translate(-50%, -50%) scale(1.14); }
+        .orb[data-compass='found'] .aura { transform: translate(-50%, -50%) scale(1.1); }
+        .orb[data-compass='found'] .core { transform: translate(-50%, -50%) scale(1.04); }
 
         /* ---------- Boucles ---------- */
         @keyframes breathe {

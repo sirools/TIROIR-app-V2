@@ -4,14 +4,20 @@
 // quatre points cardinaux (components/torix/directions.ts). Rien n'est
 // envoyé au serveur ni conservé.
 //
+// Boussole : une fois activée (geste obligatoire sur iOS), la flamme de
+// Torix pointe vers le nord et s'élance quand on lui fait face. Sans
+// capteur (ordinateur, accès refusé) ou avec ?sim, un curseur simule le cap.
+//
 // Pensé d'abord pour Safari iOS : hauteur calée sur le viewport visible
 // (clavier compris), safe areas, champ à 16 px pour éviter le zoom.
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
-import { ArrowUp } from 'lucide-react'
+import { ArrowUp, Compass } from 'lucide-react'
 import TorixOrb, { type TorixState } from '../../components/torix/TorixOrb'
 import { answerFor } from '../../components/torix/directions'
+import { isFacingNorth, offNorth } from '../../components/torix/heading'
+import { useCompass } from '../../components/torix/useCompass'
 import { requireAdminPage } from '../../lib/adminAuth'
 
 const INTRO = 'Demande-moi une direction.'
@@ -22,6 +28,11 @@ const THINK_MIN_MS = 400
 const THINK_MAX_MS = 700
 const SPEAK_MS = 1300
 
+const SEEK_LINE = 'Tourne-toi doucement. Je cherche le nord.'
+const FOUND_LINE = 'Le nord est devant toi.'
+const DENIED_LINE = "Je n'ai pas accès à la boussole. Ferme et rouvre l'onglet pour réessayer."
+const UNSUPPORTED_LINE = 'Pas de boussole ici. Fais tourner le cap à la main.'
+
 export default function TorixLab() {
   const [state, setState] = useState<TorixState>('idle')
   const [question, setQuestion] = useState('')
@@ -30,11 +41,63 @@ export default function TorixLab() {
   const busy = state !== 'idle'
   const viewport = useVisualViewport()
 
+  const compass = useCompass()
+  const [simForced, setSimForced] = useState(false)
+  const [simHeading, setSimHeading] = useState(140)
+  const [found, setFound] = useState(false)
+  const sim = simForced || compass.status === 'denied' || compass.status === 'unsupported'
+  const heading = compass.status === 'active' ? compass.heading : sim ? simHeading : null
+  const compassOn = compass.status === 'starting' || compass.status === 'active'
+
   useEffect(() => () => timers.current.forEach(t => window.clearTimeout(t)), [])
   useDarkThemeColor(BG)
 
+  useEffect(() => {
+    setSimForced(new URLSearchParams(window.location.search).has('sim'))
+  }, [])
+
   function later(ms: number, fn: () => void) {
     timers.current.push(window.setTimeout(fn, ms))
+  }
+
+  function say(text: string, speak = false) {
+    setLine(prev => ({ id: prev.id + 1, text }))
+    if (speak) {
+      setState('speaking')
+      later(SPEAK_MS, () => setState('idle'))
+    }
+  }
+
+  // Ce que Torix dit quand la boussole change d'état.
+  useEffect(() => {
+    if (compass.status === 'active') say(SEEK_LINE)
+    else if (compass.status === 'denied') say(DENIED_LINE)
+    else if (compass.status === 'unsupported') say(UNSUPPORTED_LINE)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compass.status])
+
+  // Nord trouvé / perdu, avec hystérésis (cf. heading.ts).
+  useEffect(() => {
+    if (heading === null) {
+      setFound(false)
+      return
+    }
+    const next = isFacingNorth(heading, found)
+    if (next === found) return
+    setFound(next)
+    if (next) say(FOUND_LINE, state === 'idle')
+    else say(SEEK_LINE)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [heading])
+
+  function toggleCompass() {
+    if (compassOn) {
+      compass.stop()
+      setFound(false)
+      say(INTRO)
+    } else {
+      compass.start()
+    }
   }
 
   function ask(e: FormEvent) {
@@ -67,12 +130,49 @@ export default function TorixLab() {
       <header className="top">
         <a className="back" href="/admin" aria-label="Retour à l’admin">Admin</a>
         <span className="mark">Torix <span className="mark__lab">Lab</span></span>
-        <span className="tag">V0</span>
+        <button
+          className={`compass-btn${compassOn ? ' compass-btn--on' : ''}`}
+          type="button"
+          onClick={toggleCompass}
+          aria-pressed={compassOn}
+          aria-label={compassOn ? 'Couper la boussole' : 'Activer la boussole'}
+        >
+          <Compass size={18} strokeWidth={1.75} />
+        </button>
       </header>
 
       <section className="stage">
-        <TorixOrb state={state} />
+        <TorixOrb
+          state={state}
+          bearing={heading === null ? null : -heading}
+          found={found}
+        />
+        {heading !== null && (
+          <div className="readout" aria-live="off">
+            <span className={`readout__cap${found ? ' readout__cap--found' : ''}`}>
+              {found ? 'Nord' : `${Math.round(offNorth(heading))}° du nord`}
+            </span>
+            {compass.uncalibrated && compass.status === 'active' && (
+              <span className="readout__hint">Boussole imprécise : dessine un 8 avec le téléphone.</span>
+            )}
+          </div>
+        )}
       </section>
+
+      {sim && (
+        <label className="sim">
+          <span className="sim__label">Cap simulé</span>
+          <input
+            className="sim__range"
+            type="range"
+            min={0}
+            max={359}
+            value={simHeading}
+            onChange={e => setSimHeading(Number(e.target.value))}
+          />
+          <span className="sim__value">{simHeading}°</span>
+        </label>
+      )}
 
       <section className="dialog">
         <p
@@ -123,7 +223,7 @@ export default function TorixLab() {
           height: var(--app-h);
           transform: translateY(var(--app-top, 0px));
           display: grid;
-          grid-template-rows: auto minmax(0, 1fr) auto;
+          grid-template-rows: auto minmax(0, 1fr) auto auto;
           /* Sans quoi la colonne prend la largeur intrinsèque de l’orbe et
              déborde sur les écrans de 320 px. */
           grid-template-columns: minmax(0, 1fr);
@@ -168,17 +268,80 @@ export default function TorixLab() {
         .back:hover, .back:focus-visible { color: rgba(200, 220, 255, 0.8); }
         .mark { color: rgba(215, 228, 255, 0.72); font-weight: 600; }
         .mark__lab { font-weight: 400; color: rgba(170, 195, 240, 0.5); }
-        .tag {
-          min-width: 44px;
-          text-align: right;
-          font-variant-numeric: tabular-nums;
+        .compass-btn {
+          width: 44px;
+          height: 44px;
+          margin-right: -10px;
+          display: grid;
+          place-items: center;
+          border: 0;
+          border-radius: 50%;
+          background: transparent;
+          color: rgba(170, 195, 240, 0.55);
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+          transition: color 300ms ease, background 300ms ease;
         }
+        .compass-btn--on {
+          color: #9fdcff;
+          background: rgba(120, 190, 255, 0.1);
+        }
+        .compass-btn:focus-visible { outline: 2px solid #8fd0ff; outline-offset: 2px; }
 
         .stage {
+          position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
           min-height: 0;
+        }
+        .readout {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 4px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          text-align: center;
+          pointer-events: none;
+        }
+        .readout__cap {
+          font-size: 12px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          font-variant-numeric: tabular-nums;
+          color: rgba(170, 195, 240, 0.5);
+          transition: color 500ms ease;
+        }
+        .readout__cap--found { color: #aee2ff; }
+        .readout__hint {
+          font-size: 13px;
+          color: rgba(190, 208, 240, 0.55);
+        }
+
+        .sim {
+          width: 100%;
+          max-width: 460px;
+          margin: 0 auto 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 12px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(170, 195, 240, 0.5);
+        }
+        .sim__range {
+          flex: 1;
+          min-width: 0;
+          accent-color: #8fd0ff;
+        }
+        .sim__value {
+          min-width: 3.2em;
+          text-align: right;
+          font-variant-numeric: tabular-nums;
         }
 
         .dialog {
