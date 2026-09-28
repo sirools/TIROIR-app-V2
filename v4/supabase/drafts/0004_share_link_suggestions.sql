@@ -30,6 +30,10 @@ UPDATE public.share_links s
    AND c.id = public.share_link_collection_id(s.id)
    AND NOT coalesce((s.options ->> 'allow_suggestions')::boolean, false);
 
+-- Le drapeau par collection n'a plus d'effet : on l'éteint pour qu'il ne
+-- contredise jamais le réglage du partage.
+UPDATE public.collections SET suggestions_enabled = false WHERE suggestions_enabled;
+
 -- Nouvelle signature (objet source) : l'ancienne est retirée.
 DROP FUNCTION IF EXISTS public.create_collection_suggestion(TEXT, UUID, TEXT, TEXT, NUMERIC, TEXT);
 
