@@ -1,8 +1,9 @@
 // Torix Lab — laboratoire interne, réservé aux administrateurs.
 //
-// V0 : prototype de présence. Aucune IA derrière : Torix ne connaît que les
-// quatre points cardinaux (components/torix/directions.ts). Rien n'est
-// envoyé au serveur ni conservé.
+// V0 : prototype de présence. Aucun modèle de langage derrière : Torix
+// répond depuis ses fiches de connaissance sur Tiroir
+// (components/torix/knowledge.ts) et connaît les quatre points cardinaux
+// (directions.ts). Zéro token ; rien n'est envoyé au serveur ni conservé.
 //
 // Boussole : une fois activée (geste obligatoire sur iOS), la flamme de
 // Torix pointe vers le nord — en haut face au nord, en bas face au sud — et
@@ -20,7 +21,13 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 
 import { ArrowUp, Compass } from 'lucide-react'
 import TorixOrb, { type TorixState } from '../../components/torix/TorixOrb'
 import { isRestTime } from '../../components/torix/commandments'
-import { answerFor } from '../../components/torix/directions'
+import {
+  answerQuestion,
+  REGISTER_LABELS,
+  SUGGESTIONS,
+  UNKNOWN,
+  type Register,
+} from '../../components/torix/knowledge'
 import { compassPoint, facingCardinal, type Cardinal } from '../../components/torix/heading'
 import { PALETTES } from '../../components/torix/palette'
 import {
@@ -30,7 +37,7 @@ import {
 } from '../../components/torix/useCompass'
 import { requireTorixOwnerPage } from '../../lib/adminAuth'
 
-const INTRO = 'Demande-moi une direction.'
+const INTRO = 'Demande-moi une direction, ou parle-moi de Tiroir.'
 // Commandement 4 : repos obligatoire de 21 h 30 à 7 h.
 const REST_LINE = "C'est l'heure du repos. Je reviens à 7 h."
 const BG = '#03060d'
@@ -56,10 +63,12 @@ const DIAL: { id: Cardinal; label: string; deg: number }[] = [
 const DENIED_LINE = "Je n'ai pas accès à la boussole. Ferme et rouvre l'onglet pour réessayer."
 const UNSUPPORTED_LINE = 'Pas de boussole ici. Fais tourner le cap à la main.'
 
+type Line = { id: number; text: string; register?: Register; source?: string }
+
 export default function TorixLab() {
   const [state, setState] = useState<TorixState>('idle')
   const [question, setQuestion] = useState('')
-  const [line, setLine] = useState({ id: 0, text: INTRO })
+  const [line, setLine] = useState<Line>({ id: 0, text: INTRO })
   const timers = useRef<number[]>([])
   const busy = state !== 'idle'
   const viewport = useVisualViewport()
@@ -135,7 +144,11 @@ export default function TorixLab() {
 
   function ask(e: FormEvent) {
     e.preventDefault()
-    const q = question.trim()
+    submit(question)
+  }
+
+  function submit(raw: string) {
+    const q = raw.trim()
     if (!q || busy) return
 
     setQuestion('')
@@ -147,7 +160,8 @@ export default function TorixLab() {
     setState('listening')
     const think = THINK_MIN_MS + Math.random() * (THINK_MAX_MS - THINK_MIN_MS)
     later(think, () => {
-      setLine(prev => ({ id: prev.id + 1, text: answerFor(q) }))
+      const a = answerQuestion(q)
+      setLine(prev => ({ id: prev.id + 1, text: a.text, register: a.register, source: a.source }))
       setState('speaking')
       later(SPEAK_MS, () => setState('idle'))
     })
@@ -229,13 +243,31 @@ export default function TorixLab() {
       )}
 
       <section className="dialog">
-        <p
-          key={line.id}
-          className={`line${line.id === 0 ? ' line--intro' : ''}`}
-          aria-live="polite"
-        >
-          {line.text}
-        </p>
+        <div key={line.id} className="answer" aria-live="polite">
+          {/* Registre et source : Torix ne fait jamais passer une
+              estimation ou un principe pour un fait (memory.ts). */}
+          {line.register && (
+            <p className="answer__tag">
+              {REGISTER_LABELS[line.register]}
+              {line.source ? ` · ${line.source}` : ''}
+            </p>
+          )}
+          <p
+            className={`line${line.id === 0 ? ' line--intro' : ''}${line.text.length > 90 ? ' line--long' : ''}`}
+          >
+            {line.text}
+          </p>
+        </div>
+
+        {!busy && (line.id === 0 || line.text === UNKNOWN) && (
+          <div className="chips">
+            {SUGGESTIONS.map(s => (
+              <button key={s} type="button" className="chip" onClick={() => submit(s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
 
         <form className="ask" onSubmit={ask}>
           <input
@@ -243,7 +275,7 @@ export default function TorixLab() {
             type="text"
             value={question}
             onChange={e => setQuestion(e.target.value)}
-            placeholder="Où est le nord ?"
+            placeholder="Pose-moi une question"
             aria-label="Ta question à Torix"
             autoComplete="off"
             autoCorrect="off"
@@ -432,8 +464,24 @@ export default function TorixLab() {
           flex-direction: column;
           gap: clamp(16px, 3.2vh, 28px);
         }
+        .answer {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          min-height: 0;
+        }
+        .answer__tag {
+          margin: 0;
+          text-align: center;
+          font-size: 11px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(160, 200, 255, 0.55);
+          animation: appear 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+        }
         .line {
           margin: 0;
+          white-space: pre-line;
           min-height: 2.7em;
           display: flex;
           align-items: flex-end;
@@ -448,6 +496,42 @@ export default function TorixLab() {
           animation: appear 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
         }
         .line--intro { color: rgba(190, 208, 240, 0.6); }
+        /* Réponses de connaissance : plusieurs lignes, lues plutôt que
+           contemplées — plus petites, alignées à gauche, défilables. */
+        .line--long {
+          display: block;
+          text-align: left;
+          font-size: 16px;
+          line-height: 1.5;
+          max-height: 34vh;
+          max-height: 34dvh;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          text-wrap: pretty;
+        }
+
+        .chips {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          margin: 0 -4px;
+          padding: 2px 4px;
+          scrollbar-width: none;
+        }
+        .chips::-webkit-scrollbar { display: none; }
+        .chip {
+          flex: none;
+          padding: 9px 14px;
+          border-radius: 999px;
+          border: 1px solid rgba(150, 185, 255, 0.18);
+          background: rgba(140, 175, 255, 0.05);
+          color: rgba(215, 228, 255, 0.8);
+          font: inherit;
+          font-size: 14px;
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .chip:active { background: rgba(140, 175, 255, 0.12); }
 
         .ask {
           position: relative;

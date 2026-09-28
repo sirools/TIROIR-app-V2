@@ -23,3 +23,9 @@ les admins : `requireTorixOwnerPage` (`web/lib/adminAuth.ts`), qui compare
 l'adresse confirmée du compte à la variable serveur `TORIX_OWNER_EMAIL`
 (`web/lib/torixOwner.ts`). Toute nouvelle page ou API de Torix doit passer
 par cette garde.
+
+Ce que Torix sait de Tiroir est dans `web/components/torix/knowledge.ts`
+(fiches sans modèle, avec registre et source). **Tout changement de modèle,
+de tarif, de quota ou de fonction IA doit mettre ces fiches à jour** — le
+test `web/__tests__/torixKnowledge.test.ts` les compare au code et casse
+sinon.
