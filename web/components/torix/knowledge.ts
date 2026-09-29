@@ -363,13 +363,23 @@ export const TOPICS: Topic[] = [
   },
   {
     id: 'v4-etat',
-    keywords: ['ou en est la v4', 'etat de la v4', 'avancement de la v4', 'v4 fusionnee', 'testflight'],
+    keywords: ['ou en est la v4', 'en est ou de la v4', 'etat de la v4', 'avancement de la v4', 'v4 fusionnee', 'testflight'],
     register: 'fait',
     source: 'v4/docs/prochaines-etapes.md',
     answer:
-      'Sur main, au 28 septembre : les suggestions vivent sur la branche feature/v4-suggestions-web, rien de la V4 n’est fusionné.\n' +
+      'Sur main, au 28 septembre : les suggestions vivent sur la branche feature/v4-suggestions-web, rien de la V4 n’est fusionné — mais cette branche les dit déjà appliquées en prod, à vérifier.\n' +
       'Ensuite : valider en preprod (brouillon 0003 et scénario à trois comptes), mettre à jour la preprod et TestFlight sans le Mac.\n' +
       'Décisions en attente : exiger le cookie signé aussi en lecture, retenir la collection d’un lien à sa création, photo dans le formulaire de suggestion.',
+  },
+  {
+    id: 'v4-fusion',
+    keywords: ['fusion', 'fission', 'deux mondes', 'diverger', 'divergence', 'fusionner la v4'],
+    register: 'principe',
+    source: 'v4/docs/prochaines-etapes.md',
+    answer:
+      'Deux mondes : le Tiroir en ligne et le chantier V4. La fusion est prévue par construction — chaque phase de la migration est additive et laisse la V2 intacte.\n' +
+      'Le risque, c’est la fission : les branches de suggestions pas encore dans main, et surtout un écart possible entre la base de prod et le dépôt.\n' +
+      'Ordre : vérifier en prod que la table collection_wishes existe ; si oui, fusionner feature/v4-suggestions-web dans main ; puis chaque étape, preprod → main, une à une.',
   },
   {
     id: 'v5',

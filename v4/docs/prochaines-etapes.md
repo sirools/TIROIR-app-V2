@@ -44,3 +44,26 @@ PR en brouillon, **rien n'est fusionné dans `main`**.
 - Photo dans le formulaire de suggestion.
 - Fusion dans `main` et passage du brouillon SQL dans `supabase/migrations/`,
   une fois la preprod validée.
+
+## 5. Fusion ou fission ? (29 septembre 2026)
+
+Deux mondes : le Tiroir en ligne (web, app, base de prod) et le chantier
+V4. La fusion est prévue par construction — chaque phase de
+`migration-tiroir-partage.md` est additive et laisse la V2 intacte. Le
+risque, c'est la **fission** : un chantier isolé trop longtemps diverge.
+
+Points à surveiller :
+- **Branches en attente** : `feature/v4-suggestions-web` et
+  `feature/v4-suggestions-ajouts` ne sont pas dans `main` ; plus elles
+  attendent, plus elles divergent.
+- **Écart prod / dépôt** : un commit de `feature/v4-suggestions-web`
+  indique les suggestions appliquées en prod. Si c'est vrai, la base de
+  prod contient ce que `main` ne décrit pas. **À vérifier en premier.**
+- **Fiches Torix en double** (`v4/torix/` et le Lab) : tenu, un test casse
+  si elles divergent.
+
+Ordre recommandé :
+1. Vérifier en prod que la table `collection_wishes` existe.
+2. Si oui, fusionner `feature/v4-suggestions-web` dans `main`, pour que le
+   dépôt redise la vérité.
+3. Puis chaque étape de la V4 : preprod → `main`, une à une.

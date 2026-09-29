@@ -114,6 +114,9 @@ describe('Torix connaît la V4.0 et la V5', () => {
     ['Comment marche le parrainage ?', 'v4-parrainage'],
     ['Quel est le plan de migration vers le Tiroir partagé ?', 'v4-migration'],
     ['Où en est la V4 ?', 'v4-etat'],
+    ['On en est où de la V4 ?', 'v4-etat'],
+    ['La fusion entre les deux mondes est-elle probable ?', 'v4-fusion'],
+    ['Y a-t-il un risque de fission ?', 'v4-fusion'],
     ['C’est quoi la V5 ?', 'v5'],
   ])('%s → %s', (question, id) => {
     expect(findTopic(question)?.id).toBe(id)
@@ -131,7 +134,7 @@ describe('Torix connaît la V4.0 et la V5', () => {
     const pairs: [string, string][] = [
       ['v4', 'vision'], ['v4-trousseau', 'trousseau'], ['v4-droits', 'droits'],
       ['v4-serrure', 'serrure'], ['v4-pret', 'pret'], ['v4-suggestions', 'suggestions'],
-      ['v4-parrainage', 'parrainage'], ['v4-migration', 'migration'], ['v4-etat', 'etat'],
+      ['v4-parrainage', 'parrainage'], ['v4-migration', 'migration'], ['v4-etat', 'etat'], ['v4-fusion', 'fusion'],
     ]
     for (const [webId] of pairs) {
       for (const line of byId(webId).split('\n')) {
