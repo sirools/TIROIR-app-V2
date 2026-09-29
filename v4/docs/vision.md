@@ -79,3 +79,10 @@ déduit jamais le genre d'un utilisateur.
   félicite quand on fait un effort).
 - Réglage par défaut et libellés dans les quatre langues de l'app : à
   décider au moment de coder.
+
+## Mode coffre (29 septembre 2026)
+
+Décision du fondateur : la V4 permet de mettre un objet **au coffre** —
+jamais envoyé à l'IA, jamais partagé, invisible du back-office — puis,
+dans un second temps, chiffré sur le téléphone pour que même Tiroir ne
+puisse pas le voir. Plan détaillé : `docs/mode-coffre.md`.
