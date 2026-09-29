@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 
@@ -14,14 +14,32 @@ export default function Login() {
   const [loading, setLoading]   = useState(false)
   const next = typeof router.query.next === 'string' ? safeNext(router.query.next) : null
 
-  // Déjà connecté (retour d'un e-mail de confirmation, autre onglet) : on
-  // file directement là où il allait.
+  // Le propriétaire de Torix choisit où aller ; les autres vont dans Tiroir.
+  const [choice, setChoice]     = useState(false)
+  const routed = useRef(false)
+
+  async function afterLogin() {
+    if (routed.current) return
+    routed.current = true
+    if (next) {
+      router.replace(next)
+      return
+    }
+    const r = await fetch('/api/torix/access').catch(() => null)
+    if (r?.ok) setChoice(true)
+    else router.replace('/')
+  }
+
+  // Déjà connecté (retour d'un e-mail de confirmation, de Google, autre
+  // onglet) ou connexion qui aboutit : on route une seule fois.
   useEffect(() => {
-    if (!router.isReady || !next) return
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) router.replace(next)
+    if (!router.isReady) return
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) void afterLogin()
     })
-  }, [router, next])
+    return () => data.subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady])
 
   // Affiche les erreurs renvoyées par un retour OAuth raté (?error_description=…)
   useEffect(() => {
@@ -41,14 +59,15 @@ export default function Login() {
       setLoading(false)
       return
     }
-    router.push(safeNext(router.query.next))
+    await afterLogin()
   }
 
   async function handleOAuth(provider: 'google' | 'apple') {
     setError(null)
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}${safeNext(router.query.next)}` },
+      // Sans destination, retour ici : le propriétaire y choisit Tiroir ou Torix.
+      options: { redirectTo: `${window.location.origin}${next ?? '/login'}` },
     })
     if (error) setError(error.message)
   }
@@ -61,6 +80,16 @@ export default function Login() {
           <img src="/icons/app-icon.png" alt="" width={36} height={36} style={{ borderRadius: 10 }} />
           <strong style={s.logoText}>Tiroir</strong>
         </div>
+        {choice ? (
+          <>
+            <h1 style={s.title}>Où veux-tu aller ?</h1>
+            <div style={s.choice}>
+              <a href="/" style={s.choiceTiroir}>Tiroir</a>
+              <a href="/admin/torix-lab" style={s.choiceTorix}>Torix</a>
+            </div>
+          </>
+        ) : (
+        <>
         <h1 style={s.title}>Connexion</h1>
 
         <button type="button" style={s.googleBtn} onClick={() => handleOAuth('google')}>
@@ -136,6 +165,8 @@ export default function Login() {
           En continuant, tu acceptes les{' '}
           <a href="/cgu" style={s.cguLink}>Conditions Générales d&apos;Utilisation</a>.
         </p>
+        </>
+        )}
       </div>
     </main>
   )
@@ -158,6 +189,10 @@ const s: Record<string, React.CSSProperties> = {
   forgotLink:  { fontSize: 13, color: '#F26900', fontWeight: 600, textDecoration: 'none', marginTop: 8 },
   input:       { padding: '10px 14px', borderRadius: 10, border: '1px solid #e0e0e0', fontSize: 15, outline: 'none', transition: 'border-color 0.15s' },
   error:       { fontSize: 13, color: '#c0392b', background: '#fdf0ef', borderRadius: 8, padding: '8px 12px', marginTop: 4 },
+  choice:      { display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 },
+  choiceTiroir:{ display: 'block', padding: '14px 0', borderRadius: 12, background: '#F26900', color: '#fff', fontWeight: 700, fontSize: 16, textAlign: 'center', textDecoration: 'none' },
+  // Même bouton noir et blanc que dans le back-office.
+  choiceTorix: { display: 'block', padding: '14px 0', borderRadius: 12, background: '#121212', color: '#fff', fontWeight: 700, fontSize: 16, textAlign: 'center', textDecoration: 'none' },
   hintLink:    { display: 'inline-block', marginTop: 6, color: '#F26900', fontWeight: 700, textDecoration: 'none' },
   btn:         { marginTop: 12, padding: '13px 0', borderRadius: 12, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', textAlign: 'center' },
   switch:      { fontSize: 14, color: '#5b5b5b', marginTop: 20, textAlign: 'center' },
