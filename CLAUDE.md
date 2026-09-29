@@ -6,6 +6,14 @@ Pages Router, déployé sur Vercel ; le back-office a son propre domaine,
 Functions), `v4/` (prochaine version, qui porte aussi ce qui devait être
 la V5), `agents/`, `strategie/`.
 
+## Adresses à donner au fondateur
+
+À chaque sortie, les adresses d'admin se donnent sur
+`https://backoffice.tiroir.app` (back-office, Torix Lab :
+`https://backoffice.tiroir.app/admin/torix-lab`), **jamais** sur
+`tiroir.app/admin`. Le site public, `https://tiroir.app`, ne sert qu'aux
+pages publiques (partages `/s/<jeton>`, `/mes-partages`…).
+
 ## Documents de référence à lire avant de décider
 
 - `strategie/torix-et-tiroir.md` — relation Torix / Tiroir, coûts IA,
