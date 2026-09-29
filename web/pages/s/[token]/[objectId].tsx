@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../../components/layout/HeaderTiroirWeb'
-import { hasValidCookie } from '../../../lib/shareAuth'
+import { hasSignedCookie } from '../../../lib/shareCookieSignature'
 import { isLot, lotTotal } from '../../../lib/quantity'
 
 interface ValueSource {
@@ -164,7 +164,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     return { props: { token, object: null, images: [], documents: [], insurances: [], error: 'expired' } }
   }
 
-  if (link.options?.password_protected && !hasValidCookie(token, ctx)) {
+  if (link.options?.password_protected && !hasSignedCookie(token, ctx.req)) {
     return { props: { token, object: null, images: [], documents: [], insurances: [], gated: true } }
   }
 

@@ -10,7 +10,6 @@ import WishCard from '../../components/share/WishCard'
 import SuggestModal, { type SuggestStep } from '../../components/share/SuggestModal'
 import SuggestionTriage from '../../components/share/SuggestionTriage'
 import SuggestionsToggle from '../../components/share/SuggestionsToggle'
-import { hasValidCookie } from '../../lib/shareAuth'
 import { hasSignedCookie } from '../../lib/shareCookieSignature'
 import { isLot, lotTotal } from '../../lib/quantity'
 import { serverSupabase, supabase as browserSupabase } from '../../lib/supabase'
@@ -158,7 +157,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     return { props: { error: 'expired', title: '', objects: [], allowDownload: false, fields: ALL_FIELDS } }
   }
 
-  if (link.options?.password_protected && !hasValidCookie(token, ctx)) {
+  // Clé SIGNÉE exigée (le cookie non signé `<ts>.ok` se fabriquait à la main).
+  if (link.options?.password_protected && !hasSignedCookie(token, ctx.req)) {
     return { props: { token, title: link.title ?? 'Partage TiROiR', objects: [], allowDownload: false, fields: ALL_FIELDS, gated: true } }
   }
 
