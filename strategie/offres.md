@@ -55,6 +55,8 @@ Marge sur un pack de 20 crédits à 2,99 € : environ 2,12 € nets après TVA
 
 1. **Base** : solde de crédits par compte, avec un journal (achat,
    consommation, remboursement en cas d'échec de l'IA). Additif.
+   ✅ Écrit et testé : `supabase/drafts/ai_credits.sql` (à appliquer en
+   prod, voir `supabase/drafts/README.md`).
 2. **Consommation** : les fonctions IA débitent les crédits d'un compte
    gratuit au lieu de son quota mensuel.
 3. **Achat** : deux produits consommables dans RevenueCat, App Store et
