@@ -6,10 +6,10 @@ domaine (`middleware.ts`, logique dans `lib/backofficeRouting.ts`) :
 
 | Domaine | Ce qu'on y trouve |
 | --- | --- |
-| `backoffice.tiroir.app` | `/` = l'admin. Aussi : `/admin/*` (Torix Lab…), la connexion et la récupération de mot de passe. Tout le reste renvoie vers `tiroir.app`. Jamais indexé. |
+| `backoffice.tiroir.app` | `/` = l'admin. Aussi : `/admin/*` (Torix Lab pour son seul propriétaire…), la connexion et la récupération de mot de passe. Tout le reste renvoie vers `tiroir.app`. Jamais indexé. |
 | `tiroir.app` | Le site public. `/admin` renvoie vers `backoffice.tiroir.app`. |
 
-Les gardes serveur (`requireAdminPage`, `requireTorixPage`) restent la vraie
+Les gardes serveur (`requireAdminPage`, `requireTorixOwnerPage`) restent la vraie
 protection : un compte non admin reçoit toujours un 404, quel que soit le
 domaine. La session est propre à chaque domaine : on se connecte une fois
 sur le back-office.

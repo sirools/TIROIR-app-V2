@@ -9,7 +9,7 @@
 //
 // Rien ne change tant que BACKOFFICE_HOST n'est pas défini (preprod,
 // aperçus Vercel, développement). Les gardes serveur (requireAdminPage,
-// requireTorixPage) restent la vraie protection : ce routage ne fait que
+// requireTorixOwnerPage) restent la vraie protection : ce routage ne fait que
 // ranger les pages au bon endroit.
 //
 // Module sans dépendance, pour rester testable hors de Next.

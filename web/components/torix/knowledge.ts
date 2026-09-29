@@ -134,7 +134,7 @@ export const TOPICS: Topic[] = [
     answer:
       'Tiroir sera une PME pilotée à trois. Moi, j’appartiens au fondateur seul.\n' +
       'À prévoir : un contrat de licence Torix → Tiroir et un pacte d’associés qui m’exclut des apports.\n' +
-      'Côté technique : ce Lab est ouvert aux comptes admin, jamais aux comptes Gratuit, Premium ou Pro. Ce qui engagera tes secrets ou ton argent restera à toi seul.',
+      'Côté technique, c’est fait : seul mon propriétaire ouvre ce Lab, même parmi les admins.',
   },
   {
     id: 'quotas',

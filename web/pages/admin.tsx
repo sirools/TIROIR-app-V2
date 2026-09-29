@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Settings } from 'lucide-react'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import { serverSupabase, adminSupabase } from '../lib/supabase'
+import { isTorixOwner } from '../lib/torixOwner'
 
 interface AppSettings {
   free_ai_quota_monthly: number
@@ -112,9 +113,11 @@ interface Props {
   settings: AppSettings
   aiSpend: AiSpend
   emails: EmailReport
+  /** Le lien vers Torix n'est montré qu'à son propriétaire. */
+  torixOwner: boolean
 }
 
-export default function Admin({ kpis, settings: initialSettings, aiSpend, emails }: Props) {
+export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixOwner }: Props) {
   const conversionPct = kpis.totalAccounts > 0
     ? ((kpis.accountsWithObjects / kpis.totalAccounts) * 100).toFixed(1)
     : '0'
@@ -237,11 +240,13 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
               {TAB_META[t].label}
             </button>
           ))}
-          {/* Pas un onglet : une page à part, plein écran, ouverte à tous les
-              admins (la page a sa propre garde serveur). */}
-          <a href="/admin/torix-lab" style={{ ...s.tabBtn, ...s.tabLink }}>
-            Torix Lab
-          </a>
+          {/* Pas un onglet : une page à part, plein écran, réservée au
+              propriétaire de Torix (la page a sa propre garde serveur). */}
+          {torixOwner && (
+            <a href="/admin/torix-lab" style={{ ...s.tabBtn, ...s.tabLink }}>
+              Torix Lab
+            </a>
+          )}
         </div>
 
         {tab === 'dashboard' && (<>
@@ -2368,6 +2373,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   return {
     props: {
+      torixOwner: isTorixOwner(session.user),
       kpis: {
         siteVisits24h: siteVisits24h ?? 0,
         siteVisits7d: siteVisits7d ?? 0,
