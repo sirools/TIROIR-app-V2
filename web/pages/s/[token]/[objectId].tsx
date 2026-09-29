@@ -287,6 +287,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
 export default function SharedObjectDetailPage({ token, object, images, documents, insurances, fields = ALL_FIELDS, error, gated, isOwner = false }: Props) {
   const [activeImg, setActiveImg] = useState(0)
+  // Brief V4 : le détail de la valeur se replie, et s'ouvre dans le flux.
+  const [valueOpen, setValueOpen] = useState(false)
   const pageTitle = gated
     ? 'Partage protégé — TiROiR'
     : error || !object ? 'Objet introuvable — TiROiR' : `${object.title} — TiROiR`
@@ -333,19 +335,27 @@ export default function SharedObjectDetailPage({ token, object, images, document
   const attributes = Object.entries(object.attributes ?? {}).filter(([, v]) => v !== null && v !== '')
   const valCur = object.value_currency
 
-  // Valeur mise en avant dans le hero
-  const headlineIsUser = object.user_value != null
-  const headlineValue = object.user_value ?? object.market_value
-  const headlineLabel = headlineIsUser ? 'Votre estimation' : 'Valeur marchande estimée'
+  // Brief V4 : le prix de vente définitif passe en premier. Sans prix de
+  // vente, on garde l'estimation (la sienne, sinon celle de l'IA).
+  const saleHeadline = fields.values && object.sale_price != null
+  const headlineIsUser = !saleHeadline && object.user_value != null
+  const headlineValue = saleHeadline ? object.sale_price : (object.user_value ?? object.market_value)
+  const headlineLabel = saleHeadline ? 'Prix de vente' : headlineIsUser ? 'Votre estimation' : 'Valeur marchande estimée'
+  // Total du lot affiché sous le prix : remise de lot comprise pour la vente.
+  const headlineLot = saleHeadline
+    ? (object.sale_price_lot ?? lotTotal(object.sale_price, object.quantity))
+    : lotTotal(headlineValue, object.quantity)
 
   // Écart estimation utilisateur vs valeur marchande IA
-  const diffPct = (object.user_value != null && object.market_value != null && object.market_value > 0)
+  const diffPct = (headlineIsUser && object.user_value != null && object.market_value != null && object.market_value > 0)
     ? Math.round(((object.user_value - object.market_value) / object.market_value) * 100)
     : null
 
-  // Détail des valeurs (hors montant mis en avant, pour éviter les doublons)
   type ValueRow = { label: string; sub?: string | null; amount: string }
+  /** Toujours visibles dans la carte (hors montant mis en avant). */
   const valueRows: ValueRow[] = []
+  /** Détail de la valeur, replié : estimation, valeur marchande, achat. */
+  const detailRows: ValueRow[] = []
 
   /** Les montants restent unitaires ; le total du lot les accompagne. */
   const lotSub = (unit: number | null, override?: number | null) => {
@@ -354,18 +364,18 @@ export default function SharedObjectDetailPage({ token, object, images, document
     return total == null ? null : `Total du lot : ${money(total, valCur)}`
   }
 
-  if (fields.values && object.market_value != null && headlineIsUser) {
-    valueRows.push({ label: 'Valeur marchande (IA)', sub: lotSub(object.market_value), amount: money(object.market_value, valCur) })
+  if (fields.values && saleHeadline && object.user_value != null) {
+    detailRows.push({ label: 'Estimation du propriétaire', sub: lotSub(object.user_value), amount: money(object.user_value, valCur) })
+  }
+  if (fields.values && object.market_value != null && (headlineIsUser || saleHeadline)) {
+    detailRows.push({ label: 'Valeur marchande (IA)', sub: lotSub(object.market_value), amount: money(object.market_value, valCur) })
   }
   if (fields.values && object.purchase_price != null) {
-    valueRows.push({
+    detailRows.push({
       label: "Prix d'achat",
       sub: [formatDate(object.purchase_date), lotSub(object.purchase_price)].filter(Boolean).join(' · ') || null,
       amount: money(object.purchase_price, object.purchase_currency ?? valCur),
     })
-  }
-  if (fields.values && object.sale_price != null) {
-    valueRows.push({ label: 'Prix de vente', sub: lotSub(object.sale_price, object.sale_price_lot), amount: money(object.sale_price, valCur) })
   }
   if (fields.values && object.deposit_amount != null) {
     valueRows.push({ label: 'Caution', sub: lotSub(object.deposit_amount), amount: money(object.deposit_amount, valCur) })
@@ -375,7 +385,8 @@ export default function SharedObjectDetailPage({ token, object, images, document
   const hasRange = !!vs && vs.value_min != null && vs.value_max != null
   const hasSources = !!vs && Array.isArray(vs.sources) && vs.sources.length > 0
   const showEstimationDetail = fields.values && object.market_value != null && !!vs && (!!vs.summary || hasRange || hasSources || !!vs.confidence)
-  const showValueCard = valueRows.length > 0 || showEstimationDetail
+  const hasValueDetail = detailRows.length > 0 || showEstimationDetail
+  const showValueCard = valueRows.length > 0 || hasValueDetail
 
   // Assurance : legacy (mono) si pas de contrats en table
   const hasLegacyInsurance = insurances.length === 0 && (
@@ -458,7 +469,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
                     <span className="value-amount">{money(headlineValue, valCur)}</span>
                     {isLot(object.quantity) && (
                       <span className="value-lot">
-                        ×{object.quantity} · {money(lotTotal(headlineValue, object.quantity)!, valCur)}
+                        ×{object.quantity} · {money(headlineLot!, valCur)}
                       </span>
                     )}
                     {diffPct !== null && (
@@ -467,7 +478,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
                       </span>
                     )}
                   </div>
-                  {estimatedDate && <span className="value-meta">Estimé le {estimatedDate}</span>}
+                  {!saleHeadline && estimatedDate && <span className="value-meta">Estimé le {estimatedDate}</span>}
                 </div>
               )}
             </div>
@@ -480,6 +491,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
               {showValueCard && (
                 <div className="bento-card">
                   <h2 className="section-title">Valeurs &amp; prix</h2>
+                  {valueRows.length > 0 && (
                   <div className="attrs-list">
                     {valueRows.map((row, i) => (
                       <div key={row.label} className={`attr-row ${i > 0 ? 'sep' : ''}`}>
@@ -491,38 +503,73 @@ export default function SharedObjectDetailPage({ token, object, images, document
                       </div>
                     ))}
                   </div>
+                  )}
 
-                  {showEstimationDetail && (
-                    <div className="estimation-detail">
-                      <div className="estimation-head">
-                        <span className="estimation-title">Estimation IA</span>
-                        {vs?.confidence && (
-                          <span className="conf-badge" style={{ color: CONFIDENCE_COLOR[vs.confidence] ?? '#A89F96' }}>
-                            {CONFIDENCE_LABEL[vs.confidence] ?? vs.confidence}
-                          </span>
-                        )}
+                  {hasValueDetail && (
+                    <>
+                      {/* Replié par défaut ; s'ouvre dans le flux et pousse la
+                          suite vers le bas, sans panneau par-dessus. */}
+                      <button
+                        type="button"
+                        className="value-toggle"
+                        aria-expanded={valueOpen}
+                        aria-controls="value-detail"
+                        onClick={() => setValueOpen(o => !o)}
+                      >
+                        <span>Détail de la valeur</span>
+                        <span className="value-toggle-chevron" aria-hidden="true">{valueOpen ? '▴' : '▾'}</span>
+                      </button>
+                      {valueOpen && (
+                        <div id="value-detail" className="value-detail">
+                          {detailRows.length > 0 && (
+                      <div className="attrs-list">
+                        {detailRows.map((row, i) => (
+                          <div key={row.label} className={`attr-row ${i > 0 ? 'sep' : ''}`}>
+                            <div className="attr-key-wrap">
+                              <span className="attr-key">{row.label}</span>
+                              {row.sub && <span className="attr-sub">{row.sub}</span>}
+                            </div>
+                            <span className="attr-val strong">{row.amount}</span>
+                          </div>
+                        ))}
                       </div>
-                      {hasRange && (
-                        <p className="estimation-range">
-                          Fourchette : {money(vs!.value_min!, valCur)} – {money(vs!.value_max!, valCur)}
-                        </p>
-                      )}
-                      {vs?.summary && <p className="estimation-summary">{vs.summary}</p>}
-                      {hasSources && (
-                        <div className="sources-row">
-                          {vs!.sources!.slice(0, 4).map((src, i) => {
-                            const chip = (
-                              <span className="source-chip">
-                                {src.site} · {money(src.price, valCur)}
+                          )}
+                      {showEstimationDetail && (
+                        <div className="estimation-detail">
+                          <div className="estimation-head">
+                            <span className="estimation-title">Estimation IA</span>
+                            {vs?.confidence && (
+                              <span className="conf-badge" style={{ color: CONFIDENCE_COLOR[vs.confidence] ?? '#A89F96' }}>
+                                {CONFIDENCE_LABEL[vs.confidence] ?? vs.confidence}
                               </span>
-                            )
-                            return src.url
-                              ? <a key={i} href={src.url} target="_blank" rel="noopener noreferrer" className="source-link">{chip}</a>
-                              : <span key={i}>{chip}</span>
-                          })}
+                            )}
+                          </div>
+                          {hasRange && (
+                            <p className="estimation-range">
+                              Fourchette : {money(vs!.value_min!, valCur)} – {money(vs!.value_max!, valCur)}
+                            </p>
+                          )}
+                          {vs?.summary && <p className="estimation-summary">{vs.summary}</p>}
+                          {hasSources && (
+                            <div className="sources-row">
+                              {vs!.sources!.slice(0, 4).map((src, i) => {
+                                const chip = (
+                                  <span className="source-chip">
+                                    {src.site} · {money(src.price, valCur)}
+                                  </span>
+                                )
+                                return src.url
+                                  ? <a key={i} href={src.url} target="_blank" rel="noopener noreferrer" className="source-link">{chip}</a>
+                                  : <span key={i}>{chip}</span>
+                              })}
+                            </div>
+                          )}
                         </div>
                       )}
-                    </div>
+
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -646,6 +693,11 @@ export default function SharedObjectDetailPage({ token, object, images, document
 }
 
 const styles = `
+  .value-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 12px; padding: 12px 0 4px; border: 0; border-top: 1px solid var(--border-light); background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; text-align: left; }
+  .value-toggle:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+  .value-toggle-chevron { color: var(--muted); }
+  .value-detail { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
+
   .sale-preview { display: inline-block; margin: 0 0 16px 12px; padding: 6px 12px; border-radius: 999px; background: var(--orange); color: var(--white); font-size: 13px; font-weight: 700; text-decoration: none; }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }

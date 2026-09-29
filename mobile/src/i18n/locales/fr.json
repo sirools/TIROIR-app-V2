@@ -593,6 +593,8 @@
       "marketValue": "Valeur marché",
       "marketHint": "Estimation IA d'après les prix web",
       "purchasePrice": "Prix d'achat",
+      "detail": "Détail de la valeur",
+      "detailHint": "Estimation, achat, valeur marché",
       "salePrice": "Prix de vente",
       "deposit": "Caution",
       "depositHint": "Garantie demandée en cas de prêt",

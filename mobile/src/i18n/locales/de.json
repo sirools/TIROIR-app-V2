@@ -593,6 +593,8 @@
       "marketValue": "Marktwert",
       "marketHint": "KI-Schätzung anhand von Webpreisen",
       "purchasePrice": "Kaufpreis",
+      "detail": "Wertdetails",
+      "detailHint": "Schätzung, Kauf, Marktwert",
       "salePrice": "Verkaufspreis",
       "deposit": "Kaution",
       "depositHint": "Bei Verleih verlangte Kaution",
