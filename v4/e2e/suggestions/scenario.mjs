@@ -57,7 +57,7 @@ if (phase === 'after') {
 
   await anon.reload()
   await anon.click('text=Suggérer un objet')
-  check('visiteur sans compte : modale d’inscription (stub)', await count(anon, '[data-todo=signup-modal]') === 1)
+  check('visiteur sans compte : modale d’inscription', await count(anon, '[data-modal=signup]') === 1)
   await anon.screenshot({ path: `${SHOTS}/2-visiteur-sans-compte.png` })
 
   // Bob suggère

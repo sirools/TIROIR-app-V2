@@ -1,27 +1,30 @@
-// components/share/SignupModalStub.tsx — emplacement de la future modale de
-// création de compte Tiroir, pour un visiteur sans compte qui veut suggérer.
+// components/share/SignupModal.tsx — un visiteur sans compte veut suggérer
+// un objet sur un partage dont le propriétaire accepte les suggestions.
 //
-// TODO(v4-suggestions) : implémenter l'inscription dans la modale (création
-// de compte, confirmation, retour direct au formulaire de suggestion). Hors
-// périmètre de cette étape : on se contente d'expliquer et de renvoyer vers
-// la connexion existante, qui ramène ensuite sur ce partage.
+// On explique pourquoi il faut un compte, puis deux portes : le créer, ou se
+// connecter. Les deux ramènent sur ce partage avec le formulaire rouvert
+// (?suggerer=1, voir lib/authFlow.ts), même après l'e-mail de confirmation.
 import Link from 'next/link'
+import { authHref, shareReturnPath } from '../../lib/authFlow'
 
-export default function SignupModalStub({ token, onClose }: { token: string; onClose: () => void }) {
-  const next = encodeURIComponent(`/s/${token}`)
+export default function SignupModal({ token, onClose }: { token: string; onClose: () => void }) {
+  const back = shareReturnPath(token)
   return (
     <div className="backdrop" onClick={onClose}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="signup-title" onClick={e => e.stopPropagation()} data-todo="signup-modal">
+      <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="signup-title" onClick={e => e.stopPropagation()} data-modal="signup">
         <button type="button" className="close" onClick={onClose} aria-label="Fermer">×</button>
         <div className="icon" aria-hidden>🎁</div>
         <h2 id="signup-title" className="heading">Crée ton compte Tiroir</h2>
         <p className="text">
-          Pour suggérer un objet, il faut un compte Tiroir : le propriétaire verra
-          qui lui fait la suggestion.
+          Le propriétaire de ce partage accepte les suggestions. Pour en faire une,
+          il faut un compte Tiroir, gratuit : il verra qui la lui propose.
         </p>
-        <p className="soon">La création de compte depuis cette fenêtre arrive bientôt.</p>
-        <Link href={`/login?next=${next}`} legacyBehavior passHref>
-          <a className="primary">J’ai déjà un compte</a>
+        <p className="soon">Une minute, et tu reviens ici, prêt à suggérer.</p>
+        <Link href={authHref('/inscription', back)} legacyBehavior passHref>
+          <a className="primary">Créer mon compte</a>
+        </Link>
+        <Link href={authHref('/login', back)} legacyBehavior passHref>
+          <a className="ghost">J’ai déjà un compte</a>
         </Link>
         <button type="button" className="secondary" onClick={onClose}>Plus tard</button>
       </div>
@@ -48,6 +51,11 @@ export default function SignupModalStub({ token, onClose }: { token: string; onC
         .primary {
           display: block; padding: 13px 20px; border-radius: 999px;
           background: #F26900; color: #fff; font-weight: 700; font-size: 15px; text-decoration: none;
+        }
+        .ghost {
+          display: block; padding: 12px 20px; border-radius: 999px;
+          border: 1px solid rgba(26, 22, 18, 0.14); color: #1A1612;
+          font-weight: 700; font-size: 15px; text-decoration: none;
         }
         .secondary { background: none; border: 0; color: #6B6158; font-weight: 600; font-size: 14px; cursor: pointer; padding: 8px; }
       `}</style>

@@ -7,7 +7,7 @@
 //   form     le formulaire lui-même
 import { useEffect, useState } from 'react'
 import { INPUT_ERROR_LABEL, parseSuggestionInput, type Wish } from '../../lib/suggestions'
-import SignupModalStub from './SignupModalStub'
+import SignupModal from './SignupModal'
 
 export type SuggestStep = 'signup' | 'password' | 'form'
 
@@ -42,7 +42,7 @@ export default function SuggestModal({ token, initialStep, onClose, onCreated }:
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  if (step === 'signup') return <SignupModalStub token={token} onClose={onClose} />
+  if (step === 'signup') return <SignupModal token={token} onClose={onClose} />
 
   async function submitPassword(e: React.FormEvent) {
     e.preventDefault()
