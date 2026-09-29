@@ -7,6 +7,9 @@ Source produit (Notion — les pages y portent encore le nom « V3 ») :
 - [TIROIR V3](https://app.notion.com/p/3e15ccb8cef1817a90f1e4dc6ec67ff6)
 - [Vision long terme — Tiroir collaboratif mobile V3+](https://app.notion.com/p/3905ccb8cef181d09288e19eff228d56)
 
+> **29 septembre 2026 : pas de V5 séparée.** Ce qui devait être la V5 se
+> construit ici, dans la V4 (voir `docs/vision.md`).
+
 ## Règle d'or : rien ici ne touche la prod
 
 Le web (`web/`) et l'app (`mobile/`) vivent dans ce même dépôt et partagent la

@@ -35,6 +35,8 @@ const QUESTIONS: [string, string][] = [
   ['Y a-t-il un risque de fission ?', 'fusion'],
   ['Quelles questions ouvertes restent ?', 'questions'],
   ['Et si un objet n’est pas rendu ?', 'questions'],
+  ['C’est quoi la V5 ?', 'v5'],
+  ['Et la V5 alors ?', 'v5'],
   ['Qui es-tu ?', 'torix'],
 ]
 
@@ -168,4 +170,11 @@ test('fusion : la fiche suit la section « Fusion ou fission ? »', () => {
   assert.match(byId('fusion'), /collection_wishes/)
   assert.match(doc, /suggestions appliquées en prod/)
   assert.match(byId('etat'), /déjà appliquées en prod, à vérifier/)
+})
+
+test('V5 : la fiche suit la décision consignée dans vision.md', () => {
+  const doc = v4('docs/vision.md')
+  assert.match(doc, /## La V5 se fait dans la V4/)
+  assert.match(doc, /pas de V5 séparée/)
+  assert.match(byId('v5'), /plus de V5 à part/)
 })

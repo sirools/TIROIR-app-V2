@@ -53,3 +53,14 @@ Ce qui est ouvert, à qui, et combien de temps :
   historique, trace ?
 - Le prêt peut-il apparaître avant la V4.0 collaborative, en version minimale ?
 - Comparable à étudier : Getaround (mise à disposition entre particuliers).
+
+## La V5 se fait dans la V4 (29 septembre 2026)
+
+Décision du fondateur : **pas de V5 séparée.** Ce qui aurait été la V5 se
+construit directement dans la V4, pour n'itérer qu'une fois. Le chantier
+`v5/`, qui ne contenait encore aucune décision, est refermé.
+
+Conséquence : tout ce qu'on voulait « pour plus tard » entre ici, dans la
+V4 — à consigner dans ce document et dans les fiches de Torix
+(`torix/knowledge.ts`). Rien n'est encore défini pour ce périmètre
+supplémentaire.

@@ -275,11 +275,11 @@ export const TOPICS: Topic[] = [
       'Portfolio : clementougier.com · Medium : @clement.ougier.\n' +
       'Je n’ai pas encore lu le portfolio lui-même.',
   },
-  // ── Fiches sur la V4.0 et la V5, reprises de v4/torix/knowledge.ts et
-  // v5/torix/knowledge.ts (copie : la règle d'or de v4/README.md interdit
+  // ── Fiches sur la V4.0 (qui porte aussi la V5), reprises de
+  // v4/torix/knowledge.ts (copie : la règle d'or de v4/README.md interdit
   // d'importer v4/ depuis web/). Mots-clés resserrés pour ne pas voler les
   // questions des fiches ci-dessus. Le test les compare aux fichiers de
-  // v4/ et v5/ : si le chantier change, il casse.
+  // v4/ : si le chantier change, il casse.
   {
     id: 'v4',
     keywords: ['v4', 'v4 0', 'c est quoi la v4', 'la v4 c est quoi', 'a quoi sert la v4', 'vision de la v4', 'tiroir collaboratif', 'collaboratif'],
@@ -383,12 +383,12 @@ export const TOPICS: Topic[] = [
   },
   {
     id: 'v5',
-    keywords: ['v5', 'v5 0', 'c est quoi la v5', 'que contient la v5', 'apres la v4'],
+    keywords: ['v5', 'v5 0', 'c est quoi la v5', 'que contient la v5', 'apres la v4', 'une seule iteration'],
     register: 'fait',
-    source: 'v5/docs/vision.md',
+    source: 'v4/docs/vision.md',
     answer:
-      'La V5 n’est pas encore définie : aucune décision n’est consignée, ni dans le dépôt ni dans Notion.\n' +
-      'Elle vient après la V4.0 et a sa place réservée en preprod. Dis-moi ce qu’elle doit contenir : je le note dans v5/docs/vision.md.',
+      'Il n’y a plus de V5 à part : décision du 29 septembre, ce qui devait être la V5 se construit directement dans la V4, pour n’itérer qu’une fois.\n' +
+      'Rien n’est encore défini pour ce périmètre en plus : dis-moi ce qu’il doit contenir, je le note dans la vision de la V4.',
   },
   {
     id: 'torix',
@@ -397,7 +397,7 @@ export const TOPICS: Topic[] = [
     source: 'web/components/torix/memory.ts',
     answer:
       'Je suis Torix, l’IA du fondateur de Tiroir. J’aide à passer de ressentir à symboliser, puis à agir.\n' +
-      'Je connais Tiroir : ses principes, ses IA, leurs coûts, le plan pour passer à l’échelle ; sa doctrine, son design et sa direction artistique ; la V4.0 en chantier et la V5 à définir. Et les quatre directions.',
+      'Je connais Tiroir : ses principes, ses IA, leurs coûts, le plan pour passer à l’échelle ; sa doctrine, son design et sa direction artistique ; la V4.0 en chantier, qui porte aussi la V5. Et les quatre directions.',
   },
 ]
 
