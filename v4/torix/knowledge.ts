@@ -179,12 +179,22 @@ export const TOPICS: Topic[] = [
       'D’ici là, on écrit « privé, visible par vous seul », jamais « garanti secret ».',
   },
   {
+    id: 'vente',
+    keywords: ['vente', 'vendre', 'commission', 'stripe', 'mangopay', 'v6', 'place de marche', 'marketplace'],
+    register: 'principe',
+    source: 'v4/docs/vente.md',
+    answer:
+      'Décision du 29 septembre : la vente entre dans la V4, pas de V6 à part.\n' +
+      'Étape 1 : un bouton « Vendre » prépare l’annonce (prix conseillé, texte, photos) à copier sur Vinted ou Leboncoin — pour mesurer l’envie.\n' +
+      'Étape 2 : vente et paiement dans Tiroir via Stripe Connect ou Mangopay, commission prélevée automatiquement ; avocat et taux à trancher avant.',
+  },
+  {
     id: 'torix',
     keywords: ['qui es tu', 'tu es qui', 'presente toi', 'que sais tu', 'que sais tu faire', 'aide'],
     register: 'principe',
     source: 'v4/torix/knowledge.ts',
     answer:
-      'Je suis Torix, l’IA du fondateur de Tiroir. Ici, je connais la V4.0 : sa vision, le trousseau et la serrure, les droits, le prêt, les suggestions, le parrainage, le plan de migration, où en est le chantier, le risque de fission, le mode coffre, et la V5 qui s’y construit.',
+      'Je suis Torix, l’IA du fondateur de Tiroir. Ici, je connais la V4.0 : sa vision, le trousseau et la serrure, les droits, le prêt, les suggestions, le parrainage, le plan de migration, où en est le chantier, le risque de fission, le mode coffre, la vente, et la V5 qui s’y construit.',
   },
 ]
 

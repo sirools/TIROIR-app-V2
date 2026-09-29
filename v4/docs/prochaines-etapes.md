@@ -129,3 +129,8 @@ recopié sur le partage : c'est pourquoi le fil 5 suit de près le fil 4.
 Plan et ordre de travail : `docs/mode-coffre.md` (brouillon SQL 0005,
 refus serveur dans les fonctions IA et le partage, interrupteur et
 cadenas web puis mobile, build iOS et Android).
+
+## 8. Vendre depuis son Tiroir (29 septembre 2026)
+
+Après le mode coffre. Plan : `docs/vente.md` (étape 1 « Vendre » prépare
+l'annonce ; étape 2 paiement intégré et commission, après l'avocat).
