@@ -32,9 +32,11 @@ Ensuite seulement, supprimer le fichier du Bureau.
 
 ## 2. Sur le NAS : un dossier chiffré (une fois)
 
-Synology → Panneau de configuration → Dossier partagé → Créer :
-`sauvegardes-tiroir`, case **Chiffrer ce dossier partagé** cochée.
-Double protection : le dossier est chiffré, et chaque fichier l'est aussi.
+Le NAS de la preprod est un **UGREEN (UGOS)**. Dans l'interface d'UGOS,
+créer un dossier partagé `sauvegardes-tiroir`, **chiffré** si l'option est
+proposée (les intitulés exacts des menus varient selon la version d'UGOS).
+Même sans dossier chiffré, chaque fichier l'est déjà par `age` : le
+dossier chiffré est une seconde protection.
 
 ## 3. Sur le NAS : les réglages (une fois)
 
@@ -64,14 +66,19 @@ Attendu : `✓ /volume1/sauvegardes-tiroir/tiroir-prod-….dump.age (… Ko, chi
 
 ## 5. Tous les jours, tout seul
 
-Synology → Panneau de configuration → **Planificateur de tâches** → Créer →
-Tâche planifiée → Script défini par l'utilisateur :
+Si UGOS propose un planificateur de tâches, y créer une tâche quotidienne
+(3 h 17) qui lance :
+`/volume1/docker/tiroir-preprod/sauvegarde/sauvegarde-base.sh`
 
-- Utilisateur : le tien (celui qui a les droits Docker) ;
-- Planification : tous les jours, 3 h 17 ;
-- Commande : `/volume1/docker/tiroir-preprod/sauvegarde/sauvegarde-base.sh`
-- Paramètres : cocher « Envoyer les détails d'exécution par e-mail » —
-  seulement en cas d'échec.
+Sinon, la méthode qui marche sur tout Linux, en SSH sur le NAS :
+
+```bash
+crontab -e
+# puis ajouter la ligne :
+17 3 * * * /volume1/docker/tiroir-preprod/sauvegarde/sauvegarde-base.sh >> /volume1/docker/tiroir-preprod/sauvegarde/sauvegarde.log 2>&1
+```
+
+Le journal `sauvegarde.log` dit, chaque matin, si la sauvegarde a réussi.
 
 ## 6. Vérifier (une fois par mois) — sur le Mac
 

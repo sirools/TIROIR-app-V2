@@ -43,9 +43,13 @@ ssh $SSH_OPTS "$TARGET" 'docker --version || sudo docker --version' \
 # 4. Copier le stack sur le NAS
 echo "==> Copie du stack (rsync)…"
 ssh $SSH_OPTS "$TARGET" "mkdir -p '$REMOTE_DIR'"
-# .sauvegarde.env n'existe que sur le NAS : exclu, donc jamais effacé par
+# Fichiers qui n'existent que sur le NAS : exclus, donc jamais effacés par
 # --delete (sans --delete-excluded, rsync ne touche pas aux exclus).
-rsync -az --delete -e "ssh $SSH_OPTS" --exclude '.DS_Store' --exclude '.sauvegarde.env' \
+#   - .sauvegarde.env : réglages de la sauvegarde chiffrée ;
+#   - database.db : comptes de Filebrowser. L'effacer à chaque déploiement
+#     ramenait le compte par défaut admin/admin et annulait tout changement
+#     de mot de passe.
+rsync -az --delete -e "ssh $SSH_OPTS" --exclude '.DS_Store' --exclude '.sauvegarde.env' --exclude 'database.db' \
   "$HERE/docker-compose.yml" "$HERE/web" "$HERE/nginx" \
   "$HERE/filebrowser" "$HERE/tiroir" "$HERE/nas-update.sh" "$HERE/sauvegarde" \
   "$TARGET:$REMOTE_DIR/"
@@ -59,5 +63,8 @@ IP="${TARGET#*@}"
 echo
 echo "✅ Terminé."
 echo "   Hello world   : http://$IP:8080/"
-echo "   Drive         : http://$IP:8081/   (login initial admin/admin — À CHANGER)"
+echo "   Drive         : http://$IP:8081/"
+echo "      ⚠ Premier déploiement : compte admin/admin. Change-le tout de suite"
+echo "        (Filebrowser → Paramètres → Gestion des utilisateurs → admin)."
+echo "        Il est conservé désormais d'un déploiement à l'autre."
 echo "   Preprod Tiroir: http://$IP:8151/"
