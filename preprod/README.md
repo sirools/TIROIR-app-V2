@@ -38,6 +38,15 @@ URLs finales :
 - http://192.168.1.23:8081/ — drive
 - http://192.168.1.23:8151/ — preprod Tiroir
 
+## Filebrowser (drive, port 8081) : changer admin/admin
+
+Au tout premier déploiement, Filebrowser crée le compte `admin` / `admin`.
+**Le changer immédiatement** : Filebrowser → Paramètres → Gestion des
+utilisateurs → admin → nouveau mot de passe (long, dans le trousseau).
+`deploy.sh` ne touche plus à `filebrowser/database.db` : le mot de passe
+survit aux déploiements (avant, chaque déploiement le remettait à
+admin/admin). Et n'ouvrir aucun port du NAS vers Internet.
+
 ## Sauvegarde chiffrée de la base de prod
 
 `sauvegarde/` : export quotidien de la base de prod, chiffré pour la clé
