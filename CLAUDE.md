@@ -47,7 +47,8 @@ nouvelle page ou API de Torix doit passer par cette garde.
 
 **Le savoir de Torix ne part jamais dans le navigateur** : le code d'une
 page Next est un fichier public, téléchargeable sans connexion. Les fiches
-(`knowledge.ts`, `directions.ts`, `memory.ts`, `ownership.ts`) ne sont lues
+(`knowledge.ts`, `directions.ts`, `memory.ts`, `ownership.ts`, et `savoir.md`,
+le savoir de Clément) ne sont lues
 que par le serveur — `/api/torix/ask`, gardée par `requireTorixOwnerApi`.
 Le test `web/__tests__/torixPrive.test.ts` casse si une page les importe.
 
