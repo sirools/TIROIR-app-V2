@@ -7,7 +7,7 @@ const web = (p: string) => readFileSync(path.resolve(__dirname, '..', p), 'utf8'
 // Le code d'une page Next part dans un fichier public, téléchargeable sans
 // connexion. Le savoir de Torix ne doit donc jamais être importé côté
 // client : seul le serveur le lit (pages/api/torix/ask.ts).
-const PRIVATE = ['torix/knowledge', 'torix/directions', 'torix/memory', 'torix/ownership']
+const PRIVATE = ['torix/knowledge', 'torix/directions', 'torix/memory', 'torix/ownership', 'torix/savoir']
 
 function clientImports(src: string): string[] {
   // Imports statiques du module ; le chargement dynamique dans
@@ -16,6 +16,12 @@ function clientImports(src: string): string[] {
 }
 
 describe('Torix reste privé', () => {
+  test('le savoir de Clément n’est pas dans les fichiers publics', () => {
+    const { existsSync } = require('node:fs') as typeof import('node:fs')
+    expect(existsSync(path.resolve(__dirname, '..', 'components/torix/savoir.md'))).toBe(true)
+    expect(existsSync(path.resolve(__dirname, '..', 'public/savoir.md'))).toBe(false)
+  })
+
   test.each(['pages/admin/torix-lab.tsx', 'pages/admin.tsx'])('%s n’importe aucun savoir de Torix', file => {
     const imports = clientImports(web(file))
     for (const p of PRIVATE) expect(imports.some(i => i.includes(p)), `${file} importe ${p}`).toBe(false)
