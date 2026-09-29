@@ -20,39 +20,39 @@ SELECT pg_temp.check('report : le lien d''une collection activée est ouvert aux
 SELECT pg_temp.check('report : les liens hors Cuisine restent fermés',
   NOT EXISTS (SELECT 1 FROM public.share_links WHERE token IN ('melange','velo') AND (options ->> 'allow_suggestions')::boolean));
 
--- Le réglage du lien fait foi, plus celui de la collection
--- (0004 a déjà éteint le drapeau par collection)
+-- La nouvelle fonction lit le réglage du lien. (L'ancienne, pour le site en
+-- ligne, lit toujours celui de la collection : voir « Transition ».)
 SET ROLE service_role;
-SELECT (public.create_collection_suggestion('cuisine', :'B', 'Couteau')).id AS w1 \gset
+SELECT (public.create_share_suggestion('cuisine', :'B', 'Couteau')).id AS w1 \gset
 SELECT pg_temp.check('option du lien active : suggestion acceptée', :'w1' IS NOT NULL);
 RESET ROLE;
 UPDATE public.share_links SET options = options || '{"allow_suggestions": false}' WHERE token = 'cuisine';
 SET ROLE service_role;
 SELECT pg_temp.check('option du lien désactivée : refusé',
-  pg_temp.fails(format('SELECT public.create_collection_suggestion(%L, %L, %L)', 'cuisine', :'B', 'X'), 'SUGGESTIONS_DISABLED') = 'ok');
+  pg_temp.fails(format('SELECT public.create_share_suggestion(%L, %L, %L)', 'cuisine', :'B', 'X'), 'SUGGESTIONS_DISABLED') = 'ok');
 RESET ROLE;
 UPDATE public.share_links SET options = options || '{"allow_suggestions": true}' WHERE token IN ('cuisine', 'melange');
 SET ROLE service_role;
 SELECT pg_temp.check('lien sans collection unique : refusé même ouvert',
-  pg_temp.fails(format('SELECT public.create_collection_suggestion(%L, %L, %L)', 'melange', :'B', 'X'), 'SUGGESTIONS_DISABLED') = 'ok');
+  pg_temp.fails(format('SELECT public.create_share_suggestion(%L, %L, %L)', 'melange', :'B', 'X'), 'SUGGESTIONS_DISABLED') = 'ok');
 
 -- Objet proposé depuis son Tiroir
-SELECT (public.create_collection_suggestion('cuisine', :'B', NULL, NULL, NULL, 'EUR', 'b0000000-0000-0000-0000-0000000000b1')).id AS w2 \gset
+SELECT (public.create_share_suggestion('cuisine', :'B', NULL, NULL, NULL, 'EUR', 'b0000000-0000-0000-0000-0000000000b1')).id AS w2 \gset
 SELECT pg_temp.check('objet de Bob : titre repris de son Tiroir',
   (SELECT title = 'Wok de Bob' AND source_object_id = 'b0000000-0000-0000-0000-0000000000b1' FROM public.collection_wishes WHERE id = :'w2'));
 SELECT pg_temp.check('le même objet ne se propose pas deux fois',
-  pg_temp.fails(format('SELECT public.create_collection_suggestion(%L, %L, NULL, NULL, NULL, %L, %L)', 'cuisine', :'B', 'EUR', 'b0000000-0000-0000-0000-0000000000b1'), 'ALREADY_SUGGESTED') = 'ok');
+  pg_temp.fails(format('SELECT public.create_share_suggestion(%L, %L, NULL, NULL, NULL, %L, %L)', 'cuisine', :'B', 'EUR', 'b0000000-0000-0000-0000-0000000000b1'), 'ALREADY_SUGGESTED') = 'ok');
 SELECT pg_temp.check('on ne propose pas l''objet d''un autre',
-  pg_temp.fails(format('SELECT public.create_collection_suggestion(%L, %L, NULL, NULL, NULL, %L, %L)', 'cuisine', :'C', 'EUR', 'b0000000-0000-0000-0000-0000000000b1'), 'SOURCE_NOT_FOUND') = 'ok');
+  pg_temp.fails(format('SELECT public.create_share_suggestion(%L, %L, NULL, NULL, NULL, %L, %L)', 'cuisine', :'C', 'EUR', 'b0000000-0000-0000-0000-0000000000b1'), 'SOURCE_NOT_FOUND') = 'ok');
 SELECT pg_temp.check('objet inconnu refusé',
-  pg_temp.fails(format('SELECT public.create_collection_suggestion(%L, %L, NULL, NULL, NULL, %L, %L)', 'cuisine', :'B', 'EUR', gen_random_uuid()), 'SOURCE_NOT_FOUND') = 'ok');
+  pg_temp.fails(format('SELECT public.create_share_suggestion(%L, %L, NULL, NULL, NULL, %L, %L)', 'cuisine', :'B', 'EUR', gen_random_uuid()), 'SOURCE_NOT_FOUND') = 'ok');
 SELECT pg_temp.check('sans titre ni objet : refusé',
-  pg_temp.fails(format('SELECT public.create_collection_suggestion(%L, %L)', 'cuisine', :'B'), 'null value in column "title" of relation "collection_wishes" violates not-null constraint') = 'ok');
+  pg_temp.fails(format('SELECT public.create_share_suggestion(%L, %L)', 'cuisine', :'B'), 'null value in column "title" of relation "collection_wishes" violates not-null constraint') = 'ok');
 RESET ROLE;
 UPDATE public.collection_wishes SET status = 'dismissed' WHERE id = :'w2';
 SET ROLE service_role;
 SELECT pg_temp.check('après écart, l''objet peut être reproposé',
-  (public.create_collection_suggestion('cuisine', :'B', NULL, NULL, NULL, 'EUR', 'b0000000-0000-0000-0000-0000000000b1')).id IS NOT NULL);
+  (public.create_share_suggestion('cuisine', :'B', NULL, NULL, NULL, 'EUR', 'b0000000-0000-0000-0000-0000000000b1')).id IS NOT NULL);
 RESET ROLE;
 
 -- Suppression de l'objet source : la suggestion reste
@@ -64,10 +64,18 @@ SELECT pg_temp.check('objet source supprimé : la suggestion garde son titre',
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', :'B', false);
 SELECT pg_temp.check('authenticated : création directe toujours refusée',
-  pg_temp.fails(format('SELECT public.create_collection_suggestion(%L, %L, %L)', 'cuisine', :'B', 'X'), 'permission denied for function create_collection_suggestion') = 'ok');
+  pg_temp.fails(format('SELECT public.create_share_suggestion(%L, %L, %L)', 'cuisine', :'B', 'X'), 'permission denied for function create_share_suggestion') = 'ok');
 RESET ROLE;
-SELECT pg_temp.check('l''ancienne signature a disparu',
-  NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'create_collection_suggestion' AND pronargs = 6));
+
+-- Transition : rien ne casse pour le site en ligne
+SELECT pg_temp.check('transition : l''ancienne fonction existe toujours',
+  EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'create_collection_suggestion' AND pronargs = 6));
+SELECT pg_temp.check('transition : le drapeau par collection reste intact',
+  (SELECT suggestions_enabled FROM public.collections WHERE id = 'c0000000-0000-0000-0000-0000000000a2'));
+SET ROLE service_role;
+SELECT (public.create_collection_suggestion('cuisine', :'C', 'Planche')).id AS w_old \gset
+SELECT pg_temp.check('transition : l''ancienne fonction marche encore', :'w_old' IS NOT NULL);
+RESET ROLE;
 \o
 SELECT n, CASE WHEN ok THEN 'OK   ' ELSE 'ÉCHEC' END, test, detail FROM r ORDER BY n;
 SELECT count(*) FILTER (WHERE ok) AS reussis, count(*) FILTER (WHERE NOT ok) AS echecs FROM r;
