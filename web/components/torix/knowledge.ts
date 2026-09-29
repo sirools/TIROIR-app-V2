@@ -140,12 +140,11 @@ export const TOPICS: Topic[] = [
     id: 'quotas',
     keywords: ['quota', 'limite', 'gratuit', 'premium', 'forfait', 'abonnement', 'combien d analyses', 'offre'],
     register: 'fait',
-    source: 'supabase/migrations · web/pages/pricing.tsx',
+    source: 'app_settings · web/lib/planQuotas.ts',
     answer:
-      'Premium, 6,99 €/mois : 150 unités d’analyse, 50 images, 20 estimations par mois.\n' +
-      'Pro, 29 €/mois : 300 unités, 100 images, 60 estimations.\n' +
-      'Gratuit : quota réglable dans /admin. Les analyses sont pondérées par leur coût : une scène Opus pèse 13 unités.\n' +
-      'Valeurs par défaut du code ; celles en vigueur se règlent dans /admin.',
+      'Trois forfaits : Gratuit (0 €), Premium (6,99 €/mois), Pro (29 €/mois).\n' +
+      'Les quotas en vigueur — objets, analyses IA, améliorations photo, estimations de valeur — se règlent dans le back-office, onglet Quotas. La page des tarifs les lit en direct : elle ne peut plus diverger.\n' +
+      'Les analyses sont pondérées par leur coût : une scène Sonnet (Premium) pèse 4 unités, une scène Opus (Pro) 13.',
   },
   {
     id: 'commandements',

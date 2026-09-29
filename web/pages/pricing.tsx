@@ -2,62 +2,17 @@ import Head from 'next/head'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import StoreButtons from '../components/StoreButtons'
+import type { GetStaticProps } from 'next'
+import { featureLists, fetchPlanQuotas, type PlanQuotas } from '../lib/planQuotas'
 
-// Les quotas ci-dessous doivent rester alignés sur app_settings (onglet Quotas
-// du dashboard admin) : free_objects_max, free_ai_quota_monthly,
-// free_photos_per_object, premium_ai_quota_monthly,
-// premium_photo_enhance_quota_monthly, et les trois
-// *_value_estimate_monthly.
+// Les quotas affichés sont ceux réellement appliqués : lus dans
+// app_settings (onglet Quotas du back-office) par lib/planQuotas.ts, la page
+// se régénère toutes les 10 minutes. Ne jamais les réécrire à la main ici.
 //
 // L'estimation de valeur marchande est la fonction la plus chère de l'app
 // (recherche web + modèle) : elle est annoncée avec son propre plafond, pas
 // diluée dans les « analyses IA ».
-const FREE_FEATURES = [
-  '100 objets',
-  '10 analyses IA / mois',
-  "Jusqu'à 3 photos par objet",
-  'Collections & recherche',
-  'Partage par lien',
-  '3 estimations de valeur / mois',
-]
-
-const PREMIUM_FEATURES = [
-  'Objets illimités',
-  '60 analyses IA / mois',
-  'Photos multiples par objet',
-  '20 améliorations photo IA / mois',
-  '20 estimations de valeur / mois',
-  'Ajout multiple en rafale',
-  'Assistant IA & aide au prix de vente',
-  'Documents joints & suivi des assurances',
-  'Toutes les futures fonctionnalités',
-]
-
-const PRO_FEATURES = [
-  'Tout le Premium, sans les limites',
-  '300 analyses IA / mois',
-  '100 améliorations photo IA / mois',
-  '60 estimations de valeur / mois',
-  'Inventaires volumineux (brocante, atelier, agence)',
-  'Export des inventaires pour un assureur ou un expert',
-  'Facturation sur facture, sans commission de store',
-  'Support prioritaire & accompagnement à la mise en route',
-]
-
-// Lignes mises en avant dans les cartes payantes : les quotas, qui sont la
-// vraie différence entre les forfaits.
-const HIGHLIGHTED = new Set([
-  'Objets illimités',
-  '60 analyses IA / mois',
-  '20 améliorations photo IA / mois',
-  '20 estimations de valeur / mois',
-  'Tout le Premium, sans les limites',
-  '300 analyses IA / mois',
-  '100 améliorations photo IA / mois',
-  '60 estimations de valeur / mois',
-])
-
-const FAQ = [
+const faq = (q: PlanQuotas) => [
   {
     q: 'Puis-je annuler à tout moment ?',
     a: 'Oui. L\'abonnement se gère depuis les Réglages iOS (Apple ID → Abonnements) sur iPhone, ou depuis le Play Store (menu → Abonnements) sur Android. Aucun engagement, aucun frais après annulation.',
@@ -72,11 +27,11 @@ const FAQ = [
   },
   {
     q: 'La version gratuite est-elle vraiment gratuite ?',
-    a: 'Oui, sans carte bancaire ni engagement. Les 100 objets et 10 analyses mensuelles suffisent pour découvrir l\'application et organiser une collection modeste.',
+    a: `Oui, sans carte bancaire ni engagement. Les ${q.freeObjects} objets et ${q.freeAnalyses} analyses mensuelles suffisent pour découvrir l'application et organiser une collection modeste.`,
   },
   {
     q: 'Quand passer au forfait Professionnel ?',
-    a: 'Quand l\'inventaire devient un outil de travail : brocante, atelier, agence immobilière, expertise ou gestion de parc. Le Professionnel monte les quotas IA à 300 analyses et 100 améliorations photo par mois, et se facture sur facture — sans passer par les stores. Écrivez-nous à hello@tiroir.app, le compte est ouvert sous 48 h.',
+    a: `Quand l'inventaire devient un outil de travail : brocante, atelier, agence immobilière, expertise ou gestion de parc. Le Professionnel monte les quotas IA à ${q.proAnalyses} analyses et ${q.proEnhances} améliorations photo par mois, et se facture sur facture — sans passer par les stores. Écrivez-nous à hello@tiroir.app, le compte est ouvert sous 48 h.`,
   },
   {
     q: 'Mes données sont-elles supprimées si j\'annule ?',
@@ -92,12 +47,19 @@ const FAQ = [
   },
 ]
 
-export default function Pricing() {
+export const getStaticProps: GetStaticProps<{ quotas: PlanQuotas }> = async () => {
+  const { quotas } = await fetchPlanQuotas()
+  return { props: { quotas }, revalidate: 600 }
+}
+
+export default function Pricing({ quotas }: { quotas: PlanQuotas }) {
+  const { free: FREE_FEATURES, premium: PREMIUM_FEATURES, pro: PRO_FEATURES, highlighted: HIGHLIGHTED } = featureLists(quotas)
+  const FAQ = faq(quotas)
   return (
     <>
       <Head>
         <title>Tarifs — Tiroir</title>
-        <meta name="description" content="Un inventaire alimenté par l'IA, gratuit pour commencer. Tiroir Premium à 6,99 €/mois pour des objets illimités et 60 analyses IA par mois, Professionnel à 29 €/mois pour les inventaires métier." />
+        <meta name="description" content={`Un inventaire alimenté par l'IA, gratuit pour commencer. Tiroir Premium à 6,99 €/mois pour des objets illimités et ${quotas.premiumAnalyses} analyses IA par mois, Professionnel à 29 €/mois pour les inventaires métier.`} />
       </Head>
 
       <HeaderTiroirWeb />
@@ -220,7 +182,7 @@ export default function Pricing() {
               Contrairement à d'autres applications qui monétisent vos données ou diffusent de la publicité, Tiroir choisit un modèle direct : <strong>vous payez pour ce que vous utilisez, nous ne revendons rien</strong>.
             </p>
             <p className="p">
-              Le plan gratuit couvre 10 analyses par mois — suffisant pour découvrir l'app et commencer à organiser une collection. Le Premium finance la totalité du coût IA et nous permet d'améliorer le service en continu. Le Professionnel, vendu en direct sans commission de store, couvre les volumes d'un usage métier.
+              Le plan gratuit couvre {quotas.freeAnalyses} analyses par mois — suffisant pour découvrir l'app et commencer à organiser une collection. Le Premium finance la totalité du coût IA et nous permet d'améliorer le service en continu. Le Professionnel, vendu en direct sans commission de store, couvre les volumes d'un usage métier.
             </p>
           </div>
         </section>
