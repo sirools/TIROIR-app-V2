@@ -15,8 +15,13 @@
 // la couleur de la direction où pointe le téléphone (palette.ts). `facing`
 // signale qu'on fait face à un point cardinal : la flamme s'élance. Sans
 // `heading`, Torix reste bleu, flamme vers le haut.
+//
+// Nord : la flamme monte en puissance à mesure qu'on s'aligne vers le nord
+// (northPower, 0 à 1, posé en --north) — une colonne de feu plus haute et
+// plus vive dans l'aiguille, une lueur autour du cœur. Face au nord, elle
+// est au maximum et une onde s'en échappe. Au sud, rien de plus.
 import type { CSSProperties } from 'react'
-import type { Cardinal } from './heading'
+import { northPower, type Cardinal } from './heading'
 import { paletteAt, paletteVars } from './palette'
 
 export type TorixState = 'idle' | 'listening' | 'speaking'
@@ -41,6 +46,15 @@ const LIVELY: Tongue[] = [
   { x: 62, w: 0.42, h: 2.0, d: 1.75, delay: -0.6, sway: 11 },
   { x: 46, w: 0.34, h: 2.2, d: 2.1, delay: -1.5, sway: -14 },
   { x: 55, w: 0.34, h: 2.1, d: 1.5, delay: -0.9, sway: 14 },
+]
+
+// Colonne du nord : plus haute, plus rapide, plus serrée.
+const SURGE: Tongue[] = [
+  { x: 50, w: 0.62, h: 3.0, d: 1.4, delay: -0.2, sway: 4 },
+  { x: 42, w: 0.4, h: 2.6, d: 1.2, delay: -0.7, sway: -8 },
+  { x: 58, w: 0.4, h: 2.7, d: 1.3, delay: -0.45, sway: 8 },
+  { x: 50, w: 0.3, h: 3.3, d: 1.0, delay: -0.9, sway: -3 },
+  { x: 47, w: 0.26, h: 2.9, d: 1.1, delay: -0.35, sway: 10 },
 ]
 
 // Teinte de chaque langue parmi les quatre de la palette. La première
@@ -73,15 +87,18 @@ type Props = {
 
 export default function TorixOrb({ state = 'idle', heading = null, facing = null }: Props) {
   const seeking = heading !== null
+  const north = seeking ? northPower(heading) : 0
   return (
     <div
       className="orb"
       data-state={state}
       data-compass={seeking ? (facing ? 'found' : 'seeking') : undefined}
-      style={paletteVars(paletteAt(heading ?? 0))}
+      data-north={facing === 'N' ? 'on' : undefined}
+      style={{ ...paletteVars(paletteAt(heading ?? 0)), '--north': north } as CSSProperties}
       aria-hidden="true"
     >
       <div className="layer aura"><span className="aura__glow" /></div>
+      <div className="layer north-glow"><span className="north-glow__light" /></div>
 
       {/* Aiguille à la taille de l'orbe : ses calques se placent comme
           avant, et elle pivote (vers le nord) et se met à l'échelle (le sud
@@ -98,6 +115,9 @@ export default function TorixOrb({ state = 'idle', heading = null, facing = null
         <div className="layer fire fire--lively">
           {LIVELY.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t, i + 1)} />)}
         </div>
+        <div className="layer fire fire--north">
+          {SURGE.map((t, i) => <span key={i} className="tongue" style={tongueStyle(t, i)} />)}
+        </div>
       </div>
 
       <div className="layer halo"><span className="halo__glow" /></div>
@@ -107,6 +127,10 @@ export default function TorixOrb({ state = 'idle', heading = null, facing = null
         <span className="ring ring--in ring--late" />
       </div>
       <div className="layer rings rings--speak">
+        <span className="ring ring--out" />
+        <span className="ring ring--out ring--late" />
+      </div>
+      <div className="layer rings rings--north">
         <span className="ring ring--out" />
         <span className="ring ring--out ring--late" />
       </div>
@@ -199,6 +223,35 @@ export default function TorixOrb({ state = 'idle', heading = null, facing = null
         }
         .fire--lively { opacity: 0; }
         .fire--lively .tongue { filter: blur(5px); }
+
+        /* ---------- Nord : montée en puissance ----------
+           --north va de 0 (sud, ou sans boussole) à 1 (face au nord). Le cap
+           est déjà lissé : transition courte, juste pour les à-coups. */
+        .fire--north {
+          opacity: var(--north, 0);
+          transform: translate(-50%, -92%)
+            scale(calc(0.7 + 0.4 * var(--north, 0)), calc(0.55 + 0.85 * var(--north, 0)));
+          transition: transform 160ms linear, opacity 160ms linear;
+        }
+        .fire--north .tongue { filter: blur(4px); }
+        .north-glow {
+          width: calc(var(--core) * 3.4); height: calc(var(--core) * 3.4);
+          opacity: calc(var(--north, 0) * var(--north, 0));
+          transition: opacity 160ms linear;
+        }
+        .north-glow__light {
+          position: absolute; inset: 0; border-radius: 50%;
+          background: radial-gradient(circle,
+            rgba(255, 255, 255, 0.5) 0%,
+            rgba(var(--glow-hi), 0.45) 22%,
+            rgba(var(--glow-mid), 0.22) 42%,
+            rgba(var(--glow-lo), 0) 66%);
+          animation: breathe 2.6s ease-in-out infinite;
+        }
+        .orb[data-north='on'] .rings--north { opacity: 1; }
+        .orb[data-north='on'] .fire--lively { opacity: 1; }
+        .orb[data-north='on'] .skin--lively { opacity: 0.8; }
+        .rings--north .ring { border-color: rgba(var(--glow-hi), 0.7); }
 
         /* ---------- Halo proche ---------- */
         .halo { width: calc(var(--core) * 2.3); height: calc(var(--core) * 2.3); }
