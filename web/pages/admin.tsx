@@ -121,6 +121,14 @@ interface Props {
   torixLink: { href: string; label: string } | null
 }
 
+// Bouton d'accès à Torix : noir et blanc, bien visible (demande du fondateur).
+const TORIX_BUTTON: React.CSSProperties = {
+  background: '#121212',
+  color: '#FFFFFF',
+  border: '2px solid #121212',
+  fontWeight: 700,
+}
+
 export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixLink, treasury }: Props) {
   const conversionPct = kpis.totalAccounts > 0
     ? ((kpis.accountsWithObjects / kpis.totalAccounts) * 100).toFixed(1)
@@ -247,7 +255,7 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
           {/* Pas un onglet : une page à part, plein écran, réservée au
               propriétaire de Torix (la page a sa propre garde serveur). */}
           {torixLink && (
-            <a href={torixLink.href} style={{ ...s.tabBtn, ...s.tabLink }}>
+            <a href={torixLink.href} style={{ ...s.tabBtn, ...s.tabLink, ...TORIX_BUTTON }}>
               {torixLink.label}
             </a>
           )}
@@ -1028,7 +1036,7 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
             (lien et libellé envoyés par le serveur). */}
         {torixLink && (
           <div style={{ margin: '32px 0 8px', textAlign: 'center' }}>
-            <a href={torixLink.href} style={{ ...s.tabBtn, ...s.tabLink, display: 'inline-block' }}>
+            <a href={torixLink.href} style={{ ...s.tabBtn, ...s.tabLink, ...TORIX_BUTTON, display: 'inline-block', padding: '14px 28px', fontSize: 16 }}>
               {torixLink.label}
             </a>
           </div>
