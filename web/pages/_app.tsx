@@ -6,6 +6,9 @@ import '@tamagui/core/reset.css'
 import { TamaguiProvider } from 'tamagui'
 import config from '../tamagui.config'
 import SiteVisitTracker from '../components/SiteVisitTracker'
+// Jetons de design (couleurs, police, arrondi…) : seule source,
+// design/tokens.json → node design/generate.mjs.
+import '../styles/tokens.generated.css'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -14,19 +17,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       <Component {...pageProps} />
 
       <style jsx global>{`
-        :root {
-          --font-body: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-          --beige: #FFF4E6;
-          --beige-2: #FFF8EF;
-          --orange: #F26900;
-          --orange-700: #D85E00;
-          --ink: #121212;
-          --muted: #5b5b5b;
-          --radius: 16px;
-          --shadow: 0 6px 20px rgba(0,0,0,0.06);
-          --max: 1440px;
-        }
-
         a.btn,
         a.button {
           text-decoration: none;
