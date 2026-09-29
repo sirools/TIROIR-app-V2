@@ -38,6 +38,13 @@ URLs finales :
 - http://192.168.1.23:8081/ — drive
 - http://192.168.1.23:8151/ — preprod Tiroir
 
+## Sauvegarde chiffrée de la base de prod
+
+`sauvegarde/` : export quotidien de la base de prod, chiffré pour la clé
+publique du fondateur (la clé privée n'est jamais sur le NAS), 0 €/mois.
+Mise en place pas à pas : `sauvegarde/README.md`. `deploy.sh` copie le
+dossier sans jamais toucher à `sauvegarde/.sauvegarde.env`.
+
 ## Clé SSH (déploiement autonome)
 ```bash
 ssh-keygen -t ed25519 -N "" -C "preprod-deploy@tiroir" -f preprod/ssh/tiroir_preprod_ed25519

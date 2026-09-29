@@ -7,3 +7,5 @@ tiroir/app/
 # Clone et jeton de nas-update.sh (sur le NAS uniquement)
 src/
 .github-token
+# Réglages de la sauvegarde chiffrée (accès à la base de prod)
+sauvegarde/.sauvegarde.env

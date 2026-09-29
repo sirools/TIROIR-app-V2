@@ -43,9 +43,11 @@ ssh $SSH_OPTS "$TARGET" 'docker --version || sudo docker --version' \
 # 4. Copier le stack sur le NAS
 echo "==> Copie du stack (rsync)…"
 ssh $SSH_OPTS "$TARGET" "mkdir -p '$REMOTE_DIR'"
-rsync -az --delete -e "ssh $SSH_OPTS" --exclude '.DS_Store' \
+# .sauvegarde.env n'existe que sur le NAS : exclu, donc jamais effacé par
+# --delete (sans --delete-excluded, rsync ne touche pas aux exclus).
+rsync -az --delete -e "ssh $SSH_OPTS" --exclude '.DS_Store' --exclude '.sauvegarde.env' \
   "$HERE/docker-compose.yml" "$HERE/web" "$HERE/nginx" \
-  "$HERE/filebrowser" "$HERE/tiroir" "$HERE/nas-update.sh" \
+  "$HERE/filebrowser" "$HERE/tiroir" "$HERE/nas-update.sh" "$HERE/sauvegarde" \
   "$TARGET:$REMOTE_DIR/"
 
 # 5. Build + up (les NEXT_PUBLIC_* du build viennent de .env.preprod)
