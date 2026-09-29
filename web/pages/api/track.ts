@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
+import { acquisitionFrom } from '../../lib/attribution'
 
 type Body = {
   path?: string
@@ -32,21 +33,6 @@ function cleanPath(rawPath: unknown) {
 
 function cleanOptionalText(value: unknown, max = 1000) {
   return typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : null
-}
-
-function getSource(referrer: string | null) {
-  if (!referrer) return 'direct'
-  try {
-    const host = new URL(referrer).hostname.replace(/^www\./, '')
-    if (host.includes('producthunt.com')) return 'producthunt'
-    if (host.includes('linkedin.com')) return 'linkedin'
-    if (host.includes('google.')) return 'google'
-    if (host.includes('instagram.com')) return 'instagram'
-    if (host.includes('tiktok.com')) return 'tiktok'
-    return host
-  } catch {
-    return 'unknown'
-  }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -82,7 +68,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     user_agent: userAgent,
     ip_hash: hashIp(ip),
     visitor_id: visitorId,
-    source: getSource(referrer),
+    // Lien de campagne (utm_source) d'abord, sinon le site d'origine.
+    source: acquisitionFrom(path.includes('?') ? path.slice(path.indexOf('?')) : '', referrer, 'tiroir.app').source,
   })
 
   if (error) {

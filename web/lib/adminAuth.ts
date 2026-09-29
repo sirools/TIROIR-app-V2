@@ -15,6 +15,7 @@ import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import type { User } from '@supabase/supabase-js'
 import { serverSupabase, adminSupabase } from './supabase'
 import { isTorixOwner } from './torixOwner'
+import { isMarketingMember } from './marketingAccess'
 
 export type AdminPageGuard =
   | { ok: true; user: User }
@@ -91,4 +92,31 @@ export async function requireTorixOwnerApi(req: NextApiRequest, res: NextApiResp
   }
   res.status(404).end()
   return null
+}
+
+/**
+ * Page Marketing : les admins, et les adresses de MARKETING_EMAILS
+ * (marketingAccess.ts) — qui n'ont accès à rien d'autre du back-office.
+ * Tout autre compte reçoit un 404.
+ */
+export async function requireMarketingPage(
+  ctx: GetServerSidePropsContext,
+): Promise<AdminPageGuard> {
+  ctx.res.setHeader('Cache-Control', 'private, no-store')
+  ctx.res.setHeader('X-Robots-Tag', 'noindex, nofollow')
+
+  const { data: { user } } = await serverSupabase(ctx).auth.getUser()
+  if (!user) {
+    const next = encodeURIComponent(ctx.resolvedUrl)
+    return { ok: false, result: { redirect: { destination: `/login?next=${next}`, permanent: false } } }
+  }
+  if (isMarketingMember(user)) return { ok: true, user }
+
+  const { data: profile } = await adminSupabase()
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single()
+  if (profile?.is_admin) return { ok: true, user }
+  return { ok: false, result: { notFound: true } }
 }

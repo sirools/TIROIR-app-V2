@@ -85,14 +85,32 @@ objet**. Le produit plaît à ceux qui l'essaient ; ce qui manque, c'est
   progressivement. Les détails passeront par un avocat, pour qu'on soit
   protégés tous les deux.
 
-## 8. Avant de commencer (à signer tous les deux)
+## 8. Tes outils
+
+- **La page Marketing** du back-office
+  ([backoffice.tiroir.app/admin/marketing](https://backoffice.tiroir.app/admin/marketing)) :
+  visiteurs, comptes, taux d'activation, abonnés payants, et surtout
+  **les inscriptions par source**. On n'y voit que des totaux, jamais les
+  données d'un utilisateur. Tu y auras accès avec ton adresse, sans
+  accéder au reste du back-office.
+- **Des liens de campagne** : chaque lien que tu publies porte sa source,
+  par exemple
+  `https://tiroir.app/?utm_source=instagram&utm_campaign=rentree`. Les
+  comptes créés depuis ce lien sont rangés sous « instagram » dans la page
+  Marketing. Un lien différent par canal, sinon on ne sait pas ce qui
+  marche.
+- **Limite à connaître** : les inscriptions faites directement dans l'app
+  (App Store, Google Play) n'ont pas encore de source ; elles
+  apparaissent en « app ou inconnue ».
+
+## 9. Avant de commencer (à signer tous les deux)
 
 1. **Un accord de confidentialité** : la prochaine version de l'app
    n'est pas publique.
 2. **La cession des droits** : ce que tu crées pour Tiroir (visuels,
    textes, vidéos, logos) appartient à Tiroir.
 
-## 9. Les promesses qu'on ne fait pas
+## 10. Les promesses qu'on ne fait pas
 
 - On n'écrit jamais « données garanties secrètes ». La formule juste
   aujourd'hui : **« Privé, visible par vous seul. »**
@@ -101,7 +119,7 @@ objet**. Le produit plaît à ceux qui l'essaient ; ce qui manque, c'est
 - Les prix et les quotas affichés sont ceux de la page Tarifs, jamais
   d'autres chiffres.
 
-## 10. Ce que j'attends de toi à ton retour
+## 11. Ce que j'attends de toi à ton retour
 
 Pour notre premier rendez-vous, ton regard sur trois points :
 

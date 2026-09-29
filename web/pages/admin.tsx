@@ -253,6 +253,9 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
               {TAB_META[t].label}
             </button>
           ))}
+          {/* Chiffres marketing agrégés : page à part, ouverte aussi à
+              MARKETING_EMAILS sans donner accès au reste du back-office. */}
+          <a href="/admin/marketing" style={{ ...s.tabBtn, ...s.tabLink }}>Marketing</a>
           {/* Pas un onglet : une page à part, plein écran, réservée au
               propriétaire de Torix (la page a sa propre garde serveur). */}
           {torixLink && (
