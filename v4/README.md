@@ -17,6 +17,7 @@ même base Supabase. Ce dossier est volontairement **hors de leur chemin** :
 | `docs/` | Documentation seule. |
 | `supabase/drafts/*.sql` | Brouillons **non appliqués** : `supabase db push` ne lit que `supabase/migrations/`. |
 | `domain/*.ts` | Logique métier pure, sans dépendance. Ni `web/` ni `mobile/` ne l'importent. |
+| `torix/*.ts` | Ce que Torix sait de la V4.0 : fiches sans modèle. Ni `web/` ni `mobile/` ne l'importent. |
 
 Tant que la V4.0 est en chantier :
 1. Ne rien importer de `v4/` depuis `web/` ou `mobile/`, et inversement.
@@ -42,11 +43,26 @@ v4/
 │   │   └── 0003_collection_suggestions.sql  # idées et suggestions d'une collection partagée
 │   └── tests/                            # 45 tests 0001 + 42 tests 0003 (./run.sh URL_BASE_JETABLE)
 ├── e2e/suggestions/                      # banc e2e local des suggestions (Playwright)
-└── domain/
-    ├── serrure.ts                        # niveaux de serrure, rôles, droits
-    ├── pret.ts                           # cycle de vie d'un prêt
-    └── *.test.ts
+├── domain/
+│   ├── serrure.ts                        # niveaux de serrure, rôles, droits
+│   ├── pret.ts                           # cycle de vie d'un prêt
+│   └── *.test.ts
+└── torix/
+    ├── knowledge.ts                      # ce que Torix sait de la V4.0 (fiches, registre, source)
+    └── knowledge.test.ts                 # les fiches comparées à domain/, aux brouillons et aux docs
 ```
+
+## Torix et la V4.0
+
+`torix/knowledge.ts` est le pendant, pour la V4.0, des fiches de
+`web/components/torix/knowledge.ts` : réponses sans modèle, chacune avec
+son registre (fait, estimation, principe) et sa source dans `v4/`. Il reste
+ici tant que la V4.0 n'est pas fusionnée (pas d'import entre `v4/` et
+`web/`), et rejoindra alors le Torix Lab, derrière `requireTorixOwnerPage`.
+
+**Tout changement de `domain/`, d'un brouillon SQL ou d'une doc de décision
+doit mettre ces fiches à jour** : `npm test` les compare au code et casse
+sinon.
 
 ## Lancer les tests
 
