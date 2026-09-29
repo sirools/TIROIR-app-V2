@@ -132,8 +132,8 @@ export const TOPICS: Topic[] = [
     register: 'fait',
     source: 'v4/docs/prochaines-etapes.md',
     answer:
-      'Sur main, au 28 septembre : les suggestions vivent sur la branche feature/v4-suggestions-web, rien de la V4 n’est fusionné — mais cette branche les dit déjà appliquées en prod, à vérifier.\n' +
-      'Ensuite : valider en preprod (brouillon 0003 et scénario à trois comptes), mettre à jour la preprod et TestFlight sans le Mac.\n' +
+      'Au 29 septembre : les suggestions (étape 1) sont en prod — code web dans main, SQL appliqué le 28/09, migration rangée dans main.\n' +
+      'Ensuite : inscrire cette migration dans l’historique de la base de prod, puis valider l’étape 2 en preprod (réglage par partage, objets de son Tiroir).\n' +
       'Décisions en attente : exiger le cookie signé aussi en lecture, retenir la collection d’un lien à sa création, photo dans le formulaire de suggestion.',
   },
   {
@@ -143,8 +143,8 @@ export const TOPICS: Topic[] = [
     source: 'v4/docs/prochaines-etapes.md',
     answer:
       'Deux mondes : le Tiroir en ligne et le chantier V4. La fusion est prévue par construction — chaque phase de la migration est additive et laisse la V2 intacte.\n' +
-      'Le risque, c’est la fission : les branches de suggestions pas encore dans main, et surtout un écart possible entre la base de prod et le dépôt.\n' +
-      'Ordre : vérifier en prod que la table collection_wishes existe ; si oui, fusionner feature/v4-suggestions-web dans main ; puis chaque étape, preprod → main, une à une.',
+      'L’écart entre la prod et main est refermé depuis le 29/09 : les suggestions y sont, leur migration aussi. Reste à inscrire sa version dans l’historique de la base.\n' +
+      'Ensuite, chaque étape : preprod → main, une à une ; la prochaine est l’étape 2 des suggestions.',
   },
   {
     id: 'questions',

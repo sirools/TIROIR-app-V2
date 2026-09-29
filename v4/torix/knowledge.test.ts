@@ -158,18 +158,17 @@ test('parrainage : seuil et remise des décisions du 28 septembre', () => {
 
 test('état : la fiche suit prochaines-etapes.md', () => {
   const doc = v4('docs/prochaines-etapes.md')
-  assert.match(doc, /feature\/v4-suggestions-web/)
-  assert.match(doc, /rien n'est fusionné dans `main`/)
-  assert.match(byId('etat'), /rien de la V4 n’est fusionné/)
+  assert.match(doc, /les suggestions \(étape 1\) sont en prod/)
+  assert.match(byId('etat'), /les suggestions \(étape 1\) sont en prod/)
 })
 
 test('fusion : la fiche suit la section « Fusion ou fission ? »', () => {
   const doc = v4('docs/prochaines-etapes.md')
   assert.match(doc, /## 5\. Fusion ou fission \?/)
-  assert.match(doc, /table `collection_wishes` existe/)
-  assert.match(byId('fusion'), /collection_wishes/)
-  assert.match(doc, /suggestions appliquées en prod/)
-  assert.match(byId('etat'), /déjà appliquées en prod, à vérifier/)
+  assert.match(doc, /\*refermé le 29\/09\.\*/)
+  assert.match(byId('fusion'), /refermé depuis le 29\/09/)
+  assert.match(doc, /supabase_migrations\.schema_migrations/)
+  assert.match(byId('etat'), /inscrire cette migration/)
 })
 
 test('V5 : la fiche suit la décision consignée dans vision.md', () => {
