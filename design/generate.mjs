@@ -70,6 +70,22 @@ const OUTPUTS = [
   ['supabase/functions/_shared/brandTokens.generated.ts', ts()],
 ]
 
+// app.json de l'app (Expo) : seules ses couleurs viennent des jetons —
+// fond de l'écran de démarrage = fond de l'app, fond de l'icône Android =
+// orange. Remplacement ciblé, pour ne pas reformater le reste du fichier.
+function appJson() {
+  const file = join(ROOT, 'mobile/app.json')
+  let src = readFileSync(file, 'utf8')
+  const set = (re, value, what) => {
+    if (!re.test(src)) throw new Error(`mobile/app.json : ${what} introuvable`)
+    src = src.replace(re, `$1${value}$2`)
+  }
+  set(/("splash":\s*\{[^}]*?"backgroundColor":\s*")#[0-9A-Fa-f]{6}(")/s, tokens.color['beige-2'].value, 'splash.backgroundColor')
+  set(/("adaptiveIcon":\s*\{[^}]*?"backgroundColor":\s*")#[0-9A-Fa-f]{6}(")/s, tokens.color.orange.value, 'android.adaptiveIcon.backgroundColor')
+  return src
+}
+OUTPUTS.push(['mobile/app.json', appJson()])
+
 const check = process.argv.includes('--check')
 let stale = 0
 for (const [rel, content] of OUTPUTS) {
