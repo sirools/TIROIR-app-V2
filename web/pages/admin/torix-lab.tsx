@@ -5,6 +5,10 @@
 // (components/torix/knowledge.ts) et connaît les quatre points cardinaux
 // (directions.ts). Zéro token ; rien n'est envoyé au serveur ni conservé.
 //
+// Voix (voice.ts) : le micro fait écouter Torix ; une question posée à
+// voix haute reçoit sa réponse à voix haute. Reconnaissance et synthèse du
+// navigateur, sans modèle. Absent si le navigateur ne sait pas faire.
+//
 // Boussole : une fois activée (geste obligatoire sur iOS), la flamme de
 // Torix pointe vers le nord — en haut face au nord, en bas face au sud — et
 // prend la couleur de la direction où pointe le téléphone : nord bleu, est
@@ -18,7 +22,7 @@
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
-import { ArrowUp, Compass } from 'lucide-react'
+import { ArrowUp, Compass, Mic } from 'lucide-react'
 import TorixOrb, { type TorixState } from '../../components/torix/TorixOrb'
 import { isRestTime } from '../../components/torix/commandments'
 import {
@@ -35,6 +39,7 @@ import {
   type CompassDebug,
   type CompassStatus,
 } from '../../components/torix/useCompass'
+import { canListen, canSpeak, listenOnce, speak, unlockSpeech } from '../../components/torix/voice'
 import { requireTorixOwnerPage } from '../../lib/adminAuth'
 
 const INTRO = 'Demande-moi une direction, ou parle-moi de Tiroir.'
@@ -62,6 +67,11 @@ const DIAL: { id: Cardinal; label: string; deg: number }[] = [
 ]
 const DENIED_LINE = "Je n'ai pas accès à la boussole. Ferme et rouvre l'onglet pour réessayer."
 const UNSUPPORTED_LINE = 'Pas de boussole ici. Fais tourner le cap à la main.'
+const VOICE_LINES = {
+  denied: "Je n'ai pas accès au micro. Autorise-le dans Réglages › Safari › Micro.",
+  silence: "Je n'ai rien entendu. Touche le micro et parle-moi.",
+  failed: "Je n'ai pas compris. Réessaie, ou écris-moi.",
+}
 
 type Line = { id: number; text: string; register?: Register; source?: string }
 
@@ -72,6 +82,9 @@ export default function TorixLab() {
   const timers = useRef<number[]>([])
   const busy = state !== 'idle'
   const viewport = useVisualViewport()
+  const [micReady, setMicReady] = useState(false)
+  // Coupe l'écoute ou la parole en cours.
+  const stopVoice = useRef<() => void>(() => {})
 
   const compass = useCompass()
   const [simForced, setSimForced] = useState(false)
@@ -83,7 +96,11 @@ export default function TorixLab() {
   const compassOn = compass.status === 'starting' || compass.status === 'active'
   const showDebug = debugForced || compass.status === 'denied' || compass.status === 'unsupported'
 
-  useEffect(() => () => timers.current.forEach(t => window.clearTimeout(t)), [])
+  useEffect(() => () => {
+    timers.current.forEach(t => window.clearTimeout(t))
+    stopVoice.current()
+  }, [])
+  useEffect(() => setMicReady(canListen()), [])
   useDarkThemeColor(BG)
 
   useEffect(() => {
@@ -157,13 +174,60 @@ export default function TorixLab() {
       setLine(prev => ({ id: prev.id + 1, text: REST_LINE }))
       return
     }
+    respond(q, false)
+  }
+
+  /** Torix « réfléchit », puis répond — à voix haute si on lui a parlé. */
+  function respond(q: string, aloud: boolean) {
     setState('listening')
     const think = THINK_MIN_MS + Math.random() * (THINK_MAX_MS - THINK_MIN_MS)
     later(think, () => {
       const a = answerQuestion(q)
       setLine(prev => ({ id: prev.id + 1, text: a.text, register: a.register, source: a.source }))
       setState('speaking')
-      later(SPEAK_MS, () => setState('idle'))
+      if (!aloud || !canSpeak()) {
+        later(SPEAK_MS, () => setState('idle'))
+        return
+      }
+      // Filet : Safari oublie parfois de signaler la fin de la parole.
+      const guard = window.setTimeout(() => stopVoice.current(), Math.min(60_000, 2_000 + a.text.length * 90))
+      timers.current.push(guard)
+      stopVoice.current = speak(a.text, () => {
+        window.clearTimeout(guard)
+        stopVoice.current = () => {}
+        setState('idle')
+      })
+    })
+  }
+
+  function toggleMic() {
+    // Pendant qu'il parle, toucher le micro le fait taire.
+    if (state === 'speaking') {
+      stopVoice.current()
+      return
+    }
+    if (busy) return
+    if (isRestTime(new Date())) {
+      setLine(prev => ({ id: prev.id + 1, text: REST_LINE }))
+      return
+    }
+    // Dans le geste : sans quoi Safari iOS refusera de parler ensuite.
+    unlockSpeech()
+    setState('listening')
+    let heard = false
+    stopVoice.current = listenOnce({
+      onResult: text => {
+        heard = true
+        setLine(prev => ({ id: prev.id + 1, text: `« ${text} »` }))
+        respond(text, true)
+      },
+      onError: reason => setLine(prev => ({ id: prev.id + 1, text: VOICE_LINES[reason] })),
+      onEnd: () => {
+        if (!heard) {
+          stopVoice.current = () => {}
+          setState('idle')
+        }
+      },
     })
   }
 
@@ -283,6 +347,17 @@ export default function TorixLab() {
             enterKeyHint="send"
             maxLength={200}
           />
+          {micReady && (
+            <button
+              className={`ask__mic${state === 'listening' ? ' ask__mic--on' : ''}`}
+              type="button"
+              onClick={toggleMic}
+              aria-label={state === 'speaking' ? 'Faire taire Torix' : 'Parler à Torix'}
+              disabled={state === 'listening'}
+            >
+              <Mic size={18} strokeWidth={2} />
+            </button>
+          )}
           <button
             className="ask__send"
             type="submit"
@@ -586,6 +661,33 @@ export default function TorixLab() {
           cursor: default;
         }
         .ask__send:focus-visible { outline: 2px solid #8fd0ff; outline-offset: 2px; }
+        .ask__mic {
+          flex: none;
+          width: 44px;
+          height: 44px;
+          margin-right: 4px;
+          display: grid;
+          place-items: center;
+          border: 0;
+          border-radius: 50%;
+          background: transparent;
+          color: #cfe0ff;
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+          transition: color 250ms ease, background 250ms ease, transform 250ms ease;
+        }
+        .ask__mic:active:not(:disabled) { transform: scale(0.94); }
+        .ask__mic--on {
+          color: #06101f;
+          background: #8fd0ff;
+          animation: listen 1.2s ease-in-out infinite;
+        }
+        .ask__mic:disabled { cursor: default; }
+        .ask__mic:focus-visible { outline: 2px solid #8fd0ff; outline-offset: 2px; }
+        @keyframes listen {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(143, 208, 255, 0.45); }
+          50% { box-shadow: 0 0 0 8px rgba(143, 208, 255, 0); }
+        }
 
         @keyframes appear {
           from { opacity: 0; transform: translateY(6px); filter: blur(4px); }
@@ -593,6 +695,7 @@ export default function TorixLab() {
         }
         @media (prefers-reduced-motion: reduce) {
           .line { animation-duration: 1ms; }
+          .ask__mic--on { animation: none; }
         }
         @media (min-width: 768px) {
           .lab { --torix-core: clamp(96px, calc(var(--app-h) * 0.17), 150px); }
