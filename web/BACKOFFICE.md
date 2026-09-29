@@ -41,3 +41,24 @@ Tant que `BACKOFFICE_HOST` n'est pas défini, rien ne change.
 
 Supprimer `BACKOFFICE_HOST` dans Vercel et redéployer : `/admin` redevient
 accessible sur `tiroir.app`, comme avant.
+
+## Le système tourne-t-il ? (24 h / 24)
+
+Le site, le back-office et la base tournent jour et nuit. **Seul Torix se
+repose** (21 h 30 – 7 h) : son repos ne coupe rien d'autre.
+
+- **En haut du back-office**, la carte « État du système » : système en
+  ligne, base de données qui répond, et — pour le seul propriétaire —
+  Torix éveillé ou au repos. Revérifiée chaque minute.
+- **`https://tiroir.app/api/health`** : `{"status":"ok","site":"ok","db":"ok"}`
+  (HTTP 200) quand tout va bien ; HTTP 503 si la base ne répond pas.
+
+### Être alerté sur son iPhone (gratuit, une fois)
+
+1. Créer un compte sur un service de surveillance gratuit (UptimeRobot,
+   Better Stack…).
+2. Nouveau moniteur HTTP(S) : `https://tiroir.app/api/health`, toutes les
+   5 minutes.
+3. Installer l'app du service sur l'iPhone et activer les notifications :
+   une alerte arrive si le site ou la base tombe, et une autre quand ça
+   repart.
