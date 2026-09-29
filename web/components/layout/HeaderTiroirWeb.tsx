@@ -365,17 +365,24 @@ export default function HeaderTiroirWeb() {
               </>
             ) : (
               <>
-                <a className="appstore-nav-btn" href="/login" onClick={() => setMenuOpen(false)}>
-                  {isEn ? 'Sign in' : 'Se connecter'}
-                </a>
+                {/* Mobile : se connecter d'abord (bouton principal) ; créer un
+                    compte à part, pour qui n'est pas encore inscrit. */}
                 <a
                   className="btn btn-primary"
-                  href="/inscription"
+                  href="/login"
                   style={{ textDecoration: 'none' }}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {isEn ? 'Sign up' : 'Créer un compte'}
+                  {isEn ? 'Sign in' : 'Se connecter'}
                 </a>
+                <div className="ti-mobile-menu__signup">
+                  <p className="ti-mobile-menu__signup-text">
+                    {isEn ? 'New to Tiroir?' : 'Pas encore inscrit ?'}
+                  </p>
+                  <a className="appstore-nav-btn" href="/inscription" onClick={() => setMenuOpen(false)}>
+                    {isEn ? 'Create an account' : 'Créer un compte'}
+                  </a>
+                </div>
               </>
             )}
           </nav>
@@ -690,6 +697,25 @@ export default function HeaderTiroirWeb() {
           font-size: 15px;
           font-weight: 700;
           color: #121212;
+        }
+        .ti-mobile-menu__signup {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 12px;
+          padding: 16px;
+          border-radius: var(--radius);
+          background: var(--beige-2);
+          border: 1px solid var(--border-light);
+        }
+        .ti-mobile-menu__signup-text {
+          margin: 0;
+          text-align: center;
+          font-size: 14px;
+          color: var(--muted);
+        }
+        .ti-mobile-menu__signup :global(.appstore-nav-btn) {
+          background: var(--white);
         }
         .ti-mobile-menu__logout {
           color: #C0392B !important;
