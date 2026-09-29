@@ -16,3 +16,8 @@ psql "$DB" -q -f "$HERE/0001_drawer_members.test.sql" | tee /dev/stderr | grep -
 psql "$DB" -q -f "$HERE/stub_0003.sql" >/dev/null 2>&1 || true
 psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../drafts/0003_collection_suggestions.sql" 2>&1 | grep -v NOTICE || true
 psql "$DB" -q -f "$HERE/0003_collection_suggestions.test.sql" | tee /dev/stderr | grep -q "| *0$"
+
+# 0004 — réglage par partage, objets proposés depuis son Tiroir
+psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/stub_0004.sql" >/dev/null
+psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../drafts/0004_share_link_suggestions.sql" 2>&1 | grep -v NOTICE || true
+psql "$DB" -q -f "$HERE/0004_share_link_suggestions.test.sql" | tee /dev/stderr | grep -q "| *0$"

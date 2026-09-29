@@ -100,3 +100,26 @@ Ordre recommandé :
 2. Aligner l'historique de la prod (§ 0).
 3. Puis chaque étape de la V4 : preprod → `main`, une à une — la
    prochaine est l'étape 2 des suggestions (`feature/v4-suggestions-ajouts`).
+
+## 6. Étape 2 des suggestions, fil par fil (29 septembre 2026)
+
+La branche `feature/v4-suggestions-ajouts` faisait tout d'un coup (base,
+fonction serveur, site, app). Elle est reprise en cinq fils, chacun vérifié
+avant le suivant :
+
+1. **Brouillon 0004, additif** — `v4/supabase/drafts/0004_*`. La nouvelle
+   porte d'entrée s'appelle `create_share_suggestion` ; l'ancienne
+   (`create_collection_suggestion`) et le drapeau par collection restent,
+   pour que le site en ligne marche tel quel. 16 tests SQL.
+2. **0004 sur la preprod**, puis vérification.
+3. **`create-share-link`** retient la collection et l'option d'ajouts.
+4. **App** : « Autoriser les ajouts » sur un partage.
+5. **Site** : tuile « + », objets de son Tiroir, réglage lu sur le partage.
+   Le code de la branche appelle encore `create_collection_suggestion` à
+   sept arguments : à passer sur `create_share_suggestion` en reprenant ce
+   fil.
+
+Puis **0005, nettoyage** : retirer `create_collection_suggestion` et
+`collections.suggestions_enabled`, une fois le fil 5 en ligne. Pendant la
+transition, un réglage changé côté site ancien (par collection) n'est pas
+recopié sur le partage : c'est pourquoi le fil 5 suit de près le fil 4.
