@@ -3,18 +3,25 @@ import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 
 import { APPLE_WEB_ENABLED as APPLE_LOGIN_ENABLED } from '../lib/identities'
-
-/** Page de retour après connexion (?next=/s/abc) : chemin interne seulement. */
-function safeNext(raw: unknown): string {
-  return typeof raw === 'string' && /^\/(?![/\\])/.test(raw) ? raw : '/'
-}
+import { authErrorHint, authHref, safeNext, type AuthHint } from '../lib/authFlow'
 
 export default function Login() {
   const router = useRouter()
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState<string | null>(null)
+  const [hint, setHint]         = useState<AuthHint | null>(null)
   const [loading, setLoading]   = useState(false)
+  const next = typeof router.query.next === 'string' ? safeNext(router.query.next) : null
+
+  // Déjà connecté (retour d'un e-mail de confirmation, autre onglet) : on
+  // file directement là où il allait.
+  useEffect(() => {
+    if (!router.isReady || !next) return
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) router.replace(next)
+    })
+  }, [router, next])
 
   // Affiche les erreurs renvoyées par un retour OAuth raté (?error_description=…)
   useEffect(() => {
@@ -26,10 +33,11 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setHint(null)
 
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      setError(error.message)
+      setHint(authErrorHint(error.message))
       setLoading(false)
       return
     }
@@ -105,6 +113,14 @@ export default function Login() {
           />
 
           {error && <p style={s.error}>{error}</p>}
+          {hint && (
+            <div style={s.error} role="alert">
+              <p style={{ margin: 0 }}>{hint.message}</p>
+              {hint.suggestSignup && (
+                <a href={authHref('/inscription', next)} style={s.hintLink}>Créer mon compte →</a>
+              )}
+            </div>
+          )}
 
           <button type="submit" disabled={loading} style={s.btn}>
             {loading ? 'Connexion…' : 'Se connecter'}
@@ -113,7 +129,7 @@ export default function Login() {
 
         <p style={s.switch}>
           Pas encore de compte ?{' '}
-          <a href="/inscription" style={s.switchLink}>Créer un compte</a>
+          <a href={authHref('/inscription', next)} style={s.switchLink}>Créer un compte</a>
         </p>
 
         <p style={s.cgu}>
@@ -142,6 +158,7 @@ const s: Record<string, React.CSSProperties> = {
   forgotLink:  { fontSize: 13, color: '#F26900', fontWeight: 600, textDecoration: 'none', marginTop: 8 },
   input:       { padding: '10px 14px', borderRadius: 10, border: '1px solid #e0e0e0', fontSize: 15, outline: 'none', transition: 'border-color 0.15s' },
   error:       { fontSize: 13, color: '#c0392b', background: '#fdf0ef', borderRadius: 8, padding: '8px 12px', marginTop: 4 },
+  hintLink:    { display: 'inline-block', marginTop: 6, color: '#F26900', fontWeight: 700, textDecoration: 'none' },
   btn:         { marginTop: 12, padding: '13px 0', borderRadius: 12, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', textAlign: 'center' },
   switch:      { fontSize: 14, color: '#5b5b5b', marginTop: 20, textAlign: 'center' },
   switchLink:  { color: '#F26900', fontWeight: 600, textDecoration: 'none' },

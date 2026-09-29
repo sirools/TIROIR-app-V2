@@ -17,7 +17,7 @@ Branche : `feature/v4-suggestions-web`. Rien n'est fusionné dans `main`.
 | Drapeau par collection | `collections.suggestions_enabled`, `false` par défaut. Réglable par le propriétaire sur la page de son partage. |
 | Trois états visuels dans la grille | Carte normale / carte fantôme « Idée » (pointillé, estompée) / carte fantôme « Suggestion » + avatar et prénom de l'auteur. Pas d'onglet à part. |
 | Bouton « + » côté destinataire | « Suggérer un objet » : nom, lien et prix optionnels. Visible seulement si la collection accepte les suggestions. |
-| Visiteur sans compte | `SignupModalStub` (marqué `TODO(v4-suggestions)`) : explique, renvoie vers `/login?next=…`. |
+| Visiteur sans compte | `SignupModal` : explique, propose « Créer mon compte » ou « J'ai déjà un compte » ; les deux ramènent au partage avec le formulaire rouvert (`?suggerer=1`, `lib/authFlow.ts`), y compris après l'e-mail de confirmation. |
 | Tri façon Tinder | Une carte à la fois : glisser, boutons Garder / Écarter, flèches ← →, « Annuler le dernier choix » (et Ctrl+Z). N'apparaît que s'il reste une suggestion en attente. |
 
 ### Pourquoi une table à part plutôt qu'une colonne sur `objects`
@@ -79,7 +79,7 @@ web/pages/api/shares/[token]/verify.ts               pose désormais le cookie s
 web/pages/s/[token].tsx                              intégration dans la page de partage
 web/pages/login.tsx                                  ?next= (retour au partage)
 web/components/share/                                WishCard, AuthorAvatar, SuggestModal,
-                                                     SignupModalStub, SuggestionTriage,
+                                                     SignupModal, SuggestionTriage,
                                                      SuggestionsToggle
 ```
 
@@ -104,7 +104,7 @@ Le banc e2e joue deux phases sur la même base :
 - **avant** le brouillon (4 vérifications) : la page est identique à
   aujourd'hui, pas de bouton, pas de réglage ;
 - **après** (28 vérifications) : réglage désactivé par défaut, visiteur
-  sans compte → stub, Bob et Chloé suggèrent, isolement entre visiteurs,
+  sans compte → modale d'inscription, Bob et Chloé suggèrent, isolement entre visiteurs,
   tri par glissement / bouton / clavier, annulation, lien protégé, ancien
   cookie refusé en écriture, désactivation → retour à l'identique.
 
@@ -152,7 +152,7 @@ dans `.env.preprod` et redéployer.
 | 2 | A (web) | Ouvrir `/s/<jeton>` connecté | Réglage « Suggestions désactivées », pas de module de tri |
 | 3 | Anonyme | Ouvrir le lien | Identique à avant, pas de bouton + |
 | 4 | A | Activer les suggestions | L'interrupteur passe à l'orange |
-| 5 | Anonyme | Recharger, cliquer « Suggérer un objet » | Modale « Crée ton compte Tiroir » (stub) |
+| 5 | Anonyme | Recharger, cliquer « Suggérer un objet » | Modale « Crée ton compte Tiroir » : « Créer mon compte » ou « J'ai déjà un compte » |
 | 6 | B | « J'ai déjà un compte » → connexion | Retour sur le partage |
 | 7 | B | Suggérer « Couteau », lien `www.exemple.fr/x`, prix `89,90` | Carte fantôme « Suggestion » avec son prénom |
 | 8 | C | Ouvrir le lien connecté | Ne voit pas la suggestion de B ; peut suggérer |

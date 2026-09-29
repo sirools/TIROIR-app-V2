@@ -1,9 +1,12 @@
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
 import { APP_STORE_URL_FR, PLAY_STORE_URL } from '../lib/appLinks'
+import { authHref, safeNext } from '../lib/authFlow'
 
 export default function EmailConfirme() {
   const [errorCode, setErrorCode] = useState<string | null>(null)
+  // Venu d'un partage (?next=/s/…) : le bouton principal y ramène.
+  const [next, setNext] = useState<string | null>(null)
 
   useEffect(() => {
     // Supabase renvoie les erreurs (lien expiré, déjà utilisé…) dans le hash ou la query
@@ -15,10 +18,12 @@ export default function EmailConfirme() {
       hashParams.get('error') ??
       queryParams.get('error')
     if (code) setErrorCode(code)
+    const rawNext = queryParams.get('next')
+    if (rawNext && safeNext(rawNext) !== '/') setNext(safeNext(rawNext))
 
     // Le lien de vérification peut aussi transporter des tokens de session : on nettoie l'URL
     if (window.location.hash) {
-      window.history.replaceState(null, '', window.location.pathname)
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
     }
   }, [])
 
@@ -61,7 +66,14 @@ export default function EmailConfirme() {
             </>
           )}
 
-          <a href="tiroir://" style={s.btnPrimary}>
+          {next && !isError && (
+            // Passe par la connexion : elle file directement au partage si la
+            // session est déjà ouverte, sinon demande le mot de passe choisi.
+            <a href={authHref('/login', next)} style={s.btnPrimary}>
+              Revenir au partage et suggérer
+            </a>
+          )}
+          <a href="tiroir://" style={next && !isError ? s.btnSecondary : s.btnPrimary}>
             Ouvrir l&apos;app Tiroir
           </a>
           <a href={APP_STORE_URL_FR} target="_blank" rel="noopener noreferrer" style={s.btnSecondary}>

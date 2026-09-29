@@ -3,13 +3,18 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
 import { APPLE_WEB_ENABLED } from '../lib/identities'
+import { authErrorHint, authHref, safeNext, type AuthHint } from '../lib/authFlow'
 
 export default function Inscription() {
   const router = useRouter()
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState<string | null>(null)
+  const [hint, setHint]         = useState<AuthHint | null>(null)
   const [loading, setLoading]   = useState(false)
+  // Venu d'un partage (?next=/s/…) : on l'y ramène, sans détour par l'accueil.
+  const next = typeof router.query.next === 'string' ? safeNext(router.query.next) : null
+  const [sentTo, setSentTo]     = useState<string | null>(null)
 
   // Erreurs d'un retour OAuth raté (?error_description=…)
   useEffect(() => {
@@ -21,14 +26,26 @@ export default function Inscription() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setHint(null)
 
-    const { error } = await supabase.auth.signUp({
+    const confirm = next ? `/email-confirme?next=${encodeURIComponent(next)}` : '/email-confirme'
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/email-confirme` },
+      options: { emailRedirectTo: `${window.location.origin}${confirm}` },
     })
     if (error) {
-      setError(error.message)
+      setHint(authErrorHint(error.message))
+      setLoading(false)
+      return
+    }
+    if (next) {
+      // Sans confirmation d'e-mail, la session est déjà là : retour immédiat.
+      if (data.session) {
+        router.push(next)
+        return
+      }
+      setSentTo(email)
       setLoading(false)
       return
     }
@@ -41,7 +58,7 @@ export default function Inscription() {
     setError(null)
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/bienvenue` },
+      options: { redirectTo: `${window.location.origin}${next ?? '/bienvenue'}` },
     })
     if (error) setError(error.message)
   }
@@ -115,6 +132,20 @@ export default function Inscription() {
             <span style={s.hint}>Au moins 6 caractères.</span>
 
             {error && <p style={s.error}>{error}</p>}
+            {hint && (
+              <div style={s.error} role="alert">
+                <p style={{ margin: 0 }}>{hint.message}</p>
+                {hint.suggestLogin && (
+                  <a href={authHref('/login', next)} style={s.hintLink}>Me connecter →</a>
+                )}
+              </div>
+            )}
+            {sentTo && (
+              <p style={s.sent} role="status">
+                Presque fini : ouvre l’e-mail envoyé à <strong>{sentTo}</strong> et touche le lien.
+                Tu reviendras directement au partage pour faire ta suggestion.
+              </p>
+            )}
 
             <button type="submit" disabled={loading} style={s.btn}>
               {loading ? 'Création…' : 'Créer mon compte'}
@@ -123,7 +154,7 @@ export default function Inscription() {
 
           <p style={s.switch}>
             Déjà un compte ?{' '}
-            <a href="/login" style={s.switchLink}>Se connecter</a>
+            <a href={authHref('/login', next)} style={s.switchLink}>Se connecter</a>
           </p>
 
           <p style={s.cgu}>
@@ -153,6 +184,8 @@ const s: Record<string, React.CSSProperties> = {
   input:       { padding: '10px 14px', borderRadius: 10, border: '1px solid #e0e0e0', fontSize: 15, outline: 'none', transition: 'border-color 0.15s' },
   hint:        { fontSize: 12, color: '#999', marginTop: 2 },
   error:       { fontSize: 13, color: '#c0392b', background: '#fdf0ef', borderRadius: 8, padding: '8px 12px', marginTop: 4 },
+  hintLink:    { display: 'inline-block', marginTop: 6, color: '#F26900', fontWeight: 700, textDecoration: 'none' },
+  sent:        { fontSize: 13, color: '#1A1612', background: '#FFF4E6', borderRadius: 8, padding: '10px 12px', marginTop: 4, lineHeight: 1.5 },
   btn:         { marginTop: 12, padding: '13px 0', borderRadius: 12, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', textAlign: 'center' },
   switch:      { fontSize: 14, color: '#5b5b5b', marginTop: 20, textAlign: 'center' },
   switchLink:  { color: '#F26900', fontWeight: 600, textDecoration: 'none' },

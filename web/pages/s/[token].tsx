@@ -3,11 +3,12 @@ import type { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useReducer, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
 import WishCard from '../../components/share/WishCard'
 import SuggestModal, { type SuggestStep } from '../../components/share/SuggestModal'
+import { SUGGEST_PARAM } from '../../lib/authFlow'
 import SuggestionTriage from '../../components/share/SuggestionTriage'
 import SuggestionsToggle from '../../components/share/SuggestionsToggle'
 import { hasSignedCookie } from '../../lib/shareCookieSignature'
@@ -405,6 +406,17 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
   const canSuggest = Boolean(collection) && suggestionsEnabled && !isOwner
   const wishesInGrid = visibleWishes(triage)
   const pending = pendingWishes(triage)
+
+  // Retour de connexion ou d'inscription (?suggerer=1) : on rouvre le
+  // formulaire là où le visiteur l'avait laissé, puis on nettoie l'adresse.
+  useEffect(() => {
+    if (!router.isReady || router.query[SUGGEST_PARAM] !== '1') return
+    if (canSuggest && suggestions?.isLoggedIn) openSuggest()
+    const { [SUGGEST_PARAM]: _drop, ...rest } = router.query
+    void _drop
+    router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady])
 
   function openSuggest() {
     setJustSuggested(false)
