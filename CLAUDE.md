@@ -2,7 +2,8 @@
 
 Monorepo : `mobile/` (app Expo, voir `mobile/CLAUDE.md`), `web/` (Next.js,
 Pages Router, déployé sur Vercel), `supabase/` (migrations et Edge
-Functions), `v4/` (prochaine version), `agents/`, `strategie/`.
+Functions), `v4/` (prochaine version), `v5/` (à définir), `agents/`,
+`strategie/`.
 
 ## Documents de référence à lire avant de décider
 
