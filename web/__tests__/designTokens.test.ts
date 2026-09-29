@@ -22,6 +22,13 @@ describe('design/tokens.json, seule source de vérité', () => {
     }
   })
 
+  test('l’app lit les jetons générés, sans aucune couleur écrite en dur', () => {
+    const app = repo('mobile/src/components/ui/tokens.ts')
+    expect(app).toContain("from './brandTokens.generated'")
+    expect(app).not.toMatch(/#[0-9a-fA-F]{3,8}\b/)
+    expect(app).toContain('accent: c.orange')
+  })
+
   test('le site web actuel fait foi : orange #F26900', () => {
     expect(tokens.color.orange.value).toBe('#F26900')
     expect(repo('web/styles/tokens.generated.css')).toContain('--orange: #F26900;')
