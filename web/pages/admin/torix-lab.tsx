@@ -2,8 +2,10 @@
 //
 // V0 : prototype de présence. Aucun modèle de langage derrière : Torix
 // répond depuis ses fiches de connaissance sur Tiroir
-// (components/torix/knowledge.ts) et connaît les quatre points cardinaux
-// (directions.ts). Zéro token ; rien n'est envoyé au serveur ni conservé.
+// (components/torix/knowledge.ts, lues par le serveur via /api/torix/ask)
+// et connaît les quatre points cardinaux
+// (directions.ts). Zéro token ; la question part au serveur de Tiroir, qui
+// répond sans modèle, et rien n'est conservé.
 //
 // Voix (voice.ts) : le micro fait écouter Torix ; une question posée à
 // voix haute reçoit sa réponse à voix haute. Reconnaissance et synthèse du
@@ -25,13 +27,9 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 
 import { ArrowUp, Compass, Mic } from 'lucide-react'
 import TorixOrb, { type TorixState } from '../../components/torix/TorixOrb'
 import { isRestTime } from '../../components/torix/commandments'
-import {
-  answerQuestion,
-  REGISTER_LABELS,
-  SUGGESTIONS,
-  UNKNOWN,
-  type Register,
-} from '../../components/torix/knowledge'
+// Les fiches de Torix restent sur le serveur (pages/api/torix/ask.ts) : rien
+// de son savoir n'est dans le code envoyé au navigateur.
+import { REGISTER_LABELS, type Register } from '../../components/torix/registers'
 import { compassPoint, facingCardinal, type Cardinal } from '../../components/torix/heading'
 import { PALETTES } from '../../components/torix/palette'
 import {
@@ -73,9 +71,26 @@ const VOICE_LINES = {
   failed: "Je n'ai pas compris. Réessaie, ou écris-moi.",
 }
 
-type Line = { id: number; text: string; register?: Register; source?: string }
+type Line = { id: number; text: string; register?: Register; source?: string; unknown?: boolean }
+type Answer = { text: string; register?: Register; source?: string; known: boolean }
 
-export default function TorixLab() {
+const OFFLINE_LINE = "Je n'arrive pas à répondre pour l'instant. Réessaie dans un moment."
+
+async function askTorix(question: string): Promise<Answer> {
+  try {
+    const r = await fetch('/api/torix/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question }),
+    })
+    if (!r.ok) throw new Error(String(r.status))
+    return (await r.json()) as Answer
+  } catch {
+    return { text: OFFLINE_LINE, known: false }
+  }
+}
+
+export default function TorixLab({ suggestions }: { suggestions: string[] }) {
   const [state, setState] = useState<TorixState>('idle')
   const [question, setQuestion] = useState('')
   const [line, setLine] = useState<Line>({ id: 0, text: INTRO })
@@ -181,9 +196,9 @@ export default function TorixLab() {
   function respond(q: string, aloud: boolean) {
     setState('listening')
     const think = THINK_MIN_MS + Math.random() * (THINK_MAX_MS - THINK_MIN_MS)
-    later(think, () => {
-      const a = answerQuestion(q)
-      setLine(prev => ({ id: prev.id + 1, text: a.text, register: a.register, source: a.source }))
+    const started = Date.now()
+    askTorix(q).then(a => later(Math.max(0, think - (Date.now() - started)), () => {
+      setLine(prev => ({ id: prev.id + 1, text: a.text, register: a.register, source: a.source, unknown: !a.known }))
       setState('speaking')
       if (!aloud || !canSpeak()) {
         later(SPEAK_MS, () => setState('idle'))
@@ -197,7 +212,7 @@ export default function TorixLab() {
         stopVoice.current = () => {}
         setState('idle')
       })
-    })
+    }))
   }
 
   function toggleMic() {
@@ -323,9 +338,9 @@ export default function TorixLab() {
           </p>
         </div>
 
-        {!busy && (line.id === 0 || line.text === UNKNOWN) && (
+        {!busy && (line.id === 0 || line.unknown) && (
           <div className="chips">
-            {SUGGESTIONS.map(s => (
+            {suggestions.map(s => (
               <button key={s} type="button" className="chip" onClick={() => submit(s)}>
                 {s}
               </button>
@@ -817,6 +832,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   // Réservé au propriétaire de Torix, pas à tous les admins de Tiroir.
   const guard = await requireTorixOwnerPage(ctx)
   if (!guard.ok) return guard.result
-  // Rien à transmettre au client : l'accès suffit.
-  return { props: {} }
+  // Seules les questions suggérées partent au client, et seulement pour le
+  // propriétaire : les réponses restent sur le serveur.
+  const { SUGGESTIONS } = await import('../../components/torix/knowledge')
+  return { props: { suggestions: [...SUGGESTIONS] } }
 }

@@ -12,7 +12,9 @@
 
 import { answerFor as directionAnswer, detectDirections } from './directions'
 
-export type Register = 'fait' | 'estimation' | 'principe'
+import { REGISTER_LABELS, type Register } from './registers'
+
+export { REGISTER_LABELS, type Register }
 
 export type Topic = {
   id: string
@@ -28,12 +30,6 @@ export type TorixAnswer = {
   register?: Register
   source?: string
   topicId?: string
-}
-
-export const REGISTER_LABELS: Record<Register, string> = {
-  fait: 'Fait',
-  estimation: 'Estimation',
-  principe: 'Principe',
 }
 
 // Ordre = priorité à score égal : les fiches précises (échelle, leviers)

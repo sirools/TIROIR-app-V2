@@ -116,11 +116,12 @@ interface Props {
   emails: EmailReport
   /** Estimation : coûts du mois, revenus des abonnements, clients Pro nécessaires. */
   treasury: Treasury & { premiumCount: number; proCount: number }
-  /** Le lien vers Torix n'est montré qu'à son propriétaire. */
-  torixOwner: boolean
+  /** Lien vers Torix, envoyé par le serveur au seul propriétaire : son
+   *  libellé n'est même pas dans le code du back-office. */
+  torixLink: { href: string; label: string } | null
 }
 
-export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixOwner, treasury }: Props) {
+export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixLink, treasury }: Props) {
   const conversionPct = kpis.totalAccounts > 0
     ? ((kpis.accountsWithObjects / kpis.totalAccounts) * 100).toFixed(1)
     : '0'
@@ -245,9 +246,9 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
           ))}
           {/* Pas un onglet : une page à part, plein écran, réservée au
               propriétaire de Torix (la page a sa propre garde serveur). */}
-          {torixOwner && (
-            <a href="/admin/torix-lab" style={{ ...s.tabBtn, ...s.tabLink }}>
-              Torix Lab
+          {torixLink && (
+            <a href={torixLink.href} style={{ ...s.tabBtn, ...s.tabLink }}>
+              {torixLink.label}
             </a>
           )}
         </div>
@@ -2413,7 +2414,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   return {
     props: {
       treasury,
-      torixOwner: isTorixOwner(session.user),
+      torixLink: isTorixOwner(session.user) ? { href: '/admin/torix-lab', label: 'Torix Lab' } : null,
       kpis: {
         siteVisits24h: siteVisits24h ?? 0,
         siteVisits7d: siteVisits7d ?? 0,
