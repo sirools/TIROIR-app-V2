@@ -1,7 +1,8 @@
 # Tiroir — repères pour les sessions de travail
 
 Monorepo : `mobile/` (app Expo, voir `mobile/CLAUDE.md`), `web/` (Next.js,
-Pages Router, déployé sur Vercel), `supabase/` (migrations et Edge
+Pages Router, déployé sur Vercel ; le back-office a son propre domaine,
+`backoffice.tiroir.app`, voir `web/BACKOFFICE.md`), `supabase/` (migrations et Edge
 Functions), `v4/` (prochaine version, qui porte aussi ce qui devait être
 la V5), `agents/`, `strategie/`.
 
