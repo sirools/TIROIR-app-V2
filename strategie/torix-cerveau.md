@@ -44,7 +44,8 @@ Reprises de la doctrine de Torix (Notion, fiches `doctrine`, `autonomie`,
    PR ; il ne fusionne jamais. La PR *est* la validation.
 2. **Tiroir = le réel.** Torix ne touche ni la prod, ni `supabase/migrations/`,
    ni les secrets. Il travaille dans `v4/` (et `v5/`) et sur des branches.
-3. **Propriétaire seul.** Le bouton n'existe que derrière
+3. **Propriétaire seul.** Le Lab est ouvert aux admins, mais le bouton de
+   code, qui dépense l'argent du fondateur, n'existe que derrière
    `requireTorixOwnerPage`. Un associé admin ne le voit pas.
 4. **Repos 21 h 30 – 7 h.** Pas de séance de code lancée pendant le repos.
 5. **Budget plafonné.** Chaque séance a un plafond en dollars (les sessions
