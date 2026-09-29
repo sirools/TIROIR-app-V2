@@ -15,7 +15,11 @@ const PLANS = ['free', 'premium', 'pro'] as const
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const supabase = createServerSupabaseClient({ req, res })
-  const { data: { session } } = await supabase.auth.getSession()
+  // getUser() et non getSession() : getSession() lit le cookie sans vérifier
+  // sa signature ; un cookie fabriqué passerait. getUser() fait valider le
+  // jeton par Supabase avant toute lecture avec la clé service.
+  const { data: { user: verifiedUser } } = await supabase.auth.getUser()
+  const session = verifiedUser ? { user: verifiedUser } : null
   if (!session) return res.status(401).json({ error: 'Non authentifié' })
 
   const admin = adminSupabase()
