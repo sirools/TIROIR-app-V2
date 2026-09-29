@@ -188,6 +188,8 @@ Chaque phase est **conditionnée aux chiffres réels**, pas aux projections.
   ambitieuse : avancer de phase en phase sur les chiffres de `ai_usage`.
 - Les coûts non mesurés (estimation de valeur surtout) sont les premiers à
   mesurer.
+- **Un vrai cerveau pour Torix (coder la V4)** : options, règles, coût,
+  propriété et décisions à prendre dans `torix-cerveau.md`.
 - La propriété de Torix couvre ce que le fondateur a créé (nom, identité,
   orbe, charte, code, aiguillage, mémoire, futur modèle affiné) — pas les
   modèles des fournisseurs, soumis à leurs propres conditions.

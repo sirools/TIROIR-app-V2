@@ -11,6 +11,8 @@ Functions), `v4/` (prochaine version), `v5/` (à définir), `agents/`,
   passage à l'échelle, rythme des phases, gouvernance, qui contacter.
   **À relire avant tout changement touchant aux appels IA, aux
   fournisseurs, aux quotas, ou aux accès admin.**
+- `strategie/torix-cerveau.md` — donner un vrai cerveau à Torix pour coder
+  la V4 : décisions à prendre avant tout code.
 - `agents/ROADMAP.md` — produit.
 
 ## Torix
