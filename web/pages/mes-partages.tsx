@@ -396,7 +396,11 @@ export default function MesPartages({ shares: initialShares }: Props) {
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const supabase = serverSupabase(ctx)
-  const { data: { session } } = await supabase.auth.getSession()
+  // getUser() et non getSession() : getSession() lit le cookie sans vérifier
+  // sa signature ; un cookie fabriqué passerait. getUser() fait valider le
+  // jeton par Supabase avant toute lecture avec la clé service.
+  const { data: { user: verifiedUser } } = await supabase.auth.getUser()
+  const session = verifiedUser ? { user: verifiedUser } : null
 
   if (!session) {
     return { redirect: { destination: '/login', permanent: false } }

@@ -475,7 +475,11 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const sb = serverSupabase(ctx)
-  const { data: { session } } = await sb.auth.getSession()
+  // getUser() et non getSession() : getSession() lit le cookie sans vérifier
+  // sa signature ; un cookie fabriqué passerait. getUser() fait valider le
+  // jeton par Supabase avant toute lecture avec la clé service.
+  const { data: { user: verifiedUser } } = await sb.auth.getUser()
+  const session = verifiedUser ? { user: verifiedUser } : null
 
   if (!session) {
     return { redirect: { destination: '/login', permanent: false } }

@@ -42,6 +42,29 @@ const nextConfig = {
     // formats: ['image/avif', 'image/webp'], // optionnel
   },
 
+  // En-têtes de sécurité. Aucune page de Tiroir n'a vocation à être intégrée
+  // dans le site d'un autre : pas de cadre (clickjacking), et jamais pour le
+  // back-office et Torix. HSTS est posé par Vercel sur les domaines.
+  async headers() {
+    const common = [
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+      { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+    ]
+    const locked = [
+      { key: 'X-Frame-Options', value: 'DENY' },
+      { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+    ]
+    return [
+      { source: '/:path*', headers: common },
+      { source: '/admin', headers: locked },
+      { source: '/admin/:path*', headers: locked },
+      { source: '/api/admin/:path*', headers: locked },
+      { source: '/api/torix/:path*', headers: locked },
+    ]
+  },
+
   transpilePackages: [
     'tamagui',
     '@tamagui/web',

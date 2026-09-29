@@ -242,7 +242,11 @@ export default function MonCompte() {
 // Page réservée aux comptes connectés.
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const supabaseServer = serverSupabase(ctx)
-  const { data: { session } } = await supabaseServer.auth.getSession()
+  // getUser() et non getSession() : getSession() lit le cookie sans vérifier
+  // sa signature ; un cookie fabriqué passerait. getUser() fait valider le
+  // jeton par Supabase avant toute lecture avec la clé service.
+  const { data: { user: verifiedUser } } = await supabaseServer.auth.getUser()
+  const session = verifiedUser ? { user: verifiedUser } : null
   if (!session) {
     return { redirect: { destination: '/login', permanent: false } }
   }
