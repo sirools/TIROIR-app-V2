@@ -123,3 +123,9 @@ Puis **0005, nettoyage** : retirer `create_collection_suggestion` et
 `collections.suggestions_enabled`, une fois le fil 5 en ligne. Pendant la
 transition, un réglage changé côté site ancien (par collection) n'est pas
 recopié sur le partage : c'est pourquoi le fil 5 suit de près le fil 4.
+
+## 7. Mode coffre — ce soir, avec l'ordinateur (29 septembre 2026)
+
+Plan et ordre de travail : `docs/mode-coffre.md` (brouillon SQL 0005,
+refus serveur dans les fonctions IA et le partage, interrupteur et
+cadenas web puis mobile, build iOS et Android).

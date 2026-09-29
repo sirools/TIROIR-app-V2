@@ -168,12 +168,23 @@ export const TOPICS: Topic[] = [
       'Rien n’est encore défini pour ce périmètre en plus : dis-moi ce qu’il doit contenir, je le note dans la vision de la V4.',
   },
   {
+    id: 'coffre',
+    keywords: ['coffre', 'mode coffre', 'secret', 'confidentialite', 'confidentiel', 'peinture', 'garder secret'],
+    register: 'principe',
+    source: 'v4/docs/mode-coffre.md',
+    answer:
+      'Décision du 29 septembre : un objet peut être mis au coffre.\n' +
+      'Étape 1 : jamais envoyé à l’IA, jamais partagé, invisible du back-office, avec un cadenas.\n' +
+      'Étape 2, plus tard : chiffré sur le téléphone, même Tiroir ne peut pas le voir — mais clé perdue, objet perdu.\n' +
+      'D’ici là, on écrit « privé, visible par vous seul », jamais « garanti secret ».',
+  },
+  {
     id: 'torix',
     keywords: ['qui es tu', 'tu es qui', 'presente toi', 'que sais tu', 'que sais tu faire', 'aide'],
     register: 'principe',
     source: 'v4/torix/knowledge.ts',
     answer:
-      'Je suis Torix, l’IA du fondateur de Tiroir. Ici, je connais la V4.0 : sa vision, le trousseau et la serrure, les droits, le prêt, les suggestions, le parrainage, le plan de migration, où en est le chantier, le risque de fission, et la V5 qui s’y construit.',
+      'Je suis Torix, l’IA du fondateur de Tiroir. Ici, je connais la V4.0 : sa vision, le trousseau et la serrure, les droits, le prêt, les suggestions, le parrainage, le plan de migration, où en est le chantier, le risque de fission, le mode coffre, et la V5 qui s’y construit.',
   },
 ]
 
