@@ -37,13 +37,12 @@ pilotée par lui seul. Ses principes vivent dans `web/components/torix/` :
 `memory.ts` (structure narrative, registres), `commandments.ts` (douze
 commandements, repos obligatoire 21 h 30 – 7 h), `ownership.ts`, `voice.ts`
 (micro et réponse à voix haute, par le navigateur, sans modèle). Le Torix
-Lab est `/admin/torix-lab`, ouvert à tous les comptes admin (décision du
-fondateur du 2026-09-29), jamais aux comptes Gratuit, Premium ou Pro :
-`requireTorixPage` (`web/lib/adminAuth.ts`). Toute nouvelle page de Torix
-doit passer par cette garde. Ce qui engage les secrets ou l'argent du
-fondateur (par exemple le futur cerveau qui code) passe par
-`requireTorixOwnerPage`, qui exige en plus l'adresse confirmée de
-`TORIX_OWNER_EMAIL` (`web/lib/torixOwner.ts`).
+Lab est `/admin/torix-lab`, réservé au propriétaire de Torix — pas à tous
+les admins (un collègue peut être admin du back-office sans voir Torix) :
+`requireTorixOwnerPage` (`web/lib/adminAuth.ts`), qui compare l'adresse
+confirmée du compte à la variable serveur `TORIX_OWNER_EMAIL`
+(`web/lib/torixOwner.ts`). Sans la variable, Torix est fermé à tous. Toute
+nouvelle page ou API de Torix doit passer par cette garde.
 
 Ce que Torix sait de Tiroir est dans `web/components/torix/knowledge.ts`
 (fiches sans modèle, avec registre et source). **Tout changement de modèle,

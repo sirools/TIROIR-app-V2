@@ -36,14 +36,13 @@ décide, pour chaque demande, si elle mérite de coûter quelque chose.
    c'est précisément ce qu'un associé ou un acheteur regardera.
 2. **Pacte d'associés.** Il doit dire explicitement que Torix n'est pas un
    apport à la société, et qui décide de quoi entre les trois.
-3. **Accès technique.** *Décision du 2026-09-29 :* le Torix Lab est
-   ouvert à tous les comptes admin (garde `requireTorixPage`), jamais aux
-   comptes Gratuit, Premium ou Pro. **Conséquence : un associé nommé admin
-   de Tiroir verra et utilisera Torix.** À refermer avant d'associer
-   quelqu'un si Torix doit lui rester invisible — ou à prévoir dans la
-   licence. Ce qui engage les secrets ou l'argent du fondateur reste
-   derrière `requireTorixOwnerPage` (admin *et* adresse confirmée de
-   `TORIX_OWNER_EMAIL`).
+3. **Accès technique réservé.** Le Torix Lab n'est ouvert qu'au
+   propriétaire de Torix : admin *et* adresse confirmée égale à
+   `TORIX_OWNER_EMAIL` (sans la variable, Torix est fermé à tous). Garde :
+   `requireTorixOwnerPage` dans `web/lib/adminAuth.ts`. Les collègues et
+   associés peuvent donc être admins du back-office sans voir Torix.
+   (Ouvert à tous les admins quelques heures le 2026-09-29, refermé le
+   même jour : un collègue admin n'a pas à voir Torix.)
 4. **Secrets.** Les clés des fournisseurs d'IA et la configuration de Torix
    ne doivent être accessibles qu'au fondateur. Les associés gèrent Tiroir
    sans avoir la main sur Torix.
