@@ -26,7 +26,7 @@ import Head from 'next/head'
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import { ArrowUp, Compass, Mic } from 'lucide-react'
 import TorixOrb, { type TorixState } from '../../components/torix/TorixOrb'
-import { isRestTime } from '../../components/torix/commandments'
+import { isResting, restEndsAt } from '../../components/torix/commandments'
 // Les fiches de Torix restent sur le serveur (pages/api/torix/ask.ts) : rien
 // de son savoir n'est dans le code envoyé au navigateur.
 import { REGISTER_LABELS, type Register } from '../../components/torix/registers'
@@ -43,6 +43,19 @@ import { requireTorixOwnerPage } from '../../lib/adminAuth'
 const INTRO = 'Demande-moi une direction, ou parle-moi de Tiroir.'
 // Commandement 4 : repos obligatoire de 21 h 30 à 7 h.
 const REST_LINE = "C'est l'heure du repos. Je reviens à 7 h."
+// Seul le propriétaire voit cette page : lui seul peut réveiller Torix,
+// jusqu'à 7 h (mémorisé sur cet appareil).
+const AWAKE_KEY = 'torix-awake-until'
+const AWAKE_LINE = "D'accord, je suis là jusqu'à 7 h. Repose-toi quand tu peux."
+
+function readAwakeUntil(): number | null {
+  try {
+    const v = Number(window.localStorage.getItem(AWAKE_KEY))
+    return Number.isFinite(v) && v > Date.now() ? v : null
+  } catch {
+    return null
+  }
+}
 const BG = '#03060d'
 
 // Rythme d'une réponse : Torix écoute, « réfléchit », puis parle.
@@ -101,6 +114,10 @@ export default function TorixLab({ suggestions }: { suggestions: string[] }) {
   // Coupe l'écoute ou la parole en cours.
   const stopVoice = useRef<() => void>(() => {})
 
+  const awakeUntil = useRef<number | null>(null)
+  const [restingNow, setRestingNow] = useState(false)
+  const resting = () => isResting(new Date(), awakeUntil.current)
+
   const compass = useCompass()
   const [simForced, setSimForced] = useState(false)
   const [debugForced, setDebugForced] = useState(false)
@@ -130,11 +147,27 @@ export default function TorixLab({ suggestions }: { suggestions: string[] }) {
 
   // Au repos, Torix ne dit rien d'autre que l'heure du repos.
   useEffect(() => {
-    if (isRestTime(new Date())) setLine(prev => ({ id: prev.id + 1, text: REST_LINE }))
+    awakeUntil.current = readAwakeUntil()
+    const r = resting()
+    setRestingNow(r)
+    if (r) setLine(prev => ({ id: prev.id + 1, text: REST_LINE }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  function wakeUp() {
+    const until = restEndsAt(new Date()).getTime()
+    awakeUntil.current = until
+    try {
+      window.localStorage.setItem(AWAKE_KEY, String(until))
+    } catch {
+      // Stockage refusé : réveillé pour cet onglet seulement.
+    }
+    setRestingNow(false)
+    setLine(prev => ({ id: prev.id + 1, text: AWAKE_LINE }))
+  }
+
   function say(text: string, speak = false) {
-    if (isRestTime(new Date())) return
+    if (resting()) return
     setLine(prev => ({ id: prev.id + 1, text }))
     if (speak) {
       setState('speaking')
@@ -185,7 +218,8 @@ export default function TorixLab({ suggestions }: { suggestions: string[] }) {
 
     setQuestion('')
     // Au repos : ni écoute ni réponse, seulement le rappel.
-    if (isRestTime(new Date())) {
+    if (resting()) {
+      setRestingNow(true)
       setLine(prev => ({ id: prev.id + 1, text: REST_LINE }))
       return
     }
@@ -222,7 +256,8 @@ export default function TorixLab({ suggestions }: { suggestions: string[] }) {
       return
     }
     if (busy) return
-    if (isRestTime(new Date())) {
+    if (resting()) {
+      setRestingNow(true)
       setLine(prev => ({ id: prev.id + 1, text: REST_LINE }))
       return
     }
@@ -338,7 +373,15 @@ export default function TorixLab({ suggestions }: { suggestions: string[] }) {
           </p>
         </div>
 
-        {!busy && (line.id === 0 || line.unknown) && (
+        {restingNow && (
+          <div className="chips">
+            <button type="button" className="chip chip--wake" onClick={wakeUp}>
+              Je suis réveillé
+            </button>
+          </div>
+        )}
+
+        {!restingNow && !busy && (line.id === 0 || line.unknown) && (
           <div className="chips">
             {suggestions.map(s => (
               <button key={s} type="button" className="chip" onClick={() => submit(s)}>
@@ -622,6 +665,10 @@ export default function TorixLab({ suggestions }: { suggestions: string[] }) {
           -webkit-tap-highlight-color: transparent;
         }
         .chip:active { background: rgba(140, 175, 255, 0.12); }
+        .chip--wake {
+          border-color: rgba(215, 228, 255, 0.45);
+          color: rgba(235, 242, 255, 0.95);
+        }
 
         .ask {
           position: relative;
