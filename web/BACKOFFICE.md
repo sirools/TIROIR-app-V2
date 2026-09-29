@@ -62,3 +62,16 @@ repose** (21 h 30 – 7 h) : son repos ne coupe rien d'autre.
 3. Installer l'app du service sur l'iPhone et activer les notifications :
    une alerte arrive si le site ou la base tombe, et une autre quand ça
    repart.
+
+## Page Marketing (`/admin/marketing`)
+
+Chiffres agrégés pour qui s'occupe de la marque et de la publicité :
+visiteurs, comptes, activation, abonnés payants, inscriptions par source
+(`lib/attribution.ts`). Rien de secret : ni Torix, ni coûts, ni
+trésorerie, ni adresse ou objet d'un utilisateur.
+
+Ouverte aux admins et aux adresses de la variable serveur
+**`MARKETING_EMAILS`** (Vercel → Settings → Environment Variables,
+adresses séparées par des virgules), qui n'ont accès à rien d'autre du
+back-office. L'adresse doit être confirmée. Garde :
+`requireMarketingPage` (`lib/adminAuth.ts`).

@@ -4,6 +4,7 @@ import Head from 'next/head'
 import { supabase } from '../lib/supabase'
 import { APPLE_WEB_ENABLED } from '../lib/identities'
 import { authErrorHint, authHref, safeNext, type AuthHint } from '../lib/authFlow'
+import { firstTouch } from '../components/SiteVisitTracker'
 
 export default function Inscription() {
   const router = useRouter()
@@ -32,7 +33,9 @@ export default function Inscription() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}${confirm}` },
+      // Source du premier passage (campagne, réseau…) : chiffres agrégés de
+      // la page Marketing du back-office.
+      options: { emailRedirectTo: `${window.location.origin}${confirm}`, data: { acq: firstTouch() ?? { source: 'direct' } } },
     })
     if (error) {
       setHint(authErrorHint(error.message))
