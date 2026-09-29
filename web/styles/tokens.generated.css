@@ -1,0 +1,13 @@
+/* Généré par design/generate.mjs depuis design/tokens.json — ne pas modifier à la main. */
+:root {
+  --orange: #F26900;
+  --orange-700: #D85E00;
+  --beige: #FFF4E6;
+  --beige-2: #FFF8EF;
+  --ink: #121212;
+  --muted: #5b5b5b;
+  --font-body: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --radius: 16px;
+  --shadow: 0 6px 20px rgba(0,0,0,0.06);
+  --max: 1440px;
+}

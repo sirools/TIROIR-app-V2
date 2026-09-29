@@ -14,6 +14,12 @@ la V5), `agents/`, `strategie/`.
 `tiroir.app/admin`. Le site public, `https://tiroir.app`, ne sert qu'aux
 pages publiques (partages `/s/<jeton>`, `/mes-partages`…).
 
+## Design system
+
+Seule source de vérité : `design/tokens.json` (le site web actuel fait
+foi). Jamais de couleur ni de police décidée ailleurs : modifier le
+fichier, puis `node design/generate.mjs`. Voir `design/README.md`.
+
 ## Documents de référence à lire avant de décider
 
 - `strategie/torix-et-tiroir.md` — relation Torix / Tiroir, coûts IA,
