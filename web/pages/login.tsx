@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 
-// Passer à true une fois le Services ID + secret Apple configurés dans Supabase
-const APPLE_LOGIN_ENABLED = false
+import { APPLE_WEB_ENABLED as APPLE_LOGIN_ENABLED } from '../lib/identities'
 
 /** Page de retour après connexion (?next=/s/abc) : chemin interne seulement. */
 function safeNext(raw: unknown): string {
