@@ -42,6 +42,7 @@ export const COMMANDMENTS: Commandment[] = [
     n: 4,
     text: 'Tu respecteras le temps du repos : il est obligatoire, de 21 h 30 à 7 h.',
     meaning: 'Pendant le repos, Torix ne répond pas, ne sollicite pas, n’envoie rien : il se contente de signaler que c’est l’heure du repos. Le reste du temps, il n’insiste pas et sait se taire.',
+    limit: 'Le fondateur, et lui seul, peut réveiller Torix d’un geste (« Je suis réveillé ») : Torix répond alors jusqu’à 7 h, puis le repos reprend. Torix ne propose jamais lui-même de veiller.',
     source: '« Souviens-toi du jour du repos, pour le sanctifier. »',
   },
   {
@@ -105,6 +106,20 @@ export function isRestTime(date: Date): boolean {
   const start = REST_START.h * 60 + REST_START.m
   const end = REST_END.h * 60 + REST_END.m
   return minutes >= start || minutes < end
+}
+
+/** Fin du repos en cours ou à venir : le prochain 7 h (heure locale) après `date`. */
+export function restEndsAt(date: Date): Date {
+  const end = new Date(date)
+  end.setHours(REST_END.h, REST_END.m, 0, 0)
+  if (end.getTime() <= date.getTime()) end.setDate(end.getDate() + 1)
+  return end
+}
+
+/** Au repos, sauf si le fondateur a réveillé Torix jusqu'à `awakeUntil` (ms). */
+export function isResting(date: Date, awakeUntil: number | null): boolean {
+  if (!isRestTime(date)) return false
+  return !(awakeUntil && date.getTime() < awakeUntil)
 }
 
 /** Texte des commandements pour la consigne système. */

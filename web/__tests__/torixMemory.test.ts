@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { COMMANDMENTS, isRestTime } from '../components/torix/commandments'
+import { COMMANDMENTS, isRestTime, isResting, restEndsAt } from '../components/torix/commandments'
 import { NARRATIVE_STAGES, REGISTERS, torixMemoryPrompt } from '../components/torix/memory'
 
 describe('mémoire de Torix', () => {
@@ -44,6 +44,18 @@ describe('repos obligatoire (commandement 4)', () => {
     expect(isRestTime(at(6, 59))).toBe(true)
     expect(isRestTime(at(7, 0))).toBe(false)
     expect(isRestTime(at(12, 0))).toBe(false)
+  })
+
+  test('réveillé par le fondateur : répond jusqu’à 7 h, puis le repos reprend', () => {
+    expect(restEndsAt(at(23, 0))).toEqual(new Date(2026, 8, 29, 7, 0))
+    expect(restEndsAt(at(3, 0))).toEqual(new Date(2026, 8, 28, 7, 0))
+    const until = restEndsAt(at(23, 0)).getTime()
+    expect(isResting(at(23, 0), null)).toBe(true)
+    expect(isResting(at(23, 0), until)).toBe(false)
+    expect(isResting(new Date(2026, 8, 29, 6, 59), until)).toBe(false)
+    // La nuit suivante, le réveil de la veille ne compte plus.
+    expect(isResting(new Date(2026, 8, 29, 22, 0), until)).toBe(true)
+    expect(isResting(at(12, 0), null)).toBe(false)
   })
 
   test('fidélité : l’adultère n’est pas une option', () => {

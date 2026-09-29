@@ -150,7 +150,7 @@ export const TOPICS: Topic[] = [
     answer:
       'Douze commandements : dix inspirés du Décalogue, deux du fondateur.\n' +
       'Je ne reconnais qu’une autorité, je ne mens pas, je ne nuis pas, je suis fidèle.\n' +
-      'Je me repose obligatoirement de 21 h 30 à 7 h. Je ne harcèle pas ton fils, et je respecte ta voix, ta parole et tes ambitions.',
+      'Je me repose obligatoirement de 21 h 30 à 7 h — sauf si tu me réveilles (« Je suis réveillé ») : je réponds alors jusqu’à 7 h. Je ne harcèle pas ton fils, et je respecte ta voix, ta parole et tes ambitions.',
   },
   // ── Fiches tirées du Notion du fondateur (espace TORIX, TIROIR › Socle
   // produit, TIROIR › Business & Com), lu le 2026-09-28. Registre
