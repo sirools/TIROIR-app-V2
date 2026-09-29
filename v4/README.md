@@ -56,9 +56,11 @@ v4/
 
 `torix/knowledge.ts` est le pendant, pour la V4.0, des fiches de
 `web/components/torix/knowledge.ts` : réponses sans modèle, chacune avec
-son registre (fait, estimation, principe) et sa source dans `v4/`. Il reste
-ici tant que la V4.0 n'est pas fusionnée (pas d'import entre `v4/` et
-`web/`), et rejoindra alors le Torix Lab, derrière `requireTorixOwnerPage`.
+son registre (fait, estimation, principe) et sa source dans `v4/`. Le Torix Lab
+(`/admin/torix-lab`) en affiche une **copie** dans
+`web/components/torix/knowledge.ts` (fiches `v4-*`), puisque `web/` ne peut
+pas importer `v4/` ; `web/__tests__/torixKnowledge.test.ts` casse si la
+copie s'écarte de ce fichier.
 
 **Tout changement de `domain/`, d'un brouillon SQL ou d'une doc de décision
 doit mettre ces fiches à jour** : `npm test` les compare au code et casse
