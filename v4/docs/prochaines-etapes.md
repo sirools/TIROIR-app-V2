@@ -134,3 +134,20 @@ cadenas web puis mobile, build iOS et Android).
 
 Après le mode coffre. Plan : `docs/vente.md` (étape 1 « Vendre » prépare
 l'annonce ; étape 2 paiement intégré et commission, après l'avocat).
+
+## 9. Premier Tiroir partagé de test (29 septembre 2026)
+
+Décision du fondateur : le trousseau de la V4 se teste d'abord à trois,
+dans l'ordre :
+
+| Clé | Qui | Rôle (`drawer_members`) |
+| --- | --- | --- |
+| 1 | Clément, fondateur | `owner` |
+| 2 | Stéphane | `editor` ou `viewer`, à choisir |
+| 3 | Mélanie, styliste (profil « créatif organisé ») | `editor` ou `viewer`, à choisir |
+
+Personne d'autre pour le moment. Serrure du Tiroir de test : « entrouvert ».
+À faire le jour du test : que Stéphane et Mélanie aient chacun un compte
+Tiroir, puis appliquer 0001 sur la preprod et leur remettre leur clé.
+Ce ne sont que des clés de Tiroir : jamais d'accès au back-office, à Torix
+ni à la clé des sauvegardes.
