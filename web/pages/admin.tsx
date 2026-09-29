@@ -4,6 +4,7 @@ import { Settings } from 'lucide-react'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import { serverSupabase, adminSupabase } from '../lib/supabase'
 import { isTorixOwner } from '../lib/torixOwner'
+import { computeTreasury, HYPOTHESES, type Treasury } from '../lib/treasury'
 
 interface AppSettings {
   free_ai_quota_monthly: number
@@ -113,11 +114,13 @@ interface Props {
   settings: AppSettings
   aiSpend: AiSpend
   emails: EmailReport
+  /** Estimation : coûts du mois, revenus des abonnements, clients Pro nécessaires. */
+  treasury: Treasury & { premiumCount: number; proCount: number }
   /** Le lien vers Torix n'est montré qu'à son propriétaire. */
   torixOwner: boolean
 }
 
-export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixOwner }: Props) {
+export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixOwner, treasury }: Props) {
   const conversionPct = kpis.totalAccounts > 0
     ? ((kpis.accountsWithObjects / kpis.totalAccounts) * 100).toFixed(1)
     : '0'
@@ -250,6 +253,26 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
         </div>
 
         {tab === 'dashboard' && (<>
+        {/* ── Trésorerie (estimation) ── */}
+        <h2 style={s.sectionTitle}>Trésorerie de Tiroir — ce mois-ci</h2>
+        <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
+          <strong>Estimation.</strong> Hypothèses : 1 $ = {HYPOTHESES.usdToEur} €, TVA {HYPOTHESES.tva * 100} %,
+          commission des stores {HYPOTHESES.storeCommission * 100} % sur le Premium, Vercel {HYPOTHESES.vercelUsd} $/mois
+          (à ajuster), le Pro facturé en direct. L&apos;argent des stores arrive un à deux mois après la vente ; celui
+          d&apos;une facture Pro, dès son règlement.
+        </p>
+        <div style={s.grid}>
+          <Kpi label="Coûts du mois" value={`${treasury.costEur.toFixed(2)} €`} />
+          <Kpi label={`Revenus nets (${treasury.premiumCount} Premium, ${treasury.proCount} Pro)`} value={`${treasury.revenueEur.toFixed(2)} €`} />
+          <Kpi label="Écart à combler" value={`${treasury.gapEur.toFixed(2)} €`} highlight={treasury.gapEur > 0} />
+          <Kpi label="Clients Pro mensuels pour combler" value={treasury.proNeeded} highlight={treasury.proNeeded > 0} />
+          <Kpi label="Un client Pro annuel apporte" value={`${treasury.proAnnualCashEur.toFixed(2)} €`} />
+        </div>
+        <p style={{ fontSize: 12, color: '#5b5b5b', margin: '8px 0 24px' }}>
+          Détail des coûts : {treasury.costs.map(c => `${c.label} ${c.eur.toFixed(2)} €`).join(' · ')}.
+          Premium net ≈ {treasury.premiumNetEur.toFixed(2)} € par abonné, Pro net ≈ {treasury.proNetEur.toFixed(2)} €.
+        </p>
+
         {/* ── Site web ── */}
         <div style={s.grid}>
           <Kpi label="Visiteurs uniques (30j)" value={kpis.uniqueVisitors30d} highlight={kpis.uniqueVisitors30d > 0} />
@@ -2371,8 +2394,25 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     monthly_ai_spend_alert_usd: num('monthly_ai_spend_alert_usd', 50),
   }
 
+  // Abonnés payants, pour la trésorerie (estimation).
+  const [{ count: premiumCount }, { count: proCount }] = await Promise.all([
+    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('plan', 'premium'),
+    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('plan', 'pro'),
+  ])
+  const treasury = {
+    ...computeTreasury({
+      supabaseUsd: settings.supabase_plan_monthly_usd,
+      aiMonthUsd: aiSpend.total.mois_usd,
+      premiumCount: premiumCount ?? 0,
+      proCount: proCount ?? 0,
+    }),
+    premiumCount: premiumCount ?? 0,
+    proCount: proCount ?? 0,
+  }
+
   return {
     props: {
+      treasury,
       torixOwner: isTorixOwner(session.user),
       kpis: {
         siteVisits24h: siteVisits24h ?? 0,
