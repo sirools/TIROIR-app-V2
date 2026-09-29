@@ -1,6 +1,8 @@
 -- Compléments au stub pour le brouillon 0003 : ce que la vraie base a et que
 -- stub.sql n'a pas besoin de simuler pour 0001. Base de test jetable uniquement.
 CREATE ROLE service_role;
+-- Comme dans Supabase : la clé service contourne la RLS.
+ALTER ROLE service_role BYPASSRLS;
 GRANT USAGE ON SCHEMA public, auth TO service_role;
 ALTER TABLE public.collections ADD CONSTRAINT collections_id_user_id_key UNIQUE (id, user_id);
 ALTER TABLE public.collections ADD COLUMN updated_at timestamptz DEFAULT now();
