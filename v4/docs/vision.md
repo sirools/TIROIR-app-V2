@@ -64,3 +64,18 @@ Conséquence : tout ce qu'on voulait « pour plus tard » entre ici, dans la
 V4 — à consigner dans ce document et dans les fiches de Torix
 (`torix/knowledge.ts`). Rien n'est encore défini pour ce périmètre
 supplémentaire.
+
+## L'assistant de Tiroir a un prénom, choisi par le client (29 septembre 2026)
+
+Décision du fondateur : l'assistant que voient les clients de Tiroir porte
+un prénom — **Nicolas** ou **Chloé** — et **c'est le client qui choisit**,
+dans les réglages, avec la voix qui va avec. Rien n'est deviné : Tiroir ne
+déduit jamais le genre d'un utilisateur.
+
+- Ce n'est pas Torix : Torix reste l'IA du fondateur, invisible des
+  clients. Nicolas et Chloé sont la voix de Tiroir, un personnage de
+  l'app — le « personnage latent » de la direction artistique (présent
+  quand il se passe quelque chose, taquin quand c'est le bazar, qui
+  félicite quand on fait un effort).
+- Réglage par défaut et libellés dans les quatre langues de l'app : à
+  décider au moment de coder.
