@@ -10,7 +10,8 @@
 // is_admin est relu avec la clé service, qui ne quitte jamais le serveur.
 // Le drapeau lui-même n'est pas modifiable par son propriétaire (cf.
 // migration 20260926140000_profiles_update_columns.sql).
-import type { GetServerSidePropsContext, GetServerSidePropsResult } from 'next'
+import type { GetServerSidePropsContext, GetServerSidePropsResult, NextApiRequest, NextApiResponse } from 'next'
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import type { User } from '@supabase/supabase-js'
 import { serverSupabase, adminSupabase } from './supabase'
 import { isTorixOwner } from './torixOwner'
@@ -67,4 +68,27 @@ export async function requireTorixOwnerPage(
   if (!guard.ok) return guard
   if (!isTorixOwner(guard.user)) return { ok: false, result: { notFound: true } }
   return guard
+}
+
+/**
+ * Même garde que requireTorixOwnerPage, pour les routes API de Torix. Tout
+ * autre appelant — inconnu, non admin, admin non propriétaire — reçoit un
+ * 404, sans indice sur ce qui existe. Renvoie l'utilisateur, ou null si la
+ * réponse est déjà envoyée.
+ */
+export async function requireTorixOwnerApi(req: NextApiRequest, res: NextApiResponse): Promise<User | null> {
+  res.setHeader('Cache-Control', 'private, no-store')
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow')
+  const supabase = createServerSupabaseClient({ req, res })
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user && isTorixOwner(user)) {
+    const { data: profile } = await adminSupabase()
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+    if (profile?.is_admin) return user
+  }
+  res.status(404).end()
+  return null
 }
