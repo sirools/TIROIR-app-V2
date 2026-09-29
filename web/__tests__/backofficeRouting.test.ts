@@ -20,7 +20,7 @@ describe('backoffice.tiroir.app', () => {
   })
 
   test.each([
-    '/admin', '/admin/torix-lab', '/api/admin/settings', '/api/track',
+    '/admin', '/admin/torix-lab', '/api/admin/settings', '/api/track', '/api/torix/ask', '/api/torix/access', '/api/health',
     '/login', '/mot-de-passe-oublie', '/nouveau-mot-de-passe', '/email-confirme',
     '/favicon.ico', '/logo.png', '/_next/data/abc/admin.json',
   ])('%s reste sur le back-office', path => {

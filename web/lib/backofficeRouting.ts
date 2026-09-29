@@ -42,6 +42,9 @@ function isAdminPage(pathname: string): boolean {
 function isAllowedOnBackoffice(pathname: string): boolean {
   if (isAdminPage(pathname)) return true
   if (pathname.startsWith('/api/admin/') || pathname === '/api/admin') return true
+  // Torix (questions, accès) et l'état du système, appelés par les pages
+  // du back-office : ils doivent répondre sur place, pas être redirigés.
+  if (pathname.startsWith('/api/torix/') || pathname === '/api/health') return true
   // Mesure d'audience appelée par toutes les pages : la laisser répondre
   // plutôt que de rediriger un POST vers un autre domaine.
   if (pathname === '/api/track') return true
