@@ -7,7 +7,7 @@ const web = (p: string) => readFileSync(path.resolve(__dirname, '..', p), 'utf8'
 // Le code d'une page Next part dans un fichier public, téléchargeable sans
 // connexion. Le savoir de Torix ne doit donc jamais être importé côté
 // client : seul le serveur le lit (pages/api/torix/ask.ts).
-const PRIVATE = ['torix/knowledge', 'torix/directions', 'torix/memory', 'torix/ownership', 'torix/savoir']
+const PRIVATE = ['torix/knowledge', 'torix/directions', 'torix/memory', 'torix/ownership', 'torix/savoir', 'torixSavoir']
 
 function clientImports(src: string): string[] {
   // Imports statiques du module ; le chargement dynamique dans

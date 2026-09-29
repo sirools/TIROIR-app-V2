@@ -18,6 +18,8 @@ const nextConfig = {
   experimental: {
     outputFileTracingIncludes: {
       '/api/shares/[token]/export.pdf': ['./node_modules/pdfkit/js/data/**/*'],
+      // Le savoir de Clément, lu par Torix côté serveur seulement.
+      '/api/torix/ask': ['./components/torix/savoir.md'],
     },
   },
 
