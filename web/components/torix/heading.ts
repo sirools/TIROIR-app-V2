@@ -74,3 +74,16 @@ export function headingFromEvent(
   }
   return null
 }
+
+/**
+ * Puissance de la flamme selon l'alignement vers le nord, de 0 à 1 :
+ * 1 face au nord, qui retombe en douceur quand on s'en écarte, 0 face au
+ * sud. Courbe cubique : la montée s'accélère dans le dernier quart de
+ * tour, pour que l'alignement se sente.
+ *   0° → 1 ; 30° → ≈ 0,81 ; 45° → ≈ 0,62 ; 90° → 0,125 ; 180° → 0.
+ */
+export function northPower(heading: number): number {
+  const rad = (angleDelta(heading, 0) * Math.PI) / 180
+  const p = ((Math.cos(rad) + 1) / 2) ** 3
+  return Math.round(p * 1000) / 1000
+}

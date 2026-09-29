@@ -3,6 +3,7 @@ import {
   angleDelta,
   CARDINAL_ENTER_DEG,
   CARDINAL_EXIT_DEG,
+  northPower,
   compassPoint,
   facingCardinal,
   headingFromEvent,
@@ -103,5 +104,26 @@ describe('headingFromEvent', () => {
   test('orientation relative sans cap : ignorée', () => {
     expect(headingFromEvent({ alpha: 90, absolute: false }, 0)).toBeNull()
     expect(headingFromEvent({ alpha: null }, 0)).toBeNull()
+  })
+})
+
+describe('northPower : la flamme monte en puissance vers le nord', () => {
+  test('maximale face au nord, nulle face au sud', () => {
+    expect(northPower(0)).toBe(1)
+    expect(northPower(360)).toBe(1)
+    expect(northPower(180)).toBe(0)
+  })
+
+  test('symétrique et croissante en approchant du nord', () => {
+    expect(northPower(30)).toBe(northPower(330))
+    expect(northPower(90)).toBe(northPower(270))
+    const steps = [180, 135, 90, 60, 45, 30, 15, 5, 0].map(northPower)
+    for (let i = 1; i < steps.length; i++) expect(steps[i]).toBeGreaterThan(steps[i - 1])
+  })
+
+  test('forte près du nord, faible sur les côtés', () => {
+    expect(northPower(12)).toBeGreaterThan(0.95)
+    expect(northPower(45)).toBeCloseTo(0.62, 2)
+    expect(northPower(90)).toBe(0.125)
   })
 })
