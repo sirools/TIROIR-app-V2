@@ -101,7 +101,7 @@ describe('les fiches suivent le code', () => {
   })
 })
 
-describe('Torix connaît la V4.0 et la V5', () => {
+describe('Torix connaît la V4.0, qui porte aussi la V5', () => {
   const byId = (id: string) => TOPICS.find(t => t.id === id)!.answer
 
   test.each([
@@ -122,7 +122,7 @@ describe('Torix connaît la V4.0 et la V5', () => {
     expect(findTopic(question)?.id).toBe(id)
   })
 
-  test('chaque source V4 / V5 existe dans le dépôt', () => {
+  test('chaque source V4 existe dans le dépôt', () => {
     for (const t of TOPICS.filter(t => t.id.startsWith('v4') || t.id === 'v5')) {
       for (const file of t.source.split(' · ')) expect(() => repo(file)).not.toThrow()
     }
@@ -134,7 +134,7 @@ describe('Torix connaît la V4.0 et la V5', () => {
     const pairs: [string, string][] = [
       ['v4', 'vision'], ['v4-trousseau', 'trousseau'], ['v4-droits', 'droits'],
       ['v4-serrure', 'serrure'], ['v4-pret', 'pret'], ['v4-suggestions', 'suggestions'],
-      ['v4-parrainage', 'parrainage'], ['v4-migration', 'migration'], ['v4-etat', 'etat'], ['v4-fusion', 'fusion'],
+      ['v4-parrainage', 'parrainage'], ['v4-migration', 'migration'], ['v4-etat', 'etat'], ['v4-fusion', 'fusion'], ['v5', 'v5'],
     ]
     for (const [webId] of pairs) {
       for (const line of byId(webId).split('\n')) {
@@ -152,8 +152,8 @@ describe('Torix connaît la V4.0 et la V5', () => {
     expect(repo('v4/domain/pret.ts')).toContain("en_cours: { rendre: 'rendu' }")
   })
 
-  test('la V5 reste à définir tant que vision.md ne consigne rien', () => {
-    expect(repo('v5/docs/vision.md')).toContain("_Aucune pour l'instant._")
-    expect(byId('v5')).toContain('pas encore définie')
+  test('la V5 se fait dans la V4, comme le dit vision.md', () => {
+    expect(repo('v4/docs/vision.md')).toContain('pas de V5 séparée')
+    expect(byId('v5')).toContain('plus de V5 à part')
   })
 })

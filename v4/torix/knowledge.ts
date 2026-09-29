@@ -159,12 +159,21 @@ export const TOPICS: Topic[] = [
       '• Comparable à étudier : Getaround.',
   },
   {
+    id: 'v5',
+    keywords: ['v5', 'v5 0', 'c est quoi la v5', 'que contient la v5', 'apres la v4', 'une seule iteration', 'iterer'],
+    register: 'fait',
+    source: 'v4/docs/vision.md',
+    answer:
+      'Il n’y a plus de V5 à part : décision du 29 septembre, ce qui devait être la V5 se construit directement dans la V4, pour n’itérer qu’une fois.\n' +
+      'Rien n’est encore défini pour ce périmètre en plus : dis-moi ce qu’il doit contenir, je le note dans la vision de la V4.',
+  },
+  {
     id: 'torix',
     keywords: ['qui es tu', 'tu es qui', 'presente toi', 'que sais tu', 'que sais tu faire', 'aide'],
     register: 'principe',
     source: 'v4/torix/knowledge.ts',
     answer:
-      'Je suis Torix, l’IA du fondateur de Tiroir. Ici, je connais la V4.0 : sa vision, le trousseau et la serrure, les droits, le prêt, les suggestions, le parrainage, le plan de migration, où en est le chantier et le risque de fission.',
+      'Je suis Torix, l’IA du fondateur de Tiroir. Ici, je connais la V4.0 : sa vision, le trousseau et la serrure, les droits, le prêt, les suggestions, le parrainage, le plan de migration, où en est le chantier, le risque de fission, et la V5 qui s’y construit.',
   },
 ]
 

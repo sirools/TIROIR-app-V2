@@ -1,8 +1,0 @@
-{
-  "name": "tiroir-v5",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "test": "node --test \"torix/*.test.ts\""
-  }
-}
