@@ -1856,6 +1856,8 @@ function ValeurCard({
   const [discountDraft, setDiscountDraft] = useState('')
   const [savingLot, setSavingLot] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
+  // Brief V4 : le détail (estimation, achat, valeur marché) se replie.
+  const [detailOpen, setDetailOpen] = useState(false)
 
   async function commitPurchase() {
     setEditingPurchase(false)
@@ -1948,6 +1950,144 @@ function ValeurCard({
   return (
     <>
       <View style={vc.card}>
+        {/* ── En tête : le prix de vente définitif (brief V4) ── */}
+        <View style={[vc.section, { gap: 0 }]}>
+          {/* Prix de vente */}
+          <TouchableOpacity
+            style={vc.amountRow}
+            onPress={() => { setSaleDraft(object.sale_price != null ? String(object.sale_price) : ''); setEditingSale(true) }}
+            activeOpacity={0.7}
+          >
+            <View style={vc.amountLabelWrap}>
+              <Text style={vc.amountLabel}>{t('object.value.salePrice')}</Text>
+            </View>
+            {editingSale ? (
+              <TextInput
+                style={vc.amountInput}
+                value={saleDraft}
+                onChangeText={setSaleDraft}
+                onBlur={commitSale}
+                onSubmitEditing={commitSale}
+                keyboardType="decimal-pad"
+                autoFocus
+                returnKeyType="done"
+                placeholder="0"
+                placeholderTextColor={Colors.textTertiary}
+                selectTextOnFocus
+              />
+            ) : savingSale ? (
+              <ActivityIndicator size="small" color={Colors.accent} />
+            ) : object.sale_price != null ? (
+              <View style={vc.amountValueWrap}>
+                <Text style={vc.amountValue}>{object.sale_price.toLocaleString(i18n.language)} {currSym}</Text>
+              </View>
+            ) : (
+              <Text style={vc.amountPlaceholder}>{t('object.value.enter')}</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Prix du lot — dès 2 exemplaires. Calculé par défaut, donc
+              toujours affiché : c'est ce que rapporte la vente, pas une
+              option. La remise ne se saisit que si on la demande. */}
+          {isLot(quantity) && (
+            <>
+              <View style={vc.amountRow}>
+                <View style={vc.amountLabelWrap}>
+                  <Text style={vc.amountLabel}>{t('object.value.salePriceLot')}</Text>
+                  <Text style={vc.amountHint}>
+                    {t('object.value.salePriceLotBase', {
+                      count: quantity,
+                      unit: (object.sale_price ?? 0).toLocaleString(i18n.language),
+                      sym: currSym,
+                    })}
+                  </Text>
+                </View>
+                <Text style={vc.amountValue}>
+                  {lotSale.toLocaleString(i18n.language)} {currSym}
+                </Text>
+              </View>
+
+              {/* La remise est stockée comme prix final du lot : l'unitaire
+                  n'est jamais réécrit, et décocher rend le calcul dérivé. */}
+              <TouchableOpacity
+                style={vc.checkRow}
+                onPress={toggleDiscount}
+                activeOpacity={0.7}
+                disabled={object.sale_price == null}
+              >
+                <Checkbox checked={hasDiscount} onToggle={toggleDiscount} />
+                <Text style={[vc.checkLabel, object.sale_price == null && vc.checkLabelOff]}>
+                  {t('object.value.applyLotDiscount')}
+                </Text>
+              </TouchableOpacity>
+
+              {hasDiscount && (
+                <TouchableOpacity
+                  style={vc.amountRow}
+                  onPress={() => { setDiscountDraft(String(discountValue)); setEditingDiscount(true) }}
+                  activeOpacity={0.7}
+                >
+                  <View style={vc.amountLabelWrap}>
+                    <Text style={vc.amountLabel}>{t('object.value.lotDiscount')}</Text>
+                    <Text style={vc.amountHint}>{t('object.value.lotDiscountHint')}</Text>
+                  </View>
+                  {editingDiscount ? (
+                    <TextInput
+                      style={vc.amountInput}
+                      value={discountDraft}
+                      onChangeText={setDiscountDraft}
+                      onBlur={commitDiscount}
+                      onSubmitEditing={commitDiscount}
+                      keyboardType="decimal-pad"
+                      autoFocus
+                      returnKeyType="done"
+                      placeholder="0"
+                      placeholderTextColor={Colors.textTertiary}
+                      selectTextOnFocus
+                    />
+                  ) : savingLot ? (
+                    <ActivityIndicator size="small" color={Colors.accent} />
+                  ) : (
+                    <View style={vc.amountValueWrap}>
+                      <Text style={vc.amountValue}>− {discountValue.toLocaleString(i18n.language)} {currSym}</Text>
+                      <Text style={vc.lotTotal}>
+                        {t('object.value.lotFinal', {
+                          total: lotSale.toLocaleString(i18n.language),
+                          sym: currSym,
+                        })}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </View>
+
+        <View style={vc.divider} />
+
+        {/* ── Détail de la valeur : replié par défaut. Il s'ouvre dans le
+             flux et pousse la suite vers le bas, sans panneau par-dessus. ── */}
+        <TouchableOpacity
+          style={vc.amountRow}
+          onPress={() => setDetailOpen(o => !o)}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: detailOpen }}
+        >
+          <View style={vc.amountLabelWrap}>
+            <Text style={vc.amountLabel}>{t('object.value.detail')}</Text>
+            <Text style={vc.amountHint}>{t('object.value.detailHint')}</Text>
+          </View>
+          {detailOpen
+            ? <ChevronUp size={18} color={Colors.textSecondary} strokeWidth={2} />
+            : <ChevronDown size={18} color={Colors.textSecondary} strokeWidth={2} />}
+        </TouchableOpacity>
+
+        {detailOpen && (
+          <>
+            <View style={vc.divider} />
+
         {/* ── Section 1 : Valeur estimée (utilisateur) ── */}
         <TouchableOpacity style={vc.estimationRow} onPress={onEditUserValue} activeOpacity={0.7}>
           {/* Gauche : label + diff IA */}
@@ -2063,121 +2203,8 @@ function ValeurCard({
           onUpdateMarketValue={onUpdateMarketValue}
         />
 
-        <View style={vc.divider} />
-
-        {/* ── Section 4 : Vente + Caution ── */}
-        <View style={[vc.section, { gap: 0 }]}>
-          {/* Prix de vente */}
-          <TouchableOpacity
-            style={vc.amountRow}
-            onPress={() => { setSaleDraft(object.sale_price != null ? String(object.sale_price) : ''); setEditingSale(true) }}
-            activeOpacity={0.7}
-          >
-            <View style={vc.amountLabelWrap}>
-              <Text style={vc.amountLabel}>{t('object.value.salePrice')}</Text>
-            </View>
-            {editingSale ? (
-              <TextInput
-                style={vc.amountInput}
-                value={saleDraft}
-                onChangeText={setSaleDraft}
-                onBlur={commitSale}
-                onSubmitEditing={commitSale}
-                keyboardType="decimal-pad"
-                autoFocus
-                returnKeyType="done"
-                placeholder="0"
-                placeholderTextColor={Colors.textTertiary}
-                selectTextOnFocus
-              />
-            ) : savingSale ? (
-              <ActivityIndicator size="small" color={Colors.accent} />
-            ) : object.sale_price != null ? (
-              <View style={vc.amountValueWrap}>
-                <Text style={vc.amountValue}>{object.sale_price.toLocaleString(i18n.language)} {currSym}</Text>
-              </View>
-            ) : (
-              <Text style={vc.amountPlaceholder}>{t('object.value.enter')}</Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Prix du lot — dès 2 exemplaires. Calculé par défaut, donc
-              toujours affiché : c'est ce que rapporte la vente, pas une
-              option. La remise ne se saisit que si on la demande. */}
-          {isLot(quantity) && (
-            <>
-              <View style={vc.amountRow}>
-                <View style={vc.amountLabelWrap}>
-                  <Text style={vc.amountLabel}>{t('object.value.salePriceLot')}</Text>
-                  <Text style={vc.amountHint}>
-                    {t('object.value.salePriceLotBase', {
-                      count: quantity,
-                      unit: (object.sale_price ?? 0).toLocaleString(i18n.language),
-                      sym: currSym,
-                    })}
-                  </Text>
-                </View>
-                <Text style={vc.amountValue}>
-                  {lotSale.toLocaleString(i18n.language)} {currSym}
-                </Text>
-              </View>
-
-              {/* La remise est stockée comme prix final du lot : l'unitaire
-                  n'est jamais réécrit, et décocher rend le calcul dérivé. */}
-              <TouchableOpacity
-                style={vc.checkRow}
-                onPress={toggleDiscount}
-                activeOpacity={0.7}
-                disabled={object.sale_price == null}
-              >
-                <Checkbox checked={hasDiscount} onToggle={toggleDiscount} />
-                <Text style={[vc.checkLabel, object.sale_price == null && vc.checkLabelOff]}>
-                  {t('object.value.applyLotDiscount')}
-                </Text>
-              </TouchableOpacity>
-
-              {hasDiscount && (
-                <TouchableOpacity
-                  style={vc.amountRow}
-                  onPress={() => { setDiscountDraft(String(discountValue)); setEditingDiscount(true) }}
-                  activeOpacity={0.7}
-                >
-                  <View style={vc.amountLabelWrap}>
-                    <Text style={vc.amountLabel}>{t('object.value.lotDiscount')}</Text>
-                    <Text style={vc.amountHint}>{t('object.value.lotDiscountHint')}</Text>
-                  </View>
-                  {editingDiscount ? (
-                    <TextInput
-                      style={vc.amountInput}
-                      value={discountDraft}
-                      onChangeText={setDiscountDraft}
-                      onBlur={commitDiscount}
-                      onSubmitEditing={commitDiscount}
-                      keyboardType="decimal-pad"
-                      autoFocus
-                      returnKeyType="done"
-                      placeholder="0"
-                      placeholderTextColor={Colors.textTertiary}
-                      selectTextOnFocus
-                    />
-                  ) : savingLot ? (
-                    <ActivityIndicator size="small" color={Colors.accent} />
-                  ) : (
-                    <View style={vc.amountValueWrap}>
-                      <Text style={vc.amountValue}>− {discountValue.toLocaleString(i18n.language)} {currSym}</Text>
-                      <Text style={vc.lotTotal}>
-                        {t('object.value.lotFinal', {
-                          total: lotSale.toLocaleString(i18n.language),
-                          sym: currSym,
-                        })}
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              )}
-            </>
-          )}
-        </View>
+          </>
+        )}
 
         <View style={vc.divider} />
 

@@ -593,6 +593,8 @@
       "marketValue": "Market value",
       "marketHint": "AI estimate from web prices",
       "purchasePrice": "Purchase price",
+      "detail": "Value details",
+      "detailHint": "Estimate, purchase, market value",
       "salePrice": "Sale price",
       "deposit": "Deposit",
       "depositHint": "Security deposit required when lending",
