@@ -86,3 +86,11 @@ Décision du fondateur : la V4 permet de mettre un objet **au coffre** —
 jamais envoyé à l'IA, jamais partagé, invisible du back-office — puis,
 dans un second temps, chiffré sur le téléphone pour que même Tiroir ne
 puisse pas le voir. Plan détaillé : `docs/mode-coffre.md`.
+
+## Vendre depuis son Tiroir (29 septembre 2026)
+
+Décision du fondateur : la vente entre **dans la V4** (pas de V6 séparée).
+Étape 1 : un bouton « Vendre » prépare l'annonce, pour mesurer l'envie.
+Étape 2 : vente et paiement dans Tiroir via un prestataire agréé (Stripe
+Connect ou Mangopay), avec une **commission** prélevée automatiquement.
+Plan détaillé : `docs/vente.md`.
