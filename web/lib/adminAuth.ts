@@ -55,9 +55,21 @@ export async function requireAdminPage(
 }
 
 /**
- * Pages de Torix : admin de Tiroir ET propriétaire de Torix (cf.
- * torixOwner.ts). Un admin qui n'est pas le propriétaire reçoit un 404,
- * comme un inconnu.
+ * Pages de Torix (le Lab) : ouvertes à tous les comptes admin de Tiroir —
+ * décision du fondateur du 2026-09-29. Les comptes Gratuit, Premium et Pro
+ * ne sont pas admins : ils reçoivent un 404, comme un inconnu.
+ */
+export async function requireTorixPage(
+  ctx: GetServerSidePropsContext,
+): Promise<AdminPageGuard> {
+  return requireAdminPage(ctx)
+}
+
+/**
+ * Actions réservées au seul propriétaire de Torix (cf. torixOwner.ts),
+ * pour ce qui engage ses secrets ou son argent — par exemple le futur
+ * cerveau qui code (strategie/torix-cerveau.md). Admin ET propriétaire ;
+ * un admin qui n'est pas le propriétaire reçoit un 404.
  */
 export async function requireTorixOwnerPage(
   ctx: GetServerSidePropsContext,
