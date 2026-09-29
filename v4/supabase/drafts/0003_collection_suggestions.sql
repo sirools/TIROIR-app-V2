@@ -1,5 +1,5 @@
 -- ================================================================
--- 0003_collection_suggestions.sql — BROUILLON, non appliqué
+-- 0003_collection_suggestions.sql — APPLIQUÉ en prod le 28/09/2026 : voir supabase/migrations/20260928120000_collection_suggestions.sql (même contenu).
 -- Suggestions d'objets sur une collection partagée par lien.
 --
 -- Un visiteur d'un lien de partage propose un objet au propriétaire ; le

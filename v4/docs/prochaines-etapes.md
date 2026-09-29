@@ -1,7 +1,38 @@
 # V4 — prochaines étapes (avec le Mac)
 
-État au 28 septembre 2026. Tout est sur la branche `feature/v4-suggestions-web`,
-PR en brouillon, **rien n'est fusionné dans `main`**.
+État au 29 septembre 2026 : **les suggestions (étape 1) sont en prod.** Le
+code web est dans `main` (PR #9, déployé sur `tiroir.app`), le SQL a été
+appliqué en prod le 28/09 et sa migration est rangée dans `main`
+(`supabase/migrations/20260928120000_collection_suggestions.sql`). L'étape 2
+(réglage par partage, objets de son Tiroir, brouillon 0004) attend sur
+`feature/v4-suggestions-ajouts`.
+
+## 0. Aligner l'historique de la prod (≈ 2 min, une fois)
+
+Appliqué depuis le SQL Editor, le SQL n'a pas été inscrit dans l'historique
+de la base. Sans cette ligne, un `supabase db push` tenterait de le rejouer
+(sans dégât : tout y est protégé, mais la règle de
+`supabase/migrations/README.md` veut les mêmes versions des deux côtés).
+Dans le SQL Editor **de prod** :
+
+```sql
+-- 1. Les suggestions sont bien là ?
+SELECT to_regclass('public.collection_wishes') IS NOT NULL AS suggestions_en_prod;
+
+-- 2. Si oui, inscrire la migration dans l'historique.
+INSERT INTO supabase_migrations.schema_migrations (version, name)
+VALUES ('20260928120000', 'collection_suggestions')
+ON CONFLICT (version) DO NOTHING;
+
+-- 3. Vérifier : ces versions doivent être celles des fichiers de
+--    supabase/migrations/, ni plus ni moins.
+SELECT version, name FROM supabase_migrations.schema_migrations
+ ORDER BY version DESC LIMIT 5;
+```
+
+- [ ] Fait, et les 5 dernières versions correspondent aux derniers fichiers
+      (`…_profile_avatar`, `…_profiles_update_columns`,
+      `…_collection_suggestions`).
 
 ## 1. Preprod (≈ 20 min)
 
@@ -9,8 +40,10 @@ PR en brouillon, **rien n'est fusionné dans `main`**.
 - [ ] **Avant** le SQL : `cd preprod && ./deploy.sh clementougier@192.168.1.23`,
       puis vérifier que les partages s'affichent comme avant (en clair,
       protégé, export CSV/PDF, `/mes-partages`).
-- [ ] Appliquer `v4/supabase/drafts/0003_collection_suggestions.sql` dans
-      l'éditeur SQL du projet Supabase **de preprod** (vérifier le nom du projet).
+- [x] SQL appliqué **en prod** le 28/09 depuis l'iPhone (SQL Editor),
+      résultat vérifié. Rangé dans `supabase/migrations/20260928120000_collection_suggestions.sql`.
+- [x] Fusionner la PR #9 → déploiement Vercel de `tiroir.app`.
+- [ ] L'appliquer aussi sur le Supabase **de preprod** (même fichier).
 - [ ] Dérouler le scénario manuel de `suggestions.md` (16 étapes, 3 comptes).
 - [ ] Ouvrir l'app mobile pointée sur la preprod : collections, recherche,
       statistiques identiques (aucune idée ni suggestion n'y apparaît).
@@ -56,14 +89,14 @@ Points à surveiller :
 - **Branches en attente** : `feature/v4-suggestions-web` et
   `feature/v4-suggestions-ajouts` ne sont pas dans `main` ; plus elles
   attendent, plus elles divergent.
-- **Écart prod / dépôt** : un commit de `feature/v4-suggestions-web`
-  indique les suggestions appliquées en prod. Si c'est vrai, la base de
-  prod contient ce que `main` ne décrit pas. **À vérifier en premier.**
+- **Écart prod / dépôt** : *refermé le 29/09.* Les suggestions sont en
+  prod et leur migration est dans `main` ; reste à inscrire la version dans
+  l'historique de la base (§ 0).
 - **Fiches Torix en double** (`v4/torix/` et le Lab) : tenu, un test casse
   si elles divergent.
 
 Ordre recommandé :
-1. Vérifier en prod que la table `collection_wishes` existe.
-2. Si oui, fusionner `feature/v4-suggestions-web` dans `main`, pour que le
-   dépôt redise la vérité.
-3. Puis chaque étape de la V4 : preprod → `main`, une à une.
+1. ~~Fusionner `feature/v4-suggestions-web` dans `main`~~ — fait le 29/09.
+2. Aligner l'historique de la prod (§ 0).
+3. Puis chaque étape de la V4 : preprod → `main`, une à une — la
+   prochaine est l'étape 2 des suggestions (`feature/v4-suggestions-ajouts`).
