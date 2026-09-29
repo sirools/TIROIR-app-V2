@@ -30,6 +30,9 @@ const QUESTIONS: [string, string][] = [
   ['Est-ce que la V4 touche la prod ?', 'prod'],
   ['Où en est la V4 ?', 'etat'],
   ['Quelles sont les prochaines étapes ?', 'etat'],
+  ['On en est où de la V4 ?', 'etat'],
+  ['La fusion entre les deux mondes est-elle probable ?', 'fusion'],
+  ['Y a-t-il un risque de fission ?', 'fusion'],
   ['Quelles questions ouvertes restent ?', 'questions'],
   ['Et si un objet n’est pas rendu ?', 'questions'],
   ['Qui es-tu ?', 'torix'],
@@ -156,4 +159,13 @@ test('état : la fiche suit prochaines-etapes.md', () => {
   assert.match(doc, /feature\/v4-suggestions-web/)
   assert.match(doc, /rien n'est fusionné dans `main`/)
   assert.match(byId('etat'), /rien de la V4 n’est fusionné/)
+})
+
+test('fusion : la fiche suit la section « Fusion ou fission ? »', () => {
+  const doc = v4('docs/prochaines-etapes.md')
+  assert.match(doc, /## 5\. Fusion ou fission \?/)
+  assert.match(doc, /table `collection_wishes` existe/)
+  assert.match(byId('fusion'), /collection_wishes/)
+  assert.match(doc, /suggestions appliquées en prod/)
+  assert.match(byId('etat'), /déjà appliquées en prod, à vérifier/)
 })
