@@ -5,6 +5,7 @@ import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import { serverSupabase, adminSupabase } from '../lib/supabase'
 import { isTorixOwner } from '../lib/torixOwner'
 import { computeTreasury, HYPOTHESES, type Treasury } from '../lib/treasury'
+import { isRestTime } from '../components/torix/commandments'
 
 interface AppSettings {
   free_ai_quota_monthly: number
@@ -262,6 +263,8 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
         </div>
 
         {tab === 'dashboard' && (<>
+        <SystemStatus showTorix={torixLink !== null} />
+
         {/* ── Trésorerie (estimation) ── */}
         <h2 style={s.sectionTitle}>Trésorerie de Tiroir — ce mois-ci</h2>
         <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
@@ -1168,6 +1171,43 @@ function SpendSparkline({ days }: { days: { jour: string; cout_usd: number }[] }
         <span style={s.sparkAxisLabel}>{jourCourt(days[0].jour)}</span>
         <span style={s.sparkAxisLabel}>{jourCourt(days[days.length - 1].jour)}</span>
       </div>
+    </div>
+  )
+}
+
+/**
+ * État du système, vérifié en direct : le site et la base tournent jour et
+ * nuit ; Torix seul se repose (21 h 30 – 7 h), sans rien couper d'autre.
+ * La ligne Torix n'apparaît qu'à son propriétaire.
+ */
+function SystemStatus({ showTorix }: { showTorix: boolean }) {
+  const [health, setHealth] = useState<{ db: string; at: string } | null>(null)
+  const [failed, setFailed] = useState(false)
+  const [now, setNow] = useState<Date | null>(null)
+  useEffect(() => {
+    const check = () => {
+      setNow(new Date())
+      fetch('/api/health', { cache: 'no-store' })
+        .then(r => r.json())
+        .then(j => { setHealth(j); setFailed(false) })
+        .catch(() => setFailed(true))
+    }
+    check()
+    const t = window.setInterval(check, 60_000)
+    return () => window.clearInterval(t)
+  }, [])
+  const dbOk = health?.db === 'ok'
+  const dot = (ok: boolean | null) => ({ display: 'inline-block', width: 10, height: 10, borderRadius: 5, marginRight: 8, background: ok === null ? '#bbb' : ok ? '#2e7d32' : '#C0392B' })
+  const time = health ? new Date(health.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '…'
+  const resting = now ? isRestTime(now) : false
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', padding: '14px 18px', margin: '0 0 24px', borderRadius: 14, background: '#fff', border: '1px solid rgba(0,0,0,0.08)', fontSize: 14 }}>
+      <span><span style={dot(failed ? false : health ? true : null)} /><strong>Système</strong> {failed ? 'injoignable' : 'en ligne, 24 h / 24'}</span>
+      <span><span style={dot(health ? dbOk : failed ? false : null)} /><strong>Base de données</strong> {health ? (dbOk ? 'répond' : 'ne répond pas') : '…'}</span>
+      {showTorix && (
+        <span><span style={dot(now ? !resting : null)} /><strong>Torix</strong> {now ? (resting ? 'au repos jusqu’à 7 h — le reste tourne' : 'éveillé') : '…'}</span>
+      )}
+      <span style={{ color: '#5b5b5b', marginLeft: 'auto' }}>vérifié à {time}, toutes les minutes</span>
     </div>
   )
 }
