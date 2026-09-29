@@ -1,70 +1,53 @@
+// Jetons de l'app (iOS et Android), tirés de la seule source de vérité du
+// design : design/tokens.json → brandTokens.generated.ts. Ne jamais écrire
+// une couleur ici : la changer dans design/tokens.json, puis
+// `node design/generate.mjs`. Les noms restent ceux que les écrans
+// utilisent déjà (Colors.accent, Spacing.md…).
+import { Brand } from './brandTokens.generated'
+
+const c = Brand.color
+
 export const Colors = {
   // Fonds
-  background: '#F7F3EE',       // chaud, crème
-  surface: '#FFFFFF',
-  surfaceWarm: '#F0EBE3',      // carte légèrement plus chaude
-  surfaceSubtle: '#FBFAF8',    // carte imbriquée dans une carte : à peine détachée du blanc
+  background: c.beige2,          // fond chaud clair du site
+  surface: c.white,
+  surfaceWarm: c.beige,          // carte légèrement plus chaude
+  surfaceSubtle: c.surfaceSubtle, // carte imbriquée dans une carte
 
   // Texte
-  textPrimary: '#1A1612',
-  textSecondary: '#6B6158',
-  textTertiary: '#A89F96',
-  textInverse: '#FFFFFF',
+  textPrimary: c.ink,
+  textSecondary: c.muted,
+  textTertiary: c.textTertiary,
+  textInverse: c.white,
 
-  // Accent principal
-  accent: '#2D5016',           // vert profond
-  accentLight: '#E8F0E0',      // vert sauge très discret
+  // Accent principal : l'orange du site
+  accent: c.orange,
+  accentLight: c.beige,
 
   // Secondaire
-  sage: '#7B9B6B',             // vert sauge
+  sage: c.sage,
 
   // États
-  error: '#C0392B',
-  errorLight: '#FDECEA',
-  success: '#2D5016',
+  error: c.error,
+  errorLight: c.errorLight,
+  success: c.success,
 
   // Séparateurs
-  border: '#E8E2DA',
-  borderLight: '#F0EBE3',
+  border: c.border,
+  borderLight: c.borderLight,
 } as const
 
 export const Typography = {
   // Tailles
-  xs: 11,
-  sm: 13,
-  base: 15,
-  md: 17,
-  lg: 20,
-  xl: 24,
-  xxl: 30,
-  xxxl: 38,
+  ...Brand.type.size,
 
   // Graisses
-  regular: '400' as const,
-  medium: '500' as const,
-  semibold: '600' as const,
-  bold: '700' as const,
+  ...Brand.type.weight,
 
   // Hauteurs de ligne
-  tight: 1.2,
-  normal: 1.4,
-  relaxed: 1.6,
+  ...Brand.type.lineHeight,
 } as const
 
-export const Spacing = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-  xxl: 48,
-  xxxl: 64,
-} as const
+export const Spacing = Brand.space
 
-export const Radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  full: 999,
-} as const
+export const Radius = Brand.radiusScale

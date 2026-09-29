@@ -22,6 +22,10 @@ for (const [name, t] of Object.entries(tokens.color)) {
 
 const camel = s => s.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase())
 const px = t => (t.unit === 'px' ? `${t.value}px` : String(t.value))
+// Échelle { clé: valeur } → littéral TS, sans les clés de métadonnées ($…).
+const scale = obj =>
+  '{ ' + Object.entries(obj).filter(([k]) => !k.startsWith('$'))
+    .map(([k, v]) => `${k}: ${typeof v === 'string' ? `'${v}'` : v}`).join(', ') + ' }'
 
 function css() {
   const lines = [
@@ -49,6 +53,13 @@ ${colors}
   radius: ${tokens.radius.default.value},
   /** ${tokens.shadow.default.role} */
   shadow: '${tokens.shadow.default.value}',
+  space: ${scale(tokens.space)},
+  radiusScale: ${scale(tokens.radiusScale)},
+  type: {
+    size: ${scale(tokens.type.size)},
+    weight: ${scale(tokens.type.weight)},
+    lineHeight: ${scale(tokens.type.lineHeight)},
+  },
 } as const
 `
 }

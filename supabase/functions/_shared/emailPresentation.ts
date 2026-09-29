@@ -42,14 +42,14 @@ export const HTML_PRESENTATION = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 T
   }
 </style>
 </head>
-<body class="fond" style="margin:0; padding:0; background-color:#F7F3EE;">
+<body class="fond" style="margin:0; padding:0; background-color:#FFF8EF;">
 
-<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#F7F3EE; opacity:0;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#FFF8EF; opacity:0;">
   Vous photographiez un objet, Tiroir écrit sa fiche et estime sa valeur. Voilà, c'est tout.
   &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
 </div>
 
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="fond" style="background-color:#F7F3EE;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="fond" style="background-color:#FFF8EF;">
   <tr><td align="center" style="padding:32px 12px;">
 
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="conteneur" style="width:600px; max-width:600px;">
@@ -60,7 +60,7 @@ export const HTML_PRESENTATION = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 T
             <td width="36" style="padding-right:12px;">
               <img src="https://www.tiroir.app/icons/app-icon.png" width="36" height="36" alt="Tiroir" style="display:block; width:36px; height:36px; border-radius:9px;" />
             </td>
-            <td class="texte" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:17px; font-weight:700; color:#1A1612; letter-spacing:-0.2px;">Tiroir</td>
+            <td class="texte" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:17px; font-weight:700; color:#121212; letter-spacing:-0.2px;">Tiroir</td>
           </tr>
         </table>
       </td></tr>
@@ -84,13 +84,13 @@ export const HTML_PRESENTATION = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 T
           </td></tr>
 
           <tr><td class="marge" style="padding:26px 40px 0 40px;">
-            <h1 class="titre texte" style="margin:0 0 20px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:30px; line-height:38px; font-weight:700; color:#1A1612; letter-spacing:-0.5px;">
+            <h1 class="titre texte" style="margin:0 0 20px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:30px; line-height:38px; font-weight:700; color:#121212; letter-spacing:-0.5px;">
               On ne s'est jamais<br />vraiment présentés
             </h1>
-            <p class="secondaire" style="margin:0 0 16px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:17px; line-height:28px; color:#6B6158;">
+            <p class="secondaire" style="margin:0 0 16px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:17px; line-height:28px; color:#5b5b5b;">
               {{ouverture}} C'est le premier message que je vous envoie, et il n'y en aura pas trente&nbsp;: je voulais simplement vous dire à quoi sert cette application.
             </p>
-            <p class="secondaire" style="margin:0 0 28px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:17px; line-height:28px; color:#6B6158;">
+            <p class="secondaire" style="margin:0 0 28px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:17px; line-height:28px; color:#5b5b5b;">
               En une minute, sans rien vous vendre.
             </p>
           </td></tr>
@@ -99,10 +99,10 @@ export const HTML_PRESENTATION = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 T
           <tr><td class="marge" style="padding:0 40px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
               <tr><td style="border-left:3px solid #F26900; padding:2px 0 2px 20px;">
-                <p class="texte" style="margin:0 0 10px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:19px; line-height:28px; font-weight:700; color:#1A1612;">
+                <p class="texte" style="margin:0 0 10px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:19px; line-height:28px; font-weight:700; color:#121212;">
                   Vous possédez des centaines d'objets. Vous n'en avez la liste nulle part.
                 </p>
-                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#6B6158;">
+                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#5b5b5b;">
                   Ce n'est pas gênant au quotidien. Ça le devient le jour d'un cambriolage, d'un dégât des eaux, d'un déménagement, d'une succession — ou simplement quand on veut revendre et qu'on ne sait plus ce que la chose valait.
                 </p>
               </td></tr>
@@ -110,32 +110,32 @@ export const HTML_PRESENTATION = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 T
           </td></tr>
 
           <tr><td class="marge" style="padding:30px 40px 0 40px;">
-            <p class="texte" style="margin:0 0 24px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:18px; line-height:28px; font-weight:600; color:#1A1612;">
+            <p class="texte" style="margin:0 0 24px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:18px; line-height:28px; font-weight:600; color:#121212;">
               Tiroir fabrique cette liste à votre place. Vous photographiez, il écrit.
             </p>
           </td></tr>
 
           
           <tr><td class="marge" style="padding:0 40px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="encart" style="background-color:#F7F3EE; border-radius:12px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="encart" style="background-color:#FFF8EF; border-radius:12px;">
               <tr><td style="padding:24px;">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                   <tr>
                     <td width="30" valign="top" style="width:30px; padding-bottom:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#F26900;">1</td>
-                    <td class="secondaire" valign="top" style="padding-bottom:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:25px; color:#6B6158;">
-                      <strong class="texte" style="color:#1A1612;">Vous prenez une photo.</strong> Un meuble, un vêtement, un appareil, un bibelot. Ce que vous voulez.
+                    <td class="secondaire" valign="top" style="padding-bottom:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:25px; color:#5b5b5b;">
+                      <strong class="texte" style="color:#121212;">Vous prenez une photo.</strong> Un meuble, un vêtement, un appareil, un bibelot. Ce que vous voulez.
                     </td>
                   </tr>
                   <tr>
                     <td width="30" valign="top" style="width:30px; padding-bottom:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#F26900;">2</td>
-                    <td class="secondaire" valign="top" style="padding-bottom:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:25px; color:#6B6158;">
-                      <strong class="texte" style="color:#1A1612;">L'app reconnaît l'objet</strong> et rédige sa fiche&nbsp;: titre, description, caractéristiques, valeur estimée.
+                    <td class="secondaire" valign="top" style="padding-bottom:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:25px; color:#5b5b5b;">
+                      <strong class="texte" style="color:#121212;">L'app reconnaît l'objet</strong> et rédige sa fiche&nbsp;: titre, description, caractéristiques, valeur estimée.
                     </td>
                   </tr>
                   <tr>
                     <td width="30" valign="top" style="width:30px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#F26900;">3</td>
-                    <td class="secondaire" valign="top" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:25px; color:#6B6158;">
-                      <strong class="texte" style="color:#1A1612;">Vous corrigez si besoin</strong>, et c'est rangé. Rien à saisir au clavier.
+                    <td class="secondaire" valign="top" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:25px; color:#5b5b5b;">
+                      <strong class="texte" style="color:#121212;">Vous corrigez si besoin</strong>, et c'est rangé. Rien à saisir au clavier.
                     </td>
                   </tr>
                 </table>
@@ -148,24 +148,24 @@ export const HTML_PRESENTATION = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 T
 
           
           <tr><td class="marge" style="padding:32px 40px 0 40px;">
-            <h2 class="texte" style="margin:0 0 18px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:18px; line-height:24px; font-weight:700; color:#1A1612;">
+            <h2 class="texte" style="margin:0 0 18px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:18px; line-height:24px; font-weight:700; color:#121212;">
               Ce que les gens en font
             </h2>
             
             <div style="font-size:0; text-align:center;">
               <!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="50%" valign="top"><![endif]-->
               <div style="display:inline-block; width:100%; max-width:250px; vertical-align:top;"><div style="padding:0 14px 18px 0; text-align:left;">
-                <p class="texte" style="margin:0 0 4px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#1A1612;">Un dossier pour l'assurance</p>
-                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; line-height:23px; color:#6B6158;">Des photos datées et des valeurs, prêtes le jour où un expert les demande. C'est-à-dire trop tard pour les constituer.</p>
+                <p class="texte" style="margin:0 0 4px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#121212;">Un dossier pour l'assurance</p>
+                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; line-height:23px; color:#5b5b5b;">Des photos datées et des valeurs, prêtes le jour où un expert les demande. C'est-à-dire trop tard pour les constituer.</p>
               </div></div><!--[if mso]></td><td width="50%" valign="top"><![endif]--><div style="display:inline-block; width:100%; max-width:250px; vertical-align:top;"><div style="padding:0 0 18px 14px; text-align:left;">
-                <p class="texte" style="margin:0 0 4px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#1A1612;">Savoir avant de vendre</p>
-                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; line-height:23px; color:#6B6158;">L'estimation s'appuie sur des annonces comparables, que vous pouvez ouvrir. Vous vérifiez plutôt que de nous croire.</p>
+                <p class="texte" style="margin:0 0 4px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#121212;">Savoir avant de vendre</p>
+                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; line-height:23px; color:#5b5b5b;">L'estimation s'appuie sur des annonces comparables, que vous pouvez ouvrir. Vous vérifiez plutôt que de nous croire.</p>
               </div></div><!--[if mso]></td></tr><tr><td width="50%" valign="top"><![endif]--><div style="display:inline-block; width:100%; max-width:250px; vertical-align:top;"><div style="padding:0 14px 0 0; text-align:left;">
-                <p class="texte" style="margin:0 0 4px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#1A1612;">Retrouver ce qu'on prête</p>
-                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; line-height:23px; color:#6B6158;">Qui a l'objet, depuis quand. Un prêt cesse d'être un don involontaire.</p>
+                <p class="texte" style="margin:0 0 4px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#121212;">Retrouver ce qu'on prête</p>
+                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; line-height:23px; color:#5b5b5b;">Qui a l'objet, depuis quand. Un prêt cesse d'être un don involontaire.</p>
               </div></div><!--[if mso]></td><td width="50%" valign="top"><![endif]--><div style="display:inline-block; width:100%; max-width:250px; vertical-align:top;"><div style="padding:0 0 0 14px; text-align:left;">
-                <p class="texte" style="margin:0 0 4px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#1A1612;">Montrer sans tout montrer</p>
-                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; line-height:23px; color:#6B6158;">Un lien de partage dont vous masquez les prix. L'autre voit la collection, pas votre patrimoine.</p>
+                <p class="texte" style="margin:0 0 4px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:700; color:#121212;">Montrer sans tout montrer</p>
+                <p class="secondaire" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:15px; line-height:23px; color:#5b5b5b;">Un lien de partage dont vous masquez les prix. L'autre voit la collection, pas votre patrimoine.</p>
               </div></div>
               <!--[if mso]></td></tr></table><![endif]-->
             </div>
@@ -188,10 +188,10 @@ export const HTML_PRESENTATION = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 T
           <tr><td class="marge" style="padding:32px 40px 36px 40px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
               <tr><td class="bordure" style="border-top:1px solid #E8E2DA; padding-top:24px;">
-                <p class="secondaire" style="margin:0 0 12px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#6B6158;">
+                <p class="secondaire" style="margin:0 0 12px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; color:#5b5b5b;">
                   Tiroir est développé par une seule personne, et je lis tout ce qui arrive dans cette boîte. Si l'app ne fait pas ce que vous espériez, ou si elle vous a mal reconnu un objet, répondez à ce message&nbsp;: ça m'est plus utile qu'une note sur un magasin d'applications.
                 </p>
-                <p class="texte" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; font-weight:600; color:#1A1612;">
+                <p class="texte" style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,'Helvetica Neue',Arial,sans-serif; font-size:16px; line-height:26px; font-weight:600; color:#121212;">
                   Clément<br />
                   <span class="secondaire" style="font-weight:400; color:#A89F96;">fondateur de Tiroir</span>
                 </p>
