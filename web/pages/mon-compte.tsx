@@ -11,6 +11,7 @@ import type { GetServerSideProps } from 'next'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { supabase, serverSupabase } from '../lib/supabase'
+import { linkErrorMessage, providerRows, type IdentityLike, type Provider } from '../lib/identities'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -27,13 +28,48 @@ export default function MonCompte() {
   const [resetSent, setResetSent] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
 
+  const [identities, setIdentities] = useState<IdentityLike[]>([])
+  const [linkBusy, setLinkBusy] = useState<Provider | null>(null)
+  const [linkError, setLinkError] = useState<string | null>(null)
+  const [linkDone, setLinkDone] = useState<string | null>(null)
+
+  async function refreshIdentities() {
+    const { data } = await supabase.auth.getUser()
+    if (!data.user) return
+    setEmail(data.user.email ?? '')
+    const ids = (data.user.identities ?? []) as IdentityLike[]
+    setIdentities(ids)
+    setProviders(ids.map(i => i.provider))
+  }
+
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) return
-      setEmail(data.user.email ?? '')
-      setProviders((data.user.identities ?? []).map(i => i.provider))
-    })
+    refreshIdentities()
+    // Retour d'une liaison (Google renvoie ici après accord).
+    if (new URLSearchParams(window.location.search).has('lie')) setLinkDone('Moyen de connexion ajouté à ton compte.')
   }, [])
+
+  async function handleLink(provider: Provider) {
+    if (provider === 'email') return
+    setLinkError(null); setLinkDone(null); setLinkBusy(provider)
+    const { error: linkErr } = await supabase.auth.linkIdentity({
+      provider,
+      options: { redirectTo: `${window.location.origin}/mon-compte?lie=1` },
+    })
+    // En cas de succès, le navigateur part chez le fournisseur : on ne revient ici qu'en cas d'erreur.
+    if (linkErr) { setLinkError(linkErrorMessage(linkErr.message)); setLinkBusy(null) }
+  }
+
+  async function handleUnlink(provider: Provider) {
+    setLinkError(null); setLinkDone(null); setLinkBusy(provider)
+    const { data } = await supabase.auth.getUserIdentities()
+    const identity = data?.identities.find(i => i.provider === provider)
+    if (!identity) { setLinkBusy(null); return }
+    const { error: unlinkErr } = await supabase.auth.unlinkIdentity(identity)
+    setLinkBusy(null)
+    if (unlinkErr) { setLinkError(linkErrorMessage(unlinkErr.message)); return }
+    setLinkDone('Moyen de connexion retiré.')
+    refreshIdentities()
+  }
 
   const hasPassword = providers.includes('email')
   const oauthOnly = providers.length > 0 && !hasPassword
@@ -89,17 +125,56 @@ export default function MonCompte() {
           <h1 className="h2" style={{ marginBottom: 8 }}>Mon compte</h1>
           <p className="p" style={{ marginBottom: 32 }}>
             Connecté avec <strong>{email || '…'}</strong>
-            {oauthOnly && ' — via Google, sans mot de passe.'}
+            {oauthOnly && ' — sans mot de passe.'}
           </p>
 
-          {/* ── Mot de passe ── */}
+          {/* ── Moyens de connexion ── */}
           <div className="card" style={s.card}>
+            <h2 style={s.cardTitle}>Moyens de connexion</h2>
+            <p style={s.cardText}>
+              Un seul compte Tiroir, sur le site comme dans l’application, quel que soit le moyen
+              de connexion. Relie-les ici pour retrouver partout les mêmes objets.
+            </p>
+            <ul style={s.rows}>
+              {providerRows(identities).map(row => (
+                <li key={row.provider} style={s.row}>
+                  <span style={{ flex: 1 }}>
+                    <strong style={{ color: '#121212' }}>{row.label}</strong>
+                    <span style={s.rowState}>
+                      {row.linked ? ` — relié${row.email && row.email !== email ? ` (${row.email})` : ''}` : ' — non relié'}
+                    </span>
+                  </span>
+                  {row.action === 'link' && (
+                    <button type="button" style={s.btnSmall} disabled={linkBusy !== null} onClick={() => handleLink(row.provider)}>
+                      {linkBusy === row.provider ? '…' : 'Relier'}
+                    </button>
+                  )}
+                  {row.action === 'unlink' && (
+                    <button type="button" style={s.btnSmallGhost} disabled={linkBusy !== null} onClick={() => handleUnlink(row.provider)}>
+                      {linkBusy === row.provider ? '…' : 'Retirer'}
+                    </button>
+                  )}
+                  {row.action === 'set-password' && (
+                    <a href="#mot-de-passe" style={s.link}>Définir</a>
+                  )}
+                  {row.action === 'app-only' && (
+                    <span style={s.rowHint}>se relie depuis l’app</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {linkError && <p style={s.error}>{linkError}</p>}
+            {linkDone && <p style={s.success}>✓ {linkDone}</p>}
+          </div>
+
+          {/* ── Mot de passe ── */}
+          <div id="mot-de-passe" className="card" style={s.card}>
             <h2 style={s.cardTitle}>
               {oauthOnly ? 'Définir un mot de passe' : 'Changer le mot de passe'}
             </h2>
             <p style={s.cardText}>
               {oauthOnly
-                ? "Ton compte se connecte uniquement avec Google. Définis un mot de passe pour pouvoir aussi te connecter par e-mail — les deux méthodes fonctionneront ensuite."
+                ? "Ton compte n'a pas encore de mot de passe. Définis-en un pour pouvoir aussi te connecter par e-mail — tous tes moyens de connexion fonctionneront ensuite."
                 : 'Choisis un nouveau mot de passe. Il sera valable sur le site comme dans l’application mobile.'}
             </p>
 
@@ -187,4 +262,10 @@ const s: Record<string, React.CSSProperties> = {
   btnSecondary: { padding: '12px 20px', borderRadius: 12, background: 'white', color: '#121212', fontWeight: 700, fontSize: 15, border: '1.5px solid rgba(0,0,0,0.15)', cursor: 'pointer' },
   footnote:     { fontSize: 13, color: '#999', marginTop: 8 },
   link:         { color: '#F26900', fontWeight: 600, textDecoration: 'none' },
+  rows:         { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 },
+  row:          { display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, padding: '10px 0', borderTop: '1px solid rgba(0,0,0,0.06)' },
+  rowState:     { color: '#5b5b5b' },
+  rowHint:      { fontSize: 12, color: '#999' },
+  btnSmall:     { padding: '8px 14px', borderRadius: 10, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer' },
+  btnSmallGhost:{ padding: '8px 14px', borderRadius: 10, background: 'white', color: '#121212', fontWeight: 700, fontSize: 13, border: '1.5px solid rgba(0,0,0,0.15)', cursor: 'pointer' },
 }

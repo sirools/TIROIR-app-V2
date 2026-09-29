@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
+import { APPLE_WEB_ENABLED } from '../lib/identities'
 
 export default function Inscription() {
   const router = useRouter()
@@ -36,10 +37,10 @@ export default function Inscription() {
     router.push('/bienvenue?pending=1')
   }
 
-  async function handleGoogle() {
+  async function handleOAuth(provider: 'google' | 'apple') {
     setError(null)
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider,
       options: { redirectTo: `${window.location.origin}/bienvenue` },
     })
     if (error) setError(error.message)
@@ -62,7 +63,7 @@ export default function Inscription() {
           <h1 style={s.title}>Créer un compte</h1>
           <p style={s.subtitle}>Gratuit, sans carte bancaire. Commencez à cataloguer vos objets en quelques secondes.</p>
 
-          <button type="button" style={s.googleBtn} onClick={handleGoogle}>
+          <button type="button" style={s.googleBtn} onClick={() => handleOAuth('google')}>
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -71,6 +72,16 @@ export default function Inscription() {
             </svg>
             Continuer avec Google
           </button>
+
+          {/* Même interrupteur que la connexion (lib/identities.ts). */}
+          {APPLE_WEB_ENABLED && (
+            <button type="button" style={s.appleBtn} onClick={() => handleOAuth('apple')}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.05 20.28c-.98.95-2.05.86-3.08.38-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.38C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+              </svg>
+              Continuer avec Apple
+            </button>
+          )}
 
           <div style={s.dividerRow}>
             <div style={s.dividerLine} />
@@ -132,6 +143,7 @@ const s: Record<string, React.CSSProperties> = {
   logoText:    { fontSize: 20, fontWeight: 800, color: '#121212' },
   title:       { fontSize: 22, fontWeight: 800, color: '#121212', marginBottom: 6 },
   subtitle:    { fontSize: 14, color: '#5b5b5b', lineHeight: 1.5, marginBottom: 24 },
+  appleBtn:    { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '12px 0', borderRadius: 12, background: '#000', color: 'white', fontWeight: 600, fontSize: 15, border: 'none', cursor: 'pointer', marginTop: 10 },
   googleBtn:   { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '12px 0', borderRadius: 12, background: 'white', color: '#121212', fontWeight: 600, fontSize: 15, border: '1px solid rgba(0,0,0,0.15)', cursor: 'pointer' },
   dividerRow:  { display: 'flex', alignItems: 'center', gap: 10, margin: '20px 0' },
   dividerLine: { flex: 1, height: 1, background: 'rgba(0,0,0,0.1)' },
