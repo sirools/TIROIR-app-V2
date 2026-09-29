@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../../components/layout/HeaderTiroirWeb'
 import { hasSignedCookie } from '../../../lib/shareCookieSignature'
+import { serverSupabase } from '../../../lib/supabase'
 import { isLot, lotTotal } from '../../../lib/quantity'
 
 interface ValueSource {
@@ -95,6 +96,8 @@ interface Props {
   fields?: ShareFields
   error?: 'not_found' | 'expired'
   gated?: boolean
+  /** Le propriétaire regarde son propre partage : lien vers l'aperçu de vente. */
+  isOwner?: boolean
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -155,7 +158,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   const { data: link, error: linkErr } = await supabase
     .from('share_links')
-    .select('object_ids, options, expires_at, is_archived')
+    .select('user_id, object_ids, options, expires_at, is_archived')
     .eq('token', token)
     .single()
 
@@ -270,10 +273,19 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     ...obj,
   } as unknown as ObjectDetail
 
-  return { props: { token, object, images, documents, insurances, fields } }
+  // Prototype de vente (v4/docs/vente.md) : proposé à son seul propriétaire.
+  let isOwner = false
+  try {
+    const { data } = await serverSupabase(ctx).auth.getUser()
+    isOwner = !!data.user && data.user.id === link.user_id
+  } catch {
+    isOwner = false
+  }
+
+  return { props: { token, object, images, documents, insurances, fields, isOwner } }
 }
 
-export default function SharedObjectDetailPage({ token, object, images, documents, insurances, fields = ALL_FIELDS, error, gated }: Props) {
+export default function SharedObjectDetailPage({ token, object, images, documents, insurances, fields = ALL_FIELDS, error, gated, isOwner = false }: Props) {
   const [activeImg, setActiveImg] = useState(0)
   const pageTitle = gated
     ? 'Partage protégé — TiROiR'
@@ -394,6 +406,12 @@ export default function SharedObjectDetailPage({ token, object, images, document
           <Link href={`/s/${token}`} legacyBehavior passHref>
             <a className="back-link">← Retour au partage</a>
           </Link>
+
+          {isOwner && (
+            <Link href={`/s/${token}/${object.id}/vente`} legacyBehavior passHref>
+              <a className="sale-preview">Voir en vente (prototype) →</a>
+            </Link>
+          )}
 
           {/* ── Bento : Galerie + Infos ── */}
           <div className="hero-card">
@@ -628,6 +646,8 @@ export default function SharedObjectDetailPage({ token, object, images, document
 }
 
 const styles = `
+  .sale-preview { display: inline-block; margin: 0 0 16px 12px; padding: 6px 12px; border-radius: 999px; background: var(--orange); color: var(--white); font-size: 13px; font-weight: 700; text-decoration: none; }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   .root {
     min-height: 100vh;
