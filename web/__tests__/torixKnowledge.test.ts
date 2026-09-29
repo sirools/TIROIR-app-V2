@@ -100,3 +100,57 @@ describe('les fiches suivent le code', () => {
     expect(pricing).toContain('29 €')
   })
 })
+
+describe('Torix connaît la V4.0 et la V5', () => {
+  const byId = (id: string) => TOPICS.find(t => t.id === id)!.answer
+
+  test.each([
+    ['C’est quoi la V4 ?', 'v4'],
+    ['Comment marche le trousseau de clés ?', 'v4-trousseau'],
+    ['Qui peut prêter un objet ?', 'v4-droits'],
+    ['Comment marche la serrure ?', 'v4-serrure'],
+    ['Quel est le cycle de vie d’un prêt ?', 'v4-pret'],
+    ['Comment marchent les suggestions ?', 'v4-suggestions'],
+    ['Comment marche le parrainage ?', 'v4-parrainage'],
+    ['Quel est le plan de migration vers le Tiroir partagé ?', 'v4-migration'],
+    ['Où en est la V4 ?', 'v4-etat'],
+    ['C’est quoi la V5 ?', 'v5'],
+  ])('%s → %s', (question, id) => {
+    expect(findTopic(question)?.id).toBe(id)
+  })
+
+  test('chaque source V4 / V5 existe dans le dépôt', () => {
+    for (const t of TOPICS.filter(t => t.id.startsWith('v4') || t.id === 'v5')) {
+      for (const file of t.source.split(' · ')) expect(() => repo(file)).not.toThrow()
+    }
+  })
+
+  test('les fiches V4 sont identiques à celles de v4/torix', () => {
+    // Même texte que le chantier : on compare les phrases, pas le code.
+    const v4 = repo('v4/torix/knowledge.ts')
+    const pairs: [string, string][] = [
+      ['v4', 'vision'], ['v4-trousseau', 'trousseau'], ['v4-droits', 'droits'],
+      ['v4-serrure', 'serrure'], ['v4-pret', 'pret'], ['v4-suggestions', 'suggestions'],
+      ['v4-parrainage', 'parrainage'], ['v4-migration', 'migration'], ['v4-etat', 'etat'],
+    ]
+    for (const [webId] of pairs) {
+      for (const line of byId(webId).split('\n')) {
+        expect(v4, `${webId} : « ${line} »`).toContain(line.replace(/'/g, "\\'"))
+      }
+    }
+  })
+
+  test('les faits V4 suivent les brouillons et le domaine', () => {
+    expect(repo('v4/supabase/drafts/0001_drawer_members.sql')).toContain("now() + interval '7 days'")
+    expect(repo('v4/supabase/drafts/0001_drawer_members.sql')).toContain("serrure TEXT NOT NULL DEFAULT 'ferme'")
+    expect(repo('v4/supabase/drafts/0003_collection_suggestions.sql')).toContain('v_pending >= 50')
+    expect(repo('v4/domain/serrure.ts')).toContain("preter: 'owner'")
+    expect(repo('v4/domain/serrure.ts')).toContain("modifier: 'editor'")
+    expect(repo('v4/domain/pret.ts')).toContain("en_cours: { rendre: 'rendu' }")
+  })
+
+  test('la V5 reste à définir tant que vision.md ne consigne rien', () => {
+    expect(repo('v5/docs/vision.md')).toContain("_Aucune pour l'instant._")
+    expect(byId('v5')).toContain('pas encore définie')
+  })
+})

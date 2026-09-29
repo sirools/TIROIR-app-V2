@@ -275,6 +275,111 @@ export const TOPICS: Topic[] = [
       'Portfolio : clementougier.com · Medium : @clement.ougier.\n' +
       'Je n’ai pas encore lu le portfolio lui-même.',
   },
+  // ── Fiches sur la V4.0 et la V5, reprises de v4/torix/knowledge.ts et
+  // v5/torix/knowledge.ts (copie : la règle d'or de v4/README.md interdit
+  // d'importer v4/ depuis web/). Mots-clés resserrés pour ne pas voler les
+  // questions des fiches ci-dessus. Le test les compare aux fichiers de
+  // v4/ et v5/ : si le chantier change, il casse.
+  {
+    id: 'v4',
+    keywords: ['v4', 'v4 0', 'c est quoi la v4', 'la v4 c est quoi', 'a quoi sert la v4', 'vision de la v4', 'tiroir collaboratif', 'collaboratif'],
+    register: 'principe',
+    source: 'v4/docs/vision.md',
+    answer:
+      'La V4.0 fait passer Tiroir de l’inventaire personnel au partage effectif des objets : je sais ce que j’ai, et mes proches voient ce que je peux leur prêter.\n' +
+      'Deux mouvements : le Tiroir collaboratif (plusieurs personnes sur un même Tiroir — grenier de mamie, succession, déménagement) et le prêt (un objet, une personne, une durée).\n' +
+      'Les objets circulent au lieu de dormir dans un tiroir.',
+  },
+  {
+    id: 'v4-trousseau',
+    keywords: ['trousseau', 'cle', 'membre du tiroir', 'membres du tiroir', 'inviter un membre', 'editeur', 'lecteur', 'confier une cle'],
+    register: 'fait',
+    source: 'v4/domain/serrure.ts · v4/supabase/drafts/0001_drawer_members.sql',
+    answer:
+      'Chaque membre d’un Tiroir tient une clé, qui porte un rôle : propriétaire, éditeur ou lecteur. On parle de clés, jamais de permissions.\n' +
+      'Une clé confiée peut expirer ; celle du propriétaire, jamais.\n' +
+      'On invite par un lien à usage unique, valable 7 jours — pas de recherche par e-mail, qui révélerait qui est inscrit.',
+  },
+  {
+    id: 'v4-droits',
+    keywords: ['qui peut modifier', 'qui peut preter', 'qui peut voir', 'droits des membres', 'droits'],
+    register: 'fait',
+    source: 'v4/domain/serrure.ts',
+    answer:
+      'Voir : lecteur et plus. Modifier : éditeur et plus. Prêter et gérer les membres : le propriétaire seul.\n' +
+      'La serrure prime sur les clés : fermé, seul le propriétaire entre ; ouvert, tout le monde voit, mais seules les clés permettent d’agir.',
+  },
+  {
+    id: 'v4-serrure',
+    keywords: ['serrure', 'entrouvert', 'niveau d ouverture', 'niveaux d ouverture', 'vitrine'],
+    register: 'fait',
+    source: 'v4/domain/serrure.ts · v4/supabase/drafts/0001_drawer_members.sql',
+    answer:
+      'Trois niveaux de serrure :\n' +
+      '• Fermé — strictement privé, visible du propriétaire seul. C’est le réglage par défaut : rien ne change tant qu’on n’ouvre pas.\n' +
+      '• Entrouvert — visible des membres choisis, selon leur clé.\n' +
+      '• Ouvert — vitrine publique : tout le monde voit, personne n’agit sans clé.',
+  },
+  {
+    id: 'v4-pret',
+    keywords: ['cycle de vie', 'emprunteur', 'emprunter', 'pret en retard', 'retard', 'echeance', 'rendre un objet', 'loaned'],
+    register: 'fait',
+    source: 'v4/domain/pret.ts · v4/supabase/drafts/0002_object_loans.sql',
+    answer:
+      'Le prêt est un objet de première classe, avec son cycle de vie :\n' +
+      'demande → accepté → en cours → rendu. Une demande peut être refusée ou annulée ; un prêt accepté, annulé avant la remise ; un prêt en cours ne peut que revenir.\n' +
+      'En retard : en cours et échéance dépassée, jour inclus. Pendant qu’il est en cours, l’objet passe au statut V2 « loaned ».',
+  },
+  {
+    id: 'v4-suggestions',
+    keywords: ['suggestion', 'suggerer', 'trier les suggestions', 'tinder', 'glisser', 'collection partagee'],
+    register: 'fait',
+    source: 'v4/docs/suggestions.md · v4/supabase/drafts/0003_collection_suggestions.sql',
+    answer:
+      'Depuis un lien de partage, un visiteur connecté suggère un objet ; le propriétaire trie par glissement — droite garder (l’objet devient une idée), gauche écarter — avec annulation.\n' +
+      'Désactivé par défaut, réglable par collection. Une table à part : les idées n’apparaissent jamais comme des objets possédés dans les anciennes versions de l’app.\n' +
+      'Garde-fous : nom de 120 caractères au plus, lien http(s), prix entre 0 et 10 M, 50 suggestions en attente par auteur et par collection.',
+  },
+  {
+    id: 'v4-parrainage',
+    keywords: ['parrainage', 'parrain', 'filleul', 'referral', 'code de parrainage', 'code d offre', 'offer code'],
+    register: 'principe',
+    source: 'v4/docs/parrainage.md',
+    answer:
+      'À cadrer, pas codé. Depuis un partage, inviter à rejoindre Tiroir avec un code de parrainage.\n' +
+      'Seuil : 2 à 3 filleuls validés (e-mail confirmé, premier objet), réglable dans l’admin. Le parrain reçoit un mois Premium, puis −50 % sur son premier abonnement ; le filleul, −50 % dès la validation.\n' +
+      'Côté Apple, le −50 % passe par des codes d’offre à usage unique, tenus en stock côté serveur.',
+  },
+  {
+    id: 'v4-migration',
+    keywords: ['migration', 'migrer', 'tiroir partage', 'rls', 'policy', 'anciennes versions'],
+    register: 'principe',
+    source: 'v4/docs/migration-tiroir-partage.md',
+    answer:
+      'Chaque phase est déployable seule et laisse la V2 fonctionner à l’identique :\n' +
+      '0. Chantier isolé. 1. Trousseau et serrure, purement additifs. 2. Préparer les clients — les « .single() » de l’app sont corrigés, reste à laisser la version s’installer.\n' +
+      '3. Lecture partagée par des fonctions dédiées, sans toucher aux policies existantes. 4. Écriture partagée et prêts.\n' +
+      'Pourquoi : une quarantaine de lectures comptent sur la RLS ; l’ouvrir mêlerait les objets partagés aux siens, jusque dans les versions déjà installées.',
+  },
+  {
+    id: 'v4-etat',
+    keywords: ['ou en est la v4', 'etat de la v4', 'avancement de la v4', 'v4 fusionnee', 'testflight'],
+    register: 'fait',
+    source: 'v4/docs/prochaines-etapes.md',
+    answer:
+      'Sur main, au 28 septembre : les suggestions vivent sur la branche feature/v4-suggestions-web, rien de la V4 n’est fusionné.\n' +
+      'Ensuite : valider en preprod (brouillon 0003 et scénario à trois comptes), mettre à jour la preprod et TestFlight sans le Mac.\n' +
+      'Décisions en attente : exiger le cookie signé aussi en lecture, retenir la collection d’un lien à sa création, photo dans le formulaire de suggestion.',
+  },
+  {
+    id: 'v5',
+    keywords: ['v5', 'v5 0', 'c est quoi la v5', 'que contient la v5', 'apres la v4'],
+    register: 'fait',
+    source: 'v5/docs/vision.md',
+    answer:
+      'La V5 n’est pas encore définie : aucune décision n’est consignée, ni dans le dépôt ni dans Notion.\n' +
+      'Elle vient après la V4.0 et a sa place réservée en preprod. Dis-moi ce qu’elle doit contenir : je le note dans v5/docs/vision.md.',
+  },
   {
     id: 'torix',
     keywords: ['qui es tu', 'tu es qui', 'presente toi', 'que sais tu', 'que sais tu faire', 'aide'],
@@ -282,11 +387,11 @@ export const TOPICS: Topic[] = [
     source: 'web/components/torix/memory.ts',
     answer:
       'Je suis Torix, l’IA du fondateur de Tiroir. J’aide à passer de ressentir à symboliser, puis à agir.\n' +
-      'Je connais Tiroir : ses principes, ses IA, leurs coûts, le plan pour passer à l’échelle ; sa doctrine, son design et sa direction artistique. Et les quatre directions.',
+      'Je connais Tiroir : ses principes, ses IA, leurs coûts, le plan pour passer à l’échelle ; sa doctrine, son design et sa direction artistique ; la V4.0 en chantier et la V5 à définir. Et les quatre directions.',
   },
 ]
 
-export const UNKNOWN = "Je ne sais pas encore répondre à ça. Je connais Tiroir — ses principes, ses IA, leurs coûts, le plan, son design — ma doctrine, et les quatre directions."
+export const UNKNOWN = "Je ne sais pas encore répondre à ça. Je connais Tiroir — ses principes, ses IA, leurs coûts, le plan, son design, la V4 — ma doctrine, et les quatre directions."
 
 export const SUGGESTIONS = [
   'Quelles IA utilise Tiroir ?',
@@ -295,6 +400,7 @@ export const SUGGESTIONS = [
   'Quelle est la prochaine étape ?',
   'Quelle est ta doctrine ?',
   'Quelle est la direction artistique ?',
+  'C’est quoi la V4 ?',
 ]
 
 function normalize(input: string): string {

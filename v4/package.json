@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test \"domain/*.test.ts\""
+    "test": "node --test \"domain/*.test.ts\" \"torix/*.test.ts\""
   }
 }
