@@ -18,7 +18,7 @@ l'arrondi et l'ombre se décident ici, et nulle part ailleurs.
 | --- | --- | --- |
 | Site web | `web/styles/tokens.generated.css` (variables CSS) | ✅ fil 1 — importé par `web/pages/_app.tsx` |
 | App iOS et Android (une seule app Expo) | `mobile/src/components/ui/brandTokens.generated.ts` | ✅ fil 2 — lu par `mobile/src/components/ui/tokens.ts` |
-| E-mails | `supabase/functions/_shared/brandTokens.generated.ts` | ⏳ fil 3 |
+| E-mails | gabarits `marketing/emails/*.html` (→ `emailPresentation.ts`) et `create-share-link` | ✅ fil 3 — couleurs vérifiées contre `tokens.json` par le test |
 
 ## La suite, fil par fil
 
@@ -26,7 +26,11 @@ l'arrondi et l'ombre se décident ici, et nulle part ailleurs.
    rien ne change à l'écran).
 2. ✅ **App** : `tokens.ts` lit `Brand` ; l'app passe aux valeurs du site
    (orange, textes, fonds). Visible à la prochaine version de l'app.
-3. **E-mails** : `emailPresentation.ts` lit `Brand`.
+3. ✅ **E-mails** : les gabarits reprennent les valeurs du site (texte
+   `#121212`, secondaire `#5b5b5b`, fond `#FFF8EF`) ; leur mode sombre est
+   inscrit dans `tokens.json` (`colorDark`, « origine : e-mail »). Un test
+   refuse toute couleur hors de la source. Visible au prochain déploiement
+   des fonctions `send-lifecycle-emails` et `create-share-link`.
 4. **Couleurs en dur** : remplacer, écran par écran, les centaines de
    valeurs recopiées à la main (`#F26900`, `#1A1612`…) sur le site et
    dans l'app.

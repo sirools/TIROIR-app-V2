@@ -166,8 +166,8 @@ async function sendShareEmail(params: {
   const html = `
   <!DOCTYPE html>
   <html lang="fr">
-  <body style="margin:0;padding:0;background-color:#F7F3EE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F7F3EE;padding:32px 16px;">
+  <body style="margin:0;padding:0;background-color:#FFF8EF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF8EF;padding:32px 16px;">
       <tr>
         <td align="center">
           <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border-radius:16px;overflow:hidden;max-width:480px;width:100%;">
@@ -178,8 +178,8 @@ async function sendShareEmail(params: {
             </tr>
             <tr>
               <td style="padding:32px;">
-                <p style="margin:0 0 16px;color:#1A1612;font-size:16px;line-height:1.5;">${greeting}</p>
-                <p style="margin:0 0 24px;color:#1A1612;font-size:16px;line-height:1.5;">
+                <p style="margin:0 0 16px;color:#121212;font-size:16px;line-height:1.5;">${greeting}</p>
+                <p style="margin:0 0 24px;color:#121212;font-size:16px;line-height:1.5;">
                   <strong>${safeSender}</strong> vient de partager une liste de ${objectLabel}${collectionMention} avec vous sur Tiroir.
                 </p>
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
@@ -192,7 +192,7 @@ async function sendShareEmail(params: {
                   </tr>
                 </table>
                 ${passwordProtected
-                  ? '<p style="margin:0 0 24px;color:#6B6158;font-size:13px;line-height:1.5;">🔒 Ce lien est protégé par un mot de passe que vous devez avoir reçu séparément.</p>'
+                  ? '<p style="margin:0 0 24px;color:#5b5b5b;font-size:13px;line-height:1.5;">🔒 Ce lien est protégé par un mot de passe que vous devez avoir reçu séparément.</p>'
                   : ''
                 }
                 <p style="margin:0;color:#A89F96;font-size:12px;line-height:1.5;">

@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 
@@ -27,6 +27,23 @@ describe('design/tokens.json, seule source de vérité', () => {
     expect(app).toContain("from './brandTokens.generated'")
     expect(app).not.toMatch(/#[0-9a-fA-F]{3,8}\b/)
     expect(app).toContain('accent: c.orange')
+  })
+
+  test('les e-mails n’utilisent que des couleurs de la source', () => {
+    const allowed = new Set([
+      ...Object.values(tokens.color).map((t: any) => t.value.toUpperCase()),
+      ...Object.entries(tokens.colorDark).filter(([k]) => !k.startsWith('$')).map(([, v]) => String(v).toUpperCase()),
+    ])
+    const files = [
+      ...readdirSync(path.join(ROOT, 'marketing/emails')).filter(f => f.endsWith('.html')).map(f => `marketing/emails/${f}`),
+      'supabase/functions/_shared/emailPresentation.ts',
+      'supabase/functions/create-share-link/index.ts',
+    ]
+    for (const f of files) {
+      const used = new Set((repo(f).match(/#[0-9a-fA-F]{6}\b/g) ?? []).map(h => h.toUpperCase()))
+      const strangers = [...used].filter(h => !allowed.has(h))
+      expect(strangers, `${f} : couleurs hors de design/tokens.json`).toEqual([])
+    }
   })
 
   test('le site web actuel fait foi : orange #F26900', () => {
