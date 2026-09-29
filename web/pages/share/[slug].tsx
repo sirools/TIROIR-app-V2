@@ -3,6 +3,7 @@ import type { GetServerSidePropsContext, NextPageContext } from 'next'
 import dynamic from 'next/dynamic'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { hasValidCookie, makeCookieName, COOKIE_MAX_AGE_SEC } from '../../lib/shareAuth'
+import { hasSignedCookie } from '../../lib/shareCookieSignature'
 
 // --- server helper
 function getSupabaseAdmin() {
@@ -18,20 +19,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     const rawSlug = ctx.params?.slug as string
     const slug = (rawSlug || '').trim()
 
-    const cookieName = makeCookieName(slug)
-    const cookieHeader = ctx.req.headers.cookie || ''
-    const token = cookieHeader
-      .split(';')
-      .map((s) => s.trim())
-      .find((c) => c.startsWith(cookieName + '='))?.split('=')[1]
-
-    let weakAuthorized = false
-    if (token) {
-      const ts = token.split('.')[0]
-      const fresh = ts ? Date.now() - Number(ts) < COOKIE_MAX_AGE_SEC * 1000 : false
-      weakAuthorized = !!fresh
-    }
-
     const supabaseAdmin = getSupabaseAdmin()
     const { data: sharedLink, error: sharedLinkError } = await supabaseAdmin
       .from('shared_links')
@@ -45,8 +32,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     }
 
     const isPrivate = sharedLink.visibility === 'private' || sharedLink.visibility === 'privé'
-    const strictAuthorized = hasValidCookie(slug, ctx as unknown as NextPageContext)
-    const authorized = !isPrivate || strictAuthorized || weakAuthorized
+    // Clé SIGNÉE exigée : l'ancienne tolérance (« weakAuthorized », tout cookie
+    // frais) laissait passer un cookie fabriqué.
+    const authorized = !isPrivate || hasSignedCookie(slug, ctx.req)
     if (!authorized) return { props: { slug, gated: true } }
 
     let objetsPartages: any[] = []

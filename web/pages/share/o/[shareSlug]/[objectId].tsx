@@ -10,6 +10,7 @@ import HeaderTiroirWeb from '../../../../components/layout/HeaderTiroirWeb'
 import { hasValidCookie, makeCookieName, COOKIE_MAX_AGE_SEC } from '../../../../lib/shareAuth'
 import { getStatusMeta } from '../../../../lib/statuses'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
+import { hasSignedCookie } from '../../../../lib/shareCookieSignature'
 
 type SharedObjectPageProps = {
   slug: string
@@ -40,17 +41,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     const objectId = String(ctx.params?.objectId || '').trim()
     if (!shareSlug || !objectId) return { notFound: true }
 
-    // auth douce (comme avant)
-    const cookieName = makeCookieName(shareSlug)
-    const cookieHeader = ctx.req.headers.cookie || ''
-    const token = cookieHeader
-      .split(';')
-      .map((s) => s.trim())
-      .find((c) => c.startsWith(cookieName + '='))
-      ?.split('=')[1]
-    const weakAuthorized =
-      token ? Date.now() - Number(token.split('.')[0]) < COOKIE_MAX_AGE_SEC * 1000 : false
-
     const supabase = getSupabaseAdmin()
 
     // shared link
@@ -68,8 +58,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     }
 
     const isPrivate = sharedLink.visibility === 'private' || sharedLink.visibility === 'privé'
-    const strictAuthorized = hasValidCookie(shareSlug, ctx as unknown as NextPageContext)
-    const authorized = !isPrivate || strictAuthorized || weakAuthorized
+    // Clé SIGNÉE exigée : l'ancienne « auth douce » (tout cookie frais)
+    // laissait passer un cookie fabriqué.
+    const authorized = !isPrivate || hasSignedCookie(shareSlug, ctx.req)
     if (!authorized) return { props: { slug: shareSlug, gated: true, object: null } }
 
     // objet

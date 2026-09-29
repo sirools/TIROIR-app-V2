@@ -5,6 +5,7 @@
 import type { NextApiRequest } from 'next'
 import { adminSupabase } from './supabase'
 import { makeCookieName } from './shareAuth'
+import { hasSignedCookie } from './shareCookieSignature'
 
 export type ShareFields = {
   values: boolean
@@ -133,9 +134,8 @@ export function safeFilename(value: string): string {
 }
 
 function hasSignedShareCookie(req: NextApiRequest, token: string): boolean {
-  const cookieName = makeCookieName(token)
-  const cookieHeader = req.headers.cookie || ''
-  return cookieHeader.split(';').map(c => c.trim()).some(c => c.startsWith(`${cookieName}=`))
+  // La valeur est vérifiée (signature HMAC, fraîcheur), pas seulement sa présence.
+  return hasSignedCookie(token, req)
 }
 
 /**

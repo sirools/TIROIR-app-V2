@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
 import { serialize } from 'cookie'
 import { makeCookieName, COOKIE_MAX_AGE_SEC } from '../../../lib/shareAuth'
+import { signedCookieValue } from '../../../lib/shareCookieSignature'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -48,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Public → pas de mot de passe requis
     if (link.visibility === 'public') {
-      setCookie(cookieName, `${Date.now()}.ok`, {
+      setCookie(cookieName, signedCookieValue(slug), {
         httpOnly: true,
         sameSite: 'lax',
         secure: isProd,
@@ -83,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!valid) return res.status(401).json({ error: 'Invalid password' })
 
     // OK → on marque l’accès
-    setCookie(cookieName, `${Date.now()}.ok`, {
+    setCookie(cookieName, signedCookieValue(slug), {
       httpOnly: true,
       sameSite: 'lax',
       secure: isProd,
