@@ -41,7 +41,8 @@ Lab est `/admin/torix-lab`, réservé au propriétaire de Torix — pas à tous
 les admins (un collègue peut être admin du back-office sans voir Torix) :
 `requireTorixOwnerPage` (`web/lib/adminAuth.ts`), qui compare l'adresse
 confirmée du compte à la variable serveur `TORIX_OWNER_EMAIL`
-(`web/lib/torixOwner.ts`). Sans la variable, Torix est fermé à tous. Toute
+(`web/lib/torixOwner.ts`) — à défaut, à `DEFAULT_OWNER_EMAIL`, l'adresse du
+fondateur, écrite côté serveur seulement. Toute
 nouvelle page ou API de Torix doit passer par cette garde.
 
 **Le savoir de Torix ne part jamais dans le navigateur** : le code d'une

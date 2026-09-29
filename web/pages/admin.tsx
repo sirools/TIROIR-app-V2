@@ -1023,6 +1023,16 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
           </div>
         </div>
         </>)}
+
+        {/* Accès à Torix en bas de page aussi, pour son seul propriétaire
+            (lien et libellé envoyés par le serveur). */}
+        {torixLink && (
+          <div style={{ margin: '32px 0 8px', textAlign: 'center' }}>
+            <a href={torixLink.href} style={{ ...s.tabBtn, ...s.tabLink, display: 'inline-block' }}>
+              {torixLink.label}
+            </a>
+          </div>
+        )}
       </div>
     </main>
   )

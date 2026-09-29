@@ -4,9 +4,10 @@
 // sont admins, le propriétaire de Torix est une seule personne.
 //
 // Il est désigné par TORIX_OWNER_EMAIL, variable serveur (jamais
-// NEXT_PUBLIC_) : l'adresse ne figure ni dans le code ni dans le
-// navigateur. Sans elle, personne n'est propriétaire — Torix est fermé
-// plutôt qu'ouvert à tous les admins.
+// NEXT_PUBLIC_). À défaut, par DEFAULT_OWNER_EMAIL ci-dessous — choix du
+// fondateur (2026-09-29) pour retrouver l'accès sans passer par Vercel.
+// Ce module n'est lu que côté serveur : l'adresse n'est jamais envoyée au
+// navigateur (vérifié dans le build, test torixPrive).
 //
 // Module sans dépendance, pour rester testable hors de Next.
 
@@ -15,8 +16,11 @@ type OwnerCandidate = {
   email_confirmed_at?: string | null
 }
 
+/** Propriétaire par défaut, si TORIX_OWNER_EMAIL n'est pas défini. */
+export const DEFAULT_OWNER_EMAIL = 'clement.ougier@gmail.com'
+
 export function torixOwnerEmail(): string | null {
-  const email = process.env.TORIX_OWNER_EMAIL?.trim().toLowerCase()
+  const email = (process.env.TORIX_OWNER_EMAIL?.trim() || DEFAULT_OWNER_EMAIL).toLowerCase()
   return email ? email : null
 }
 

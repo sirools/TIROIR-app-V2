@@ -38,7 +38,8 @@ décide, pour chaque demande, si elle mérite de coûter quelque chose.
    apport à la société, et qui décide de quoi entre les trois.
 3. **Accès technique réservé.** Le Torix Lab n'est ouvert qu'au
    propriétaire de Torix : admin *et* adresse confirmée égale à
-   `TORIX_OWNER_EMAIL` (sans la variable, Torix est fermé à tous). Garde :
+   `TORIX_OWNER_EMAIL` (à défaut, l'adresse du fondateur écrite côté serveur,
+   `DEFAULT_OWNER_EMAIL`). Garde :
    `requireTorixOwnerPage` dans `web/lib/adminAuth.ts`. Les collègues et
    associés peuvent donc être admins du back-office sans voir Torix.
    (Ouvert à tous les admins quelques heures le 2026-09-29, refermé le

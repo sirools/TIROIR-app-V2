@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'vitest'
-import { isTorixOwner } from '../lib/torixOwner'
+import { DEFAULT_OWNER_EMAIL, isTorixOwner } from '../lib/torixOwner'
 
 const confirmed = '2026-01-01T00:00:00Z'
 const original = process.env.TORIX_OWNER_EMAIL
@@ -10,9 +10,16 @@ afterEach(() => {
 })
 
 describe('isTorixOwner', () => {
-  test('sans TORIX_OWNER_EMAIL, personne — Torix fermé, pas ouvert', () => {
+  test('sans TORIX_OWNER_EMAIL, le propriétaire par défaut — et lui seul', () => {
     delete process.env.TORIX_OWNER_EMAIL
-    expect(isTorixOwner({ email: 'fondateur@example.com', email_confirmed_at: confirmed })).toBe(false)
+    expect(isTorixOwner({ email: DEFAULT_OWNER_EMAIL, email_confirmed_at: confirmed })).toBe(true)
+    expect(isTorixOwner({ email: 'associe@example.com', email_confirmed_at: confirmed })).toBe(false)
+    expect(isTorixOwner({ email: DEFAULT_OWNER_EMAIL, email_confirmed_at: null })).toBe(false)
+  })
+
+  test('la variable, si elle est définie, l’emporte sur le défaut', () => {
+    process.env.TORIX_OWNER_EMAIL = 'autre@example.com'
+    expect(isTorixOwner({ email: DEFAULT_OWNER_EMAIL, email_confirmed_at: confirmed })).toBe(false)
   })
 
   test('le propriétaire, casse et espaces ignorés', () => {
