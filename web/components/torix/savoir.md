@@ -50,9 +50,13 @@
 
 - **Fait** — Tu photographies un objet, l'IA crée sa fiche. App iOS et
   Android, site tiroir.app, back-office backoffice.tiroir.app.
-- **Décision (29/09/2026)** — Quatre formules : Gratuit (sans IA, 5
-  crédits offerts), Freemium (packs de crédits), Premium (illimité, usage
-  raisonnable), Pro (sur facture). Détail : `strategie/offres.md`.
+- **Décision (30/09/2026)** — Quatre formules, en échelle (chacune donne
+  envie de la suivante) : Gratuit (20 objets avec l'IA offerts), Freemium
+  (packs de 30 crédits à 4,99 € et 80 à 9,99 €, sans expiration), Premium
+  (49,99 €/mois, illimité en usage raisonnable ; les abonnés actuels
+  gardent 6,99 €), Pro (licence dès 1 700 € HT/mois avec 20 000 crédits
+  inclus, puis 0,05 € HT le crédit, sur devis et facture). Détail :
+  `strategie/offres.md`.
 - **Décision (29/09/2026)** — La V5 et la vente se construisent dans la V4.
   La V6 est une page blanche.
 - **Décision (29/09/2026)** — Mode coffre : un objet jamais envoyé à l'IA,

@@ -45,9 +45,9 @@ describe('featureLists : ce que la page affiche', () => {
     expect(lists.highlighted.has('Partage par lien')).toBe(false)
   })
 
-  test('la page n’écrit plus aucun quota en dur', () => {
+  test('la page n’écrit aucun chiffre en dur : tout vient de lib/offers.ts', () => {
     const page = readFileSync(path.resolve(__dirname, '../pages/pricing.tsx'), 'utf8')
-    expect(page).not.toMatch(/'\d+ (objets|analyses IA)/)
-    expect(page).toContain('fetchPlanQuotas')
+    expect(page).not.toMatch(/'\d+ (objets|analyses IA|crédits)/)
+    expect(page).toContain("from '../lib/offers'")
   })
 })

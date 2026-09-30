@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
+import { OFFERS, credits, euros } from '../lib/offers'
 import { answerQuestion, findTopic, SUGGESTIONS, TOPICS, UNKNOWN } from '../components/torix/knowledge'
 
 const repo = (p: string) => readFileSync(path.resolve(__dirname, '../..', p), 'utf8')
@@ -94,10 +95,18 @@ describe('les fiches suivent le code', () => {
     expect(byId('ia')).toContain('Sonnet 4.6 + recherche web')
   })
 
-  test('prix des forfaits', () => {
+  test('prix des forfaits : la fiche suit lib/offers.ts, la page aussi', () => {
     const pricing = repo('web/pages/pricing.tsx')
-    expect(pricing).toContain('6,99 €')
-    expect(pricing).toContain('29 €')
+    expect(pricing).toContain("from '../lib/offers'")
+    expect(pricing).not.toMatch(/\d+,\d{2} €/)
+    const fiche = byId('quotas')
+    expect(fiche).toContain(`${OFFERS.free.aiObjects} objets`)
+    for (const pack of OFFERS.packs) expect(fiche).toContain(`${pack.credits} ${pack === OFFERS.packs[0] ? 'crédits ' : ''}à ${euros(pack.priceTtc)}`)
+    expect(fiche).toContain(euros(OFFERS.premium.monthlyTtc))
+    expect(fiche).toContain(euros(OFFERS.pro.baseHt))
+    expect(fiche).toContain(`${credits(OFFERS.pro.includedCredits)} crédits`)
+    expect(fiche).toContain(euros(OFFERS.pro.extraCreditHt))
+    expect(fiche).toContain(euros(OFFERS.legacyPremiumTtc))
   })
 })
 
