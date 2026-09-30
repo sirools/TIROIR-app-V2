@@ -14,6 +14,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { PRICING, costUsd, logAiUsage, quotaUnits } from '../_shared/aiUsage.ts'
+import { quotaMessage, refundAi, spendAi } from '../_shared/aiSpend.ts'
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -179,19 +180,18 @@ Deno.serve(async (req: Request) => {
       { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
     )
 
-    const { data: quotaOk, error: quotaError } = await userClient.rpc(
-      'consume_ai_quota', { p_units: units },
-    )
-    if (quotaError) {
-      console.error('[detect-scene] quota', quotaError.message)
+    // Le quota du mois d'abord, puis les crédits achetés (_shared/aiSpend.ts).
+    const { spend, error: spendError } = await spendAi(userClient, units, 'detect_scene')
+    if (spendError || !spend) {
+      console.error('[detect-scene] quota', spendError)
       return err(500, 'INTERNAL_ERROR')
     }
-    if (quotaOk === false) {
+    if (!spend.ok) {
       return err(429, 'QUOTA_EXCEEDED',
-        `Quota d'analyses atteint. Une scène en ${model.includes('opus') ? 'Opus' : model.includes('sonnet') ? 'Sonnet' : 'Haiku'} en consomme ${units}.`)
+        `${quotaMessage(spend)} Une scène en ${model.includes('opus') ? 'Opus' : model.includes('sonnet') ? 'Sonnet' : 'Haiku'} en consomme ${units}.`)
     }
 
-    const refund = () => userClient.rpc('refund_ai_quota_units', { p_units: units })
+    const refund = () => refundAi(userClient, spend)
 
     // ── Appel du modèle ────────────────────────────────────────────────
     // Sortie structurée : le schéma est garanti par l'API, il n'y a pas de

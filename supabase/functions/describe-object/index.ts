@@ -21,6 +21,7 @@
 // ================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { quotaMessage, refundAi, spendAi } from '../_shared/aiSpend.ts'
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -113,14 +114,15 @@ Deno.serve(async (req: Request) => {
       auth: { persistSession: false },
     })
 
-    const { data: quotaOk, error: quotaError } = await userClient.rpc('check_and_increment_ai_quota')
-    if (quotaError) {
-      console.error('[describe-object] quota', quotaError.message)
+    // Le quota du mois d'abord, puis les crédits achetés (_shared/aiSpend.ts).
+    const { spend, error: spendError } = await spendAi(userClient, 1, 'describe_object')
+    if (spendError || !spend) {
+      console.error('[describe-object] quota', spendError)
       return err(500, 'INTERNAL_ERROR', 'Impossible de vérifier le quota')
     }
-    if (quotaOk === false) return err(429, 'QUOTA_EXCEEDED', 'Quota d’analyses IA du mois atteint')
+    if (!spend.ok) return err(429, 'QUOTA_EXCEEDED', quotaMessage(spend))
 
-    const refund = () => userClient.rpc('refund_ai_quota')
+    const refund = () => refundAi(userClient, spend)
 
     // ── Photos : les vraies uniquement ───────────────────────────────
     const { data: images } = await admin
