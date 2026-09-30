@@ -151,3 +151,9 @@ Personne d'autre pour le moment. Serrure du Tiroir de test : « entrouvert ».
 Tiroir, puis appliquer 0001 sur la preprod et leur remettre leur clé.
 Ce ne sont que des clés de Tiroir : jamais d'accès au back-office, à Torix
 ni à la clé des sauvegardes.
+
+## 10. Contenants numérotés (30 septembre 2026)
+
+Juste après le mode coffre. Une valise devient « Valise n° 3 » avec une
+étiquette QR ; chaque objet sait de quel contenant il vient ; on vend un
+contenant entier d'un coup. Plan : `docs/contenants.md`.
