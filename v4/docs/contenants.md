@@ -38,6 +38,25 @@ première** d'un objet (pour un vêtement : la matière, la fabrication).
 - **Gratuit jusqu'à 20 objets** (décision du fondateur, 30/09/2026 ; grille
   complète : `strategie/offres.md`).
 
+## Retrouver à la voix (30 septembre 2026)
+
+Idée du fondateur, née d'une partie de cache-cache : on retrouve un objet
+**par étapes**, comme on le cherche dans sa tête — la pièce (« au
+grenier »), puis le contenant (« la valise n° 3 »), puis l'objet (« la
+boîte à musique »).
+
+- L'utilisateur demande à voix haute : « Où est ma boîte à musique ? ».
+  L'assistant de l'app (Nicolas ou Chloé, pas Torix, qui reste privé)
+  répond avec l'emplacement enregistré : « Au grenier, dans la valise
+  n° 3. »
+- S'il ne sait pas quel objet on cherche, il pose des questions simples,
+  par oui ou non ou par choix (« Plutôt au grenier ou au salon ? »), et
+  resserre à chaque réponse, comme au cache-cache.
+- Il s'appuie sur l'emplacement en briques (`location_note`) et sur les
+  contenants numérotés : plus les contenants sont renseignés, plus il
+  retrouve vite.
+- Voix : reconnaissance et synthèse du téléphone, comme le micro de Torix.
+
 ## À décider au moment de coder
 
 - Contenant dans un contenant (une valise dans une malle) : oui ou non ?
