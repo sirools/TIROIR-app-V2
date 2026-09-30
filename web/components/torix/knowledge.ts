@@ -136,10 +136,10 @@ export const TOPICS: Topic[] = [
     id: 'quotas',
     keywords: ['quota', 'limite', 'gratuit', 'premium', 'forfait', 'abonnement', 'combien d analyses', 'offre'],
     register: 'fait',
-    source: 'app_settings · web/lib/planQuotas.ts',
+    source: 'web/lib/offers.ts · strategie/offres.md · app_settings',
     answer:
-      'Trois forfaits : Gratuit (0 €), Premium (6,99 €/mois), Pro (29 €/mois).\n' +
-      'Les quotas en vigueur — objets, analyses IA, améliorations photo, estimations de valeur — se règlent dans le back-office, onglet Quotas. La page des tarifs les lit en direct : elle ne peut plus diverger.\n' +
+      'Grille du 30/09/2026, affichée sur la page Tarifs : Gratuit (20 objets avec l’IA offerts), packs de crédits (30 crédits à 4,99 €, 80 à 9,99 €, sans expiration), Premium (49,99 €/mois, illimité en usage raisonnable), Pro (à partir de 1 700 € HT/mois avec 20 000 crédits inclus, puis 0,05 € HT le crédit).\n' +
+      'Les abonnés actuels gardent 6,99 €/mois. Tant que la bascule n’est pas faite, les quotas mensuels en vigueur se règlent dans le back-office, onglet Quotas.\n' +
       'Les analyses sont pondérées par leur coût : une scène Sonnet (Premium) pèse 4 unités, une scène Opus (Pro) 13.',
   },
   {

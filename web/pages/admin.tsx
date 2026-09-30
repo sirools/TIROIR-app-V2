@@ -242,27 +242,34 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
         <h1 style={s.title}>{TAB_META[tab].title}</h1>
         <p style={s.subtitle}>{TAB_META[tab].subtitle}</p>
 
-        {/* ── Onglets ── */}
-        <div style={s.tabBar}>
-          {TABS.map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              style={{ ...s.tabBtn, ...(tab === t ? s.tabBtnActive : {}) }}
-            >
-              {TAB_META[t].label}
-            </button>
-          ))}
-          {/* Chiffres marketing agrégés : page à part, ouverte aussi à
-              MARKETING_EMAILS sans donner accès au reste du back-office. */}
-          <a href="/admin/marketing" style={{ ...s.tabBtn, ...s.tabLink }}>Marketing</a>
-          {/* Pas un onglet : une page à part, plein écran, réservée au
-              propriétaire de Torix (la page a sa propre garde serveur). */}
-          {torixLink && (
-            <a href={torixLink.href} style={{ ...s.tabBtn, ...s.tabLink, ...TORIX_BUTTON }}>
-              {torixLink.label}
-            </a>
-          )}
+        {/* ── Navigation : les onglets du back-office sur une ligne (elle
+            défile sur téléphone), les espaces à part (Marketing, Torix)
+            à droite, pour ne pas les confondre avec un onglet. ── */}
+        <div style={s.navRow}>
+          <nav style={s.tabBar} aria-label="Onglets du back-office">
+            {TABS.map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                aria-current={tab === t ? 'page' : undefined}
+                style={{ ...s.tabBtn, ...(tab === t ? s.tabBtnActive : {}) }}
+              >
+                {TAB_META[t].label}
+              </button>
+            ))}
+          </nav>
+          <div style={s.spaceLinks}>
+            {/* Chiffres marketing agrégés : page à part, ouverte aussi à
+                MARKETING_EMAILS sans donner accès au reste du back-office. */}
+            <a href="/admin/marketing" style={{ ...s.tabBtn, ...s.tabLink }}>Marketing</a>
+            {/* Pas un onglet : une page à part, plein écran, réservée au
+                propriétaire de Torix (la page a sa propre garde serveur). */}
+            {torixLink && (
+              <a href={torixLink.href} style={{ ...s.tabBtn, ...s.tabLink, ...TORIX_BUTTON }}>
+                {torixLink.label}
+              </a>
+            )}
+          </div>
         </div>
 
         {tab === 'dashboard' && (<>
@@ -1096,6 +1103,7 @@ function SpendTable({ columns, rows }: {
   }
   return (
     <div style={s.spendTable}>
+      <div style={{ minWidth: 540 }}>
       <div style={s.spendHead}>
         {columns.map((c, i) => (
           <span
@@ -1136,6 +1144,7 @@ function SpendTable({ columns, rows }: {
           </div>
         </div>
       ))}
+      </div>
     </div>
   )
 }
@@ -1418,7 +1427,7 @@ function EmailsPanel({ report }: { report: EmailReport }) {
 
       <h2 style={s.sectionTitle}>Qui a reçu quoi</h2>
       <div style={s.spendTable}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table style={{ width: '100%', minWidth: 620, borderCollapse: 'collapse' }}>
           <thead>
             <tr>
               {['Adresse', 'Statut', 'Envoyé le', 'Remis', 'Ouvert', 'Clics'].map(c => (
@@ -1744,7 +1753,7 @@ const TAB_META: Record<TabKey, { label: string; title: string; subtitle: string 
   quotas: { label: 'Quotas', title: 'Quotas & coûts', subtitle: 'Modifie les valeurs et enregistre — appliqué instantanément sans déploiement.' },
   emails: { label: 'E-mails', title: 'Campagne e-mail', subtitle: 'Message de présentation, expédié automatiquement à J+3 de l’inscription.' },
   pro: { label: 'Comptes Pro', title: 'Comptes Professionnels', subtitle: 'Palier vendu en direct sur facture : attribution et révocation manuelles, effet immédiat.' },
-  simulation: { label: 'Simulation économique', title: 'Simulation économique', subtitle: 'Simule l’impact d’un lancement sur les coûts infra/IA et les revenus premium.' },
+  simulation: { label: 'Simulation', title: 'Simulation économique', subtitle: 'Simule l’impact d’un lancement sur les coûts infra/IA et les revenus premium.' },
 }
 
 // ── Simulation économique ──────────────────────────────────────────────
@@ -2573,7 +2582,9 @@ const s: Record<string, React.CSSProperties> = {
   mailTagWait:       { fontSize: 11, fontWeight: 700, color: '#7A3E06', background: '#FFF4E8', borderRadius: 6, padding: '2px 7px' },
   mailTagOff:        { fontSize: 11, fontWeight: 700, color: '#5b5b5b', background: '#EFEFEF', borderRadius: 6, padding: '2px 7px', marginLeft: 6 },
   mailErr:           { display: 'block', fontSize: 11, color: '#C0392B', marginTop: 4 },
-  spendTable:        { background: 'white', borderRadius: 16, padding: '4px 20px 12px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 8 },
+  // Sur téléphone, les tableaux défilent dans leur carte au lieu d'élargir
+  // toute la page.
+  spendTable:        { overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: 'white', borderRadius: 16, padding: '4px 20px 12px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 8 },
   spendHead:         { display: 'flex', alignItems: 'flex-end', gap: 16, padding: '14px 0 10px', borderBottom: '1px solid rgba(0,0,0,0.08)' },
   spendHeadCell:     { fontSize: 11, fontWeight: 700, color: '#8a8a8a', textTransform: 'uppercase', letterSpacing: 0.5 },
   spendRowWrap:      { padding: '12px 0 10px', borderBottom: '1px solid rgba(0,0,0,0.04)' },
@@ -2614,8 +2625,10 @@ const s: Record<string, React.CSSProperties> = {
   eventAction:       { fontSize: 14, color: '#121212', fontWeight: 600 },
   eventCount:        { fontSize: 14, color: '#F26900', fontWeight: 700 },
   footnote:          { fontSize: 13, color: '#999' },
-  tabBar:            { display: 'flex', gap: 4, marginBottom: 28, background: 'white', padding: 4, borderRadius: 12, border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', width: 'fit-content', flexWrap: 'wrap' },
-  tabBtn:            { padding: '9px 18px', borderRadius: 9, background: 'transparent', color: '#5b5b5b', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer' },
+  navRow:            { display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 28 },
+  tabBar:            { display: 'flex', gap: 4, background: 'white', padding: 4, borderRadius: 12, border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', maxWidth: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' },
+  spaceLinks:        { display: 'flex', gap: 8, flexWrap: 'wrap' },
+  tabBtn:            { flexShrink: 0, whiteSpace: 'nowrap', padding: '9px 18px', borderRadius: 9, background: 'transparent', color: '#5b5b5b', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer' },
   tabBtnActive:      { background: '#F26900', color: 'white' },
   tabLink:           { background: '#0a1630', color: '#eaf3ff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' },
   saveBar:           { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', background: 'white', borderRadius: 16, padding: '16px 24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', marginBottom: 40 },
@@ -2625,7 +2638,7 @@ const s: Record<string, React.CSSProperties> = {
   scenarioLabel:     { fontSize: 13, color: '#5b5b5b', fontWeight: 600, marginRight: 4 },
   scenarioBtn:       { padding: '7px 14px', borderRadius: 999, background: 'white', color: '#121212', fontWeight: 700, fontSize: 13, border: '1.5px solid #e0e0e0', cursor: 'pointer' },
   scenarioBtnActive: { background: '#F26900', color: 'white', borderColor: '#F26900' },
-  simLayout:         { display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(300px, 1.4fr)', gap: 20, marginBottom: 40, alignItems: 'start' },
+  simLayout:         { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 20, marginBottom: 40, alignItems: 'start' },
   simSliderHeader:   { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 },
   simSliderValue:    { fontSize: 15, fontWeight: 800, color: '#F26900' },
   simRange:          { width: '100%', accentColor: '#F26900', cursor: 'pointer' },
