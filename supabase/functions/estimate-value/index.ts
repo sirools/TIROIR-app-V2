@@ -16,6 +16,7 @@
 // ================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { refundAi, refusal, spendAi } from '../_shared/aiSpend.ts'
 import { logAiUsage } from '../_shared/aiUsage.ts'
 
 const CORS_HEADERS: Record<string, string> = {
@@ -69,18 +70,16 @@ Deno.serve(async (req: Request) => {
       { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
     )
 
-    const { data: quota, error: quotaError } = await userClient.rpc(
-      'check_and_increment_value_estimate_quota',
-    )
-    if (quotaError) {
-      console.error('[estimate-value] quota', quotaError.message)
+    // Quota du mois d'abord, puis crédits achetés (_shared/aiSpend.ts).
+    const { spend, error: spendError } = await spendAi(userClient, 'estimate_value')
+    if (spendError || !spend) {
+      console.error('[estimate-value] quota', spendError)
       return errorResponse(500, 'INTERNAL_ERROR', 'Impossible de vérifier le quota')
     }
-    if (quota === 'QUOTA_EXCEEDED') {
-      return errorResponse(429, 'QUOTA_EXCEEDED', 'Quota d’estimations du mois atteint')
-    }
+    if (!spend.ok) { const r = refusal(spend); return errorResponse(r.status, r.code, r.message) }
 
-    refundQuota = () => userClient.rpc('refund_value_estimate_quota')
+    // Rendu avec la clé service : le compte ne se rembourse jamais lui-même.
+    refundQuota = () => refundAi({ service: supabase, user: userClient }, spend)
 
     // ── Récupération objet ────────────────────────────────────────
     const { data: obj, error: objError } = await supabase

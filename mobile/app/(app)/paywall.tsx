@@ -10,6 +10,7 @@ import { ArrowLeft, Zap, Package, Brain, Camera, Check, Sparkles } from 'lucide-
 import Purchases, { PurchasesPackage } from 'react-native-purchases'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { supabase } from '@/lib/supabase'
+import { CREDITS_OFFERING, creditsForProduct } from '@/lib/creditPacks'
 
 const MOCK_PACKAGES: PurchasesPackage[] = Platform.OS === 'web' ? [
   { identifier: '$rc_monthly', packageType: 'MONTHLY', product: { identifier: 'tiroir_premium_monthly', price: 6.99, priceString: '6,99 €', introPrice: { price: 0, priceString: '0 €', periodNumberOfUnits: 7, periodUnit: 'DAY' } } } as any,
@@ -33,6 +34,15 @@ export default function PaywallScreen() {
   const [isAnnual, setIsAnnual]   = useState(true)
   const [loading, setLoading]     = useState(true)
   const [purchasing, setPurchasing] = useState(false)
+  // Packs de crédits (achat à l'unité, sans abonnement)
+  const [packs, setPacks]         = useState<PurchasesPackage[]>([])
+  const [credits, setCredits]     = useState<number | null>(null)
+
+  const refreshCredits = useCallback(async () => {
+    // Solde absent tant que le SQL des crédits n'est pas appliqué : on n'affiche rien.
+    const { data, error } = await supabase.rpc('get_my_ai_credits')
+    if (!error && typeof data === 'number') setCredits(data)
+  }, [])
 
   useEffect(() => {
     // Funnel : vue du paywall (fire-and-forget, ne bloque pas l'écran)
@@ -56,6 +66,11 @@ export default function PaywallScreen() {
       console.log('[Paywall] current offering:', JSON.stringify(offerings.current))
       const pkgs = offerings.current?.availablePackages ?? []
       console.log('[Paywall] packages count:', pkgs.length, pkgs.map(p => p.identifier))
+      // Offre « credits » (produits consommables), rangée à part dans RevenueCat.
+      const creditPkgs = (offerings.all?.[CREDITS_OFFERING]?.availablePackages ?? [])
+        .filter(p => creditsForProduct(p.product.identifier) != null)
+        .sort((x, y) => (creditsForProduct(x.product.identifier) ?? 0) - (creditsForProduct(y.product.identifier) ?? 0))
+      setPacks(creditPkgs)
       const m = pkgs.find(p => p.packageType === 'MONTHLY') ?? null
       const a = pkgs.find(p => p.packageType === 'ANNUAL') ?? null
       setMonthly(m)
@@ -64,7 +79,25 @@ export default function PaywallScreen() {
     }).catch(e => {
       console.warn('[Paywall] getOfferings error', e)
     }).finally(() => setLoading(false))
+    void refreshCredits()
   }, [])
+
+  const handleBuyPack = useCallback(async (pkg: PurchasesPackage) => {
+    const amount = creditsForProduct(pkg.product.identifier) ?? 0
+    setPurchasing(true)
+    try {
+      await Purchases.purchasePackage(pkg)
+      // Le webhook RevenueCat crédite le compte en quelques secondes.
+      Alert.alert(t('paywall.packThanksTitle'), t('paywall.packThanksMessage', { count: amount }))
+      setTimeout(() => { void refreshCredits() }, 4000)
+    } catch (e: any) {
+      if (!e.userCancelled) {
+        Alert.alert(t('common.error'), e.message ?? t('paywall.genericError'))
+      }
+    } finally {
+      setPurchasing(false)
+    }
+  }, [refreshCredits])
 
   const selected = isAnnual ? (annual ?? monthly) : (monthly ?? annual)
 
@@ -214,6 +247,36 @@ export default function PaywallScreen() {
           }
         </TouchableOpacity>
 
+        {/* ── Packs de crédits : l'IA à l'unité, sans abonnement ── */}
+        {packs.length > 0 && (
+          <View style={s.packs}>
+            <Text style={s.packsTitle}>{t('paywall.packsTitle')}</Text>
+            <Text style={s.packsHint}>
+              {credits != null
+                ? t('paywall.packsBalance', { count: credits })
+                : t('paywall.packsHint')}
+            </Text>
+            <View style={s.packsRow}>
+              {packs.map(pkg => (
+                <TouchableOpacity
+                  key={pkg.identifier}
+                  style={[s.packCard, purchasing && s.ctaDisabled]}
+                  onPress={() => handleBuyPack(pkg)}
+                  disabled={purchasing}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                >
+                  <Text style={s.packCredits}>
+                    {t('paywall.packCredits', { count: creditsForProduct(pkg.product.identifier) ?? 0 })}
+                  </Text>
+                  <Text style={s.packPrice}>{pkg.product.priceString}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={s.packsHint}>{t('paywall.packsNoExpiry')}</Text>
+          </View>
+        )}
+
         {/* Restore + legal */}
         <TouchableOpacity onPress={handleRestore} disabled={purchasing} style={s.restoreBtn}>
           <Text style={s.restoreText}>{t('paywall.restore')}</Text>
@@ -302,6 +365,13 @@ const s = StyleSheet.create({
   ctaText:     { fontSize: Typography.base, fontWeight: Typography.bold, color: 'white' },
 
   restoreBtn:  { alignItems: 'center', paddingVertical: 4 },
+  packs:       { gap: Spacing.sm, paddingTop: Spacing.lg, borderTopWidth: 1, borderTopColor: Colors.borderLight },
+  packsTitle:  { fontSize: Typography.base, fontWeight: Typography.bold, color: Colors.textPrimary },
+  packsHint:   { fontSize: Typography.sm, color: Colors.textSecondary },
+  packsRow:    { flexDirection: 'row', gap: Spacing.sm },
+  packCard:    { flex: 1, borderWidth: 1.5, borderColor: Colors.accent, borderRadius: Radius.md, paddingVertical: 14, alignItems: 'center', gap: 2, backgroundColor: Colors.surface },
+  packCredits: { fontSize: Typography.base, fontWeight: Typography.bold, color: Colors.textPrimary },
+  packPrice:   { fontSize: Typography.sm, fontWeight: Typography.semibold, color: Colors.accent },
   restoreText: { fontSize: Typography.sm, color: Colors.textTertiary },
   legal:       { fontSize: 11, color: Colors.textTertiary, textAlign: 'center', lineHeight: 16 },
   legalLinks: {

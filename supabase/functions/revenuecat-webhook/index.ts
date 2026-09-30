@@ -4,6 +4,18 @@ const REVENUECAT_WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET')!
 const SUPABASE_URL               = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+// Packs de crédits IA (produits consommables) — mêmes identifiants que
+// mobile/src/lib/creditPacks.ts. Un achat arrive en NON_RENEWING_PURCHASE ;
+// il crédite le compte et ne touche JAMAIS au plan d'abonnement.
+const CREDIT_PACKS: Record<string, number> = {
+  tiroir_credits_30: 30,
+  tiroir_credits_80: 80,
+}
+function creditsForProduct(productId: unknown): number | null {
+  if (typeof productId !== 'string') return null
+  return CREDIT_PACKS[productId.split(':')[0]] ?? null
+}
+
 // Events RevenueCat qui signifient que l'utilisateur a un abonnement actif
 const ACTIVE_EVENTS = new Set([
   'INITIAL_PURCHASE',
@@ -46,6 +58,33 @@ Deno.serve(async (req) => {
   console.log(`[revenuecat-webhook] ${eventType} for user ${appUserId}`)
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+  // ── Pack de crédits : créditer, une seule fois par transaction ──
+  const packCredits = creditsForProduct(event.product_id)
+  if (packCredits !== null) {
+    if (eventType === 'NON_RENEWING_PURCHASE' && appUserId) {
+      const ref = String(event.transaction_id ?? event.id ?? '')
+      if (!ref) return new Response('Bad request', { status: 400 })
+      // grant_ai_credits est idempotent : rejouer le même événement ne
+      // crédite rien de plus (référence unique par achat).
+      const { error: grantError } = await admin.rpc('grant_ai_credits', {
+        p_user_id: appUserId, p_amount: packCredits, p_reason: 'purchase', p_ref: `rc:${ref}`,
+      })
+      if (grantError) {
+        console.error('[revenuecat-webhook] crédits', grantError.message)
+        return new Response('Internal error', { status: 500 })
+      }
+      await admin.from('activity_log').insert({
+        user_id: appUserId,
+        action: 'purchase.credits',
+        payload: { product_id: event.product_id ?? null, credits: packCredits, store: event.store ?? null },
+      })
+      console.log(`[revenuecat-webhook] +${packCredits} crédits pour ${appUserId}`)
+    }
+    // Un remboursement de pack (CANCELLATION) ne doit pas rétrograder un
+    // abonné : on s'arrête là. Reprise des crédits : manuelle pour l'instant.
+    return new Response('OK', { status: 200 })
+  }
 
   let newPlan: 'free' | 'premium' | null = null
 

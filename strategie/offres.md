@@ -73,15 +73,16 @@ centimes selon l'usage.
    prod, voir `supabase/drafts/README.md`).
 2. **Consommation** : les fonctions IA débitent les crédits d'un compte
    gratuit au lieu de son quota mensuel.
-   ✅ Écrit et testé pour les analyses (`detect-scene`, `describe-object`,
-   `chat-turn`) : `supabase/drafts/ai_credits_spend.sql` et
-   `functions/_shared/aiSpend.ts`. Retouche photo, vignettes de scène et
-   estimation de valeur : à brancher ensuite (leurs quotas sont à part).
-   ⚠️ Constat : `refund_ai_quota_units` est appelable par le compte
-   lui-même, qui peut donc remettre son compteur du mois à zéro. À
-   corriger (remboursement côté serveur seulement) avant la bascule.
+   ✅ Écrit et testé pour toutes les dépenses IA : analyses, retouche
+   photo et vignettes (4 crédits, ouvertes aux comptes gratuits qui paient
+   en crédits), estimation de valeur (8 crédits) :
+   `supabase/drafts/ai_credits_spend.sql` et `functions/_shared/aiSpend.ts`.
+   ✅ Trou fermé : un compte ne peut plus remettre ses quotas à zéro ; les
+   remboursements passent par le serveur, une fois par dépense.
 3. **Achat** : deux produits consommables dans RevenueCat, App Store et
    Google Play ; le webhook crédite le compte.
+   ✅ Code prêt (écran Premium de l'app, webhook). Reste à créer les
+   produits : `strategie/packs-stores.md`.
 4. **Premium illimité** : plafond de 1 000 unités, message au-delà ;
    nouveaux produits d'abonnement à 49,99 € (les anciens restent actifs
    pour les abonnés actuels).
