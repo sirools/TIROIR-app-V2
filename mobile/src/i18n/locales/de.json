@@ -314,6 +314,14 @@
     "lost": "Verloren"
   },
   "paywall": {
+    "packsTitle": "Oder KI-Guthaben, ohne Abo",
+    "packsHint": "Analysieren, verbessern oder schätzen, wann Sie wollen.",
+    "packsBalance_one": "Sie haben {{count}} Guthabenpunkt.",
+    "packsBalance_other": "Sie haben {{count}} Guthabenpunkte.",
+    "packCredits": "{{count}} Punkte",
+    "packsNoExpiry": "Guthaben verfällt nie.",
+    "packThanksTitle": "Danke!",
+    "packThanksMessage": "{{count}} Punkte werden in wenigen Sekunden gutgeschrieben.",
     "title": "Tiroir Premium",
     "featUnlimitedObjects": "Unbegrenzte Objekte",
     "featAiAnalyses": "60 KI-Analysen pro Monat",

@@ -314,6 +314,14 @@
     "lost": "Lost"
   },
   "paywall": {
+    "packsTitle": "Or AI credits, no subscription",
+    "packsHint": "Analyse, enhance or estimate whenever you like.",
+    "packsBalance_one": "You have {{count}} credit.",
+    "packsBalance_other": "You have {{count}} credits.",
+    "packCredits": "{{count}} credits",
+    "packsNoExpiry": "Credits never expire.",
+    "packThanksTitle": "Thank you!",
+    "packThanksMessage": "{{count}} credits will reach your account in a few seconds.",
     "title": "Tiroir Premium",
     "featUnlimitedObjects": "Unlimited items",
     "featAiAnalyses": "60 AI analyses per month",

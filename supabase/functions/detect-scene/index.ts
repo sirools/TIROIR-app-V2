@@ -14,7 +14,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { PRICING, costUsd, logAiUsage, quotaUnits } from '../_shared/aiUsage.ts'
-import { quotaMessage, refundAi, spendAi } from '../_shared/aiSpend.ts'
+import { refundAi, refusal, spendAi } from '../_shared/aiSpend.ts'
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -181,17 +181,19 @@ Deno.serve(async (req: Request) => {
     )
 
     // Le quota du mois d'abord, puis les crédits achetés (_shared/aiSpend.ts).
-    const { spend, error: spendError } = await spendAi(userClient, units, 'detect_scene')
+    const { spend, error: spendError } = await spendAi(userClient, 'detect_scene', units)
     if (spendError || !spend) {
       console.error('[detect-scene] quota', spendError)
       return err(500, 'INTERNAL_ERROR')
     }
     if (!spend.ok) {
-      return err(429, 'QUOTA_EXCEEDED',
-        `${quotaMessage(spend)} Une scène en ${model.includes('opus') ? 'Opus' : model.includes('sonnet') ? 'Sonnet' : 'Haiku'} en consomme ${units}.`)
+      const r = refusal(spend)
+      return err(r.status, r.code,
+        `${r.message} Une scène en ${model.includes('opus') ? 'Opus' : model.includes('sonnet') ? 'Sonnet' : 'Haiku'} en consomme ${units}.`)
     }
 
-    const refund = () => refundAi(userClient, spend)
+    // Rendu avec la clé service : le compte ne se rembourse jamais lui-même.
+    const refund = () => refundAi({ service: supabase, user: userClient }, spend)
 
     // ── Appel du modèle ────────────────────────────────────────────────
     // Sortie structurée : le schéma est garanti par l'API, il n'y a pas de

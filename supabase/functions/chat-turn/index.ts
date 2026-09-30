@@ -21,7 +21,7 @@
 // ================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { quotaMessage, spendAi } from '../_shared/aiSpend.ts'
+import { refusal, spendAi } from '../_shared/aiSpend.ts'
 import { callClaude, ClaudeError, extractTextFromResponse, CLAUDE_MODEL } from './claude.ts'
 import { logAiUsage } from '../_shared/aiUsage.ts'
 import { buildSystemPrompt, buildUserMessage, parseClaudeResponse, DEFAULT_AI_LOCALE } from './prompt.ts'
@@ -209,14 +209,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   // ── Vérification quota IA ─────────────────────────────────────
   // Le quota du mois d'abord, puis les crédits achetés (_shared/aiSpend.ts).
-  const { spend, error: spendError } = await spendAi(userClient, 1, 'chat_turn')
+  const { spend, error: spendError } = await spendAi(userClient, 'chat_turn')
   if (spendError || !spend) {
     console.error(`[chat-turn] Erreur quota : ${spendError}`)
     return errorResponse('INTERNAL_ERROR', 'Impossible de vérifier le quota', 500)
   }
   if (!spend.ok) {
     console.warn(`[chat-turn] Quota épuisé pour user ${user.id}`)
-    return errorResponse('QUOTA_EXCEEDED', quotaMessage(spend), 429)
+    const r = refusal(spend)
+    return errorResponse(r.code, r.message, r.status)
   }
 
   // ── Récupération des images du draft ──────────────────────────

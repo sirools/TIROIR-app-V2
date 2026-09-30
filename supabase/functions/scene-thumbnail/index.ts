@@ -24,6 +24,7 @@
 // ================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { refundAi, refusal, spendAi } from '../_shared/aiSpend.ts'
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -116,19 +117,14 @@ Deno.serve(async (req: Request) => {
       auth: { persistSession: false },
     })
 
-    const { data: quota, error: quotaError } = await userClient.rpc(
-      'check_and_increment_photo_enhance_quota'
-    )
-    if (quotaError) {
-      console.error('[scene-thumbnail] quota', quotaError.message)
+    // Quota du mois (Premium) d'abord, puis crédits achetés : un compte
+    // gratuit peut désormais payer une image en crédits (_shared/aiSpend.ts).
+    const { spend, error: spendError } = await spendAi(userClient, 'scene_thumbnail')
+    if (spendError || !spend) {
+      console.error('[scene-thumbnail] quota error', spendError)
       return err(500, 'INTERNAL_ERROR', 'Impossible de vérifier le quota')
     }
-    if (quota === 'NOT_PREMIUM') {
-      return err(403, 'PREMIUM_REQUIRED', 'Fonctionnalité réservée aux abonnés')
-    }
-    if (quota === 'QUOTA_EXCEEDED') {
-      return err(429, 'QUOTA_EXCEEDED', 'Quota d’images IA du mois atteint')
-    }
+    if (!spend.ok) { const r = refusal(spend); return err(r.status, r.code, r.message) }
 
     // ── Requête Gemini ───────────────────────────────────────────────
     const parts: Record<string, unknown>[] = []
@@ -170,7 +166,8 @@ Deno.serve(async (req: Request) => {
     // Le jeton a été prélevé avant l'appel — il le fallait, sinon rien
     // n'empêche d'enchaîner les tentatives. Mais une panne du fournisseur
     // ne doit pas être facturée à l'utilisateur.
-    const refund = () => userClient.rpc('refund_photo_enhance_quota')
+    // Rendu avec la clé service : le compte ne se rembourse jamais lui-même.
+    const refund = () => refundAi({ service: admin, user: userClient }, spend)
 
     if (!geminiJson) {
       await refund()

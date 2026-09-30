@@ -8,7 +8,7 @@ appliquées, elles passent dans `supabase/migrations/` sous le nom
 | Brouillon | Pour quoi | Tests |
 | --- | --- | --- |
 | `ai_credits.sql` | Crédits IA, marche 1 : solde et journal (`strategie/offres.md`) | `tests/run.sh` (20 tests) |
-| `ai_credits_spend.sql` | Crédits IA, marche 2 : les analyses puisent dans le quota, puis dans les crédits | `tests/run.sh` (11 tests) |
+| `ai_credits_spend.sql` | Crédits IA, marches 2 et 2 bis : toute dépense IA (analyse, retouche, estimation) puise dans le quota puis dans les crédits ; remboursements réservés au serveur (trou fermé) | `tests/run.sh` (31 tests) |
 
 ## Tester
 
@@ -20,10 +20,22 @@ Sur une base Postgres **vide et jetable** (jamais la prod ni la preprod) :
 
 ## Appliquer en prod, dans l'ordre
 
-`ai_credits.sql`, puis `ai_credits_spend.sql`, puis redéployer les
-fonctions `detect-scene`, `describe-object` et `chat-turn`. Les fonctions
-fonctionnent aussi AVANT le SQL : elles retombent sur l'ancien quota
-(`_shared/aiSpend.ts`).
+1. `ai_credits.sql` ;
+2. `ai_credits_spend.sql` ;
+3. **aussitôt**, redéployer les fonctions `detect-scene`,
+   `describe-object`, `chat-turn`, `enhance-object-photo`,
+   `scene-thumbnail`, `estimate-value` et `revenuecat-webhook` :
+
+   ```bash
+   supabase functions deploy detect-scene describe-object chat-turn \
+     enhance-object-photo scene-thumbnail estimate-value revenuecat-webhook
+   ```
+
+Pourquoi « aussitôt » : l'étape 2 retire aux comptes le droit de se
+rembourser eux-mêmes. Les anciennes fonctions, qui remboursaient au nom du
+compte, ne rendraient plus un quota en cas d'échec de l'IA. Les nouvelles
+fonctions marchent avant comme après le SQL (repli sur les anciens quotas,
+`_shared/aiSpend.ts`).
 
 ## Appliquer `ai_credits.sql` en prod
 

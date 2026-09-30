@@ -314,6 +314,14 @@
     "lost": "Perdido"
   },
   "paywall": {
+    "packsTitle": "O créditos de IA, sin suscripción",
+    "packsHint": "Analiza, mejora o estima cuando quieras.",
+    "packsBalance_one": "Tienes {{count}} crédito.",
+    "packsBalance_other": "Tienes {{count}} créditos.",
+    "packCredits": "{{count}} créditos",
+    "packsNoExpiry": "Los créditos nunca caducan.",
+    "packThanksTitle": "¡Gracias!",
+    "packThanksMessage": "{{count}} créditos llegarán a tu cuenta en unos segundos.",
     "title": "Tiroir Premium",
     "featUnlimitedObjects": "Objetos ilimitados",
     "featAiAnalyses": "60 análisis de IA al mes",

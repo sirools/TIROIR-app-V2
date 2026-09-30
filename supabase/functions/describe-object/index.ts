@@ -21,7 +21,7 @@
 // ================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { quotaMessage, refundAi, spendAi } from '../_shared/aiSpend.ts'
+import { refundAi, refusal, spendAi } from '../_shared/aiSpend.ts'
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -115,14 +115,15 @@ Deno.serve(async (req: Request) => {
     })
 
     // Le quota du mois d'abord, puis les crédits achetés (_shared/aiSpend.ts).
-    const { spend, error: spendError } = await spendAi(userClient, 1, 'describe_object')
+    const { spend, error: spendError } = await spendAi(userClient, 'describe_object')
     if (spendError || !spend) {
       console.error('[describe-object] quota', spendError)
       return err(500, 'INTERNAL_ERROR', 'Impossible de vérifier le quota')
     }
-    if (!spend.ok) return err(429, 'QUOTA_EXCEEDED', quotaMessage(spend))
+    if (!spend.ok) { const r = refusal(spend); return err(r.status, r.code, r.message) }
 
-    const refund = () => refundAi(userClient, spend)
+    // Rendu avec la clé service : le compte ne se rembourse jamais lui-même.
+    const refund = () => refundAi({ service: admin, user: userClient }, spend)
 
     // ── Photos : les vraies uniquement ───────────────────────────────
     const { data: images } = await admin

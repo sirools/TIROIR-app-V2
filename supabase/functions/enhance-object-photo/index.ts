@@ -11,6 +11,7 @@
 // ================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { refundAi, refusal, spendAi } from '../_shared/aiSpend.ts'
 import { logAiUsage } from '../_shared/aiUsage.ts'
 
 const CORS_HEADERS: Record<string, string> = {
@@ -109,19 +110,14 @@ Deno.serve(async (req: Request) => {
     if (imageError || !image) return err(404, 'IMAGE_NOT_FOUND', 'Photo introuvable ou accès refusé')
 
     // ── Quota (réservé premium, plafonné) ──────────────────────────
-    const { data: quotaResult, error: quotaError } = await userClient.rpc(
-      'check_and_increment_photo_enhance_quota'
-    )
-    if (quotaError) {
-      console.error('[enhance-object-photo] quota error', quotaError.message)
+    // Quota du mois (Premium) d'abord, puis crédits achetés : un compte
+    // gratuit peut désormais payer une image en crédits (_shared/aiSpend.ts).
+    const { spend, error: spendError } = await spendAi(userClient, 'enhance_photo')
+    if (spendError || !spend) {
+      console.error('[enhance-object-photo] quota error', spendError)
       return err(500, 'INTERNAL_ERROR', 'Impossible de vérifier le quota')
     }
-    if (quotaResult === 'NOT_PREMIUM') {
-      return err(403, 'PREMIUM_REQUIRED', 'Cette fonctionnalité est réservée aux abonnés Premium')
-    }
-    if (quotaResult === 'QUOTA_EXCEEDED') {
-      return err(429, 'QUOTA_EXCEEDED', 'Quota de retouches IA du mois atteint')
-    }
+    if (!spend.ok) { const r = refusal(spend); return err(r.status, r.code, r.message) }
 
     // ── Téléchargement de la photo source ──────────────────────────
     const { data: fileData, error: downloadError } = await adminClient.storage
@@ -171,7 +167,8 @@ Deno.serve(async (req: Request) => {
 
     // Le jeton a été prélevé avant l'appel : une panne du fournisseur ne
     // doit pas être facturée à l'utilisateur.
-    const refund = () => userClient.rpc('refund_photo_enhance_quota')
+    // Rendu avec la clé service : le compte ne se rembourse jamais lui-même.
+    const refund = () => refundAi({ service: adminClient, user: userClient }, spend)
 
     if (!geminiJson) {
       await refund()
