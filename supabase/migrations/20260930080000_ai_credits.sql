@@ -1,5 +1,5 @@
 -- ================================================================
--- ai_credits.sql — BROUILLON (strategie/offres.md, marche 1)
+-- 20260930080000_ai_credits.sql — appliqué en prod le 30/09/2026 (strategie/offres.md, marche 1)
 -- Solde de crédits IA par compte, et son journal.
 --
 -- ADDITIF : aucune table existante n'est modifiée, aucun quota ne change.
