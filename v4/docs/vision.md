@@ -94,3 +94,11 @@ Décision du fondateur : la vente entre **dans la V4** (pas de V6 séparée).
 Étape 2 : vente et paiement dans Tiroir via un prestataire agréé (Stripe
 Connect ou Mangopay), avec une **commission** prélevée automatiquement.
 Plan détaillé : `docs/vente.md`.
+
+## Un cycle écologique et économique (30 septembre 2026)
+
+Décision du fondateur : le coffre garde ce qui a le plus de valeur ; le
+reste circule (vendre, réinvestir, revendre). Le prix proposé par l'IA
+remet en valeur la matière première et tient compte de l'usure ; gratuit
+jusqu'à une quinzaine d'objets. Premier outil : les contenants numérotés
+(`docs/contenants.md`).

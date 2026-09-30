@@ -11,6 +11,11 @@ de l'IA. Les arbitrages marqués *(équilibre)* ont été confiés à Claude
 | **Premium** | Illimitée, dans un usage raisonnable | Abonnement, 6,99 €/mois |
 | **Pro** | Gros volumes | Sur facture (29 €/mois ou 290 €/an) |
 
+> **À harmoniser (30/09/2026)** : le fondateur veut que le prix proposé
+> par l'IA soit **gratuit jusqu'à une quinzaine d'objets**
+> (`v4/docs/contenants.md`). À concilier avec les 5 crédits de bienvenue
+> ci-dessous, par exemple : 15 estimations offertes à l'inscription.
+
 ## Les arbitrages
 
 1. **Gratuit et Freemium sont le même compte** *(équilibre)*. Un compte
