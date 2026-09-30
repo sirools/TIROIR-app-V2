@@ -176,6 +176,8 @@ export default function Hero() {
 
         @media (max-width: 640px) {
           .hero { min-height: 100svh; }
+          /* Même largeur que la rangée des stores : une colonne nette. */
+          .btn-ghost { flex: 1 1 100%; justify-content: center; }
           .hero-video { object-position: 70% center; }
           .hero-overlay {
             background: linear-gradient(

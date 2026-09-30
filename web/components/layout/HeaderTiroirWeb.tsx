@@ -264,16 +264,18 @@ export default function HeaderTiroirWeb() {
               </div>
             ) : (
               <>
-                <a className="appstore-nav-btn" href="/login" onClick={() => setMenuOpen(false)}>
-                  {isEn ? 'Sign in' : 'Se connecter'}
+                {/* Comme sur mobile : se connecter d'abord, créer un compte
+                    en second. */}
+                <a className="appstore-nav-btn" href="/inscription" onClick={() => setMenuOpen(false)}>
+                  {isEn ? 'Sign up' : 'Créer un compte'}
                 </a>
                 <a
                   className="btn btn-primary"
-                  href="/inscription"
+                  href="/login"
                   style={{ textDecoration: 'none' }}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {isEn ? 'Sign up' : 'Créer un compte'}
+                  {isEn ? 'Sign in' : 'Se connecter'}
                 </a>
               </>
             )}
