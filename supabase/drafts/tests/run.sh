@@ -11,3 +11,7 @@ psql "$DB" -q -f "$HERE/stub.sql" >/dev/null 2>&1 || true
 psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../ai_credits.sql"
 psql "$DB" -q -f "$HERE/ai_credits.test.sql" | tee /dev/stderr | tail -3 | grep -qE "^ +0$"
 echo "✓ ai_credits : tous les tests passent"
+psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/stub_spend.sql"
+psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../ai_credits_spend.sql"
+psql "$DB" -q -f "$HERE/ai_credits_spend.test.sql" | tee /dev/stderr | tail -3 | grep -qE "^ +0$"
+echo "✓ ai_credits_spend : tous les tests passent"

@@ -21,6 +21,7 @@
 // ================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { quotaMessage, spendAi } from '../_shared/aiSpend.ts'
 import { callClaude, ClaudeError, extractTextFromResponse, CLAUDE_MODEL } from './claude.ts'
 import { logAiUsage } from '../_shared/aiUsage.ts'
 import { buildSystemPrompt, buildUserMessage, parseClaudeResponse, DEFAULT_AI_LOCALE } from './prompt.ts'
@@ -207,14 +208,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   // ── Vérification quota IA ─────────────────────────────────────
-  const { data: quotaOk, error: quotaError } = await userClient.rpc('check_and_increment_ai_quota')
-  if (quotaError) {
-    console.error(`[chat-turn] Erreur quota : ${quotaError.message}`)
+  // Le quota du mois d'abord, puis les crédits achetés (_shared/aiSpend.ts).
+  const { spend, error: spendError } = await spendAi(userClient, 1, 'chat_turn')
+  if (spendError || !spend) {
+    console.error(`[chat-turn] Erreur quota : ${spendError}`)
     return errorResponse('INTERNAL_ERROR', 'Impossible de vérifier le quota', 500)
   }
-  if (!quotaOk) {
+  if (!spend.ok) {
     console.warn(`[chat-turn] Quota épuisé pour user ${user.id}`)
-    return errorResponse('QUOTA_EXCEEDED', 'Quota IA du mois atteint (30 analyses)', 429)
+    return errorResponse('QUOTA_EXCEEDED', quotaMessage(spend), 429)
   }
 
   // ── Récupération des images du draft ──────────────────────────
