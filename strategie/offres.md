@@ -1,44 +1,52 @@
 # Les formules de Tiroir — décision du 29 septembre 2026
 
 Décision du fondateur : quatre façons d'utiliser Tiroir, selon l'usage
-de l'IA. Les arbitrages marqués *(équilibre)* ont été confiés à Claude
-(« fais ce qui te semble le plus équilibré ») et restent modifiables.
+de l'IA. Grille révisée le **30 septembre 2026** : prix alignés sur le
+marché américain des outils professionnels (jusqu'à 300 $/mois pour un
+compte premium), marge forte sur les packs. Les arbitrages marqués
+*(équilibre)* ont été confiés à Claude et restent modifiables.
 
-| Formule | IA | Paiement |
-| --- | --- | --- |
-| **Gratuit** | Pas d'IA, hors crédits de bienvenue | 0 € |
-| **Freemium** | À la demande | Packs de crédits achetés dans l'app |
-| **Premium** | Illimitée, dans un usage raisonnable | Abonnement, 6,99 €/mois |
-| **Pro** | Gros volumes | Sur facture (29 €/mois ou 290 €/an) |
+| Formule | Contenu | Prix TTC | Net pour Tiroir* |
+| --- | --- | --- | --- |
+| **Gratuit** | 20 objets avec l'IA, offerts une fois | 0 € | — |
+| **Petit pack** | 30 crédits | 4,99 € | ≈ 3,54 € |
+| **Grand pack** | 80 crédits | 9,99 € | ≈ 7,08 € |
+| **Premium** | IA illimitée, usage raisonnable | 49,99 €/mois | ≈ 35,40 € |
+| **Pro** | Sur devis, facturé selon la consommation de crédits IA | à partir de 2 200 €/mois | ≈ 1 833 € (sans store) |
 
-> **À harmoniser (30/09/2026)** : le fondateur veut que le prix proposé
-> par l'IA soit **gratuit jusqu'à une quinzaine d'objets**
-> (`v4/docs/contenants.md`). À concilier avec les 5 crédits de bienvenue
-> ci-dessous, par exemple : 15 estimations offertes à l'inscription.
+\* Après TVA (20 %) et, pour les achats dans l'app, commission des stores
+(15 %). Coût IA : quelques centimes pour 30 fiches simples, soit une marge
+supérieure à 90 % sur les packs.
 
 ## Les arbitrages
 
-1. **Gratuit et Freemium sont le même compte** *(équilibre)*. Un compte
-   gratuit n'a pas d'IA ; il devient « Freemium » dès qu'il a des crédits.
-   **5 crédits de bienvenue** à l'inscription : sans essai de l'IA, on ne
-   comprend pas Tiroir (83 % des premiers inscrits ont ajouté un objet).
-2. **Packs de crédits** *(équilibre)* : **20 crédits à 2,99 €**, **50
-   crédits à 5,99 €**. Un peu plus chers à l'unité que Premium, pour que
-   ceux qui en achètent souvent voient l'intérêt de l'abonnement. Achat
-   intégré (App Store, Google Play), commission des stores 15 %.
-3. **Les crédits achetés n'expirent pas** *(équilibre)*.
-4. **Premium « illimité, usage raisonnable »** *(équilibre)* : affiché
-   illimité, avec un plafond invisible de **200 unités par mois**. Au-delà,
-   un message propose le Pro ou des crédits ; jamais de coupure sans
-   explication.
-5. **Pro** : sur facture, sans commission des stores, plafond 300 unités
-   par mois (existant), relevable au cas par cas.
-6. **Les données appartiennent à leur propriétaire, dans toutes les
-   formules** *(équilibre)* : export complet (fiches, photos, documents)
-   pour tous. Le Pro y ajoute les exports pour assureur ou expert.
-7. **Les inscrits actuels** *(équilibre)* gardent leurs analyses gratuites
-   mensuelles jusqu'à la bascule, puis reçoivent **20 crédits offerts** une
-   fois. Prévenus par e-mail avant.
+1. **Gratuit et Freemium sont le même compte**. Un compte gratuit reçoit
+   **20 objets avec l'IA** à l'inscription (décision du fondateur) ; il
+   devient « Freemium » dès qu'il achète un pack.
+2. **Deux packs de crédits** (décision du fondateur) : **30 crédits à
+   4,99 €** et **80 crédits à 9,99 €**. Achat intégré (App Store, Google
+   Play). **Les crédits achetés n'expirent pas** *(équilibre)*.
+3. **Quand les packs ne suffisent plus, le Premium prend le relais** :
+   **49,99 €/mois**, affiché illimité, avec un plafond invisible de
+   **1 000 unités par mois** *(équilibre)*. Au-delà, un message propose le
+   Pro ; jamais de coupure sans explication.
+4. **Pro, pour les entreprises** : **sur devis**, facturé selon la
+   consommation de crédits IA, **à partir de 2 200 €/mois**. L'outil génère
+   le devis ; l'entreprise le signe en ligne (DocuSign ou autre signature
+   électronique) ou par un contrat classique. Pas de commission des stores.
+5. **Les données appartiennent à leur propriétaire, dans toutes les
+   formules** : export complet (fiches, photos, documents) pour tous.
+6. **Les abonnés actuels gardent leur prix** (6,99 €/mois) tant qu'ils
+   restent abonnés : Tiroir respecte les règles d'Apple et de Google sur les
+   changements de prix d'un abonnement en cours. Les nouveaux prix
+   s'appliquent aux nouveaux abonnements.
+7. **Les inscrits gratuits actuels** *(équilibre)* gardent leurs analyses
+   mensuelles jusqu'à la bascule, puis reçoivent **20 objets avec l'IA
+   offerts** une fois. Prévenus par e-mail avant.
+
+> Tant que le code n'a pas changé, l'app, la page Tarifs et les fiches de
+> Torix affichent encore l'ancienne grille (6,99 € et 29 €). Elles seront
+> mises à jour à la marche 5, avec le test `torixKnowledge.test.ts`.
 
 ## Ce que coûte un crédit
 
@@ -53,8 +61,9 @@ Un crédit = une unité du système actuel, déjà pondéré par le coût réel
 | Amélioration de photo (image générée) | 4 *(à confirmer)* |
 | Estimation de valeur (recherche web) | 8 *(à confirmer)* |
 
-Marge sur un pack de 20 crédits à 2,99 € : environ 2,12 € nets après TVA
-(20 %) et store (15 %), pour un coût IA de 3 à 15 centimes selon l'usage.
+Marge sur le petit pack (30 crédits à 4,99 €) : environ 3,54 € nets après
+TVA (20 %) et store (15 %), pour un coût IA de quelques centimes à 25
+centimes selon l'usage.
 
 ## Escalier de réalisation
 
@@ -66,9 +75,13 @@ Marge sur un pack de 20 crédits à 2,99 € : environ 2,12 € nets après TVA
    gratuit au lieu de son quota mensuel.
 3. **Achat** : deux produits consommables dans RevenueCat, App Store et
    Google Play ; le webhook crédite le compte.
-4. **Premium illimité** : plafond de 200 unités, message au-delà.
+4. **Premium illimité** : plafond de 1 000 unités, message au-delà ;
+   nouveaux produits d'abonnement à 49,99 € (les anciens restent actifs
+   pour les abonnés actuels).
 5. **Page Tarifs** et écran d'achat dans l'app.
-6. **Bascule des inscrits actuels** : e-mail, 20 crédits offerts.
+6. **Bascule des inscrits actuels** : e-mail, 20 objets avec l'IA offerts.
+7. **Devis Pro** : l'outil génère un devis selon la consommation prévue ;
+   signature électronique (DocuSign ou autre) ou contrat classique.
 
 À chaque marche : mise à jour des fiches de Torix
 (`web/components/torix/knowledge.ts`), exigée par le test
