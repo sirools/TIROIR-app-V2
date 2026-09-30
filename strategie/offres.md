@@ -12,11 +12,21 @@ compte premium), marge forte sur les packs. Les arbitrages marqués
 | **Petit pack** | 30 crédits | 4,99 € | ≈ 3,54 € |
 | **Grand pack** | 80 crédits | 9,99 € | ≈ 7,08 € |
 | **Premium** | IA illimitée, usage raisonnable | 49,99 €/mois | ≈ 35,40 € |
-| **Pro** | Sur devis, facturé selon la consommation de crédits IA | à partir de 2 200 €/mois | ≈ 1 833 € (sans store) |
+| **Pro** | Tout Tiroir, toute l'IA, 20 000 crédits inclus par mois ; au-delà 0,05 € HT le crédit | à partir de 1 700 € HT/mois | ≈ 1 500 € (socle, sans store) |
 
 \* Après TVA (20 %) et, pour les achats dans l'app, commission des stores
 (15 %). Coût IA : quelques centimes pour 30 fiches simples, soit une marge
 supérieure à 90 % sur les packs.
+
+## L'échelle : chaque palier donne envie du suivant
+
+- **Gratuit → Freemium** : les 20 objets offerts font découvrir l'IA ; pour
+  continuer sans s'engager, un petit pack suffit.
+- **Freemium → Premium** : dès qu'on rachète des packs souvent, le Premium
+  illimité revient moins cher.
+- **Premium → Pro** : quand l'usage devient professionnel (gros volumes,
+  équipe, facture, contrat), le Pro garantit tout, sans plafond, au prix
+  réel de la consommation.
 
 ## Les arbitrages
 
@@ -30,10 +40,18 @@ supérieure à 90 % sur les packs.
    **49,99 €/mois**, affiché illimité, avec un plafond invisible de
    **1 000 unités par mois** *(équilibre)*. Au-delà, un message propose le
    Pro ; jamais de coupure sans explication.
-4. **Pro, pour les entreprises** : **sur devis**, facturé selon la
-   consommation de crédits IA, **à partir de 2 200 €/mois**. L'outil génère
-   le devis ; l'entreprise le signe en ligne (DocuSign ou autre signature
-   électronique) ou par un contrat classique. Pas de commission des stores.
+4. **Pro, pour les entreprises** (décision du fondateur, 30/09/2026) :
+   **licence tout compris** (toute l'IA, tout Tiroir, accès garanti,
+   support prioritaire, export, devis et contrat), **socle de 1 700 € HT
+   par mois** incluant **20 000 crédits IA**, puis **0,05 € HT par crédit**
+   au-delà. Le prix suit ce que l'entreprise consomme vraiment : un crédit
+   coûte environ 1 centime d'IA, donc le socle en coûte environ 200 € et
+   chaque crédit en plus rapporte 5 fois son coût — jamais de perte sur un
+   gros client. Exemple : 50 000 crédits par mois → 1 700 € + 30 000 ×
+   0,05 € = 3 200 € HT. L'outil génère le devis à partir de la
+   consommation prévue ; l'entreprise le signe en ligne (DocuSign ou autre
+   signature électronique) ou par contrat classique. Pas de commission des
+   stores.
 5. **Les données appartiennent à leur propriétaire, dans toutes les
    formules** : export complet (fiches, photos, documents) pour tous.
 6. **Les abonnés actuels gardent leur prix** (6,99 €/mois) tant qu'ils
@@ -88,8 +106,10 @@ centimes selon l'usage.
    pour les abonnés actuels).
 5. **Page Tarifs** et écran d'achat dans l'app.
 6. **Bascule des inscrits actuels** : e-mail, 20 objets avec l'IA offerts.
-7. **Devis Pro** : l'outil génère un devis selon la consommation prévue ;
-   signature électronique (DocuSign ou autre) ou contrat classique.
+7. **Devis Pro** : l'outil génère un devis selon la consommation prévue
+   (socle 1 700 € HT avec 20 000 crédits, puis 0,05 € HT par crédit) ;
+   facture mensuelle au réel ; signature électronique (DocuSign ou autre)
+   ou contrat classique.
 
 À chaque marche : mise à jour des fiches de Torix
 (`web/components/torix/knowledge.ts`), exigée par le test
