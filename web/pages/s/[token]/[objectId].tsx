@@ -770,7 +770,8 @@ const styles = `
   .bento-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;
     margin-top: 20px;
-    align-items: start;
+    /* Cartes d'une même rangée à la même hauteur : une ligne nette. */
+    align-items: stretch;
   }
   .bento-card {
     background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px;
