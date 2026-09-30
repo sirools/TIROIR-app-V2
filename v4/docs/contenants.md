@@ -35,9 +35,8 @@ première** d'un objet (pour un vêtement : la matière, la fabrication).
 
 - Le **prix proposé par l'IA** tient compte de la matière et de l'**usure**,
   pour être à peu près juste.
-- **Gratuit jusqu'à une quinzaine d'objets** (décision du fondateur) : à
-  harmoniser avec `strategie/offres.md`, qui prévoit aujourd'hui 5 crédits
-  de bienvenue.
+- **Gratuit jusqu'à 20 objets** (décision du fondateur, 30/09/2026 ; grille
+  complète : `strategie/offres.md`).
 
 ## À décider au moment de coder
 

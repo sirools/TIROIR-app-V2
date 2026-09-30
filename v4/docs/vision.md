@@ -100,5 +100,5 @@ Plan détaillé : `docs/vente.md`.
 Décision du fondateur : le coffre garde ce qui a le plus de valeur ; le
 reste circule (vendre, réinvestir, revendre). Le prix proposé par l'IA
 remet en valeur la matière première et tient compte de l'usure ; gratuit
-jusqu'à une quinzaine d'objets. Premier outil : les contenants numérotés
+jusqu'à 20 objets. Premier outil : les contenants numérotés
 (`docs/contenants.md`).
