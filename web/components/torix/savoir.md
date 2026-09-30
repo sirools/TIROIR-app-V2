@@ -63,6 +63,12 @@
   à son retour, en vue d'une association ; brief :
   `strategie/brief-adrien-marketing.md`.
 
+- **Décision (30/09/2026)** — « Retrouver à la voix », né d'un cache-cache :
+  on retrouve un objet en avançant par étapes (la pièce, puis le meuble ou
+  le contenant, puis l'objet), avec des questions simples. L'assistant de
+  l'app (Nicolas ou Chloé) aidera ainsi les utilisateurs à se rappeler, à la
+  voix, où sont rangées leurs affaires. Plan : `v4/docs/contenants.md`.
+
 ## 5. Ce que j'ai appris
 
 - *À compléter par Clément : les leçons, les erreurs à ne pas refaire, ce
