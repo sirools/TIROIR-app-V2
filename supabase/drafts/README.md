@@ -7,7 +7,7 @@ appliquées, elles passent dans `supabase/migrations/` sous le nom
 
 | Brouillon | Pour quoi | Tests |
 | --- | --- | --- |
-| `ai_credits.sql` | Crédits IA, marche 1 : solde et journal (`strategie/offres.md`) | `tests/run.sh` (20 tests) |
+| ~~`ai_credits.sql`~~ | ✅ **En prod depuis le 30/09/2026** : `supabase/migrations/20260930080000_ai_credits.sql` | `tests/run.sh` (20 tests) |
 | `ai_credits_spend.sql` | Crédits IA, marches 2 et 2 bis : toute dépense IA (analyse, retouche, estimation) puise dans le quota puis dans les crédits ; remboursements réservés au serveur (trou fermé) | `tests/run.sh` (31 tests) |
 
 ## Tester
@@ -20,7 +20,7 @@ Sur une base Postgres **vide et jetable** (jamais la prod ni la preprod) :
 
 ## Appliquer en prod, dans l'ordre
 
-1. `ai_credits.sql` ;
+1. ✅ `ai_credits.sql` — fait (30/09/2026) ;
 2. `ai_credits_spend.sql` ;
 3. **aussitôt**, redéployer les fonctions `detect-scene`,
    `describe-object`, `chat-turn`, `enhance-object-photo`,
