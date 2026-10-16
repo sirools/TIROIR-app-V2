@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase, serverSupabase, signOutEverywhere } from '../lib/supabase'
 import { uploadAvatar, removeAvatar } from '../lib/avatar'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
+import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 
 interface Props {
   userId: string
@@ -237,6 +238,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
           </button>
         </section>
       </main>
+      <FooterTiroirWeb />
 
       {viewerOpen && photoUrl && (
         <div
@@ -266,8 +268,8 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
         }
 
         .page-hero { margin-bottom: 28px; }
-        .page-title { font-size: 28px; font-weight: 800; color: #1A1612; line-height: 1.2; }
-        .page-sub { font-size: 14px; color: #A89F96; margin-top: 6px; }
+        .page-title { font-size: 28px; font-weight: 800; color: var(--ink); line-height: 1.2; }
+        .page-sub { font-size: 14px; color: var(--text-tertiary); margin-top: 6px; }
 
         .card {
           background: #fff;
@@ -375,7 +377,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
           cursor: pointer;
         }
         .link-btn:disabled { opacity: 0.5; cursor: default; }
-        .link-btn--muted { color: #6B6158; }
+        .link-btn--muted { color: var(--muted); }
         .avatar {
           width: 56px;
           height: 56px;
@@ -392,8 +394,8 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
           font-size: 24px;
           font-weight: 800;
         }
-        .identity-name { font-size: 17px; font-weight: 800; color: #1A1612; margin: 0; }
-        .identity-email { font-size: 13px; color: #6B6158; margin: 4px 0 0; }
+        .identity-name { font-size: 17px; font-weight: 800; color: var(--ink); margin: 0; }
+        .identity-email { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
 
         .form { padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
         .label {
@@ -439,8 +441,8 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
           gap: 16px;
           padding: 6px 0;
         }
-        .meta-row dt { font-size: 14px; color: #6B6158; }
-        .meta-row dd { font-size: 14px; font-weight: 600; color: #1A1612; margin: 0; text-align: right; }
+        .meta-row dt { font-size: 14px; color: var(--muted); }
+        .meta-row dd { font-size: 14px; font-weight: 600; color: var(--ink); margin: 0; text-align: right; }
 
         .card--danger {
           margin-top: 20px;
@@ -450,8 +452,8 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
           gap: 16px;
           flex-wrap: wrap;
         }
-        .danger-title { font-size: 15px; font-weight: 700; color: #1A1612; margin: 0; }
-        .danger-sub { font-size: 13px; color: #6B6158; margin: 4px 0 0; }
+        .danger-title { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0; }
+        .danger-sub { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
         .signout-btn {
           padding: 10px 18px;
           border-radius: 10px;

@@ -73,7 +73,7 @@ export default function WishCard({ wish }: { wish: Wish }) {
         .card :global(.cover) {
           aspect-ratio: 1; position: relative;
           display: grid; place-items: center;
-          background: repeating-linear-gradient(135deg, #F7F3EE 0 10px, #F0EBE3 10px 20px);
+          background: repeating-linear-gradient(135deg, var(--beige-2) 0 10px, var(--border-light) 10px 20px);
         }
         .card :global(.cover-icon) { font-size: 44px; opacity: 0.55; }
         .card :global(.kind) {
@@ -81,14 +81,14 @@ export default function WishCard({ wish }: { wish: Wish }) {
           padding: 2px 8px; border-radius: 999px;
           font-size: 11px; font-weight: 700; line-height: 1.6;
         }
-        .card :global(.kind-idea) { background: #EDE7DF; color: #6B6158; }
+        .card :global(.kind-idea) { background: #EDE7DF; color: var(--muted); }
         .card :global(.kind-pending) { background: #FDE7D3; color: #B04E00; }
         .card :global(.body) { padding: 16px; display: flex; flex-direction: column; gap: 6px; opacity: 0.8; }
-        .card :global(.title) { font-size: 15px; font-weight: 600; color: #1A1612; line-height: 1.3; margin: 0; }
-        .card :global(.meta) { font-size: 12px; color: #6B6158; display: flex; gap: 6px; flex-wrap: wrap; margin: 0; }
+        .card :global(.title) { font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.3; margin: 0; }
+        .card :global(.meta) { font-size: 12px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; margin: 0; }
         .card :global(.price) { font-weight: 700; color: #F26900; }
-        .card :global(.sep) { color: #A89F96; }
-        .card :global(.author) { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6B6158; margin: 2px 0 0; }
+        .card :global(.sep) { color: var(--text-tertiary); }
+        .card :global(.author) { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin: 2px 0 0; }
       `}</style>
     </>
   )

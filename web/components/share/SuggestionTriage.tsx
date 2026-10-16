@@ -154,18 +154,18 @@ export default function SuggestionTriage({ pending, canUndo, busy, error, onDeci
 
       <style jsx>{`
         .triage {
-          background: #fff; border: 1px solid #E8E2DA; border-radius: 20px;
+          background: #fff; border: 1px solid var(--border); border-radius: 20px;
           padding: 20px; margin-bottom: 28px;
         }
         .head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-        .heading { font-size: 18px; font-weight: 800; color: #1A1612; margin: 0; display: flex; align-items: center; gap: 8px; }
+        .heading { font-size: 18px; font-weight: 800; color: var(--ink); margin: 0; display: flex; align-items: center; gap: 8px; }
         .count {
           display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 7px;
           border-radius: 999px; background: #F26900; color: #fff; font-size: 13px;
         }
         .undo {
-          background: none; border: 1px solid #E8E2DA; border-radius: 999px;
-          padding: 7px 14px; font-size: 13px; font-weight: 600; color: #1A1612; cursor: pointer;
+          background: none; border: 1px solid var(--border); border-radius: 999px;
+          padding: 7px 14px; font-size: 13px; font-weight: 600; color: var(--ink); cursor: pointer;
         }
         .undo:disabled { opacity: 0.4; cursor: default; }
         .stack { position: relative; height: 260px; max-width: 360px; margin: 0 auto; }
@@ -190,12 +190,12 @@ export default function SuggestionTriage({ pending, canUndo, busy, error, onDeci
         .stamp-keep { left: 16px; color: #15803D; border: 2px solid #15803D; transform: rotate(-10deg); }
         .stamp-dismiss { right: 16px; color: #B91C1C; border: 2px solid #B91C1C; transform: rotate(10deg); }
         .card-icon { font-size: 40px; }
-        .card-title { font-size: 20px; font-weight: 800; color: #1A1612; margin: 0; line-height: 1.25; }
+        .card-title { font-size: 20px; font-weight: 800; color: var(--ink); margin: 0; line-height: 1.25; }
         .card-meta { display: flex; gap: 10px; align-items: center; font-size: 14px; margin: 0; flex-wrap: wrap; justify-content: center; }
-        .card-meta a { color: #6B6158; }
+        .card-meta a { color: var(--muted); }
         .price { color: #F26900; }
-        .card-author { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1A1612; margin: 4px 0 0; }
-        .muted { color: #A89F96; }
+        .card-author { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); margin: 4px 0 0; }
+        .muted { color: var(--text-tertiary); }
         .actions { display: flex; justify-content: center; gap: 16px; margin-top: 20px; }
         .btn {
           min-width: 130px; padding: 12px 20px; border-radius: 999px;
@@ -203,12 +203,12 @@ export default function SuggestionTriage({ pending, canUndo, busy, error, onDeci
           background: #fff;
         }
         .btn:disabled { opacity: 0.5; cursor: default; }
-        .btn-dismiss { border-color: #E8E2DA; color: #6B6158; }
+        .btn-dismiss { border-color: var(--border); color: var(--muted); }
         .btn-dismiss:hover:not(:disabled) { border-color: #B91C1C; color: #B91C1C; }
         .btn-keep { border-color: #F26900; background: #F26900; color: #fff; }
         .btn-keep:hover:not(:disabled) { background: #D85E00; border-color: #D85E00; }
-        .help { text-align: center; font-size: 12px; color: #A89F96; margin: 10px 0 0; }
-        .done { font-size: 14px; color: #6B6158; margin: 0; }
+        .help { text-align: center; font-size: 12px; color: var(--text-tertiary); margin: 10px 0 0; }
+        .done { font-size: 14px; color: var(--muted); margin: 0; }
         .error { color: #C0392B; font-size: 13px; font-weight: 600; margin: 12px 0 0; text-align: center; }
       `}</style>
     </section>

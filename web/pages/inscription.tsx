@@ -188,7 +188,7 @@ const s: Record<string, React.CSSProperties> = {
   hint:        { fontSize: 12, color: '#999', marginTop: 2 },
   error:       { fontSize: 13, color: '#c0392b', background: '#fdf0ef', borderRadius: 8, padding: '8px 12px', marginTop: 4 },
   hintLink:    { display: 'inline-block', marginTop: 6, color: '#F26900', fontWeight: 700, textDecoration: 'none' },
-  sent:        { fontSize: 13, color: '#1A1612', background: '#FFF4E6', borderRadius: 8, padding: '10px 12px', marginTop: 4, lineHeight: 1.5 },
+  sent:        { fontSize: 13, color: 'var(--ink)', background: '#FFF4E6', borderRadius: 8, padding: '10px 12px', marginTop: 4, lineHeight: 1.5 },
   btn:         { marginTop: 12, padding: '13px 0', borderRadius: 12, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', textAlign: 'center' },
   switch:      { fontSize: 14, color: '#5b5b5b', marginTop: 20, textAlign: 'center' },
   switchLink:  { color: '#F26900', fontWeight: 600, textDecoration: 'none' },

@@ -3,6 +3,7 @@ import Head from 'next/head'
 import { useState } from 'react'
 import { supabase, serverSupabase, adminSupabase } from '../lib/supabase'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
+import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 
 interface ShareOptions {
   password_protected?: boolean
@@ -164,20 +165,20 @@ function ShareSettingsModal({
           background: #fff; border-radius: 20px; padding: 28px;
           width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
         }
-        .modal-title { font-size: 19px; font-weight: 800; color: #1A1612; }
-        .modal-sub { font-size: 13px; color: #A89F96; margin-top: 4px; margin-bottom: 20px; }
+        .modal-title { font-size: 19px; font-weight: 800; color: var(--ink); }
+        .modal-sub { font-size: 13px; color: var(--text-tertiary); margin-top: 4px; margin-bottom: 20px; }
         .field { margin-bottom: 20px; }
         .field-label {
-          display: block; font-size: 12px; font-weight: 700; color: #6B6158;
+          display: block; font-size: 12px; font-weight: 700; color: var(--muted);
           text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px;
         }
-        .segmented { display: flex; gap: 4px; padding: 4px; background: #F0EBE3; border-radius: 12px; }
+        .segmented { display: flex; gap: 4px; padding: 4px; background: var(--border-light); border-radius: 12px; }
         .segment {
           flex: 1; padding: 9px 12px; border-radius: 9px; border: 0; background: transparent;
-          color: #6B6158; font-size: 13px; font-weight: 600; cursor: pointer;
+          color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer;
           transition: background 0.15s, color 0.15s;
         }
-        .segment.active { background: #fff; color: #1A1612; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .segment.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
         .password-input {
           width: 100%; margin-top: 10px; padding: 11px 14px; border-radius: 12px;
           border: 1px solid rgba(0,0,0,0.12); font-size: 14px; box-sizing: border-box;
@@ -187,7 +188,7 @@ function ShareSettingsModal({
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
         .btn-ghost {
           padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.12);
-          background: transparent; color: #6B6158; font-size: 14px; font-weight: 600; cursor: pointer;
+          background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer;
         }
         .btn-primary {
           padding: 10px 18px; border-radius: 12px; border: 0;
@@ -290,6 +291,7 @@ export default function MesPartages({ shares: initialShares }: Props) {
           </div>
         )}
       </main>
+      <FooterTiroirWeb />
 
       {editingShare && (
         <ShareSettingsModal
@@ -309,8 +311,8 @@ export default function MesPartages({ shares: initialShares }: Props) {
           display: flex; align-items: flex-end; justify-content: space-between;
           flex-wrap: wrap; gap: 12px; margin-bottom: 28px;
         }
-        .page-title { font-size: 28px; font-weight: 800; color: #1A1612; line-height: 1.2; }
-        .page-sub { font-size: 14px; color: #A89F96; margin-top: 6px; }
+        .page-title { font-size: 28px; font-weight: 800; color: var(--ink); line-height: 1.2; }
+        .page-sub { font-size: 14px; color: var(--text-tertiary); margin-top: 6px; }
 
         .sort-btn {
           display: inline-flex; align-items: center; gap: 6px;
@@ -357,13 +359,13 @@ export default function MesPartages({ shares: initialShares }: Props) {
         }
         .card-body { min-width: 0; flex: 1; padding-right: 24px; }
         .card-title {
-          font-size: 15px; font-weight: 700; color: #1A1612;
+          font-size: 15px; font-weight: 700; color: var(--ink);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .card-meta { font-size: 13px; color: #6B6158; margin-top: 4px; }
-        .card-date { font-size: 12px; color: #A89F96; margin-top: 8px; }
+        .card-meta { font-size: 13px; color: var(--muted); margin-top: 4px; }
+        .card-date { font-size: 12px; color: var(--text-tertiary); margin-top: 8px; }
         .card-contact {
-          font-size: 12px; color: #6B6158; margin-top: 6px;
+          font-size: 12px; color: var(--muted); margin-top: 6px;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .badge-expired {
@@ -376,19 +378,19 @@ export default function MesPartages({ shares: initialShares }: Props) {
         .settings-btn {
           position: absolute; top: 14px; right: 14px;
           width: 30px; height: 30px; border-radius: 9px; border: 0;
-          background: #F7F3EE; font-size: 14px; cursor: pointer;
+          background: var(--beige-2); font-size: 14px; cursor: pointer;
           display: grid; place-items: center; flex-shrink: 0;
           transition: background 0.15s;
         }
-        .settings-btn:hover { background: #F0EBE3; }
+        .settings-btn:hover { background: var(--border-light); }
 
         .empty-state {
           display: flex; flex-direction: column; align-items: center;
           gap: 12px; padding: 80px 24px; text-align: center;
         }
         .empty-icon { font-size: 56px; }
-        .empty-title { font-size: 20px; font-weight: 800; color: #1A1612; }
-        .empty-sub { font-size: 14px; color: #6B6158; }
+        .empty-title { font-size: 20px; font-weight: 800; color: var(--ink); }
+        .empty-sub { font-size: 14px; color: var(--muted); }
       `}</style>
     </>
   )

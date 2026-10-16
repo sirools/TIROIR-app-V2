@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../../components/layout/HeaderTiroirWeb'
+import FooterTiroirWeb from '../../../components/layout/FooterTiroirWeb'
 import { hasSignedCookie } from '../../../lib/shareCookieSignature'
 import { serverSupabase } from '../../../lib/supabase'
 import { isLot, lotTotal } from '../../../lib/quantity'
@@ -115,7 +116,7 @@ const CONFIDENCE_LABEL: Record<string, string> = {
   low: 'Confiance faible', medium: 'Confiance moyenne', high: 'Confiance élevée',
 }
 const CONFIDENCE_COLOR: Record<string, string> = {
-  low: '#A89F96', medium: '#EA580C', high: '#16A34A',
+  low: 'var(--text-tertiary)', medium: '#EA580C', high: '#16A34A',
 }
 const BILLING_LABEL: Record<string, string> = {
   monthly: '/mois', yearly: '/an',
@@ -307,6 +308,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
               <Link href={`/s/${token}`} legacyBehavior passHref><a className="cta-btn">Retour au partage</a></Link>
             </div>
           </main>
+          <FooterTiroirWeb />
           <style jsx>{`${styles}`}</style>
         </div>
       </>
@@ -326,6 +328,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
               <Link href="/" legacyBehavior passHref><a className="cta-btn">Découvrir TiROiR</a></Link>
             </div>
           </main>
+          <FooterTiroirWeb />
           <style jsx>{`${styles}`}</style>
         </div>
       </>
@@ -539,7 +542,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
                           <div className="estimation-head">
                             <span className="estimation-title">Estimation IA</span>
                             {vs?.confidence && (
-                              <span className="conf-badge" style={{ color: CONFIDENCE_COLOR[vs.confidence] ?? '#A89F96' }}>
+                              <span className="conf-badge" style={{ color: CONFIDENCE_COLOR[vs.confidence] ?? 'var(--text-tertiary)' }}>
                                 {CONFIDENCE_LABEL[vs.confidence] ?? vs.confidence}
                               </span>
                             )}
@@ -679,6 +682,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
             <p className="page-meta">Ajouté le {addedDate}</p>
           )}
         </main>
+        <FooterTiroirWeb />
 
         <footer className="footer">
           <Link href="/privacy" legacyBehavior passHref><a className="footer-link">Politique de confidentialité</a></Link>
@@ -703,13 +707,13 @@ const styles = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
   .root {
     min-height: 100vh;
-    background: #F7F3EE;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color: #1A1612;
+    background: var(--beige-2);
+    font-family: var(--font-body);
+    color: var(--ink);
     display: flex; flex-direction: column;
   }
   .back-link {
-    display: inline-block; font-size: 14px; color: #6B6158; text-decoration: none;
+    display: inline-block; font-size: 14px; color: var(--muted); text-decoration: none;
     font-weight: 600; margin-bottom: 20px;
   }
   .back-link:hover { color: #F26900; }
@@ -728,7 +732,7 @@ const styles = `
   .hero-gallery { display: flex; flex-direction: column; gap: 10px; }
   .gallery-main {
     width: 100%; aspect-ratio: 4/3; border-radius: 14px; overflow: hidden;
-    background: #F0EBE3; display: grid; place-items: center;
+    background: var(--border-light); display: grid; place-items: center;
   }
   .gallery-img { width: 100%; height: 100%; object-fit: cover; }
   .gallery-placeholder { font-size: 64px; }
@@ -736,7 +740,7 @@ const styles = `
   .thumb {
     width: 56px; height: 56px; border-radius: 10px; overflow: hidden;
     border: 2px solid transparent; padding: 0; cursor: pointer; flex-shrink: 0;
-    background: #F0EBE3;
+    background: var(--border-light);
   }
   .thumb.active { border-color: #F26900; }
   .thumb img { width: 100%; height: 100%; object-fit: cover; }
@@ -746,16 +750,16 @@ const styles = `
   .detail-title { font-size: 26px; font-weight: 800; line-height: 1.25; }
   .status-row { display: flex; align-items: center; gap: 6px; flex-shrink: 0; padding-top: 6px; }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .status-label { font-size: 13px; color: #6B6158; font-weight: 600; }
-  .location { font-size: 13px; color: #A89F96; }
+  .status-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .location { font-size: 13px; color: var(--text-tertiary); }
   .description { font-size: 15px; color: #4A443E; line-height: 1.6; }
 
   .value-block {
     display: flex; flex-direction: column; gap: 4px;
-    margin-top: 4px; padding-top: 18px; border-top: 1px solid #F0EBE3;
+    margin-top: 4px; padding-top: 18px; border-top: 1px solid var(--border-light);
   }
   .value-label {
-    font-size: 12px; font-weight: 700; color: #A89F96;
+    font-size: 12px; font-weight: 700; color: var(--text-tertiary);
     text-transform: uppercase; letter-spacing: 0.6px;
   }
   .value-amount-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
@@ -763,8 +767,8 @@ const styles = `
   .value-diff { font-size: 13px; font-weight: 700; }
   .value-diff.up { color: #16A34A; }
   .value-diff.down { color: #DC2626; }
-  .value-lot { font-size: 13px; font-weight: 600; color: #6B6158; }
-  .value-meta { font-size: 12px; color: #A89F96; }
+  .value-lot { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .value-meta { font-size: 12px; color: var(--text-tertiary); }
 
   /* ── Bento : cartes de détail ── */
   .bento-grid {
@@ -779,36 +783,36 @@ const styles = `
     padding: 24px;
   }
   .section-title {
-    font-size: 12px; font-weight: 700; color: #A89F96;
+    font-size: 12px; font-weight: 700; color: var(--text-tertiary);
     text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px;
   }
 
   .attrs-list, .docs-list { display: flex; flex-direction: column; }
   .attr-row { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0; gap: 12px; }
-  .attr-row.sep { border-top: 1px solid #F0EBE3; }
+  .attr-row.sep { border-top: 1px solid var(--border-light); }
   .attr-key-wrap { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .attr-key { font-size: 13px; color: #A89F96; font-weight: 600; }
+  .attr-key { font-size: 13px; color: var(--text-tertiary); font-weight: 600; }
   .attr-sub { font-size: 11px; color: #C4BBB1; }
-  .attr-val { font-size: 14px; color: #1A1612; font-weight: 500; text-align: right; }
+  .attr-val { font-size: 14px; color: var(--ink); font-weight: 500; text-align: right; }
   .attr-val.strong { font-weight: 700; }
 
   /* ── Détail estimation IA ── */
   .estimation-detail {
-    margin-top: 14px; padding-top: 16px; border-top: 1px solid #F0EBE3;
+    margin-top: 14px; padding-top: 16px; border-top: 1px solid var(--border-light);
     display: flex; flex-direction: column; gap: 8px;
   }
   .estimation-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .estimation-title {
-    font-size: 11px; font-weight: 700; color: #A89F96;
+    font-size: 11px; font-weight: 700; color: var(--text-tertiary);
     text-transform: uppercase; letter-spacing: 0.5px;
   }
   .conf-badge { font-size: 12px; font-weight: 700; }
   .estimation-range { font-size: 13px; color: #4A443E; font-weight: 600; }
-  .estimation-summary { font-size: 13px; color: #6B6158; line-height: 1.55; }
+  .estimation-summary { font-size: 13px; color: var(--muted); line-height: 1.55; }
   .sources-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
   .source-link { text-decoration: none; }
   .source-chip {
-    display: inline-block; font-size: 12px; color: #6B6158; font-weight: 600;
+    display: inline-block; font-size: 12px; color: var(--muted); font-weight: 600;
     background: #F4EFE8; border-radius: 999px; padding: 4px 10px;
   }
   .source-link:hover .source-chip { background: #F26900; color: #fff; }
@@ -816,19 +820,19 @@ const styles = `
   /* ── Assurances ── */
   .ins-list { display: flex; flex-direction: column; }
   .ins-item { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; }
-  .ins-item.sep { border-top: 1px solid #F0EBE3; }
+  .ins-item.sep { border-top: 1px solid var(--border-light); }
   .ins-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-  .ins-label { font-size: 14px; font-weight: 700; color: #1A1612; }
-  .ins-price { font-size: 14px; font-weight: 700; color: #1A1612; white-space: nowrap; }
-  .ins-period { font-size: 12px; font-weight: 600; color: #A89F96; }
+  .ins-label { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .ins-price { font-size: 14px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .ins-period { font-size: 12px; font-weight: 600; color: var(--text-tertiary); }
   .ins-meta { display: flex; flex-wrap: wrap; gap: 6px; }
   .ins-tag {
-    font-size: 12px; color: #6B6158; font-weight: 600;
+    font-size: 12px; color: var(--muted); font-weight: 600;
     background: #F4EFE8; border-radius: 999px; padding: 3px 9px;
   }
-  .ins-docs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #F0EBE3; }
+  .ins-docs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-light); }
   .ins-doc-chip {
-    font-size: 12px; color: #6B6158; font-weight: 600; text-decoration: none;
+    font-size: 12px; color: var(--muted); font-weight: 600; text-decoration: none;
     background: #F4EFE8; border-radius: 999px; padding: 5px 11px;
   }
   .ins-doc-chip:hover { background: #F26900; color: #fff; }
@@ -839,12 +843,12 @@ const styles = `
     display: flex; align-items: center; gap: 12px; padding: 12px 0;
     text-decoration: none; color: inherit;
   }
-  .doc-row.sep { border-top: 1px solid #F0EBE3; }
+  .doc-row.sep { border-top: 1px solid var(--border-light); }
   .doc-row:hover .doc-name { color: #F26900; }
   .doc-icon { font-size: 22px; }
   .doc-info { display: flex; flex-direction: column; gap: 2px; }
-  .doc-name { font-size: 14px; font-weight: 600; color: #1A1612; transition: color 0.15s; }
-  .doc-type { font-size: 12px; color: #A89F96; }
+  .doc-name { font-size: 14px; font-weight: 600; color: var(--ink); transition: color 0.15s; }
+  .doc-type { font-size: 12px; color: var(--text-tertiary); }
 
   .error-state {
     display: flex; flex-direction: column; align-items: center;
@@ -860,11 +864,11 @@ const styles = `
 
   .footer {
     display: flex; align-items: center; justify-content: center;
-    gap: 8px; padding: 20px; border-top: 1px solid #E8E2DA;
+    gap: 8px; padding: 20px; border-top: 1px solid var(--border);
   }
-  .footer-link { font-size: 12px; color: #A89F96; text-decoration: underline; }
-  .footer-sep { font-size: 12px; color: #A89F96; }
-  .footer-copy { font-size: 12px; color: #A89F96; }
+  .footer-link { font-size: 12px; color: var(--text-tertiary); text-decoration: underline; }
+  .footer-sep { font-size: 12px; color: var(--text-tertiary); }
+  .footer-copy { font-size: 12px; color: var(--text-tertiary); }
 
   @media (max-width: 800px) {
     .hero-card { grid-template-columns: 1fr; padding: 20px; gap: 20px; }
