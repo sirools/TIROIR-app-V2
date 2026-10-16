@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { useState, type FormEvent } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../../../components/layout/HeaderTiroirWeb'
+import FooterTiroirWeb from '../../../../components/layout/FooterTiroirWeb'
 import { hasSignedCookie } from '../../../../lib/shareCookieSignature'
 import { firstNameOf } from '../../../../lib/suggestions'
 import { buildSaleSheet, parseOffer, type SaleInput, type SaleSheet } from '../../../../lib/saleSheet'
@@ -112,6 +113,7 @@ export default function SalePrototype({ token, objectId, title, description, ima
         <main className="wrap"><p className="muted">{text}</p>
           <Link href={`/s/${token}`} legacyBehavior passHref><a className="link">← Retour au partage</a></Link>
         </main>
+        <FooterTiroirWeb />
         <style jsx>{styles}</style>
       </>
     )
@@ -229,6 +231,7 @@ export default function SalePrototype({ token, objectId, title, description, ima
           </div>
         </section>
       </main>
+      <FooterTiroirWeb />
 
       {!sheet.sold && (
         <div className="bar">

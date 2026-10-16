@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useReducer, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
+import FooterTiroirWeb from '../../components/layout/FooterTiroirWeb'
 import WishCard from '../../components/share/WishCard'
 import SuggestModal, { type SuggestStep } from '../../components/share/SuggestModal'
 import { SUGGEST_PARAM } from '../../lib/authFlow'
@@ -341,8 +342,8 @@ function PasswordForm({ token }: { token: string }) {
           gap: 8px; padding: 80px 24px; text-align: center;
         }
         .password-icon { font-size: 48px; margin-bottom: 8px; }
-        .password-title { font-size: 24px; font-weight: 800; color: #1A1612; }
-        .password-sub { font-size: 14px; color: #6B6158; margin-bottom: 16px; }
+        .password-title { font-size: 24px; font-weight: 800; color: var(--ink); }
+        .password-sub { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
         .password-form { display: flex; gap: 8px; width: 100%; max-width: 360px; }
         .password-input {
           flex: 1; padding: 12px 14px; border-radius: 12px;
@@ -564,13 +565,14 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
           <main className="main">
             <PasswordForm token={token} />
           </main>
+          <FooterTiroirWeb />
         </div>
         <style jsx>{`
           .root {
             min-height: 100vh;
-            background: #F7F3EE;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: #1A1612;
+            background: var(--beige-2);
+            font-family: var(--font-body);
+            color: var(--ink);
             display: flex; flex-direction: column;
           }
           .main { flex: 1; max-width: 1200px; margin: 0 auto; padding: 32px 24px; width: 100%; box-sizing: border-box; }
@@ -920,6 +922,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
             </>
           )}
         </main>
+        <FooterTiroirWeb />
 
         {suggestStep && (
           <SuggestModal
@@ -943,9 +946,9 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
         * { box-sizing: border-box; margin: 0; padding: 0; }
         .root {
           min-height: 100vh;
-          background: #F7F3EE;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          color: #1A1612;
+          background: var(--beige-2);
+          font-family: var(--font-body);
+          color: var(--ink);
           display: flex; flex-direction: column;
         }
 
@@ -954,7 +957,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
 
         .back-link {
           background: none; border: 0; cursor: pointer; padding: 0;
-          font-size: 14px; font-weight: 600; color: #6B6158;
+          font-size: 14px; font-weight: 600; color: var(--muted);
           margin-bottom: 20px;
         }
         .back-link:hover { color: #F26900; }
@@ -964,13 +967,13 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
           display: flex; align-items: flex-end; justify-content: space-between;
           gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
         }
-        .page-title { font-size: 28px; font-weight: 800; color: #1A1612; line-height: 1.2; }
+        .page-title { font-size: 28px; font-weight: 800; color: var(--ink); line-height: 1.2; }
         .expiry {
           margin: 6px 0 0; font-size: 13px; font-weight: 600;
-          color: #6B6158;
+          color: var(--muted);
         }
         .expiry.urgent { color: #C2410C; }
-        .page-sub { font-size: 14px; color: #A89F96; margin-top: 6px; }
+        .page-sub { font-size: 14px; color: var(--text-tertiary); margin-top: 6px; }
 
         /* Suggestions */
         .hero-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -989,27 +992,27 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
         /* View toggle */
         .view-toggle {
           display: flex; gap: 4px; padding: 4px;
-          background: #F0EBE3; border-radius: 12px; flex-shrink: 0;
+          background: var(--border-light); border-radius: 12px; flex-shrink: 0;
         }
         .view-btn {
           padding: 8px 14px; border-radius: 9px; border: 0; background: transparent;
-          color: #6B6158; font-size: 13px; font-weight: 600; cursor: pointer;
+          color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer;
           transition: background 0.15s, color 0.15s;
         }
-        .view-btn:hover { color: #1A1612; }
-        .view-btn.active { background: #fff; color: #1A1612; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .view-btn:hover { color: var(--ink); }
+        .view-btn.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
 
         /* Table view — scroll horizontal pour absorber toutes les colonnes */
         .table-wrap {
-          background: #fff; border-radius: 16px; border: 1px solid #E8E2DA;
+          background: #fff; border-radius: 16px; border: 1px solid var(--border);
           overflow-x: auto; overflow-y: hidden; margin-bottom: 32px;
           -webkit-overflow-scrolling: touch;
         }
         .table { width: 100%; border-collapse: collapse; }
         .table th {
-          text-align: left; font-size: 12px; font-weight: 700; color: #A89F96;
+          text-align: left; font-size: 12px; font-weight: 700; color: var(--text-tertiary);
           text-transform: uppercase; letter-spacing: 0.4px;
-          padding: 14px 16px; border-bottom: 1px solid #E8E2DA; background: #FBF9F6;
+          padding: 14px 16px; border-bottom: 1px solid var(--border); background: #FBF9F6;
           white-space: nowrap;
         }
         .th-cover { width: 64px; }
@@ -1019,8 +1022,8 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
         .th-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
         .th-sortable:hover { color: #F26900; }
         .table td {
-          padding: 12px 16px; border-bottom: 1px solid #F0EBE3;
-          font-size: 14px; color: #1A1612; vertical-align: middle;
+          padding: 12px 16px; border-bottom: 1px solid var(--border-light);
+          font-size: 14px; color: var(--ink); vertical-align: middle;
         }
         .table tbody tr { cursor: pointer; transition: background 0.15s; }
         .table tbody tr:hover { background: #FBF9F6; }
@@ -1028,21 +1031,21 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
         .td-cover { width: 64px; }
         .row-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; display: block; }
         .row-thumb-placeholder {
-          width: 44px; height: 44px; border-radius: 8px; background: #F0EBE3;
+          width: 44px; height: 44px; border-radius: 8px; background: var(--border-light);
           display: grid; place-items: center; font-size: 18px;
         }
         .td-title { font-weight: 600; white-space: nowrap; }
-        .td-muted { color: #6B6158; }
+        .td-muted { color: var(--muted); }
         .td-nowrap { white-space: nowrap; }
         .td-attr {
-          color: #1A1612; max-width: 200px;
+          color: var(--ink); max-width: 200px;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
-        .td-center { text-align: center; color: #6B6158; }
+        .td-center { text-align: center; color: var(--muted); }
         /* La quantité se lit comme un compte, pas comme un montant. */
-        .td-qty { font-variant-numeric: tabular-nums; font-weight: 600; color: #1A1612; }
+        .td-qty { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); }
         .td-description {
-          color: #6B6158; max-width: 280px;
+          color: var(--muted); max-width: 280px;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .td-value { text-align: right; font-weight: 700; color: #F26900; white-space: nowrap; }
@@ -1051,8 +1054,8 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
           -webkit-appearance: checkbox; appearance: auto;
           width: 16px; height: 16px; cursor: pointer; accent-color: #F26900;
         }
-        .total-row td { background: #FBF9F6; border-top: 2px solid #E8E2DA; border-bottom: 0; }
-        .td-total-label { text-align: right; font-weight: 700; color: #6B6158; text-transform: uppercase; font-size: 12px; letter-spacing: 0.4px; white-space: nowrap; }
+        .total-row td { background: #FBF9F6; border-top: 2px solid var(--border); border-bottom: 0; }
+        .td-total-label { text-align: right; font-weight: 700; color: var(--muted); text-transform: uppercase; font-size: 12px; letter-spacing: 0.4px; white-space: nowrap; }
         .td-total-value { font-size: 15px; }
 
         /* Grid */
@@ -1070,7 +1073,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
         .card {
           background: #fff;
           border-radius: 16px;
-          border: 1px solid #E8E2DA;
+          border: 1px solid var(--border);
           overflow: hidden;
           cursor: pointer;
           transition: box-shadow 0.15s, transform 0.15s;
@@ -1079,7 +1082,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
           box-shadow: 0 4px 20px rgba(0,0,0,0.08);
           transform: translateY(-2px);
         }
-        .card-cover { aspect-ratio: 1; overflow: hidden; background: #F0EBE3; position: relative; }
+        .card-cover { aspect-ratio: 1; overflow: hidden; background: var(--border-light); position: relative; }
         .qty-badge {
           position: absolute; top: 8px; right: 8px;
           padding: 2px 7px; border-radius: 999px;
@@ -1093,12 +1096,12 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
           font-size: 48px;
         }
         .card-body { padding: 16px; display: flex; flex-direction: column; gap: 6px; }
-        .card-title { font-size: 15px; font-weight: 600; color: #1A1612; line-height: 1.3; }
+        .card-title { font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.3; }
         .status-row { display: flex; align-items: center; gap: 6px; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .status-label { font-size: 12px; color: #6B6158; }
-        .location { font-size: 12px; color: #A89F96; }
-        .description { font-size: 13px; color: #6B6158; line-height: 1.5;
+        .status-label { font-size: 12px; color: var(--muted); }
+        .location { font-size: 12px; color: var(--text-tertiary); }
+        .description { font-size: 13px; color: var(--muted); line-height: 1.5;
           display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
           overflow: hidden; }
 
@@ -1121,20 +1124,20 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
         .export-shortcuts { display: flex; align-items: center; gap: 8px; }
         .text-link {
           background: none; border: 0; padding: 0; cursor: pointer;
-          font-size: 13px; font-weight: 600; color: #6B6158; text-decoration: underline;
+          font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: underline;
         }
         .text-link:hover { color: #F26900; }
-        .dot-sep { color: #A89F96; font-size: 13px; }
+        .dot-sep { color: var(--text-tertiary); font-size: 13px; }
         .export-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center; }
-        .export-count { font-size: 14px; color: #1A1612; font-weight: 600; }
+        .export-count { font-size: 14px; color: var(--ink); font-weight: 600; }
 
         /* App CTA */
         .app-cta {
-          background: #fff; border-radius: 20px; border: 1px solid #E8E2DA;
+          background: #fff; border-radius: 20px; border: 1px solid var(--border);
           padding: 40px 24px; text-align: center; margin-bottom: 32px;
         }
-        .app-cta-title { font-size: 22px; font-weight: 800; color: #1A1612; }
-        .app-cta-sub { font-size: 14px; color: #6B6158; margin: 8px 0 20px; }
+        .app-cta-title { font-size: 22px; font-weight: 800; color: var(--ink); }
+        .app-cta-sub { font-size: 14px; color: var(--muted); margin: 8px 0 20px; }
         .cta-btn {
           display: inline-block;
           background: #F26900; color: white;
@@ -1150,18 +1153,18 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
           gap: 16px; padding: 80px 24px; text-align: center;
         }
         .error-icon { font-size: 56px; }
-        .error-title { font-size: 26px; font-weight: 800; color: #1A1612; }
-        .error-sub { font-size: 15px; color: #6B6158; max-width: 340px; line-height: 1.5; }
+        .error-title { font-size: 26px; font-weight: 800; color: var(--ink); }
+        .error-sub { font-size: 15px; color: var(--muted); max-width: 340px; line-height: 1.5; }
 
         /* Footer */
         .footer {
           display: flex; align-items: center; justify-content: center;
           gap: 8px; padding: 20px;
-          border-top: 1px solid #E8E2DA;
+          border-top: 1px solid var(--border);
         }
-        .footer-link { font-size: 12px; color: #A89F96; text-decoration: underline; }
-        .footer-sep { font-size: 12px; color: #A89F96; }
-        .footer-copy { font-size: 12px; color: #A89F96; }
+        .footer-link { font-size: 12px; color: var(--text-tertiary); text-decoration: underline; }
+        .footer-sep { font-size: 12px; color: var(--text-tertiary); }
+        .footer-copy { font-size: 12px; color: var(--text-tertiary); }
 
         @media (max-width: 600px) {
           .grid { gap: 12px; }

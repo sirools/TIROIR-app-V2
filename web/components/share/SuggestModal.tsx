@@ -129,17 +129,17 @@ export default function SuggestModal({ token, initialStep, onClose, onCreated }:
           position: relative; width: 100%; max-width: 420px;
           background: #fff; border-radius: 20px; padding: 28px 24px 24px;
           box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-family: var(--font-body);
         }
         .close {
           position: absolute; top: 10px; right: 14px;
-          background: none; border: 0; font-size: 26px; color: #A89F96; cursor: pointer;
+          background: none; border: 0; font-size: 26px; color: var(--text-tertiary); cursor: pointer;
         }
-        .heading { font-size: 20px; font-weight: 800; color: #1A1612; margin: 0 0 8px; }
-        .hint { font-size: 13px; color: #6B6158; line-height: 1.5; margin: 0 0 4px; }
+        .heading { font-size: 20px; font-weight: 800; color: var(--ink); margin: 0 0 8px; }
+        .hint { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 4px; }
         .form { display: flex; flex-direction: column; gap: 12px; }
-        .label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #1A1612; }
-        .optional { font-weight: 400; color: #A89F96; }
+        .label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
+        .optional { font-weight: 400; color: var(--text-tertiary); }
         .input {
           padding: 12px 14px; border-radius: 12px;
           border: 1px solid rgba(0,0,0,0.12); font-size: 15px; font-family: inherit;

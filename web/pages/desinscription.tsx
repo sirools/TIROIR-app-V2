@@ -48,12 +48,12 @@ export default function Desinscription({ statut }: Props) {
 
       <main style={{
         minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        backgroundColor: '#F7F3EE', padding: 24,
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif",
+        backgroundColor: 'var(--beige-2)', padding: 24,
+        fontFamily: 'var(--font-body)',
       }}>
         <div style={{
-          maxWidth: 460, width: '100%', backgroundColor: '#FFFFFF',
-          border: '1px solid #E8E2DA', borderRadius: 16, padding: 40, textAlign: 'center',
+          maxWidth: 460, width: '100%', backgroundColor: 'var(--white)',
+          border: '1px solid var(--border)', borderRadius: 16, padding: 40, textAlign: 'center',
         }}>
           <img
             src="/icons/app-icon.png" alt="Tiroir" width={44} height={44}
@@ -62,13 +62,13 @@ export default function Desinscription({ statut }: Props) {
 
           {statut === 'ok' ? (
             <>
-              <h1 style={{ margin: '0 0 12px', fontSize: 24, fontWeight: 700, color: '#1A1612', letterSpacing: '-0.4px' }}>
+              <h1 style={{ margin: '0 0 12px', fontSize: 24, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.4px' }}>
                 C’est fait.
               </h1>
-              <p style={{ margin: '0 0 8px', fontSize: 16, lineHeight: '26px', color: '#6B6158' }}>
+              <p style={{ margin: '0 0 8px', fontSize: 16, lineHeight: '26px', color: 'var(--muted)' }}>
                 Vous ne recevrez plus d’e-mails de Tiroir.
               </p>
-              <p style={{ margin: 0, fontSize: 15, lineHeight: '24px', color: '#A89F96' }}>
+              <p style={{ margin: 0, fontSize: 15, lineHeight: '24px', color: 'var(--text-tertiary)' }}>
                 Votre compte et vos objets ne sont pas touchés&nbsp;: seuls les envois s’arrêtent.
                 Les messages liés à votre compte — réinitialisation de mot de passe, partage reçu —
                 continuent d’arriver.
@@ -76,13 +76,13 @@ export default function Desinscription({ statut }: Props) {
             </>
           ) : (
             <>
-              <h1 style={{ margin: '0 0 12px', fontSize: 24, fontWeight: 700, color: '#1A1612', letterSpacing: '-0.4px' }}>
+              <h1 style={{ margin: '0 0 12px', fontSize: 24, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.4px' }}>
                 Vous êtes bien désinscrit·e
               </h1>
-              <p style={{ margin: '0 0 8px', fontSize: 16, lineHeight: '26px', color: '#6B6158' }}>
+              <p style={{ margin: '0 0 8px', fontSize: 16, lineHeight: '26px', color: 'var(--muted)' }}>
                 Ce lien a peut-être déjà été utilisé, ou il est incomplet.
               </p>
-              <p style={{ margin: 0, fontSize: 15, lineHeight: '24px', color: '#A89F96' }}>
+              <p style={{ margin: 0, fontSize: 15, lineHeight: '24px', color: 'var(--text-tertiary)' }}>
                 Dans tous les cas, plus rien ne partira de notre côté. Si un message vous parvenait
                 malgré tout, répondez-y&nbsp;: quelqu’un le lira.
               </p>
@@ -91,7 +91,7 @@ export default function Desinscription({ statut }: Props) {
 
           <a href="https://www.tiroir.app" style={{
             display: 'inline-block', marginTop: 28, fontSize: 15, fontWeight: 600,
-            color: '#F26900', textDecoration: 'none',
+            color: 'var(--orange)', textDecoration: 'none',
           }}>
             Retour sur tiroir.app
           </a>

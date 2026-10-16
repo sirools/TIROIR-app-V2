@@ -52,11 +52,11 @@ export default function SuggestionsToggle({ collectionId, collectionName, enable
       <style jsx>{`
         .box {
           display: flex; align-items: center; justify-content: space-between; gap: 16px;
-          background: #fff; border: 1px solid #E8E2DA; border-radius: 16px;
+          background: #fff; border: 1px solid var(--border); border-radius: 16px;
           padding: 14px 18px; margin-bottom: 20px;
         }
-        .title { font-size: 14px; font-weight: 700; color: #1A1612; margin: 0; }
-        .sub { font-size: 13px; color: #6B6158; margin: 2px 0 0; line-height: 1.45; }
+        .title { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0; }
+        .sub { font-size: 13px; color: var(--muted); margin: 2px 0 0; line-height: 1.45; }
         .error { color: #C0392B; font-size: 13px; font-weight: 600; margin: 6px 0 0; }
         .switch {
           position: relative; flex-shrink: 0; width: 46px; height: 28px; border-radius: 999px;

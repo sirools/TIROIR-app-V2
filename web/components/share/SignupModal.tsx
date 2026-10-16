@@ -38,26 +38,26 @@ export default function SignupModal({ token, onClose }: { token: string; onClose
           position: relative; width: 100%; max-width: 380px;
           background: #fff; border-radius: 20px; padding: 32px 24px 24px;
           text-align: center; display: flex; flex-direction: column; gap: 10px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-family: var(--font-body);
         }
         .close {
           position: absolute; top: 10px; right: 14px;
-          background: none; border: 0; font-size: 26px; color: #A89F96; cursor: pointer;
+          background: none; border: 0; font-size: 26px; color: var(--text-tertiary); cursor: pointer;
         }
         .icon { font-size: 40px; }
-        .heading { font-size: 20px; font-weight: 800; color: #1A1612; margin: 0; }
-        .text { font-size: 14px; color: #6B6158; line-height: 1.5; margin: 0; }
-        .soon { font-size: 12px; color: #A89F96; margin: 0 0 8px; }
+        .heading { font-size: 20px; font-weight: 800; color: var(--ink); margin: 0; }
+        .text { font-size: 14px; color: var(--muted); line-height: 1.5; margin: 0; }
+        .soon { font-size: 12px; color: var(--text-tertiary); margin: 0 0 8px; }
         .primary {
           display: block; padding: 13px 20px; border-radius: 999px;
           background: #F26900; color: #fff; font-weight: 700; font-size: 15px; text-decoration: none;
         }
         .ghost {
           display: block; padding: 12px 20px; border-radius: 999px;
-          border: 1px solid rgba(26, 22, 18, 0.14); color: #1A1612;
+          border: 1px solid rgba(26, 22, 18, 0.14); color: var(--ink);
           font-weight: 700; font-size: 15px; text-decoration: none;
         }
-        .secondary { background: none; border: 0; color: #6B6158; font-weight: 600; font-size: 14px; cursor: pointer; padding: 8px; }
+        .secondary { background: none; border: 0; color: var(--muted); font-weight: 600; font-size: 14px; cursor: pointer; padding: 8px; }
       `}</style>
     </div>
   )

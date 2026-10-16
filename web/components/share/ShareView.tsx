@@ -66,17 +66,17 @@ function ObjectCard({ obj, slug }: { obj: any; slug: string }) {
   return (
     <div
       onClick={() => router.push(`/share/o/${slug}/${obj.id}`)}
-      style={{ width: 260, cursor: 'pointer', borderRadius: 16, overflow: 'hidden', border: '1px solid #E8E2DA', background: '#fff' }}
+      style={{ width: 260, cursor: 'pointer', borderRadius: 16, overflow: 'hidden', border: '1px solid var(--border)', background: '#fff' }}
     >
       {imageUrl
         ? <img src={imageUrl} alt={obj.title} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
-        : <div style={{ width: '100%', aspectRatio: '1', background: '#F0EBE3', display: 'grid', placeItems: 'center', fontSize: 40 }}>📦</div>
+        : <div style={{ width: '100%', aspectRatio: '1', background: 'var(--border-light)', display: 'grid', placeItems: 'center', fontSize: 40 }}>📦</div>
       }
       <div style={{ padding: 16 }}>
-        <div style={{ fontWeight: 600, fontSize: 15, color: '#1A1612', marginBottom: 4 }}>{obj.title}</div>
-        {obj.status && <div style={{ fontSize: 12, color: '#6B6158' }}>{obj.status}</div>}
+        <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)', marginBottom: 4 }}>{obj.title}</div>
+        {obj.status && <div style={{ fontSize: 12, color: 'var(--muted)' }}>{obj.status}</div>}
         {obj.description && (
-          <div style={{ fontSize: 13, color: '#6B6158', marginTop: 6, lineHeight: 1.5,
+          <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6, lineHeight: 1.5,
             display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {obj.description}
           </div>
