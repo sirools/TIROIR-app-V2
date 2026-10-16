@@ -26,6 +26,23 @@ export const OFFERS = {
   legacyPremiumTtc: 6.99,
 } as const
 
+// Grille V4, affichée par la page Tarifs du site (textes de la page Notion
+// « Page Tarifs — textes V4 », octobre 2026). Le paiement n'est pas encore
+// ouvert : Stripe reste en mode test, et l'app vend toujours la grille
+// OFFERS ci-dessus. Les identifiants des packs ne sont pas encore ceux de
+// l'app : ne pas les relier au webhook avant la bascule.
+export const OFFERS_V4 = {
+  free: { aiActionsPerMonth: 20 },
+  packs: [
+    { credits: 50, priceTtc: 2.99, popular: false },
+    { credits: 150, priceTtc: 6.99, popular: true },
+    { credits: 500, priceTtc: 19.99, popular: false },
+  ],
+  premium: { monthlyTtc: 4.99, yearlyTtc: 39 },
+  pro: { monthlyTtc: 14.99 },
+  business: { seatMonthly: 39 },
+} as const
+
 /** Montant mensuel HT d'une licence Pro pour une consommation donnée. */
 export function proMonthlyHt(credits: number): number {
   const { baseHt, includedCredits, extraCreditHt } = OFFERS.pro

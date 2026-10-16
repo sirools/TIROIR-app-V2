@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
-import { OFFERS, credits, euros } from '../lib/offers'
+import { OFFERS, OFFERS_V4, credits, euros } from '../lib/offers'
 import { answerQuestion, findTopic, SUGGESTIONS, TOPICS, UNKNOWN } from '../components/torix/knowledge'
 
 const repo = (p: string) => readFileSync(path.resolve(__dirname, '../..', p), 'utf8')
@@ -107,6 +107,17 @@ describe('les fiches suivent le code', () => {
     expect(fiche).toContain(`${credits(OFFERS.pro.includedCredits)} crédits`)
     expect(fiche).toContain(euros(OFFERS.pro.extraCreditHt))
     expect(fiche).toContain(euros(OFFERS.legacyPremiumTtc))
+  })
+
+  test('grille V4 de la page Tarifs : la fiche suit OFFERS_V4', () => {
+    expect(repo('web/pages/pricing.tsx')).toContain('OFFERS_V4')
+    const fiche = byId('quotas')
+    expect(fiche).toContain(`${OFFERS_V4.free.aiActionsPerMonth} actions IA par mois`)
+    for (const pack of OFFERS_V4.packs) expect(fiche).toContain(`${pack.credits} à ${euros(pack.priceTtc)}`)
+    expect(fiche).toContain(`${euros(OFFERS_V4.premium.monthlyTtc)}/mois ou ${euros(OFFERS_V4.premium.yearlyTtc)}/an`)
+    expect(fiche).toContain(`Pro (${euros(OFFERS_V4.pro.monthlyTtc)}/mois)`)
+    expect(fiche).toContain(`${euros(OFFERS_V4.business.seatMonthly)} par siège`)
+    expect(fiche).toContain('paiement pas encore ouvert')
   })
 })
 
