@@ -47,8 +47,14 @@ export default function LegalPage({
         .legal-section h2 { font-size: 18px; font-weight: 700; color: var(--ink); margin: 0 0 12px; }
         .legal p, .legal li { font-size: 15px; color: var(--muted); line-height: 1.7; }
         .legal p { margin: 0 0 12px; }
-        .legal ul { padding-left: 20px; margin: 0 0 12px; }
-        .legal li { margin-bottom: 4px; }
+        /* Puces dessinées : la réinitialisation globale (Tamagui) décale les
+           puces natives hors de la colonne de texte sur mobile. */
+        .legal ul { list-style: none; padding: 0; margin: 0 0 12px; }
+        .legal li { display: block; position: relative; padding-left: 18px; margin: 0 0 4px; }
+        .legal li::before {
+          content: ''; position: absolute; left: 2px; top: 0.75em;
+          width: 5px; height: 5px; border-radius: 50%; background: var(--muted);
+        }
         .legal strong { color: var(--ink); }
         .legal a { color: var(--orange); text-decoration: underline; }
         .legal a:hover { color: var(--orange-700); }
