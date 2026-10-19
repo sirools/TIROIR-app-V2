@@ -1,4 +1,5 @@
-import { appStoreUrl, playStoreUrl } from '../lib/appLinks'
+import { appStoreUrl, appStoreUrlFor, playStoreUrl, playStoreUrlFor } from '../lib/appLinks'
+import type { Locale } from '../lib/localeRouting'
 
 type Variant = 'dark' | 'onColor' | 'card' | 'cardPrimary'
 
@@ -22,21 +23,26 @@ function PlayIcon({ size = 18 }: { size?: number }) {
  * Boutons de téléchargement App Store + Google Play, style harmonisé.
  * - variant : contexte visuel (fond sombre, sur couleur, carte…)
  * - full : les 2 boutons se partagent la largeur (utile dans les cartes)
+ * - locale : langue du site (store du pays) ; à défaut, isEn
  */
 export default function StoreButtons({
   isEn = false,
   variant = 'dark',
   full = false,
+  locale,
 }: {
   isEn?: boolean
   variant?: Variant
   full?: boolean
+  locale?: Locale
 }) {
+  const appStore = locale ? appStoreUrlFor(locale) : appStoreUrl(isEn)
+  const playStore = locale ? playStoreUrlFor(locale) : playStoreUrl(isEn)
   return (
     <div className={`store-btns${full ? ' full' : ''}`}>
       <a
         className={`store-btn v-${variant}`}
-        href={appStoreUrl(isEn)}
+        href={appStore}
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -45,7 +51,7 @@ export default function StoreButtons({
       </a>
       <a
         className={`store-btn v-${variant}`}
-        href={playStoreUrl(isEn)}
+        href={playStore}
         target="_blank"
         rel="noopener noreferrer"
       >
