@@ -350,7 +350,11 @@
     "noSubMessage": "Aucun achat précédent à restaurer.",
     "restoreError": "Impossible de restaurer.",
     "terms": "Conditions d'utilisation",
-    "privacy": "Politique de confidentialité"
+    "privacy": "Politique de confidentialité",
+    "tierPremium": "Premium",
+    "tierPro": "Pro",
+    "proHint": "Tout Premium, avec plus d'analyses IA et de retouches photo chaque mois.",
+    "welcomeProTitle": "Bienvenue dans Tiroir Pro ! 🎉"
   },
   "assistant": {
     "title": "Assistant",
