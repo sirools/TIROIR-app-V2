@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { endsAccess } from '../_shared/subscriptionEnd.ts'
 
 const REVENUECAT_WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET')!
 const SUPABASE_URL               = Deno.env.get('SUPABASE_URL')!
@@ -25,13 +26,8 @@ const ACTIVE_EVENTS = new Set([
   'TRANSFER',
 ])
 
-// Events qui signifient que l'abonnement est terminé/annulé
-const INACTIVE_EVENTS = new Set([
-  'EXPIRATION',
-  'CANCELLATION',
-  'BILLING_ISSUE',
-  'SUBSCRIBER_ALIAS',
-])
+// Fin de l'accès payant : _shared/subscriptionEnd.ts (une résiliation
+// laisse l'accès jusqu'au bout de la période payée).
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -90,7 +86,7 @@ Deno.serve(async (req) => {
 
   if (ACTIVE_EVENTS.has(eventType)) {
     newPlan = 'premium'
-  } else if (INACTIVE_EVENTS.has(eventType)) {
+  } else if (endsAccess(event)) {
     newPlan = 'free'
   }
 
