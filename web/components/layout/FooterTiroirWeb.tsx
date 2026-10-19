@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { appStoreUrl, playStoreUrl } from '../../lib/appLinks'
+import { appStoreUrlFor, playStoreUrlFor } from '../../lib/appLinks'
+import { HOME_ONLY_LOCALES, LOCALES } from '../../lib/localeRouting'
+import { LOCALE_NAMES, useCopy } from '../../locales'
 import { FOUNDER, CONTACT_EMAIL, agendaHref } from '../../lib/founderLinks'
 
 function LinkedInIcon({ size = 18 }: { size?: number }) {
@@ -35,8 +37,8 @@ function MailIcon({ size = 18 }: { size?: number }) {
  * Utilisé sur les pages publiques : accueil, tarifs, à propos.
  */
 export default function FooterTiroirWeb() {
-  const { locale } = useRouter()
-  const isEn = locale === 'en'
+  const { t: { layout: t }, locale } = useCopy()
+  const { asPath } = useRouter()
   const year = new Date().getFullYear()
 
   return (
@@ -52,64 +54,80 @@ export default function FooterTiroirWeb() {
               </a>
             </Link>
             <p className="ti-footer__baseline">
-              {isEn
-                ? 'Photograph your belongings, the AI writes the entry. Your inventory, finally kept up to date.'
-                : "Photographiez vos objets, l'IA rédige la fiche. Votre inventaire, enfin tenu à jour."}
+              {t.footerTagline}
             </p>
             <div className="ti-footer__stores">
-              <a href={appStoreUrl(isEn)} target="_blank" rel="noopener noreferrer" className="ti-footer__store">
+              <a href={appStoreUrlFor(locale)} target="_blank" rel="noopener noreferrer" className="ti-footer__store">
                 App Store
               </a>
-              <a href={playStoreUrl(isEn)} target="_blank" rel="noopener noreferrer" className="ti-footer__store">
+              <a href={playStoreUrlFor(locale)} target="_blank" rel="noopener noreferrer" className="ti-footer__store">
                 Google Play
               </a>
             </div>
           </div>
 
           {/* Produit */}
-          <nav className="ti-footer__col" aria-label={isEn ? 'Product' : 'Produit'}>
-            <h3>{isEn ? 'Product' : 'Produit'}</h3>
+          <nav className="ti-footer__col" aria-label={t.product}>
+            <h3>{t.product}</h3>
             <Link href="/pricing" legacyBehavior passHref>
-              <a>{isEn ? 'Pricing' : 'Tarifs'}</a>
+              <a>{t.pricing}</a>
             </Link>
             <Link href="/inscription" legacyBehavior passHref>
-              <a>{isEn ? 'Create an account' : 'Créer un compte'}</a>
+              <a>{t.signUp}</a>
             </Link>
             <Link href="/login" legacyBehavior passHref>
-              <a>{isEn ? 'Sign in' : 'Se connecter'}</a>
+              <a>{t.signIn}</a>
             </Link>
             <Link href="/mes-partages" legacyBehavior passHref>
-              <a>{isEn ? 'My shares' : 'Mes partages'}</a>
+              <a>{t.myShares}</a>
             </Link>
           </nav>
 
           {/* Le projet */}
-          <nav className="ti-footer__col" aria-label={isEn ? 'The project' : 'Le projet'}>
-            <h3>{isEn ? 'The project' : 'Le projet'}</h3>
+          <nav className="ti-footer__col" aria-label={t.project}>
+            <h3>{t.project}</h3>
             <Link href="/about" legacyBehavior passHref>
-              <a>{isEn ? 'About' : 'À propos'}</a>
+              <a>{t.about}</a>
             </Link>
-            <a href={agendaHref(isEn ? 'Chat about Tiroir' : 'Parler de Tiroir')}>
-              {isEn ? 'Book a slot' : 'Réserver un créneau'}
+            <a href={agendaHref(t.bookSubject)}>
+              {t.bookSlot}
             </a>
-            <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
+            <a href={`mailto:${CONTACT_EMAIL}`}>{t.contact}</a>
           </nav>
 
           {/* Légal */}
-          <nav className="ti-footer__col" aria-label={isEn ? 'Legal' : 'Légal'}>
-            <h3>{isEn ? 'Legal' : 'Légal'}</h3>
+          <nav className="ti-footer__col" aria-label={t.legal}>
+            <h3>{t.legal}</h3>
             <Link href="/cgu" legacyBehavior passHref>
-              <a>{isEn ? 'Terms' : 'CGU'}</a>
+              <a>{t.terms}</a>
             </Link>
             <Link href="/privacy" legacyBehavior passHref>
-              <a>{isEn ? 'Privacy' : 'Confidentialité'}</a>
+              <a>{t.privacy}</a>
             </Link>
           </nav>
         </div>
 
         {/* Barre basse */}
         <div className="ti-footer__bottom">
-          <span className="ti-footer__copy">© {year} Tiroir · {isEn ? 'Made in France' : 'Fait en France'}</span>
+          <span className="ti-footer__copy">© {year} Tiroir · {t.madeIn}</span>
+
+          {/* Langues. En danois, allemand et espagnol, seule la homepage
+              existe : depuis une autre page, on y arrive. */}
+          <nav className="ti-footer__langs" aria-label={t.language}>
+            {LOCALES.map(l => (
+              <Link
+                key={l}
+                href={HOME_ONLY_LOCALES.includes(l) ? '/' : asPath}
+                locale={l}
+                legacyBehavior
+                passHref
+              >
+                <a hrefLang={l} lang={l} aria-current={l === locale ? 'true' : undefined}>
+                  {LOCALE_NAMES[l]}
+                </a>
+              </Link>
+            ))}
+          </nav>
 
           <div className="ti-footer__social">
             <a
@@ -220,8 +238,12 @@ export default function FooterTiroirWeb() {
           padding-top: 20px;
           border-top: 1px solid rgba(0, 0, 0, 0.08);
         }
-        .ti-footer__copy { font-size: 13px; color: #8a8177; }
+        .ti-footer__copy { font-size: 13px; color: var(--muted); }
         .ti-footer__social { display: flex; align-items: center; gap: 6px; }
+        .ti-footer__langs { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; }
+        .ti-footer__langs a { color: var(--muted); text-decoration: none; padding: 6px 0; }
+        .ti-footer__langs a:hover { color: var(--ink); }
+        .ti-footer__langs a[aria-current] { color: var(--ink); font-weight: 700; }
         .ti-footer__social a {
           display: inline-flex;
           align-items: center;

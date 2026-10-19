@@ -3,7 +3,8 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import React from 'react'
 import { supabase, signOutEverywhere } from '../../lib/supabase'
-import { appStoreUrl, playStoreUrl } from '../../lib/appLinks'
+import { appStoreUrlFor, playStoreUrlFor } from '../../lib/appLinks'
+import { useCopy } from '../../locales'
 
 function UserIcon({ size = 18 }: { size?: number }) {
   return (
@@ -21,7 +22,7 @@ function UserIcon({ size = 18 }: { size?: number }) {
 
 export default function HeaderTiroirWeb() {
   const router = useRouter()
-  const isEn = router.locale === 'en'
+  const { t: { layout: t }, locale } = useCopy()
   const [scrolled, setScrolled] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -44,7 +45,7 @@ export default function HeaderTiroirWeb() {
         setUserName(null)
         return
       }
-      setUserName(session.user.email?.split('@')[0] ?? (router.locale === 'en' ? 'My account' : 'Mon compte'))
+      setUserName(session.user.email?.split('@')[0] ?? (t.myAccount))
       supabase
         .from('profiles')
         .select('is_admin, display_name')
@@ -140,12 +141,10 @@ export default function HeaderTiroirWeb() {
   // c'est une entrée de compte, pas une destination du site.
   const navItems = (
     <>
-      <a className="appstore-nav-btn" href="/concept">
-        Concept
-      </a>
-      <a className="appstore-nav-btn" href="/pricing">
-        {isEn ? 'Pricing' : 'Tarifs'}
-      </a>
+      {/* Link (et non <a>) : garde la langue en cours. */}
+      <Link href="/pricing" legacyBehavior passHref>
+        <a className="appstore-nav-btn">{t.pricing}</a>
+      </Link>
       {/* App Store + Google Play réunis sous un seul bouton */}
       <div className="ti-download">
         <button
@@ -155,7 +154,7 @@ export default function HeaderTiroirWeb() {
           aria-expanded={downloadOpen}
           onClick={() => setDownloadOpen(v => !v)}
         >
-          {isEn ? 'Download the app' : 'Télécharger l’app'}
+          {t.download}
           <svg
             className={`ti-download__chevron ${downloadOpen ? 'open' : ''}`}
             width="14"
@@ -172,7 +171,7 @@ export default function HeaderTiroirWeb() {
             <a
               className="ti-download__item"
               role="menuitem"
-              href={appStoreUrl(isEn)}
+              href={appStoreUrlFor(locale)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={closeMenus}
@@ -182,7 +181,7 @@ export default function HeaderTiroirWeb() {
             <a
               className="ti-download__item"
               role="menuitem"
-              href={playStoreUrl(isEn)}
+              href={playStoreUrlFor(locale)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={closeMenus}
@@ -243,13 +242,13 @@ export default function HeaderTiroirWeb() {
                       </a>
                     )}
                     <a className="ti-user__item" href="/profil" role="menuitem">
-                      {isEn ? 'My profile' : 'Mon profil'}
+                      {t.myProfile}
                     </a>
                     <a className="ti-user__item" href="/mon-compte" role="menuitem">
-                      {isEn ? 'My account' : 'Mon compte'}
+                      {t.myAccount}
                     </a>
                     <a className="ti-user__item" href="/mes-partages" role="menuitem">
-                      {isEn ? 'My shares' : 'Mes partages'}
+                      {t.myShares}
                     </a>
                     <button
                       className="ti-user__item ti-user__item--danger"
@@ -257,7 +256,7 @@ export default function HeaderTiroirWeb() {
                       role="menuitem"
                       onClick={handleAuthClick}
                     >
-                      {isEn ? 'Sign out' : 'Se déconnecter'}
+                      {t.signOut}
                     </button>
                   </div>
                 )}
@@ -267,7 +266,7 @@ export default function HeaderTiroirWeb() {
                 {/* Comme sur mobile : se connecter d'abord, créer un compte
                     en second. */}
                 <a className="appstore-nav-btn" href="/inscription" onClick={() => setMenuOpen(false)}>
-                  {isEn ? 'Sign up' : 'Créer un compte'}
+                  {t.signUp}
                 </a>
                 <a
                   className="btn btn-primary"
@@ -275,7 +274,7 @@ export default function HeaderTiroirWeb() {
                   style={{ textDecoration: 'none' }}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {isEn ? 'Sign in' : 'Se connecter'}
+                  {t.signIn}
                 </a>
               </>
             )}
@@ -285,7 +284,7 @@ export default function HeaderTiroirWeb() {
           <button
             className="ti-burger"
             type="button"
-            aria-label={isEn ? 'Open menu' : 'Ouvrir le menu'}
+            aria-label={t.openMenu}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(true)}
           >
@@ -310,7 +309,7 @@ export default function HeaderTiroirWeb() {
             <button
               className="ti-mobile-menu__close"
               type="button"
-              aria-label={isEn ? 'Close menu' : 'Fermer le menu'}
+              aria-label={t.closeMenu}
               onClick={() => setMenuOpen(false)}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -341,28 +340,28 @@ export default function HeaderTiroirWeb() {
                   type="button"
                   onClick={() => navigate('/profil')}
                 >
-                  {isEn ? 'My profile' : 'Mon profil'}
+                  {t.myProfile}
                 </button>
                 <button
                   className="appstore-nav-btn"
                   type="button"
                   onClick={() => navigate('/mon-compte')}
                 >
-                  {isEn ? 'My account' : 'Mon compte'}
+                  {t.myAccount}
                 </button>
                 <button
                   className="appstore-nav-btn"
                   type="button"
                   onClick={() => navigate('/mes-partages')}
                 >
-                  {isEn ? 'My shares' : 'Mes partages'}
+                  {t.myShares}
                 </button>
                 <button
                   className="appstore-nav-btn ti-mobile-menu__logout"
                   type="button"
                   onClick={handleAuthClick}
                 >
-                  {isEn ? 'Sign out' : 'Se déconnecter'}
+                  {t.signOut}
                 </button>
               </>
             ) : (
@@ -375,14 +374,14 @@ export default function HeaderTiroirWeb() {
                   style={{ textDecoration: 'none' }}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {isEn ? 'Sign in' : 'Se connecter'}
+                  {t.signIn}
                 </a>
                 <div className="ti-mobile-menu__signup">
                   <p className="ti-mobile-menu__signup-text">
-                    {isEn ? 'New to Tiroir?' : 'Pas encore inscrit ?'}
+                    {t.newHere}
                   </p>
                   <a className="appstore-nav-btn" href="/inscription" onClick={() => setMenuOpen(false)}>
-                    {isEn ? 'Create an account' : 'Créer un compte'}
+                    {t.signUp}
                   </a>
                 </div>
               </>
