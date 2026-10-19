@@ -140,7 +140,7 @@ export const TOPICS: Topic[] = [
     answer:
       'Une seule grille (V4), figée par le fondateur le 19/10/2026, la même sur le site, dans l’app (App Store, Google Play) et dans Stripe : Free (20 actions IA par mois), crédits (50 à 2,99 €, 150 à 6,99 €, 500 à 19,99 €, sans expiration), Premium (4,99 €/mois ou 39 €/an), Pro (14,99 €/mois), Business (39 € par siège/mois, sur facture).\n' +
       'Pro = Premium avec des quotas plus élevés. Premium, Pro et crédits s’achètent dans l’app (Pro à partir de la version qui le propose) ; sur le site, paiement pas encore ouvert (Stripe en mode test). Un Pro sur facture, posé dans le back-office, n’est jamais modifié par les stores.\n' +
-      'Les quotas mensuels se règlent dans le back-office, onglet Quotas.\n' +
+      'Quotas mensuels décidés le 19/10 : Free 20 unités IA, Premium 150 unités et 50 retouches photo, Pro 600 unités et 100 retouches. Ils se règlent dans le back-office, onglet Quotas (la valeur en base fait foi).\n' +
       'Les analyses sont pondérées par leur coût : une scène Sonnet (Premium) pèse 4 unités, une scène Opus (Pro) 13.',
   },
   {
