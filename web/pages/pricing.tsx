@@ -3,14 +3,16 @@ import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import StoreButtons from '../components/StoreButtons'
 import { OFFERS_V4, credits, euros } from '../lib/offers'
+import { useCopy } from '../locales'
 
 // Grille V4 (page Notion « Page Tarifs — textes V4 »). Tous les prix
 // viennent de lib/offers.ts : la page, Torix et les tests lisent la même
 // source.
 //
-// Le paiement n'est pas encore ouvert (Stripe en mode test) : les boutons
-// d'achat affichent « Bientôt disponible » et ne mènent nulle part. Seul le
-// gratuit renvoie vers les stores, et Business vers une adresse e-mail.
+// Le paiement sur le web n'est pas ouvert (Stripe en mode test). Premium et
+// les crédits s'achètent dans l'app (App Store / Google Play, RevenueCat) :
+// leurs boutons mènent aux stores. Pro reste « Bientôt disponible » — l'app
+// ne le vend pas encore — et Business renvoie vers une adresse e-mail.
 const { free, packs, premium, pro, business } = OFFERS_V4
 
 const FAQ = [
@@ -41,6 +43,7 @@ const LIST: React.CSSProperties = { listStyle: 'none', padding: 0, margin: 0, di
 const ITEM: React.CSSProperties = { display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 15, color: 'var(--ink)', lineHeight: 1.35 }
 
 export default function Pricing() {
+  const { t: { inApp } } = useCopy()
   return (
     <>
       <Head>
@@ -118,7 +121,7 @@ export default function Pricing() {
                   ))}
                 </ul>
                 <div style={{ marginTop: 'auto' }}>
-                  <SoonButton label="Passer Premium" primary />
+                  <InAppBuy label={inApp.subscribe} note={inApp.subscriptionNote} />
                 </div>
               </div>
 
@@ -210,10 +213,10 @@ export default function Pricing() {
               ))}
             </div>
             <p style={{ fontSize: 14, color: 'var(--muted)', margin: '16px 0 20px' }}>
-              Paiement sécurisé par carte. Les crédits n’expirent pas.
+              Les crédits n’expirent pas.
             </p>
             <div style={{ maxWidth: 320 }}>
-              <SoonButton label="Acheter des crédits" primary />
+              <InAppBuy label={inApp.buyCredits} note={inApp.creditsNote} />
             </div>
           </div>
         </section>
@@ -254,7 +257,22 @@ export default function Pricing() {
   )
 }
 
-/** Bouton d'achat inactif : le paiement n'est pas ouvert (Stripe en mode test). */
+/**
+ * Achat dans l'app : libellé, boutons des stores (celui du téléphone mis en
+ * avant) et une phrase qui rappelle que tout se gère depuis l'app.
+ */
+function InAppBuy({ label, note }: { label: string; note: string }) {
+  const { locale } = useCopy()
+  return (
+    <div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 8, textAlign: 'center' }}>{label}</div>
+      <StoreButtons variant="card" full highlight locale={locale} />
+      <p style={{ fontSize: 13, color: 'var(--muted)', margin: '8px 0 0', textAlign: 'center' }}>{note}</p>
+    </div>
+  )
+}
+
+/** Bouton d'achat inactif : Pro n'est pas encore vendu (ni sur le web, ni dans l'app). */
 function SoonButton({ label, primary }: { label: string; primary?: boolean }) {
   return (
     <button
