@@ -10,6 +10,13 @@ describe('langues du site', () => {
   })
 
 
+  test('/concept redirige vers la homepage, dans toutes les langues', () => {
+    const cfg = readFileSync(path.join(__dirname, '../next.config.js'), 'utf8')
+    expect(cfg).toMatch(/source: '\/concept', destination: '\/', permanent: true/)
+    // Pas de `locale: false` : Next applique la règle à chaque langue.
+    expect(cfg).not.toMatch(/locale: false/)
+  })
+
   test('danois, allemand, espagnol : homepage servie, le reste en anglais', () => {
     for (const l of ['da', 'de', 'es']) {
       expect(untranslatedRedirect(l, '/')).toBeNull()

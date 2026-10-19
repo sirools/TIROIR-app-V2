@@ -141,9 +141,6 @@ export default function HeaderTiroirWeb() {
   // c'est une entrée de compte, pas une destination du site.
   const navItems = (
     <>
-      <a className="appstore-nav-btn" href="/concept">
-        Concept
-      </a>
       {/* Link (et non <a>) : garde la langue en cours. */}
       <Link href="/pricing" legacyBehavior passHref>
         <a className="appstore-nav-btn">{t.pricing}</a>

@@ -35,6 +35,14 @@ const nextConfig = {
     localeDetection: false,
   },
 
+  // La page Concept est fusionnée dans la homepage. Redirections
+  // permanentes, appliquées par Next à chaque langue (/en/concept → /en…).
+  async redirects() {
+    return [
+      { source: '/concept', destination: '/', permanent: true },
+      { source: '/concept-bento', destination: '/', permanent: true },
+    ]
+  },
 
   // Autoriser les images distantes (Next/Image)
   images: {
