@@ -24,14 +24,17 @@ const nextConfig = {
   },
 
   // i18n natif (Pages Router). FR = défaut sans préfixe (tiroir.app/...),
-  // EN préfixé (tiroir.app/en/...). Détection auto désactivée tant que
-  // toutes les pages publiques ne sont pas traduites — les liens App Store
-  // pointent explicitement vers /en.
+  // les autres langues préfixées (tiroir.app/en/..., /da, /de, /es).
+  // Détection auto désactivée tant que toutes les pages publiques ne sont
+  // pas traduites — les liens App Store pointent explicitement vers /en.
+  // Danois, allemand et espagnol : seule la homepage est traduite ; les
+  // autres pages renvoient vers leur version anglaise (lib/localeRouting.ts).
   i18n: {
-    locales: ['fr', 'en'],
+    locales: ['fr', 'en', 'da', 'de', 'es'],
     defaultLocale: 'fr',
     localeDetection: false,
   },
+
 
   // Autoriser les images distantes (Next/Image)
   images: {
