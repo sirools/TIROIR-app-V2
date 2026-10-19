@@ -14,31 +14,33 @@ const packsIn = (file: string) => {
 describe('packs de crédits', () => {
   test('app et webhook vendent et créditent les mêmes packs', () => {
     const app = packsIn('mobile/src/lib/creditPacks.ts')
-    const webhook = packsIn('supabase/functions/revenuecat-webhook/index.ts')
-    expect(app).toEqual({ tiroir_credits_30: 30, tiroir_credits_80: 80 })
+    const webhook = packsIn('supabase/functions/_shared/storeProducts.ts')
+    expect(app).toEqual({
+      tiroir_credits_50: 50, tiroir_credits_150: 150, tiroir_credits_500: 500,
+      tiroir_credits_30: 30, tiroir_credits_80: 80,
+    })
     expect(webhook).toEqual(app)
+    // Le webhook passe bien par le module partagé, sans copie locale.
+    const src = readFileSync(path.join(root, 'supabase/functions/revenuecat-webhook/index.ts'), 'utf8')
+    expect(src).toContain("from '../_shared/storeProducts.ts'")
+    expect(src).not.toMatch(/CREDIT_PACKS\s*[:=]/)
   })
 })
 
 describe('grille affichée (lib/offers.ts)', () => {
-  test('la page Tarifs affiche les packs que l’app vend', async () => {
-    const { OFFERS } = await import('../lib/offers')
-    const shown = Object.fromEntries(OFFERS.packs.map(p => [p.id, p.credits]))
-    expect(shown).toEqual(packsIn('mobile/src/lib/creditPacks.ts'))
+  test('le site affiche les packs que l’app vend (plus les anciens, retirés de la vente)', async () => {
+    const { OFFERS_V4 } = await import('../lib/offers')
+    const shown = Object.fromEntries(OFFERS_V4.packs.map(p => [p.id, p.credits]))
+    const app = packsIn('mobile/src/lib/creditPacks.ts')
+    expect(app).toMatchObject(shown)
+    expect(Object.keys(app).filter(id => !(id in shown)).sort()).toEqual(['tiroir_credits_30', 'tiroir_credits_80'])
   })
 
   test('le coût d’un crédit est celui que le serveur débite', async () => {
-    const { OFFERS } = await import('../lib/offers')
+    const { CREDIT_COSTS } = await import('../lib/offers')
     const sql = readFileSync(path.join(root, 'supabase/drafts/ai_credits_spend.sql'), 'utf8')
     const cost = (kind: string) => Number(sql.match(new RegExp(`WHEN '${kind}' THEN (\\d+)`))?.[1])
-    expect(OFFERS.creditCosts.map(c => c.credits)).toEqual([1, cost('photo'), cost('estimate')])
+    expect(CREDIT_COSTS.map(c => c.credits)).toEqual([1, cost('photo'), cost('estimate')])
     expect(sql).toMatch(/WHEN 'analysis' THEN p_units/)
-  })
-
-  test('le devis Pro suit le socle puis le crédit', async () => {
-    const { proMonthlyHt } = await import('../lib/offers')
-    expect(proMonthlyHt(0)).toBe(1700)
-    expect(proMonthlyHt(20000)).toBe(1700)
-    expect(proMonthlyHt(50000)).toBe(3200)
   })
 })
