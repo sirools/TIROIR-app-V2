@@ -10,12 +10,12 @@
 //   gauche : logo, retour à l'accueil du back-office ;
 //   centre : une entrée par section, l'active en évidence (sous-pages
 //            comprises) ; sous 760 px, un menu compact ;
-//   droite : compte et déconnexion.
+//   droite : retour au site public, compte et déconnexion.
 // Sous le header, sur les sous-pages : fil d'Ariane.
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
-import { LogOut, Menu, X } from 'lucide-react'
+import { ExternalLink, LogOut, Menu, X } from 'lucide-react'
 import { signOutEverywhere } from '../../lib/supabase'
 import { activeSection, breadcrumbsFor, type AdminNav } from './adminNavPaths'
 
@@ -86,6 +86,10 @@ export default function AdminLayout({ nav, children }: { nav: AdminNav; children
           <nav className="ah-tabs" aria-label="Sections du back-office">{tabs}</nav>
 
           <div className="ah-account">
+            {/* <a> et non Link : le site peut être sur un autre domaine. */}
+            <a className="ah-site" href={nav.siteUrl}>
+              Voir le site <ExternalLink size={14} strokeWidth={1.9} aria-hidden="true" />
+            </a>
             {nav.account.email && <span className="ah-email" title={nav.account.email}>{nav.account.email}</span>}
             <button type="button" className="ah-icon" onClick={signOut} disabled={leaving} aria-label="Se déconnecter" title="Se déconnecter">
               <LogOut size={18} strokeWidth={1.9} />
@@ -107,6 +111,9 @@ export default function AdminLayout({ nav, children }: { nav: AdminNav; children
         {menuOpen && (
           <div className="ah-menu" id="ah-menu">
             <nav aria-label="Sections du back-office">{tabs}</nav>
+            <a className="ah-menu__site" href={nav.siteUrl}>
+              Voir le site <ExternalLink size={15} strokeWidth={1.9} aria-hidden="true" />
+            </a>
             {nav.account.email && <p className="ah-menu__email">{nav.account.email}</p>}
             <button type="button" className="ah-menu__out" onClick={signOut} disabled={leaving}>
               <LogOut size={16} strokeWidth={1.9} /> Se déconnecter
@@ -193,6 +200,23 @@ export default function AdminLayout({ nav, children }: { nav: AdminNav; children
         .ah :global(.ah-tab--on:hover) { background: var(--orange); color: var(--white); }
 
         .ah-account { display: flex; align-items: center; gap: 4px; justify-self: end; min-width: 0; }
+        .ah-site {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 12px;
+          margin-right: 8px;
+          border: 1px solid var(--border);
+          border-radius: 9px;
+          color: inherit;
+          font-size: 13px;
+          font-weight: 600;
+          text-decoration: none;
+          white-space: nowrap;
+        }
+        .ah-site:hover { background: var(--beige-2); }
+        .ah--dark .ah-site { border-color: color-mix(in srgb, var(--white) 20%, transparent); }
+        .ah--dark .ah-site:hover { background: color-mix(in srgb, var(--white) 8%, transparent); }
         .ah-email {
           font-size: 13px;
           color: var(--muted);
@@ -237,6 +261,17 @@ export default function AdminLayout({ nav, children }: { nav: AdminNav; children
         .ah--dark .ah-menu { border-top-color: color-mix(in srgb, var(--white) 12%, transparent); }
         .ah-menu nav { display: flex; flex-direction: column; gap: 4px; }
         .ah-menu :global(.ah-tab) { padding: 12px 14px; font-size: 15px; }
+        .ah-menu__site {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 8px;
+          padding: 12px 14px;
+          color: inherit;
+          font-weight: 700;
+          font-size: 15px;
+          text-decoration: none;
+        }
         .ah-menu__email { margin: 12px 0 4px; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
         .ah-menu__out {
           display: inline-flex;
@@ -267,10 +302,13 @@ export default function AdminLayout({ nav, children }: { nav: AdminNav; children
 
         @media (max-width: 760px) {
           .ah-bar { grid-template-columns: 1fr auto; }
-          .ah-tabs, .ah-email, .ah-account > .ah-icon:not(.ah-burger) { display: none; }
+          .ah-tabs, .ah-email, .ah-site, .ah-account > .ah-icon:not(.ah-burger) { display: none; }
           .ah-burger { display: grid; }
           .ah-current { display: inline-block; }
           .ah-menu { display: block; }
+        }
+        @media (max-width: 1000px) and (min-width: 761px) {
+          .ah-email { display: none; }
         }
         @media (max-width: 380px) {
           .ah-logo__sub { display: none; }

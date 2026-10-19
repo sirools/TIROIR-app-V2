@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { afterEach, describe, expect, test } from 'vitest'
-import { adminNavFor } from '../lib/adminNav'
+import { adminNavFor, siteUrlFor } from '../lib/adminNav'
 import { activeSection, breadcrumbsFor, type AdminNavSection } from '../components/admin/adminNavPaths'
 
 const web = (p: string) => readFileSync(path.resolve(__dirname, '..', p), 'utf8')
@@ -43,6 +43,23 @@ describe('sections du header admin', () => {
 
   test('le compte affiché est celui de la session', () => {
     expect(adminNavFor(colleague, true).account).toEqual({ email: colleague.email })
+  })
+})
+
+describe('lien « Voir le site »', () => {
+  test('back-office sur son domaine : adresse complète du site public', () => {
+    expect(siteUrlFor('backoffice.tiroir.app', undefined)).toBe('https://tiroir.app/')
+    expect(siteUrlFor('backoffice.tiroir.app', 'preprod.tiroir.app')).toBe('https://preprod.tiroir.app/')
+  })
+
+  test('même domaine (preprod, aperçus, dev) : la racine', () => {
+    expect(siteUrlFor(undefined, undefined)).toBe('/')
+    expect(siteUrlFor('  ', 'tiroir.app')).toBe('/')
+  })
+
+  test('le header affiche le lien, ordinateur et menu mobile', () => {
+    const src = web('components/admin/AdminLayout.tsx')
+    expect(src.match(/href=\{nav\.siteUrl\}/g)).toHaveLength(2)
   })
 })
 
