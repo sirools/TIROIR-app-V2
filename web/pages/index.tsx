@@ -1,42 +1,59 @@
-import Head from "next/head"
-import { useRouter } from "next/router"
+import { useRef } from 'react'
+import Head from 'next/head'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
-import Hero from "../components/landing/Hero"
-import FlowSteps from "../components/landing/FlowSteps"
-import StoryScroll from "../components/landing/StoryScroll"
-import Principles from "../components/landing/Principles"
-import FinalCTA from "../components/landing/FinalCTA"
-import SurveyInvite from "../components/SurveyInvite"
+import SurveyInvite from '../components/SurveyInvite'
+import Hero from '../components/home/Hero'
+import HowItWorks from '../components/home/HowItWorks'
+import ForPros from '../components/home/ForPros'
+import ForEveryone from '../components/home/ForEveryone'
+import Value from '../components/home/Value'
+import PricingFaq from '../components/home/PricingFaq'
+import FinalCta from '../components/home/FinalCta'
+import { useMotion } from '../components/home/useMotion'
+import { useCopy } from '../locales'
+import { LOCALES, localePrefix } from '../lib/localeRouting'
+import s from '../components/home/home.module.css'
 
+const SITE = 'https://tiroir.app'
+
+// Homepage unique : elle explique le concept et la valeur (la page
+// Concept y est fusionnée). Textes : web/locales/<langue>.ts.
 export default function Landing() {
-  const { locale } = useRouter()
-  const isEn = locale === 'en'
+  const { t: { home: t }, locale } = useCopy()
+  const root = useRef<HTMLDivElement>(null)
+  const motion = useMotion(root)
+
   return (
     <>
       <Head>
-        <title>{isEn ? 'Tiroir — Snap a photo. The AI writes the entry.' : "Tiroir — Photographiez. L'IA crée la fiche."}</title>
-        <meta
-          name="description"
-          content={isEn
-            ? 'Smart personal inventory. Photograph your belongings, the AI generates the entry. Market value, collections, share with one link.'
-            : "Inventaire personnel intelligent. Photographiez vos objets, l'IA génère la fiche. Valeur marché, collections, partage en un lien."}
-        />
+        <title>{t.meta.title}</title>
+        <meta name="description" content={t.meta.description} />
+        <link rel="canonical" href={`${SITE}${localePrefix(locale) || "/"}`} />
+        {LOCALES.map(l => (
+          <link key={l} rel="alternate" hrefLang={l} href={`${SITE}${localePrefix(l) || "/"}`} />
+        ))}
+        <link rel="alternate" hrefLang="x-default" href={`${SITE}/`} />
       </Head>
 
       <HeaderTiroirWeb />
 
-      <main>
-        <Hero />
-        <FlowSteps />
-        <StoryScroll />
-        <Principles />
-        <FinalCTA />
-      </main>
+      <div ref={root} className={s.page} data-motion={motion}>
+        <main>
+          <Hero />
+          <HowItWorks />
+          <ForPros />
+          <ForEveryone />
+          <Value />
+          <PricingFaq />
+          <FinalCta />
+        </main>
+      </div>
 
       <FooterTiroirWeb />
 
-      <SurveyInvite />
+      {/* L'enquête n'existe qu'en français et en anglais. */}
+      {(locale === 'fr' || locale === 'en') && <SurveyInvite />}
     </>
   )
 }
