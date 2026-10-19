@@ -25,6 +25,7 @@ const de: Copy = {
     terms: 'AGB',
     privacy: 'Datenschutz',
     madeIn: 'Made in France',
+    contact: 'Kontakt',
     language: 'Sprache',
   },
 

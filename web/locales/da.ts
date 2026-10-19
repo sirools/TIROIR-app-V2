@@ -25,6 +25,7 @@ const da: Copy = {
     terms: 'Vilkår',
     privacy: 'Privatliv',
     madeIn: 'Lavet i Frankrig',
+    contact: 'Kontakt',
     language: 'Sprog',
   },
 

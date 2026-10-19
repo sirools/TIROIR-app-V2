@@ -25,6 +25,7 @@ const es: Copy = {
     terms: 'Condiciones',
     privacy: 'Privacidad',
     madeIn: 'Hecho en Francia',
+    contact: 'Contacto',
     language: 'Idioma',
   },
 

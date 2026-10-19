@@ -92,7 +92,7 @@ export default function FooterTiroirWeb() {
             <a href={agendaHref(t.bookSubject)}>
               {t.bookSlot}
             </a>
-            <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
+            <a href={`mailto:${CONTACT_EMAIL}`}>{t.contact}</a>
           </nav>
 
           {/* Légal */}

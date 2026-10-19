@@ -24,6 +24,7 @@ const en: Copy = {
     terms: 'Terms',
     privacy: 'Privacy',
     madeIn: 'Made in France',
+    contact: 'Contact',
     language: 'Language',
   },
 

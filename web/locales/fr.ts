@@ -28,6 +28,7 @@ const fr = {
     terms: 'CGU',
     privacy: 'Confidentialité',
     madeIn: 'Fait en France',
+    contact: 'Contact',
     language: 'Langue',
   },
 
