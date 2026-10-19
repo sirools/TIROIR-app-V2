@@ -3,8 +3,9 @@
 // selon strategie/packs-stores.md, et les mêmes que
 // mobile/src/lib/creditPacks.ts (un test le vérifie).
 //
-// Module sans dépendance : importé par le webhook RevenueCat (Deno) et par
-// les tests du site (vitest).
+// Module sans autre dépendance que subscriptionEnd.ts : importé par le
+// webhook RevenueCat (Deno) et par les tests du site (vitest).
+import { endsAccess } from './subscriptionEnd.ts'
 
 /** Packs de crédits (consommables) : identifiant → crédits accordés. */
 export const CREDIT_PACKS: Record<string, number> = {
@@ -46,15 +47,16 @@ export const ACTIVE_EVENTS = new Set([
   'TRANSFER',
 ])
 
-// …ou terminé/annulé.
-export const INACTIVE_EVENTS = new Set([
-  'EXPIRATION',
-  'CANCELLATION',
-  'BILLING_ISSUE',
-  'SUBSCRIBER_ALIAS',
-])
+// La fin de l'accès payant (EXPIRATION, remboursement) : endsAccess(),
+// _shared/subscriptionEnd.ts. Une résiliation laisse l'accès jusqu'au bout
+// de la période payée.
 
-export type StoreEvent = { type: string; product_id?: unknown; new_product_id?: unknown }
+export type StoreEvent = {
+  type: string
+  product_id?: unknown
+  new_product_id?: unknown
+  expiration_at_ms?: unknown
+}
 export type CurrentProfile = { plan: string; pro_since: string | null; pro_expires_at: string | null }
 
 /** Pro sur facture encore en cours (posé et daté par le back-office). */
@@ -68,9 +70,9 @@ const isInvoicedPro = (p: CurrentProfile, today: string) =>
  * - Un client Pro sur facture en cours (pro_since posé par le back-office,
  *   période non échue) n'est jamais modifié par les stores.
  * - Changement de produit : c'est le nouveau produit qui compte.
- * - Fin d'abonnement : on ne retombe en gratuit que si c'est l'abonnement
- *   en cours qui s'arrête (la fin d'un Premium remplacé par un Pro ne
- *   coupe pas le Pro).
+ * - Fin de l'accès (endsAccess) : on ne retombe en gratuit que si c'est
+ *   l'abonnement en cours qui s'arrête (la fin d'un Premium remplacé par un
+ *   Pro ne coupe pas le Pro).
  */
 export function nextPlan(
   event: StoreEvent,
@@ -89,7 +91,7 @@ export function nextPlan(
     return tier !== profile.plan || staleInvoice ? tier : null
   }
 
-  if (INACTIVE_EVENTS.has(event.type)) {
+  if (endsAccess(event)) {
     const tier = tierForProduct(event.product_id)
     return tier && tier === profile.plan ? 'free' : null
   }

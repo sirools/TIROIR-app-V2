@@ -47,6 +47,14 @@ describe('nextPlan', () => {
     expect(nextPlan(ev('EXPIRATION', 'tiroir_premium_monthly'), premium, TODAY)).toBe('free')
   })
 
+  test('résiliation : le palier reste jusqu’à la fin de la période payée', () => {
+    const later = Date.now() + 10 * 86_400_000
+    expect(nextPlan({ type: 'CANCELLATION', product_id: 'tiroir_pro_monthly', expiration_at_ms: later }, storePro, TODAY)).toBeNull()
+    expect(nextPlan(ev('BILLING_ISSUE', 'tiroir_premium_monthly'), premium, TODAY)).toBeNull()
+    // Remboursement : expiration déjà passée.
+    expect(nextPlan({ type: 'CANCELLATION', product_id: 'tiroir_pro_monthly', expiration_at_ms: 1 }, storePro, TODAY)).toBe('free')
+  })
+
   test('le Pro sur facture en cours n’est jamais touché par les stores', () => {
     expect(nextPlan(ev('EXPIRATION', 'tiroir_pro_monthly'), invoicedPro, TODAY)).toBeNull()
     expect(nextPlan(ev('INITIAL_PURCHASE', 'tiroir_premium_monthly'), invoicedPro, TODAY)).toBeNull()
