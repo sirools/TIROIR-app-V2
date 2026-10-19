@@ -5,9 +5,8 @@ import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { FOUNDER, CONTACT_EMAIL, agendaHref, hasAgenda } from '../lib/founderLinks'
 
-// Portrait du fondateur. Laissé vide → monogramme typographique.
-// Pour utiliser une photo : la déposer dans /public/assets/ et mettre le chemin ici.
-const PHOTO_URL = ''
+// Portrait du fondateur (carré 512 px, recadré visage). Laissé vide → monogramme typographique.
+const PHOTO_URL = '/assets/clement-ougier.jpg'
 
 const LOOKING_FOR = [
   {
@@ -88,7 +87,13 @@ export default function About() {
 
               <div className="about-portrait">
                 {PHOTO_URL ? (
-                  <img className="about-portrait__img" src={PHOTO_URL} alt={FOUNDER.name} />
+                  <img
+                    className="about-portrait__img"
+                    src={PHOTO_URL}
+                    alt={`Portrait de ${FOUNDER.name}, fondateur de Tiroir`}
+                    width={168}
+                    height={168}
+                  />
                 ) : (
                   <div className="about-portrait__mono" aria-hidden="true">
                     CO
