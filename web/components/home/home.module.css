@@ -33,7 +33,18 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--orange-700);
+  color: var(--ink);
+}
+/* L'orange en texte n'atteint pas le contraste AA : il reste un accent. */
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+  vertical-align: 1px;
 }
 .h2 {
   margin: 0 0 10px;
@@ -163,19 +174,21 @@
 }
 .photo {
   position: absolute;
-  left: 40px;
-  top: 28px;
-  width: 240px;
-  height: 240px;
-  border-radius: 20px;
+  left: 70px;
+  top: 48px;
+  width: 180px;
+  height: 180px;
+  border-radius: 18px;
   background: var(--beige-2);
   border: 1px solid var(--border-light);
   overflow: hidden;
   transform-origin: 0 0;
-  transform: translate(-20px, -8px) scale(0.5);
+  /* État final : vignette de 120 px en (20, 20). La photo reste plus
+     petite que le titre, qui reste ainsi l'élément principal (LCP). */
+  transform: translate(-50px, -28px) scale(0.6667);
 }
 .photo img { width: 100%; height: 100%; object-fit: contain; }
-.finder { position: absolute; left: 30px; top: 18px; width: 260px; height: 260px; opacity: 0; pointer-events: none; }
+.finder { position: absolute; left: 60px; top: 38px; width: 200px; height: 200px; opacity: 0; pointer-events: none; }
 .finder i { position: absolute; width: 26px; height: 26px; border: 3px solid var(--orange); }
 .finder i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 10px; }
 .finder i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 10px; }
@@ -189,7 +202,7 @@
   padding: 3px 8px;
   border-radius: 999px;
   background: var(--orange-soft);
-  color: var(--orange-700);
+  color: var(--ink);
   font-size: 11px;
   font-weight: 700;
 }
@@ -217,7 +230,7 @@
   border: 1px solid var(--border-light);
 }
 .valueLabel { font-size: 12px; font-weight: 600; color: var(--muted); }
-.valueAmount { margin-top: 2px; font-size: 24px; font-weight: 800; color: var(--orange-700); }
+.valueAmount { margin-top: 2px; font-size: 24px; font-weight: 800; color: var(--ink); }
 
 .caps { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .cap {
@@ -373,7 +386,7 @@
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow);
 }
-.range { font-size: 26px; font-weight: 800; color: var(--orange-700); }
+.range { font-size: 26px; font-weight: 800; color: var(--ink); }
 .rangeBar { position: relative; height: 6px; margin: 8px 0 12px; border-radius: 6px; background: var(--border-light); }
 .rangeBar::after { content: ''; position: absolute; left: 32%; width: 36%; height: 100%; border-radius: 6px; background: var(--orange); }
 .comps { display: grid; gap: 6px; margin: 0 0 12px; padding: 0; list-style: none; font-size: 13px; }
@@ -414,7 +427,7 @@
 .planPrice small { font-size: 13px; font-weight: 500; color: var(--muted); }
 .planTag { grid-column: 1 / -1; margin: 0; font-size: 14px; color: var(--muted); }
 .priceNote { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
-.more { display: inline-block; margin-top: 12px; padding: 8px 0; color: var(--orange-700); font-weight: 700; }
+.more { display: inline-block; margin-top: 12px; padding: 8px 0; color: var(--ink); font-weight: 700; text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 4px; }
 
 .faq { margin-top: 40px; }
 .faq details { border-bottom: 1px solid var(--border); }
@@ -429,7 +442,7 @@
   list-style: none;
 }
 .faq summary::-webkit-details-marker { display: none; }
-.faq summary::after { content: '+'; color: var(--orange-700); font-size: 20px; line-height: 1; transition: transform 0.2s; }
+.faq summary::after { content: '+'; color: var(--ink); font-size: 20px; line-height: 1; transition: transform 0.2s; }
 .faq details[open] summary::after { transform: rotate(45deg); }
 .faq details p { margin: 0 0 16px; font-size: 15px; line-height: 1.55; color: var(--muted); }
 
@@ -437,7 +450,7 @@
 
 .final { padding: 48px 0 56px; background: var(--orange); color: var(--white); text-align: center; }
 .final .h2 { color: var(--white); }
-.final .lead { color: var(--white); margin-bottom: 20px; }
+.final .lead { color: var(--white); margin-bottom: 20px; font-size: 19px; font-weight: 700; }
 .finalBtns { display: flex; justify-content: center; }
 
 /* ───────────── Mouvement ───────────── */
@@ -478,11 +491,15 @@
   .page[data-motion="io"] [data-rv][data-in] { opacity: 1; transform: none; }
 }
 
+/* La photo est visible dès la première image (pas de fondu d'entrée) :
+   sinon Chrome ne la compte pour le LCP qu'après le JavaScript. Le fondu
+   se fait en fin de boucle, avant le retour au centre. */
 @keyframes heroPhoto {
-  0% { opacity: 0; transform: scale(0.94); }
-  4%, 18% { opacity: 1; transform: none; }
-  32%, 92% { opacity: 1; transform: translate(-20px, -8px) scale(0.5); }
-  98%, 100% { opacity: 0; transform: translate(-20px, -8px) scale(0.5); }
+  0%, 18% { opacity: 1; transform: none; }
+  32%, 92% { opacity: 1; transform: translate(-50px, -28px) scale(0.6667); }
+  96% { opacity: 0; transform: translate(-50px, -28px) scale(0.6667); }
+  97% { opacity: 0; transform: scale(0.94); }
+  100% { opacity: 1; transform: none; }
 }
 @keyframes heroCard {
   0%, 18% { opacity: 0; transform: scale(0.96); }

@@ -238,7 +238,7 @@ export default function FooterTiroirWeb() {
           padding-top: 20px;
           border-top: 1px solid rgba(0, 0, 0, 0.08);
         }
-        .ti-footer__copy { font-size: 13px; color: #8a8177; }
+        .ti-footer__copy { font-size: 13px; color: var(--muted); }
         .ti-footer__social { display: flex; align-items: center; gap: 6px; }
         .ti-footer__langs { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; }
         .ti-footer__langs a { color: var(--muted); text-decoration: none; padding: 6px 0; }

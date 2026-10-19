@@ -9,7 +9,7 @@ export default function FinalCta() {
       <div className={s.wrap}>
         <h2 id="final-title" className={s.h2}>{t.title}</h2>
         <p className={s.lead}>{t.sub}</p>
-        <div className={s.finalBtns}><StoreButtons variant="onColor" locale={locale} /></div>
+        <div className={s.finalBtns}><StoreButtons variant="dark" locale={locale} /></div>
       </div>
     </section>
   )

@@ -34,7 +34,7 @@ export default function Hero() {
           <span className={s.badge}>{t.badge}</span>
           <h1 id="home-title" className={s.heroTitle}>{title}</h1>
           <p className={s.heroSub}>{sub}</p>
-          <StoreButtons variant="cardPrimary" locale={locale} />
+          <StoreButtons variant="dark" locale={locale} />
           <p className={s.heroFree}>{t.free}</p>
         </div>
 
@@ -58,7 +58,7 @@ export default function Hero() {
                 </div>
               </div>
               <div className={s.photo} aria-hidden="true">
-                <Image src="/screens/chain/montre.png" alt="" width={240} height={240} priority sizes="240px" />
+                <Image src="/screens/chain/montre.png" alt="" width={180} height={180} priority sizes="180px" />
               </div>
               <div className={s.finder} aria-hidden="true"><i /><i /><i /><i /></div>
               <div className={s.flash} aria-hidden="true" />
