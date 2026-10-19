@@ -18,6 +18,8 @@ export type AdminNavSection = {
 export type AdminNav = {
   sections: AdminNavSection[]
   account: { email: string | null }
+  /** Accueil du site public : « / » tant que le back-office n'a pas son domaine. */
+  siteUrl: string
 }
 
 /**

@@ -13,6 +13,7 @@
 // Module sans dépendance Next, pour rester testable hors de Next.
 import { isTorixOwner } from './torixOwner'
 import { isMarketingMember } from './marketingAccess'
+import { DEFAULT_SITE_HOST } from './backofficeRouting'
 import type { AdminNav, AdminNavSection } from '../components/admin/adminNavPaths'
 
 export type { AdminNav, AdminNavSection }
@@ -45,5 +46,20 @@ export function adminNavFor(user: Viewer, isAdmin: boolean): AdminNav {
   return {
     sections: SECTIONS.filter(s => s.visible(access)).map(({ visible: _visible, ...s }) => s),
     account: { email: user.email ?? null },
+    siteUrl: siteUrlFor(),
   }
+}
+
+/**
+ * Accueil du site public, pour le lien « Voir le site » du header. Sur
+ * backoffice.tiroir.app, « / » ouvre l'admin (middleware.ts) : il faut
+ * l'adresse complète du site. Sans BACKOFFICE_HOST (preprod, aperçus,
+ * développement), site et admin partagent le domaine : « / » suffit.
+ */
+export function siteUrlFor(
+  backofficeHost = process.env.BACKOFFICE_HOST,
+  siteHost = process.env.SITE_HOST,
+): string {
+  if (!backofficeHost?.trim()) return '/'
+  return `https://${siteHost?.trim() || DEFAULT_SITE_HOST}/`
 }

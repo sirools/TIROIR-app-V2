@@ -80,8 +80,13 @@ back-office. L'adresse doit être confirmée. Garde :
 
 Un seul header, sticky, sur toutes les pages admin : logo (retour à
 l'accueil), une entrée par section (l'active en orange, sous-pages
-comprises), compte et déconnexion ; sous 760 px, un menu compact. Sur les
-sous-pages, un fil d'Ariane (Back-office › Marketing › Campagnes).
+comprises), « Voir le site » (accueil de `tiroir.app`, adresse calculée
+par `siteUrlFor` dans `lib/adminNav.ts`), compte et déconnexion ; sous
+760 px, un menu compact. Sur les sous-pages, un fil d'Ariane
+(Back-office › Marketing › Campagnes). Dans l'autre sens, le menu compte
+du header du site public a une entrée Admin (`/admin`, qui renvoie vers
+le back-office) — visible si l'on est connecté en admin sur `tiroir.app`,
+la session étant propre à chaque domaine.
 
 - `components/admin/AdminLayout.tsx` — le header, posé **une seule fois**
   par `pages/_app.tsx` autour de toute page qui renvoie `adminNav`.
