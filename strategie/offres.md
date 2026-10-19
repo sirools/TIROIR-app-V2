@@ -10,7 +10,7 @@ fiches de Torix. Elle remplace la grille du 30 septembre ci-dessous
 
 | Formule | Contenu | Prix TTC | Où l'acheter |
 | --- | --- | --- | --- |
-| **Free** | Objets et collections illimités, 20 actions IA par mois | 0 € | — |
+| **Free** | Objets et collections illimités, 20 unités IA par mois | 0 € | — |
 | **Packs de crédits** | 50 · 150 · 500 crédits, sans expiration | 2,99 € · 6,99 € · 19,99 € | App (achat intégré) |
 | **Premium** | Estimation, courbe de valeur, liens protégés… | 4,99 €/mois ou 39 €/an | App (abonnement) |
 | **Pro** | Tout le Premium, avec des quotas plus élevés | 14,99 €/mois | App (abonnement) ; plus tard site (Stripe) |
@@ -20,21 +20,26 @@ fiches de Torix. Elle remplace la grille du 30 septembre ci-dessous
 
 Le palier `pro` existe déjà dans le système et fonctionne ainsi : mêmes
 fonctionnalités que Premium, quotas mensuels plus élevés, réglables dans
-le back-office (onglet Quotas). Valeurs par défaut du code, à confirmer
-dans le back-office de prod :
+le back-office (onglet Quotas, `app_settings`). Quotas décidés par le
+fondateur le 19/10 :
 
 | | Unités IA / mois | Retouches photo / mois |
 | --- | --- | --- |
+| Free | **20** (aligné sur le site ; le code en donnait 30) | — |
 | Premium | 150 | 50 |
-| **Pro (proposé : garder)** | **300** | **100** |
+| **Pro** | **600** (au lieu de 300) | **100** |
+
+Pourquoi 600 : une analyse de scène Pro (modèle Opus) pèse 13 unités. À
+300 unités, un Pro faisait moins de scènes qu'un Premium (23 contre 37) ;
+à 600, environ 46.
 
 Marge au pire cas (quota entièrement consommé ; 1 unité ≈ 1 centime
 d'IA, 1 retouche ≈ 3,9 centimes — `strategie/torix-et-tiroir.md` § 3) :
 
 | | Net par mois* | Coût IA au pire | Marge au pire |
 | --- | --- | --- | --- |
-| Pro 14,99 € (store) | ≈ 10,62 € | ≈ 6,90 € | ≈ + 3,70 € |
-| Pro 14,99 € (Stripe, site) | ≈ 12,00 € | ≈ 6,90 € | ≈ + 5,10 € |
+| Pro 14,99 € (store) | ≈ 10,62 € | ≈ 9,90 € | ≈ + 0,70 € |
+| Pro 14,99 € (Stripe, site) | ≈ 12,00 € | ≈ 9,90 € | ≈ + 2,10 € |
 | Premium 4,99 €/mois (store) | ≈ 3,53 € | ≈ 3,45 € | ≈ 0 € |
 | Premium 39 €/an (store) | ≈ 2,30 €/mois | ≈ 3,45 € | **≈ − 1,15 €** |
 
@@ -44,6 +49,14 @@ d'IA, 1 retouche ≈ 3,9 centimes — `strategie/torix-et-tiroir.md` § 3) :
 Premium perd de l'argent sur un gros consommateur** : à surveiller, ou
 réduire les retouches photo Premium (50 → 30 ramènerait le pire cas à
 ≈ 2,67 €). À trancher par le fondateur.
+
+À 600 unités, **le Pro reste rentable même au pire cas, mais de peu**
+(≈ 0,70 € par mois en store) : c'est un choix assumé pour que le Pro
+vaille clairement plus que le Premium. Si les gros consommateurs se
+multiplient, le levier est le quota de retouches photo (100), pas le prix.
+
+**Réglage à faire dans le back-office de prod** (onglet Quotas) : Free
+→ 20 unités IA par mois, Pro → 600. Les autres valeurs ne bougent pas.
 
 ### Ce qu'il reste pour que l'argent rentre
 
