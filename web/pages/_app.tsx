@@ -6,6 +6,7 @@ import '@tamagui/core/reset.css'
 import { TamaguiProvider } from 'tamagui'
 import config from '../tamagui.config'
 import SiteVisitTracker from '../components/SiteVisitTracker'
+import AdminLayout from '../components/admin/AdminLayout'
 // Jetons de design (couleurs, police, arrondi…) : seule source,
 // design/tokens.json → node design/generate.mjs.
 import '../styles/tokens.generated.css'
@@ -14,7 +15,12 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <TamaguiProvider config={config} defaultTheme="light">
       <SiteVisitTracker />
-      <Component {...pageProps} />
+      {/* Back-office : un seul header pour toutes les pages admin. Seules
+          les pages dont la garde serveur a laissé passer le compte
+          renvoient adminNav (lib/adminNav.ts). */}
+      {pageProps.adminNav
+        ? <AdminLayout nav={pageProps.adminNav}><Component {...pageProps} /></AdminLayout>
+        : <Component {...pageProps} />}
 
       <style jsx global>{`
         a.btn,

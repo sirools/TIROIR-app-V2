@@ -8,6 +8,7 @@ import Head from 'next/head'
 import { requireMarketingPage } from '../../lib/adminAuth'
 import { adminSupabase } from '../../lib/supabase'
 import { parseAcquisition, signupsBySource, type SourceRow } from '../../lib/attribution'
+import { adminNavFor, type AdminNav } from '../../lib/adminNav'
 
 type Props = {
   generatedAt: string
@@ -119,7 +120,8 @@ function SourceTable({ rows }: { rows: SourceRow[] }) {
   )
 }
 
-export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
+// adminNav : lu par le header du back-office (_app.tsx), pas par la page.
+export const getServerSideProps: GetServerSideProps<Props & { adminNav: AdminNav }> = async ctx => {
   const guard = await requireMarketingPage(ctx)
   if (!guard.ok) return guard.result
 
@@ -150,6 +152,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
 
   return {
     props: {
+      adminNav: adminNavFor(guard.user, guard.isAdmin),
       generatedAt: new Date().toISOString(),
       visits30d: views?.length ?? 0,
       visitors30d: new Set((views ?? []).map(v => v.visitor_id || v.ip_hash).filter(Boolean)).size,
