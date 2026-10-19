@@ -29,6 +29,14 @@ const es: Copy = {
     language: 'Idioma',
   },
 
+  // Achats dans l'app (page Tarifs) : Premium et crédits passent par les stores.
+  inApp: {
+    subscribe: 'Suscríbete en la app',
+    buyCredits: 'Compra créditos en la app',
+    subscriptionNote: 'La suscripción se gestiona desde la app.',
+    creditsNote: 'Los créditos se compran desde la app.',
+  },
+
   home: {
     meta: {
       title: 'Tiroir — una foto y tus cosas quedan ordenadas',

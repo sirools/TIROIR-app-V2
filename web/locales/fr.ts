@@ -32,6 +32,14 @@ const fr = {
     language: 'Langue',
   },
 
+  // Achats dans l'app (page Tarifs) : Premium et crédits passent par les stores.
+  inApp: {
+    subscribe: 'S’abonner dans l’app',
+    buyCredits: 'Acheter des crédits dans l’app',
+    subscriptionNote: 'L’abonnement se gère depuis l’app.',
+    creditsNote: 'Les crédits s’achètent depuis l’app.',
+  },
+
   home: {
     meta: {
       title: 'Tiroir — une photo, et vos objets sont rangés',

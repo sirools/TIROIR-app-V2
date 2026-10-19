@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { appStoreUrl, appStoreUrlFor, playStoreUrl, playStoreUrlFor } from '../lib/appLinks'
 import type { Locale } from '../lib/localeRouting'
 
@@ -24,24 +25,29 @@ function PlayIcon({ size = 18 }: { size?: number }) {
  * - variant : contexte visuel (fond sombre, sur couleur, carte…)
  * - full : les 2 boutons se partagent la largeur (utile dans les cartes)
  * - locale : langue du site (store du pays) ; à défaut, isEn
+ * - highlight : met en avant (en premier, en couleur) le store du téléphone
+ *   détecté, iPhone/iPad ou Android ; sur ordinateur, rien ne change
  */
 export default function StoreButtons({
   isEn = false,
   variant = 'dark',
   full = false,
   locale,
+  highlight = false,
 }: {
   isEn?: boolean
   variant?: Variant
   full?: boolean
   locale?: Locale
+  highlight?: boolean
 }) {
+  const platform = useMobilePlatform(highlight)
   const appStore = locale ? appStoreUrlFor(locale) : appStoreUrl(isEn)
   const playStore = locale ? playStoreUrlFor(locale) : playStoreUrl(isEn)
   return (
     <div className={`store-btns${full ? ' full' : ''}`}>
       <a
-        className={`store-btn v-${variant}`}
+        className={`store-btn v-${variant}${platform === 'ios' ? ' hl' : ''}`}
         href={appStore}
         target="_blank"
         rel="noopener noreferrer"
@@ -50,7 +56,7 @@ export default function StoreButtons({
         <span>App Store</span>
       </a>
       <a
-        className={`store-btn v-${variant}`}
+        className={`store-btn v-${variant}${platform === 'android' ? ' hl' : ''}`}
         href={playStore}
         target="_blank"
         rel="noopener noreferrer"
@@ -120,6 +126,13 @@ export default function StoreButtons({
         .v-cardPrimary:hover {
           background: #d85e00;
         }
+        /* Store du téléphone détecté : en premier, en encre (contraste AA). */
+        .store-btn.hl {
+          order: -1;
+          background: var(--ink);
+          color: var(--white);
+          border-color: var(--ink);
+        }
         @media (max-width: 400px) {
           .store-btns.full {
             flex-direction: column;
@@ -131,4 +144,20 @@ export default function StoreButtons({
       `}</style>
     </div>
   )
+}
+
+/**
+ * Plateforme mobile du visiteur, lue après le montage (le rendu serveur et
+ * le premier rendu client restent identiques). iPadOS se présente comme un
+ * Mac : on le reconnaît à son écran tactile.
+ */
+function useMobilePlatform(enabled: boolean): 'ios' | 'android' | null {
+  const [platform, setPlatform] = useState<'ios' | 'android' | null>(null)
+  useEffect(() => {
+    if (!enabled) return
+    const ua = navigator.userAgent
+    if (/android/i.test(ua)) setPlatform('android')
+    else if (/iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1)) setPlatform('ios')
+  }, [enabled])
+  return platform
 }

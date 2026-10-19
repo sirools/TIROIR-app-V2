@@ -29,6 +29,14 @@ const de: Copy = {
     language: 'Sprache',
   },
 
+  // Achats dans l'app (page Tarifs) : Premium et crédits passent par les stores.
+  inApp: {
+    subscribe: 'In der App abonnieren',
+    buyCredits: 'Credits in der App kaufen',
+    subscriptionNote: 'Das Abo verwalten Sie in der App.',
+    creditsNote: 'Credits kaufen Sie in der App.',
+  },
+
   home: {
     meta: {
       title: 'Tiroir — ein Foto, und alles ist erfasst',
