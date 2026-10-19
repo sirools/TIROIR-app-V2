@@ -1,4 +1,67 @@
-# Les formules de Tiroir — décision du 29 septembre 2026
+# Les formules de Tiroir
+
+## Décision du 19 octobre 2026 — la grille V4 est figée
+
+Décision du fondateur : **une seule grille, la même partout et pour toute
+la durée du projet** — site, App Store, Google Play, RevenueCat, Stripe,
+fiches de Torix. Elle remplace la grille du 30 septembre ci-dessous
+(conservée pour l'historique). Source unique dans le code :
+`OFFERS_V4` (`web/lib/offers.ts`). Stripe (test) la porte déjà.
+
+| Formule | Contenu | Prix TTC | Où l'acheter |
+| --- | --- | --- | --- |
+| **Free** | Objets et collections illimités, 20 actions IA par mois | 0 € | — |
+| **Packs de crédits** | 50 · 150 · 500 crédits, sans expiration | 2,99 € · 6,99 € · 19,99 € | App (achat intégré) |
+| **Premium** | Estimation, courbe de valeur, liens protégés… | 4,99 €/mois ou 39 €/an | App (abonnement) |
+| **Pro** | Tout le Premium, avec des quotas plus élevés | 14,99 €/mois | App (abonnement) ; plus tard site (Stripe) |
+| **Business** | Tout le Pro par membre, rôles, facture | 39 € par siège/mois | Sur facture ; plus tard site (Stripe) |
+
+### Pro = Premium avec plus de quotas (décision du 19/10)
+
+Le palier `pro` existe déjà dans le système et fonctionne ainsi : mêmes
+fonctionnalités que Premium, quotas mensuels plus élevés, réglables dans
+le back-office (onglet Quotas). Valeurs par défaut du code, à confirmer
+dans le back-office de prod :
+
+| | Unités IA / mois | Retouches photo / mois |
+| --- | --- | --- |
+| Premium | 150 | 50 |
+| **Pro (proposé : garder)** | **300** | **100** |
+
+Marge au pire cas (quota entièrement consommé ; 1 unité ≈ 1 centime
+d'IA, 1 retouche ≈ 3,9 centimes — `strategie/torix-et-tiroir.md` § 3) :
+
+| | Net par mois* | Coût IA au pire | Marge au pire |
+| --- | --- | --- | --- |
+| Pro 14,99 € (store) | ≈ 10,62 € | ≈ 6,90 € | ≈ + 3,70 € |
+| Pro 14,99 € (Stripe, site) | ≈ 12,00 € | ≈ 6,90 € | ≈ + 5,10 € |
+| Premium 4,99 €/mois (store) | ≈ 3,53 € | ≈ 3,45 € | ≈ 0 € |
+| Premium 39 €/an (store) | ≈ 2,30 €/mois | ≈ 3,45 € | **≈ − 1,15 €** |
+
+\* Après TVA (20 %) et commission des stores (15 %) ; Stripe ≈ 1,5 % +
+0,25 €. L'usage réel est très inférieur au pire cas (§ 4 de
+`torix-et-tiroir.md` : ~1,50 $/mois pour un payant), mais **l'annuel
+Premium perd de l'argent sur un gros consommateur** : à surveiller, ou
+réduire les retouches photo Premium (50 → 30 ramènerait le pire cas à
+≈ 2,67 €). À trancher par le fondateur.
+
+### Ce qu'il reste pour que l'argent rentre
+
+1. **Stores** (depuis un ordinateur) : aligner les produits sur la grille,
+   pas à pas dans `strategie/packs-stores.md`.
+2. **Code** (une PR, prête avant les stores) : identifiants des nouveaux
+   packs dans l'app et le webhook RevenueCat ; webhook qui attribue le
+   palier `pro` aux abonnés Pro des stores (aujourd'hui, tout abonnement
+   store donne `premium`) ; écran d'abonnement de l'app avec Pro.
+   Nouvelle version de l'app à publier (revue Apple et Google).
+3. **Site** : la page Tarifs renvoie vers l'app pour Premium et les
+   crédits (PR #72), puis Pro dès qu'il est en vente dans l'app.
+4. **Plus tard** : paiement sur le site par Stripe (Pro, Business), une
+   fois le mode réel de Stripe activé.
+
+---
+
+# Historique — grille du 29/30 septembre 2026 (remplacée le 19/10)
 
 Décision du fondateur : quatre façons d'utiliser Tiroir, selon l'usage
 de l'IA. Grille révisée le **30 septembre 2026** : prix alignés sur le
