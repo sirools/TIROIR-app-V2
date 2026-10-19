@@ -39,6 +39,7 @@ import {
 } from '../../components/torix/useCompass'
 import { canListen, canSpeak, listenOnce, speak, unlockSpeech } from '../../components/torix/voice'
 import { requireTorixOwnerPage } from '../../lib/adminAuth'
+import { adminNavFor } from '../../lib/adminNav'
 
 const INTRO = 'Demande-moi une direction, ou parle-moi de Tiroir.'
 // Commandement 4 : repos obligatoire de 21 h 30 à 7 h.
@@ -294,7 +295,9 @@ export default function TorixLab({ suggestions }: { suggestions: string[] }) {
       </Head>
 
       <header className="top">
-        <a className="back" href="/admin" aria-label="Retour à l’admin">Admin</a>
+        {/* Le retour au back-office est dans le header commun
+            (AdminLayout) ; cet espace garde le titre centré. */}
+        <span className="top__spacer" aria-hidden="true" />
         <span className="mark">Torix <span className="mark__lab">Lab</span></span>
         <button
           className={`compass-btn${compassOn ? ' compass-btn--on' : ''}`}
@@ -436,10 +439,12 @@ export default function TorixLab({ suggestions }: { suggestions: string[] }) {
           --app-h: 100vh;
           position: fixed;
           left: 0;
-          top: 0;
+          /* Sous le header du back-office (AdminLayout), qui pose
+             --admin-header-h et prend en charge la zone de l’encoche. */
+          top: var(--admin-header-h, 0px);
           width: 100%;
-          height: 100vh;
-          height: var(--app-h);
+          height: calc(100vh - var(--admin-header-h, 0px));
+          height: calc(var(--app-h) - var(--admin-header-h, 0px));
           transform: translateY(var(--app-top, 0px));
           display: grid;
           grid-template-rows: auto minmax(0, 1fr) auto auto;
@@ -448,7 +453,7 @@ export default function TorixLab({ suggestions }: { suggestions: string[] }) {
           grid-template-columns: minmax(0, 1fr);
           overflow: hidden;
           padding:
-            max(14px, env(safe-area-inset-top))
+            14px
             max(20px, env(safe-area-inset-right))
             max(18px, env(safe-area-inset-bottom))
             max(20px, env(safe-area-inset-left));
@@ -477,14 +482,7 @@ export default function TorixLab({ suggestions }: { suggestions: string[] }) {
           text-transform: uppercase;
           color: rgba(170, 195, 240, 0.45);
         }
-        .back {
-          color: inherit;
-          text-decoration: none;
-          padding: 10px 10px 10px 0;
-          min-width: 44px;
-        }
-        .back::before { content: '← '; }
-        .back:hover, .back:focus-visible { color: rgba(200, 220, 255, 0.8); }
+        .top__spacer { width: 44px; }
         .mark { color: rgba(215, 228, 255, 0.72); font-weight: 600; }
         .mark__lab { font-weight: 400; color: rgba(170, 195, 240, 0.5); }
         .compass-btn {
@@ -882,5 +880,5 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   // Seules les questions suggérées partent au client, et seulement pour le
   // propriétaire : les réponses restent sur le serveur.
   const { SUGGESTIONS } = await import('../../components/torix/knowledge')
-  return { props: { suggestions: [...SUGGESTIONS] } }
+  return { props: { suggestions: [...SUGGESTIONS], adminNav: adminNavFor(guard.user, guard.isAdmin) } }
 }
