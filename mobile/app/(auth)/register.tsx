@@ -6,6 +6,7 @@ import * as AppleAuthentication from 'expo-apple-authentication'
 import { supabase } from '@/lib/supabase'
 import { signInWithApple, signInWithGoogle } from '@/features/auth/socialAuth'
 import { Screen, Button, Input, Checkbox, GoogleButton, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { preferredLanguage } from '@/i18n'
 
 export default function RegisterScreen() {
   const router = useRouter()
@@ -74,7 +75,8 @@ export default function RegisterScreen() {
       email: email.trim(),
       password,
       options: {
-        data: { display_name: name.trim() },
+        // Langue du compte, pour les e-mails : celle de l'app.
+        data: { display_name: name.trim(), locale: await preferredLanguage() },
         emailRedirectTo: 'https://tiroir.app/email-confirme',
       },
     })

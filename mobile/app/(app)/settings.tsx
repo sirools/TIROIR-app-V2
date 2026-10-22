@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { setAppLanguage, SUPPORTED_LANGUAGES, LANGUAGE_LABELS, type AppLanguage } from '@/i18n'
 import { Screen, Button, Input, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { saveAccountLocale } from '@/features/auth/accountLocale'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -140,7 +141,10 @@ export default function SettingsScreen() {
               {index > 0 && <View style={styles.separator} />}
               <TouchableOpacity
                 style={styles.row}
-                onPress={() => setAppLanguage(lang)}
+                onPress={() => {
+                  void setAppLanguage(lang)
+                  void saveAccountLocale(lang).catch(() => undefined)
+                }}
                 activeOpacity={0.7}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: currentLang === lang }}

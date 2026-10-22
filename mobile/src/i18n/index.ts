@@ -67,6 +67,18 @@ export async function loadStoredLanguage() {
   }
 }
 
+// Langue à donner au compte : le choix mémorisé, sinon celle de l'app.
+// Lit le stockage, au cas où loadStoredLanguage n'aurait pas encore fini.
+export async function preferredLanguage(): Promise<AppLanguage> {
+  try {
+    const stored = await AsyncStorage.getItem(STORAGE_KEY)
+    if (isSupported(stored)) return stored
+  } catch {
+    /* AsyncStorage indisponible : langue courante */
+  }
+  return isSupported(i18n.language) ? i18n.language : DEFAULT_LANGUAGE
+}
+
 // Change la langue et mémorise le choix de l'utilisateur.
 export async function setAppLanguage(lang: AppLanguage) {
   await i18n.changeLanguage(lang)

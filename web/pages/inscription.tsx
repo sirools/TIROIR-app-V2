@@ -47,8 +47,12 @@ export default function Inscription() {
       password,
       // Source du premier passage (campagne, réseau…) : chiffres agrégés de
       // la page Marketing du back-office.
-      // Le lien de l'e-mail ramène dans la langue de l'inscription.
-      options: { emailRedirectTo: `${window.location.origin}${prefix}${confirm}`, data: { acq: firstTouch() ?? { source: 'direct' } } },
+      // Le lien de l'e-mail ramène dans la langue de l'inscription, qui
+      // devient celle du compte (lib/accountLocale.ts).
+      options: {
+        emailRedirectTo: `${window.location.origin}${prefix}${confirm}`,
+        data: { acq: firstTouch() ?? { source: 'direct' }, locale },
+      },
     })
     if (error) {
       setHint(authErrorKey(error))
