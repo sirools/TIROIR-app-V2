@@ -20,6 +20,9 @@ import {
   initialTriageState, pendingWishes, showTriage, triageReducer, visibleWishes,
   type TriageDecision, type Wish,
 } from '../../lib/suggestions'
+import { localePrefix, type Locale } from '../../lib/localeRouting'
+import { fill, intlLocale, useCopy } from '../../locales'
+import type { ShareCopy } from '../../locales/share/fr'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -77,7 +80,8 @@ interface SuggestionsProps {
 interface Props {
   suggestions?: SuggestionsProps
   token: string
-  title: string
+  /** Nom du partage ; `null` = sans nom (titre par défaut traduit au rendu). */
+  title: string | null
   objects: SharedObject[]
   allowDownload: boolean
   fields: ShareFields
@@ -89,26 +93,23 @@ interface Props {
 
 // ── Status helpers ─────────────────────────────────────────────────────────────
 
-const STATUS_LABEL: Record<string, string> = {
-  owned: 'Possédé', stored: 'En stockage', loaned: 'Prêté',
-  sold: 'Vendu', given: 'Donné', lost: 'Perdu',
-}
+// Libellés des statuts et des attributs : web/locales/share (status, attrs).
 const STATUS_COLOR: Record<string, string> = {
   owned: '#22C55E', stored: '#38BDF8', loaned: '#E879F9',
   sold: '#FBBF24', given: '#FB7185', lost: '#9CA3AF',
 }
 
-// Libellés FR des attributs connus (fallback : la clé brute)
-const ATTR_LABEL_FR: Record<string, string> = {
-  brand: 'Marque', model: 'Modèle', category: 'Catégorie', serial_number: 'N° de série',
-  color: 'Couleur', material: 'Matière', dimensions: 'Dimensions', voltage: 'Voltage',
-  condition: 'État', size: 'Taille', weight: 'Poids', year: 'Année',
-}
 // Ordre de priorité des attributs connus dans le tableau
 const ATTR_ORDER = ['brand', 'model', 'category', 'color', 'material', 'size', 'condition', 'dimensions', 'year', 'weight', 'voltage', 'serial_number']
 
-function attrLabel(key: string): string {
-  return ATTR_LABEL_FR[key] ?? (key.charAt(0).toUpperCase() + key.slice(1))
+/** Libellé traduit d'une clé (statut, attribut…), `undefined` si inconnue. */
+function pick(map: object, key: string): string | undefined {
+  return (map as Record<string, string>)[key]
+}
+
+// Libellés des attributs connus (fallback : la clé brute)
+function attrLabel(key: string, t: ShareCopy): string {
+  return pick(t.attrs, key) ?? (key.charAt(0).toUpperCase() + key.slice(1))
 }
 
 function normCurrency(raw: string | null | undefined): string {
@@ -120,18 +121,18 @@ function normCurrency(raw: string | null | undefined): string {
   return 'EUR'
 }
 
-function money(amount: number | null | undefined, rawCurrency?: string | null): string | null {
+function money(locale: Locale, amount: number | null | undefined, rawCurrency?: string | null): string | null {
   if (amount === null || amount === undefined) return null
-  return amount.toLocaleString('fr-FR', {
+  return amount.toLocaleString(intlLocale(locale), {
     style: 'currency', currency: normCurrency(rawCurrency), maximumFractionDigits: 0,
   })
 }
 
-function shortDate(iso: string | null | undefined): string | null {
+function shortDate(locale: Locale, iso: string | null | undefined): string | null {
   if (!iso) return null
   const d = new Date(iso)
   if (isNaN(d.getTime())) return null
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return d.toLocaleDateString(intlLocale(locale), { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 // ── SSR ───────────────────────────────────────────────────────────────────────
@@ -161,7 +162,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   // Clé SIGNÉE exigée (le cookie non signé `<ts>.ok` se fabriquait à la main).
   if (link.options?.password_protected && !hasSignedCookie(token, ctx.req)) {
-    return { props: { token, title: link.title ?? 'Partage TiROiR', objects: [], allowDownload: false, fields: ALL_FIELDS, gated: true } }
+    return { props: { token, title: link.title ?? null, objects: [], allowDownload: false, fields: ALL_FIELDS, gated: true } }
   }
 
   /**
@@ -279,7 +280,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     props: {
       suggestions,
       token,
-      title: link.title ?? 'Partage TiROiR',
+      title: link.title ?? null,
       objects,
       allowDownload: link.options?.allow_download ?? false,
       fields,
@@ -291,6 +292,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 // ── Formulaire mot de passe ─────────────────────────────────────────────────────
 
 function PasswordForm({ token }: { token: string }) {
+  const { t: { share: { password: t } }, locale } = useCopy()
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -305,13 +307,14 @@ function PasswordForm({ token }: { token: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       })
-      if (res.ok) { window.location.href = `/s/${token}`; return }
-      if (res.status === 401) setError('Mot de passe incorrect. Réessaie.')
-      else if (res.status === 404) setError('Ce lien de partage est introuvable.')
-      else if (res.status === 410) setError('Ce lien a expiré.')
-      else setError("Une erreur est survenue. Réessaie plus tard.")
+      // Rechargement complet (le cookie vient d'être posé), dans la même langue.
+      if (res.ok) { window.location.href = `${localePrefix(locale)}/s/${token}`; return }
+      if (res.status === 401) setError(t.wrong)
+      else if (res.status === 404) setError(t.notFound)
+      else if (res.status === 410) setError(t.expired)
+      else setError(t.generic)
     } catch {
-      setError("Impossible d'atteindre le serveur.")
+      setError(t.unreachable)
     } finally {
       setLoading(false)
     }
@@ -320,19 +323,19 @@ function PasswordForm({ token }: { token: string }) {
   return (
     <div className="password-gate">
       <div className="password-icon">🔒</div>
-      <h1 className="password-title">Partage protégé</h1>
-      <p className="password-sub">Ce partage est protégé par un mot de passe.</p>
+      <h1 className="password-title">{t.title}</h1>
+      <p className="password-sub">{t.sub}</p>
       <form onSubmit={onSubmit} className="password-form">
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Mot de passe"
+          placeholder={t.placeholder}
           autoFocus
           className="password-input"
         />
         <button type="submit" disabled={loading} className="password-btn">
-          {loading ? '...' : 'Valider'}
+          {loading ? '...' : t.submit}
         </button>
       </form>
       {error && <p className="password-error">{error}</p>}
@@ -367,10 +370,10 @@ type SortKey = 'title' | 'status' | 'location_note' | 'value'
   | 'market_value' | 'purchase_price' | 'sale_price' | 'deposit_amount' | 'created_at'
 type SortDir = 'asc' | 'desc'
 
-function sortValueOf(obj: SharedObject, key: SortKey): string | number {
+function sortValueOf(obj: SharedObject, key: SortKey, t: ShareCopy): string | number {
   switch (key) {
     case 'title': return obj.title?.toLowerCase() ?? ''
-    case 'status': return obj.status ? (STATUS_LABEL[obj.status] ?? obj.status).toLowerCase() : ''
+    case 'status': return obj.status ? (pick(t.status, obj.status) ?? obj.status).toLowerCase() : ''
     case 'location_note': return obj.location_note?.toLowerCase() ?? ''
     case 'value': return obj.user_value ?? obj.market_value ?? -Infinity
     case 'market_value': return obj.market_value ?? -Infinity
@@ -381,19 +384,22 @@ function sortValueOf(obj: SharedObject, key: SortKey): string | number {
   }
 }
 
-function sortObjects(objects: SharedObject[], key: SortKey | null, dir: SortDir) {
+function sortObjects(objects: SharedObject[], key: SortKey | null, dir: SortDir, t: ShareCopy, locale: Locale) {
   if (!key) return objects
   const factor = dir === 'asc' ? 1 : -1
   return [...objects].sort((a, b) => {
-    const va = sortValueOf(a, key)
-    const vb = sortValueOf(b, key)
+    const va = sortValueOf(a, key, t)
+    const vb = sortValueOf(b, key, t)
     if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * factor
-    return String(va).localeCompare(String(vb), 'fr') * factor
+    return String(va).localeCompare(String(vb), intlLocale(locale)) * factor
   })
 }
 
 export default function ShareV2Page({ token, title, objects, allowDownload, fields = ALL_FIELDS, expiresAt, error, gated, suggestions }: Props) {
   const router = useRouter()
+  const { t: { share: t }, locale } = useCopy()
+  const tl = t.list
+  const shareTitle = title ?? t.meta.defaultTitle
   const collection = suggestions?.collection ?? null
   const isOwner = suggestions?.isOwner ?? false
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(collection?.suggestionsEnabled ?? false)
@@ -433,7 +439,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
     const { error: rpcErr } = await browserSupabase.rpc('triage_collection_wish', { p_wish_id: id, p_decision: decision })
     if (rpcErr) {
       dispatch({ type: 'rollback', id, status: 'suggested', history: before })
-      setTriageError('Ce choix n’a pas pu être enregistré. Réessaie.')
+      setTriageError(tl.triageError)
     }
     setTriageBusy(false)
   }
@@ -447,7 +453,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
     const { error: rpcErr } = await browserSupabase.rpc('undo_collection_wish_triage', { p_wish_id: last.id })
     if (rpcErr) {
       dispatch({ type: 'rollback', id: last.id, status: last.decision === 'keep' ? 'idea' : 'dismissed', history: before })
-      setTriageError('L’annulation n’a pas pu être enregistrée. Réessaie.')
+      setTriageError(tl.undoError)
     }
     setTriageBusy(false)
   }
@@ -456,7 +462,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [exportMode, setExportMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const pageTitle = error ? 'Lien introuvable — TiROiR' : `${title} — TiROiR`
+  const pageTitle = error ? t.meta.linkNotFound : fill(t.meta.pageTitle, { title: shareTitle })
 
   function toggleSort(key: SortKey) {
     if (sortKey !== key) { setSortKey(key); setSortDir('asc'); return }
@@ -484,17 +490,17 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
     const end = new Date(expiresAt)
     if (isNaN(end.getTime())) return null
     const days = Math.ceil((end.getTime() - Date.now()) / 86400_000)
-    const date = end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-    if (days <= 0) return { label: `Ce lien expire aujourd'hui`, urgent: true }
-    if (days === 1) return { label: `Ce lien expire demain, le ${date}`, urgent: true }
+    const date = end.toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' })
+    if (days <= 0) return { label: tl.expiresToday, urgent: true }
+    if (days === 1) return { label: fill(tl.expiresTomorrow, { date }), urgent: true }
     return {
-      label: `Ce lien expire dans ${days} jours, le ${date}`,
+      label: fill(tl.expiresIn, { days, date }),
       // Une semaine : le seuil où prévenir sert encore à quelque chose.
       urgent: days <= 7,
     }
   })()
 
-  const sortedObjects = sortObjects(objects, sortKey, sortDir)
+  const sortedObjects = sortObjects(objects, sortKey, sortDir, t, locale)
 
   // Colonnes d'attributs : union des clés présentes sur les objets, connues d'abord
   const attrKeys = (() => {
@@ -525,12 +531,12 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
     total: (o: SharedObject) => number | null
     cur: (o: SharedObject) => string | null
   }[] = [
-    { key: 'value', label: 'Valeur estimée', get: o => o.user_value ?? o.market_value, total: o => lotTotal(o.user_value ?? o.market_value, o.quantity), cur: o => o.value_currency },
-    { key: 'market_value', label: 'Valeur marché', get: o => o.market_value, total: o => lotTotal(o.market_value, o.quantity), cur: o => o.value_currency },
-    { key: 'purchase_price', label: "Prix d'achat", get: o => o.purchase_price, total: o => lotTotal(o.purchase_price, o.quantity), cur: o => o.purchase_currency ?? o.value_currency },
+    { key: 'value', label: tl.columns.estimatedValue, get: o => o.user_value ?? o.market_value, total: o => lotTotal(o.user_value ?? o.market_value, o.quantity), cur: o => o.value_currency },
+    { key: 'market_value', label: tl.columns.marketValue, get: o => o.market_value, total: o => lotTotal(o.market_value, o.quantity), cur: o => o.value_currency },
+    { key: 'purchase_price', label: tl.columns.purchasePrice, get: o => o.purchase_price, total: o => lotTotal(o.purchase_price, o.quantity), cur: o => o.purchase_currency ?? o.value_currency },
     // Un prix de lot négocié remplace le produit, il ne s'y ajoute pas.
-    { key: 'sale_price', label: 'Prix de vente', get: o => o.sale_price, total: o => o.sale_price_lot ?? lotTotal(o.sale_price, o.quantity), cur: o => o.value_currency },
-    { key: 'deposit_amount', label: 'Caution', get: o => o.deposit_amount, total: o => lotTotal(o.deposit_amount, o.quantity), cur: o => o.value_currency },
+    { key: 'sale_price', label: tl.columns.salePrice, get: o => o.sale_price, total: o => o.sale_price_lot ?? lotTotal(o.sale_price, o.quantity), cur: o => o.value_currency },
+    { key: 'deposit_amount', label: tl.columns.deposit, get: o => o.deposit_amount, total: o => lotTotal(o.deposit_amount, o.quantity), cur: o => o.value_currency },
   ]
 
   // Le partage peut masquer tout le bloc monétaire d'un coup.
@@ -594,30 +600,30 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
 
         <main className="main">
           <Link href="/mes-partages" legacyBehavior passHref>
-            <a className="back-link">← Retour à mes partages</a>
+            <a className="back-link">{tl.backToMyShares}</a>
           </Link>
 
           {error ? (
             <div className="error-state">
               <div className="error-icon">{error === 'expired' ? '⏱' : '🔍'}</div>
               <h1 className="error-title">
-                {error === 'expired' ? 'Ce lien a expiré' : 'Lien introuvable'}
+                {error === 'expired' ? t.common.linkExpired : tl.notFoundTitle}
               </h1>
               <p className="error-sub">
-                {error === 'expired'
-                  ? 'Demandez un nouveau lien au propriétaire.'
-                  : 'Vérifiez l\'adresse ou demandez un nouveau lien.'}
+                {error === 'expired' ? tl.expiredSub : tl.notFoundSub}
               </p>
               <Link href="/" legacyBehavior passHref>
-                <a className="cta-btn">Découvrir TiROiR</a>
+                <a className="cta-btn">{t.common.discover}</a>
               </Link>
             </div>
           ) : (
             <>
               <div className="page-hero">
                 <div className="page-hero-text">
-                  <h1 className="page-title">{title}</h1>
-                  <p className="page-sub">Partagé via TiROiR · {objects.length} objet{objects.length !== 1 ? 's' : ''}</p>
+                  <h1 className="page-title">{shareTitle}</h1>
+                  <p className="page-sub">
+                    {fill(tl.sharedVia, { count: fill(objects.length !== 1 ? tl.objectsOther : tl.objectsOne, { n: objects.length }) })}
+                  </p>
                   {/* Un lien à durée limitée doit le dire pendant qu'il vit
                       encore : constater l'expiration après coup n'aide personne. */}
                   {expiry && (
@@ -629,17 +635,17 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                 <div className="hero-actions">
                 {canSuggest && (
                   <button type="button" className="suggest-btn" onClick={openSuggest}>
-                    <span aria-hidden>+</span> Suggérer un objet
+                    <span aria-hidden>+</span> {tl.suggest}
                   </button>
                 )}
-                <div className="view-toggle" role="group" aria-label="Mode d'affichage">
+                <div className="view-toggle" role="group" aria-label={tl.viewMode}>
                   <button
                     type="button"
                     className={`view-btn ${view === 'grid' ? 'active' : ''}`}
                     onClick={() => setView('grid')}
                     aria-pressed={view === 'grid'}
                   >
-                    ▦ Grille
+                    ▦ {tl.grid}
                   </button>
                   <button
                     type="button"
@@ -647,7 +653,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                     onClick={() => setView('list')}
                     aria-pressed={view === 'list'}
                   >
-                    ☰ Tableau
+                    ☰ {tl.table}
                   </button>
                 </div>
                 </div>
@@ -655,7 +661,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
 
               {justSuggested && (
                 <p className="suggest-ok" role="status">
-                  Suggestion envoyée. Elle apparaît en pointillé jusqu’à ce que le propriétaire la trie.
+                  {tl.suggestSent}
                 </p>
               )}
 
@@ -709,7 +715,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                               style={{ background: STATUS_COLOR[obj.status] ?? '#9CA3AF' }}
                             />
                             <span className="status-label">
-                              {STATUS_LABEL[obj.status] ?? obj.status}
+                              {pick(t.status, obj.status) ?? obj.status}
                             </span>
                           </div>
                         )}
@@ -743,29 +749,29 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                         )}
                         <th className="th-cover"></th>
                         <th className="th-sortable" onClick={() => toggleSort('title')}>
-                          Titre{sortKey === 'title' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                          {tl.columns.title}{sortKey === 'title' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                         </th>
                         <th className="th-sortable" onClick={() => toggleSort('status')}>
-                          Statut{sortKey === 'status' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                          {tl.columns.status}{sortKey === 'status' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                         </th>
                         {fields.location && (
                           <th className="th-sortable" onClick={() => toggleSort('location_note')}>
-                            Emplacement{sortKey === 'location_note' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                            {tl.columns.location}{sortKey === 'location_note' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                           </th>
                         )}
                         {attrKeys.map(k => (
-                          <th key={k} className="th-attr">{attrLabel(k)}</th>
+                          <th key={k} className="th-attr">{attrLabel(k, t)}</th>
                         ))}
-                        {fields.description && <th className="th-desc">Description</th>}
-                        <th className="th-center">Qté</th>
+                        {fields.description && <th className="th-desc">{tl.columns.description}</th>}
+                        <th className="th-center">{tl.columns.quantity}</th>
                         {moneyCols.map(col => (
                           <th key={col.key} className="th-value th-sortable" onClick={() => toggleSort(col.key)}>
                             {col.label}{sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                           </th>
                         ))}
-                        {fields.insurance && <th className="th-center">Assuré</th>}
+                        {fields.insurance && <th className="th-center">{tl.columns.insured}</th>}
                         <th className="th-sortable th-nowrap" onClick={() => toggleSort('created_at')}>
-                          Ajouté le{sortKey === 'created_at' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                          {tl.columns.addedOn}{sortKey === 'created_at' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                         </th>
                       </tr>
                     </thead>
@@ -798,7 +804,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                                   className="status-dot"
                                   style={{ background: STATUS_COLOR[obj.status] ?? '#9CA3AF' }}
                                 />
-                                <span className="status-label">{STATUS_LABEL[obj.status] ?? obj.status}</span>
+                                <span className="status-label">{pick(t.status, obj.status) ?? obj.status}</span>
                               </span>
                             )}
                           </td>
@@ -821,13 +827,13 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                           </td>
                           {moneyCols.map(col => (
                             <td key={col.key} className="td-value">
-                              {money(col.get(obj), col.cur(obj)) ?? '—'}
+                              {money(locale, col.get(obj), col.cur(obj)) ?? '—'}
                             </td>
                           ))}
                           {fields.insurance && (
-                            <td className="td-center">{obj.insured ? 'Oui' : '—'}</td>
+                            <td className="td-center">{obj.insured ? tl.yes : '—'}</td>
                           )}
-                          <td className="td-muted td-nowrap">{shortDate(obj.created_at) ?? '—'}</td>
+                          <td className="td-muted td-nowrap">{shortDate(locale, obj.created_at) ?? '—'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -841,13 +847,13 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                             + (fields.description ? 1 : 0)
                           }
                           className="td-total-label"
-                        >Total</td>
+                        >{tl.columns.total}</td>
                         <td className="td-center td-total-value">
                           {totalUnits > objects.length ? totalUnits : ''}
                         </td>
                         {moneyCols.map(col => (
                           <td key={col.key} className="td-value td-total-value">
-                            {moneyTotals[col.key] > 0 ? money(moneyTotals[col.key], 'EUR') : '—'}
+                            {moneyTotals[col.key] > 0 ? money(locale, moneyTotals[col.key], 'EUR') : '—'}
                           </td>
                         ))}
                         {fields.insurance && <td className="td-center"></td>}
@@ -862,7 +868,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                 <div className="download-row">
                   {!exportMode ? (
                     <button type="button" className="download-btn" onClick={startExportSelection}>
-                      ↓ Télécharger CSV
+                      ↓ {tl.downloadCsv}
                     </button>
                   ) : (
                     <div className="export-panel">
@@ -872,7 +878,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                           className="text-link"
                           onClick={() => setSelectedIds(new Set(objects.map(o => o.id)))}
                         >
-                          Tout sélectionner
+                          {tl.selectAll}
                         </button>
                         <span className="dot-sep">·</span>
                         <button
@@ -880,12 +886,12 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                           className="text-link"
                           onClick={() => setSelectedIds(new Set())}
                         >
-                          Tout désélectionner
+                          {tl.deselectAll}
                         </button>
                       </div>
                       <div className="export-actions">
                         <span className="export-count">
-                          {selectedIds.size} objet{selectedIds.size !== 1 ? 's' : ''} sélectionné{selectedIds.size !== 1 ? 's' : ''}
+                          {fill(selectedIds.size !== 1 ? tl.selectedOther : tl.selectedOne, { n: selectedIds.size })}
                         </span>
                         <a
                           className={`download-btn ${selectedIds.size === 0 ? 'btn-disabled' : ''}`}
@@ -904,7 +910,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                           ↓ PDF
                         </a>
                         <button type="button" className="text-link" onClick={() => setExportMode(false)}>
-                          Annuler
+                          {t.common.cancel}
                         </button>
                       </div>
                     </div>
@@ -913,10 +919,10 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
               )}
 
               <div className="app-cta">
-                <h2 className="app-cta-title">Créez votre inventaire personnel</h2>
-                <p className="app-cta-sub">TiROiR — photographiez, cataloguez, retrouvez.</p>
+                <h2 className="app-cta-title">{tl.ctaTitle}</h2>
+                <p className="app-cta-sub">{tl.ctaSub}</p>
                 <Link href="/" legacyBehavior passHref>
-                  <a className="cta-btn">Découvrir TiROiR →</a>
+                  <a className="cta-btn">{t.common.discover} →</a>
                 </Link>
               </div>
             </>
@@ -935,10 +941,10 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
 
         <footer className="footer">
           <Link href="/privacy" legacyBehavior passHref>
-            <a className="footer-link">Politique de confidentialité</a>
+            <a className="footer-link">{t.common.privacy}</a>
           </Link>
           <span className="footer-sep">·</span>
-          <span className="footer-copy">© 2026 TiROiR</span>
+          <span className="footer-copy">{t.common.copyright}</span>
         </footer>
       </div>
 

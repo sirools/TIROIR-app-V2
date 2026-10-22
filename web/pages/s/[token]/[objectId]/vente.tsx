@@ -16,6 +16,8 @@ import FooterTiroirWeb from '../../../../components/layout/FooterTiroirWeb'
 import { hasSignedCookie } from '../../../../lib/shareCookieSignature'
 import { firstNameOf } from '../../../../lib/suggestions'
 import { buildSaleSheet, parseOffer, type SaleInput, type SaleSheet } from '../../../../lib/saleSheet'
+import type { Locale } from '../../../../lib/localeRouting'
+import { fill, intlLocale, useCopy } from '../../../../locales'
 
 type Props = {
   token: string
@@ -25,13 +27,26 @@ type Props = {
   images: string[]
   owner: string
   sheet: SaleSheet | null
+  /**
+   * Faits de « Son histoire », bruts : sheet.story est rédigé en français
+   * côté serveur, le texte se compose donc au rendu, dans la langue du site.
+   */
+  facts?: { since: string | null; bought: string | null; lot: number | null }
   error?: 'not_found' | 'expired' | 'gated'
 }
 
 type Fields = { values: boolean; attributes: boolean; description: boolean }
 
-function money(n: number, currency: string) {
-  return n.toLocaleString('fr-FR', { style: 'currency', currency, maximumFractionDigits: n % 1 ? 2 : 0 })
+function formatMoney(locale: Locale, n: number, currency: string) {
+  return n.toLocaleString(intlLocale(locale), { style: 'currency', currency, maximumFractionDigits: n % 1 ? 2 : 0 })
+}
+
+/** Mois et année, comme dans lib/saleSheet.ts, au format de la langue. */
+function monthYear(locale: Locale, iso: string | null | undefined): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return null
+  return d.toLocaleDateString(intlLocale(locale), { month: 'long', year: 'numeric' })
 }
 
 const empty = (token: string, objectId: string, error: Props['error']): { props: Props } => ({
@@ -90,11 +105,19 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
       token, objectId, images, owner,
       title: o.title, description: o.description,
       sheet: buildSaleSheet(o, owner),
+      facts: {
+        since: o.created_at ?? null,
+        bought: o.purchase_date ?? null,
+        lot: o.quantity && o.quantity > 1 ? o.quantity : null,
+      },
     },
   }
 }
 
-export default function SalePrototype({ token, objectId, title, description, images, owner, sheet, error }: Props) {
+export default function SalePrototype({ token, objectId, title, description, images, owner, sheet, facts, error }: Props) {
+  const { t: { share: t }, locale } = useCopy()
+  const ts = t.sale
+  const money = (n: number, currency: string) => formatMoney(locale, n, currency)
   const [active, setActive] = useState(0)
   const [offerOpen, setOfferOpen] = useState(false)
   const [amount, setAmount] = useState(sheet?.suggestedOffer ? String(sheet.suggestedOffer) : '')
@@ -104,14 +127,14 @@ export default function SalePrototype({ token, objectId, title, description, ima
 
   if (error || !sheet || !title) {
     const text = error === 'gated'
-      ? 'Ce partage est protégé : ouvre-le d’abord et saisis son mot de passe.'
-      : error === 'expired' ? 'Ce partage a expiré.' : 'Cet objet est introuvable.'
+      ? ts.errorGated
+      : error === 'expired' ? ts.errorExpired : ts.errorNotFound
     return (
       <>
-        <Head><title>Fiche de vente — Tiroir</title><meta name="robots" content="noindex,nofollow" /></Head>
+        <Head><title>{t.meta.sale}</title><meta name="robots" content="noindex,nofollow" /></Head>
         <HeaderTiroirWeb />
         <main className="wrap"><p className="muted">{text}</p>
-          <Link href={`/s/${token}`} legacyBehavior passHref><a className="link">← Retour au partage</a></Link>
+          <Link href={`/s/${token}`} legacyBehavior passHref><a className="link">← {t.common.backToShare}</a></Link>
         </main>
         <FooterTiroirWeb />
         <style jsx>{styles}</style>
@@ -125,19 +148,29 @@ export default function SalePrototype({ token, objectId, title, description, ima
   }
 
   const price = sheet.askingPrice
+  // Son histoire : mêmes faits que sheet.story, rédigés dans la langue du site.
+  const since = monthYear(locale, facts?.since)
+  const bought = monthYear(locale, facts?.bought)
+  const story = facts
+    ? [
+        since && fill(ts.storySince, { owner, date: since }),
+        bought && fill(ts.storyBought, { date: bought }),
+        facts.lot && fill(ts.storyLot, { n: facts.lot }),
+      ].filter((s): s is string => Boolean(s))
+    : sheet.story
   return (
     <>
       <Head>
-        <title>{`${title} — à vendre sur Tiroir`}</title>
+        <title>{fill(t.meta.saleItem, { title })}</title>
         <meta name="robots" content="noindex,nofollow" />
       </Head>
       <HeaderTiroirWeb />
 
       <main className="wrap">
-        <p className="proto">Prototype de vente — aucune offre n’est envoyée pour l’instant.</p>
+        <p className="proto">{ts.prototype}</p>
 
         <Link href={`/s/${token}/${objectId}`} legacyBehavior passHref>
-          <a className="link">← Fiche du partage</a>
+          <a className="link">{ts.backToSheet}</a>
         </Link>
 
         <section className="gallery">
@@ -148,7 +181,7 @@ export default function SalePrototype({ token, objectId, title, description, ima
               {images.length > 1 && (
                 <div className="thumbs">
                   {images.map((src, i) => (
-                    <button key={src} type="button" className={`thumb${i === active ? ' on' : ''}`} onClick={() => setActive(i)} aria-label={`Photo ${i + 1}`}>
+                    <button key={src} type="button" className={`thumb${i === active ? ' on' : ''}`} onClick={() => setActive(i)} aria-label={fill(ts.photo, { n: i + 1 })}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={src} alt="" />
                     </button>
@@ -157,7 +190,7 @@ export default function SalePrototype({ token, objectId, title, description, ima
               )}
             </>
           ) : (
-            <div className="no-img">Pas encore de photo</div>
+            <div className="no-img">{ts.noPhoto}</div>
           )}
         </section>
 
@@ -165,20 +198,20 @@ export default function SalePrototype({ token, objectId, title, description, ima
 
         <section className="price-card">
           {sheet.sold ? (
-            <p className="sold">Déjà vendu</p>
+            <p className="sold">{ts.sold}</p>
           ) : (
             <>
               <div className="price-row">
-                <span className="price">{price ? money(price, sheet.currency) : 'Prix à discuter'}</span>
-                <span className="chip">À débattre</span>
+                <span className="price">{price ? money(price, sheet.currency) : ts.priceToDiscuss}</span>
+                <span className="chip">{ts.negotiable}</span>
               </div>
               <p className="muted small">
-                {sheet.priceOrigin === 'vendeur' && `Prix indicatif fixé par ${owner}. Fais une offre : c’est une vente à l’amiable.`}
-                {sheet.priceOrigin === 'estimation' && `Pas encore de prix fixé : repère tiré de l’estimation de Tiroir. Propose le tien.`}
-                {sheet.priceOrigin === null && `${owner} n’a pas encore fixé de prix. Propose le tien.`}
+                {sheet.priceOrigin === 'vendeur' && fill(ts.originSeller, { owner })}
+                {sheet.priceOrigin === 'estimation' && ts.originEstimate}
+                {sheet.priceOrigin === null && fill(ts.originNone, { owner })}
               </p>
               {sheet.range && (
-                <p className="muted small">Estimé entre {money(sheet.range.min, sheet.currency)} et {money(sheet.range.max, sheet.currency)} sur le marché.</p>
+                <p className="muted small">{fill(ts.range, { min: money(sheet.range.min, sheet.currency), max: money(sheet.range.max, sheet.currency) })}</p>
               )}
             </>
           )}
@@ -187,35 +220,35 @@ export default function SalePrototype({ token, objectId, title, description, ima
         <section className="owner">
           <span className="avatar" aria-hidden>{owner.charAt(0).toUpperCase()}</span>
           <div>
-            <p className="owner-name">Proposé par {owner}</p>
-            <p className="muted small">Membre de Tiroir · vente entre particuliers</p>
+            <p className="owner-name">{fill(ts.offeredBy, { owner })}</p>
+            <p className="muted small">{ts.member}</p>
           </div>
         </section>
 
-        {(description || sheet.story.length > 0) && (
+        {(description || story.length > 0) && (
           <section className="block">
-            <h2>Son histoire</h2>
+            <h2>{ts.storyTitle}</h2>
             {description && <p className="text">{description}</p>}
-            {sheet.story.length > 0 && (
-              <div className="facts">{sheet.story.map(s => <p key={s}>{s}</p>)}</div>
+            {story.length > 0 && (
+              <div className="facts">{story.map(s => <p key={s}>{s}</p>)}</div>
             )}
           </section>
         )}
 
         <section className="block">
-          <h2>État et usage</h2>
+          <h2>{ts.conditionTitle}</h2>
           {sheet.condition.length ? (
             <dl className="dl">
               {sheet.condition.map(c => (<div key={c.label}><dt>{c.label}</dt><dd>{c.value}</dd></div>))}
             </dl>
           ) : (
-            <p className="muted small">{owner} n’a pas encore décrit l’état. Pose-lui la question avec ton offre.</p>
+            <p className="muted small">{fill(ts.conditionEmpty, { owner })}</p>
           )}
         </section>
 
         {sheet.details.length > 0 && (
           <section className="block">
-            <h2>Détails</h2>
+            <h2>{ts.detailsTitle}</h2>
             <dl className="dl">
               {sheet.details.map(c => (<div key={c.label}><dt>{c.label}</dt><dd>{c.value}</dd></div>))}
             </dl>
@@ -223,11 +256,11 @@ export default function SalePrototype({ token, objectId, title, description, ima
         )}
 
         <section className="block">
-          <h2>Comment ça se passe</h2>
+          <h2>{ts.howTitle}</h2>
           <div className="steps">
-            <p><span className="n">1</span>Tu proposes un prix, avec un mot pour {owner}.</p>
-            <p><span className="n">2</span>{owner} accepte, refuse ou te fait une contre-proposition.</p>
-            <p><span className="n">3</span>Vous convenez de la remise, en main propre pour commencer.</p>
+            <p><span className="n">1</span>{fill(ts.step1, { owner })}</p>
+            <p><span className="n">2</span>{fill(ts.step2, { owner })}</p>
+            <p><span className="n">3</span>{ts.step3}</p>
           </div>
         </section>
       </main>
@@ -235,7 +268,7 @@ export default function SalePrototype({ token, objectId, title, description, ima
 
       {!sheet.sold && (
         <div className="bar">
-          <button type="button" className="cta" onClick={() => { setSent(null); setOfferOpen(true) }}>Faire une offre</button>
+          <button type="button" className="cta" onClick={() => { setSent(null); setOfferOpen(true) }}>{ts.makeOffer}</button>
         </div>
       )}
 
@@ -244,23 +277,22 @@ export default function SalePrototype({ token, objectId, title, description, ima
           <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="offer-title" onClick={e => e.stopPropagation()}>
             {sent !== null ? (
               <>
-                <h2 id="offer-title">Offre prête : {money(sent, sheet.currency)}</h2>
+                <h2 id="offer-title">{fill(ts.offerReady, { amount: money(sent, sheet.currency) })}</h2>
                 <p className="text">
-                  C’est un prototype : rien n’est envoyé. Dans la vraie version, {owner} reçoit ton offre
-                  {message.trim() ? ' et ton message' : ''}, puis l’accepte, la refuse ou te propose un autre prix.
+                  {fill(message.trim() ? ts.sentTextWithMessage : ts.sentText, { owner })}
                 </p>
-                <button type="button" className="cta" onClick={() => setOfferOpen(false)}>Fermer</button>
+                <button type="button" className="cta" onClick={() => setOfferOpen(false)}>{t.common.close}</button>
               </>
             ) : (
               <form onSubmit={submit}>
-                <h2 id="offer-title">Ton offre à {owner}</h2>
-                {price && <p className="muted small">Prix indicatif : {money(price, sheet.currency)}.</p>}
-                <label className="label" htmlFor="offer-amount">Ton prix</label>
-                <input id="offer-amount" className="input" inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} placeholder="Montant" />
-                <label className="label" htmlFor="offer-msg">Un mot (facultatif)</label>
-                <textarea id="offer-msg" className="input area" value={message} maxLength={500} onChange={e => setMessage(e.target.value)} placeholder={`Bonjour ${owner}, …`} />
-                <button type="submit" className="cta" disabled={!offer}>Proposer {offer ? money(offer, sheet.currency) : ''}</button>
-                <button type="button" className="ghost" onClick={() => setOfferOpen(false)}>Annuler</button>
+                <h2 id="offer-title">{fill(ts.offerTitle, { owner })}</h2>
+                {price && <p className="muted small">{fill(ts.indicativePrice, { amount: money(price, sheet.currency) })}</p>}
+                <label className="label" htmlFor="offer-amount">{ts.yourPrice}</label>
+                <input id="offer-amount" className="input" inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} placeholder={ts.amountPlaceholder} />
+                <label className="label" htmlFor="offer-msg">{ts.note}</label>
+                <textarea id="offer-msg" className="input area" value={message} maxLength={500} onChange={e => setMessage(e.target.value)} placeholder={fill(ts.notePlaceholder, { owner })} />
+                <button type="submit" className="cta" disabled={!offer}>{fill(ts.propose, { amount: offer ? money(offer, sheet.currency) : '' })}</button>
+                <button type="button" className="ghost" onClick={() => setOfferOpen(false)}>{t.common.cancel}</button>
               </form>
             )}
           </div>

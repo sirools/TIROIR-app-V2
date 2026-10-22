@@ -6,27 +6,26 @@
 // (?suggerer=1, voir lib/authFlow.ts), même après l'e-mail de confirmation.
 import Link from 'next/link'
 import { authHref, shareReturnPath } from '../../lib/authFlow'
+import { useCopy } from '../../locales'
 
 export default function SignupModal({ token, onClose }: { token: string; onClose: () => void }) {
+  const { t: { share: { signup: t, common } } } = useCopy()
   const back = shareReturnPath(token)
   return (
     <div className="backdrop" onClick={onClose}>
       <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="signup-title" onClick={e => e.stopPropagation()} data-modal="signup">
-        <button type="button" className="close" onClick={onClose} aria-label="Fermer">×</button>
+        <button type="button" className="close" onClick={onClose} aria-label={common.close}>×</button>
         <div className="icon" aria-hidden>🎁</div>
-        <h2 id="signup-title" className="heading">Crée ton compte Tiroir</h2>
-        <p className="text">
-          Le propriétaire de ce partage accepte les suggestions. Pour en faire une,
-          il faut un compte Tiroir, gratuit : il verra qui la lui propose.
-        </p>
-        <p className="soon">Une minute, et tu reviens ici, prêt à suggérer.</p>
+        <h2 id="signup-title" className="heading">{t.title}</h2>
+        <p className="text">{t.text}</p>
+        <p className="soon">{t.soon}</p>
         <Link href={authHref('/inscription', back)} legacyBehavior passHref>
-          <a className="primary">Créer mon compte</a>
+          <a className="primary">{t.create}</a>
         </Link>
         <Link href={authHref('/login', back)} legacyBehavior passHref>
-          <a className="ghost">J’ai déjà un compte</a>
+          <a className="ghost">{t.haveAccount}</a>
         </Link>
-        <button type="button" className="secondary" onClick={onClose}>Plus tard</button>
+        <button type="button" className="secondary" onClick={onClose}>{t.later}</button>
       </div>
       <style jsx>{`
         .backdrop {

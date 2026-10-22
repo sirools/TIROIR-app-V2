@@ -6,19 +6,14 @@
 //   password lien protégé ouvert avec un ancien cookie non signé
 //   form     le formulaire lui-même
 import { useEffect, useState } from 'react'
-import { INPUT_ERROR_LABEL, parseSuggestionInput, type Wish } from '../../lib/suggestions'
+import { TITLE_MAX, parseSuggestionInput, type Wish } from '../../lib/suggestions'
+import { fill, useCopy } from '../../locales'
 import SignupModal from './SignupModal'
 
 export type SuggestStep = 'signup' | 'password' | 'form'
 
-const API_ERROR_LABEL: Record<string, string> = {
-  AUTH_REQUIRED: 'Ta session a expiré : reconnecte-toi pour suggérer.',
-  PASSWORD_REQUIRED: 'Saisis de nouveau le mot de passe du partage.',
-  SUGGESTIONS_DISABLED: 'Le propriétaire n’accepte plus de suggestions sur cette collection.',
-  OWNER_CANNOT_SUGGEST: 'C’est ta collection : tu ne peux pas te suggérer d’objet.',
-  TOO_MANY_PENDING: 'Tu as déjà beaucoup de suggestions en attente. Laisse le propriétaire les trier.',
-  LINK_UNAVAILABLE: 'Ce lien a expiré.',
-}
+// Libellés des codes d'erreur de l'API et de parseSuggestionInput :
+// web/locales/share (suggest.apiErrors, suggest.inputErrors).
 
 interface Props {
   token: string
@@ -28,6 +23,7 @@ interface Props {
 }
 
 export default function SuggestModal({ token, initialStep, onClose, onCreated }: Props) {
+  const { t: { share: { suggest: t, common } } } = useCopy()
   const [step, setStep] = useState<SuggestStep>(initialStep)
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
@@ -54,9 +50,9 @@ export default function SuggestModal({ token, initialStep, onClose, onCreated }:
         body: JSON.stringify({ password }),
       })
       if (res.ok) { setStep('form'); setPassword('') }
-      else setError(res.status === 401 ? 'Mot de passe incorrect.' : 'Une erreur est survenue.')
+      else setError(res.status === 401 ? t.wrongPassword : t.error)
     } catch {
-      setError('Impossible d’atteindre le serveur.')
+      setError(t.unreachable)
     } finally {
       setBusy(false)
     }
@@ -65,7 +61,7 @@ export default function SuggestModal({ token, initialStep, onClose, onCreated }:
   async function submitSuggestion(e: React.FormEvent) {
     e.preventDefault()
     const parsed = parseSuggestionInput({ title, url, price })
-    if (!parsed.ok) { setError(INPUT_ERROR_LABEL[parsed.error]); return }
+    if (!parsed.ok) { setError(fill(t.inputErrors[parsed.error], { max: TITLE_MAX })); return }
 
     setBusy(true); setError(null)
     try {
@@ -78,9 +74,9 @@ export default function SuggestModal({ token, initialStep, onClose, onCreated }:
       if (res.ok && body.wish) { onCreated(body.wish as Wish); onClose(); return }
       if (body.error === 'PASSWORD_REQUIRED') setStep('password')
       if (body.error === 'AUTH_REQUIRED') { setStep('signup'); return }
-      setError(API_ERROR_LABEL[body.error] ?? 'Une erreur est survenue. Réessaie plus tard.')
+      setError((t.apiErrors as Record<string, string>)[body.error] ?? t.errorRetry)
     } catch {
-      setError('Impossible d’atteindre le serveur.')
+      setError(t.unreachable)
     } finally {
       setBusy(false)
     }
@@ -89,33 +85,33 @@ export default function SuggestModal({ token, initialStep, onClose, onCreated }:
   return (
     <div className="backdrop" onClick={onClose}>
       <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="suggest-title" onClick={e => e.stopPropagation()}>
-        <button type="button" className="close" onClick={onClose} aria-label="Fermer">×</button>
-        <h2 id="suggest-title" className="heading">Suggérer un objet</h2>
+        <button type="button" className="close" onClick={onClose} aria-label={common.close}>×</button>
+        <h2 id="suggest-title" className="heading">{t.title}</h2>
 
         {step === 'password' ? (
           <form onSubmit={submitPassword} className="form">
-            <p className="hint">Ce partage est protégé. Confirme le mot de passe pour pouvoir suggérer.</p>
-            <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mot de passe" autoFocus />
+            <p className="hint">{t.passwordHint}</p>
+            <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={t.passwordPlaceholder} autoFocus />
             {error && <p className="error">{error}</p>}
-            <button type="submit" className="primary" disabled={busy || !password}>{busy ? '…' : 'Valider'}</button>
+            <button type="submit" className="primary" disabled={busy || !password}>{busy ? '…' : t.submitPassword}</button>
           </form>
         ) : (
           <form onSubmit={submitSuggestion} className="form">
-            <p className="hint">Le propriétaire verra ta suggestion, avec ton prénom et ta photo, et décidera de la garder.</p>
+            <p className="hint">{t.formHint}</p>
             <label className="label">
-              Nom de l’objet
-              <input className="input" value={title} onChange={e => setTitle(e.target.value)} maxLength={120} placeholder="Ex. : Couteau de chef" autoFocus required />
+              {t.nameLabel}
+              <input className="input" value={title} onChange={e => setTitle(e.target.value)} maxLength={120} placeholder={t.namePlaceholder} autoFocus required />
             </label>
             <label className="label">
-              <span>Lien <span className="optional">(optionnel)</span></span>
+              <span>{t.linkLabel} <span className="optional">{t.optional}</span></span>
               <input className="input" type="text" inputMode="url" autoComplete="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://…" />
             </label>
             <label className="label">
-              <span>Prix <span className="optional">(optionnel)</span></span>
-              <input className="input" inputMode="decimal" value={price} onChange={e => setPrice(e.target.value)} placeholder="Ex. : 49,90" />
+              <span>{t.priceLabel} <span className="optional">{t.optional}</span></span>
+              <input className="input" inputMode="decimal" value={price} onChange={e => setPrice(e.target.value)} placeholder={t.pricePlaceholder} />
             </label>
             {error && <p className="error">{error}</p>}
-            <button type="submit" className="primary" disabled={busy}>{busy ? 'Envoi…' : 'Envoyer la suggestion'}</button>
+            <button type="submit" className="primary" disabled={busy}>{busy ? t.sending : t.send}</button>
           </form>
         )}
       </div>
