@@ -21,10 +21,11 @@ describe('langues du site', () => {
     for (const l of ['da', 'de', 'es']) {
       expect(untranslatedRedirect(l, '/')).toBeNull()
       expect(untranslatedRedirect(l, '/pricing')).toBeNull()
-      expect(untranslatedRedirect(l, '/about')).toBe('/en/about')
+      expect(untranslatedRedirect(l, '/about')).toBeNull()
       expect(untranslatedRedirect(l, '/s/abc123')).toBeNull()
       expect(untranslatedRedirect(l, '/login')).toBeNull()
-      expect(untranslatedRedirect(l, '/cgu')).toBe('/en/cgu')
+      expect(untranslatedRedirect(l, '/cgu')).toBeNull()
+      expect(untranslatedRedirect(l, '/admin')).toBe('/en/admin')
       expect(untranslatedRedirect(l, '/logo-tiroir.svg')).toBeNull()
       expect(untranslatedRedirect(l, '/api/health')).toBeNull()
     }
@@ -36,7 +37,7 @@ describe('langues du site', () => {
 
   test('pages traduites et adresses publiques', () => {
     expect(isTranslated('de', '/pricing')).toBe(true)
-    expect(isTranslated('de', '/about')).toBe(false)
+    expect(isTranslated('de', '/admin')).toBe(false)
     expect(isTranslated('en', '/about')).toBe(true)
     expect(localeUrl('https://tiroir.app', 'fr', '/')).toBe('https://tiroir.app/')
     expect(localeUrl('https://tiroir.app', 'de', '/')).toBe('https://tiroir.app/de')

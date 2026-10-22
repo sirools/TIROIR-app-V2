@@ -3,10 +3,14 @@
 import type { Copy } from './fr'
 import share from './share/da'
 import account from './account/da'
+import about from './about/da'
+import legal from './legal/da'
 
 const da: Copy = {
   share,
   account,
+  about,
+  legal,
   layout: {
     pricing: 'Priser',
     download: 'Hent appen',

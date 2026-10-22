@@ -7,10 +7,14 @@
 
 import share from './share/fr'
 import account from './account/fr'
+import about from './about/fr'
+import legal from './legal/fr'
 
 const fr = {
   share,
   account,
+  about,
+  legal,
   layout: {
     pricing: 'Tarifs',
     download: 'Télécharger l’app',
