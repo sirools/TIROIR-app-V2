@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { SHARE_EMAIL_COPY, shareEmailLang, shareEmailUrl, type ShareEmailLang } from '../_shared/shareEmailCopy.ts'
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -23,7 +24,8 @@ Deno.serve(async (req: Request) => {
     if (authError || !user) return err(401, 'AUTH_INVALID')
 
     const body = await req.json().catch(() => null)
-    const { object_ids, title, options = {}, contact = {} } = body ?? {}
+    const { object_ids, title, options = {}, contact = {}, lang: rawLang } = body ?? {}
+    const lang = shareEmailLang(rawLang)
     if (!Array.isArray(object_ids) || object_ids.length === 0) return err(400, 'MISSING_OBJECT_IDS')
 
     const contactName = typeof contact?.name === 'string' ? contact.name.trim().slice(0, 200) : ''
@@ -103,11 +105,12 @@ Deno.serve(async (req: Request) => {
       emailSent = await sendShareEmail({
         to: contactEmail,
         recipientName: contactName,
-        senderName: profile?.display_name || 'Un utilisateur Tiroir',
+        senderName: profile?.display_name || SHARE_EMAIL_COPY[lang].anonymousSender,
         title: title ?? null,
         objectCount: object_ids.length,
-        url: shareUrl,
+        url: shareEmailUrl(lang, link.token),
         passwordProtected: Boolean(passwordHash),
+        lang,
       })
     }
 
@@ -148,6 +151,7 @@ async function sendShareEmail(params: {
   objectCount: number
   url: string
   passwordProtected: boolean
+  lang: ShareEmailLang
 }): Promise<boolean> {
   const apiKey = Deno.env.get('RESEND_API_KEY')
   if (!apiKey) {
@@ -155,17 +159,16 @@ async function sendShareEmail(params: {
     return false
   }
 
-  const { to, recipientName, senderName, title, objectCount, url, passwordProtected } = params
+  const { to, recipientName, senderName, title, objectCount, url, passwordProtected, lang } = params
+  const c = SHARE_EMAIL_COPY[lang]
   const safeSender = escapeHtml(senderName)
-  const safeRecipient = escapeHtml(recipientName || '')
   const safeTitle = title ? escapeHtml(title) : null
-  const greeting = safeRecipient ? `Bonjour ${safeRecipient},` : 'Bonjour,'
-  const objectLabel = objectCount > 1 ? `${objectCount} objets` : '1 objet'
-  const collectionMention = safeTitle ? ` « ${safeTitle} »` : ''
+  const greeting = c.greeting(escapeHtml(recipientName || ''))
+  const collectionMention = safeTitle ? c.quote(safeTitle) : ''
 
   const html = `
   <!DOCTYPE html>
-  <html lang="fr">
+  <html lang="${lang}">
   <body style="margin:0;padding:0;background-color:#FFF8EF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF8EF;padding:32px 16px;">
       <tr>
@@ -180,23 +183,23 @@ async function sendShareEmail(params: {
               <td style="padding:32px;">
                 <p style="margin:0 0 16px;color:#121212;font-size:16px;line-height:1.5;">${greeting}</p>
                 <p style="margin:0 0 24px;color:#121212;font-size:16px;line-height:1.5;">
-                  <strong>${safeSender}</strong> vient de partager une liste de ${objectLabel}${collectionMention} avec vous sur Tiroir.
+                  ${c.body(`<strong>${safeSender}</strong>`, c.objects(objectCount), collectionMention)}
                 </p>
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
                   <tr>
                     <td style="border-radius:10px;background-color:#2D5016;">
                       <a href="${url}" style="display:inline-block;padding:14px 28px;color:#FFFFFF;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;">
-                        VOIR LES OBJETS PARTAGÉS
+                        ${c.button}
                       </a>
                     </td>
                   </tr>
                 </table>
                 ${passwordProtected
-                  ? '<p style="margin:0 0 24px;color:#5b5b5b;font-size:13px;line-height:1.5;">🔒 Ce lien est protégé par un mot de passe que vous devez avoir reçu séparément.</p>'
+                  ? `<p style="margin:0 0 24px;color:#5b5b5b;font-size:13px;line-height:1.5;">${c.password}</p>`
                   : ''
                 }
                 <p style="margin:0;color:#A89F96;font-size:12px;line-height:1.5;">
-                  Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br/>
+                  ${c.fallback}<br/>
                   <a href="${url}" style="color:#2D5016;word-break:break-all;">${url}</a>
                 </p>
               </td>
@@ -204,7 +207,7 @@ async function sendShareEmail(params: {
             <tr>
               <td style="padding:20px 32px;background-color:#F0EBE3;">
                 <p style="margin:0;color:#A89F96;font-size:11px;line-height:1.5;">
-                  Tiroir — l'inventaire de vos objets, simplement.
+                  ${c.footer}
                 </p>
               </td>
             </tr>
@@ -225,7 +228,7 @@ async function sendShareEmail(params: {
       body: JSON.stringify({
         from: 'Tiroir <partage@tiroir.app>',
         to: [to],
-        subject: `${senderName} a partagé des objets avec vous sur Tiroir`,
+        subject: c.subject(senderName),
         html,
       }),
     })

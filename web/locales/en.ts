@@ -2,10 +2,14 @@
 import type { Copy } from './fr'
 import share from './share/en'
 import account from './account/en'
+import about from './about/en'
+import legal from './legal/en'
 
 const en: Copy = {
   share,
   account,
+  about,
+  legal,
   layout: {
     pricing: 'Pricing',
     download: 'Download the app',

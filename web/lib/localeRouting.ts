@@ -19,6 +19,8 @@ export const TRANSLATED_PATHS: readonly string[] = [
   '/login', '/inscription', '/mot-de-passe-oublie', '/nouveau-mot-de-passe',
   '/email-confirme', '/bienvenue', '/merci', '/desinscription',
   '/mon-compte', '/profil', '/mes-partages',
+  // À propos et pages juridiques (web/locales/about, web/locales/legal)
+  '/about', '/cgu', '/privacy',
 ]
 
 /** Familles de pages traduites (pages de partage, web/locales/share). */
