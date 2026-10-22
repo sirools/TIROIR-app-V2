@@ -89,7 +89,7 @@ function InfoInput({
 }
 
 export function SharePanel({ visible, selectedObjects, collectionName, onClose, onDone }: SharePanelProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const slideAnim = useRef(new Animated.Value(600)).current
 
   /** Le tiroir a deux pages : les réglages fins vivent derrière, pas dessous. */
@@ -216,6 +216,8 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
             email: trimmedEmail || undefined,
             phone: contactPhone.trim() || undefined,
           },
+          // Langue de l'e-mail envoyé au destinataire : celle de l'app.
+          lang: i18n.language,
         },
       })
       if (error) throw error
