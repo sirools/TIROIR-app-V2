@@ -1,5 +1,7 @@
 import ErrorPage from '../components/layout/ErrorPage'
+import { useCopy } from '../locales'
 
 export default function Custom500() {
-  return <ErrorPage title="Erreur interne" text="Un problème est survenu de notre côté. Réessayez dans un instant." />
+  const { t: { errors: t } } = useCopy()
+  return <ErrorPage title={t.serverTitle} text={t.serverText} />
 }

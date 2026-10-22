@@ -135,16 +135,98 @@ const fr = {
     faq: {
       title: 'Questions fréquentes',
       items: [
-        { q: 'Faut-il s’y connaître en technologie ?', a: 'Non. Vous prenez une photo, Tiroir remplit la fiche. Tout se corrige d’un geste.' },
-        { q: 'Et si la fiche se trompe ?', a: 'Chaque champ est modifiable, et vos corrections priment toujours. La marque exacte ou le prix d’achat, c’est vous qui les connaissez.' },
-        { q: 'Mes photos sont-elles privées ?', a: 'Oui. Rien n’est public tant que vous ne partagez pas un lien, et vous pouvez le désactiver à tout moment.' },
-        { q: 'L’estimation est-elle fiable ?', a: 'Elle s’appuie sur des annonces comparables : un prix de départ fiable pour un objet courant, un ordre de grandeur pour une pièce rare.' },
+      { q: 'Faut-il s’y connaître en technologie ?', a: 'Non. Vous prenez une photo, Tiroir remplit la fiche. Tout se corrige d’un geste.' },
+      { q: 'Et si la fiche se trompe ?', a: 'Chaque champ est modifiable, et vos corrections priment toujours. La marque exacte ou le prix d’achat, c’est vous qui les connaissez.' },
+      { q: 'Mes photos sont-elles privées ?', a: 'Oui. Rien n’est public tant que vous ne partagez pas un lien, et vous pouvez le désactiver à tout moment.' },
+      { q: 'L’estimation est-elle fiable ?', a: 'Elle s’appuie sur des annonces comparables : un prix de départ fiable pour un objet courant, un ordre de grandeur pour une pièce rare.' },
       ],
     },
     final: {
       title: 'Votre premier objet, rangé en une photo.',
       sub: 'Gratuit, sans carte bancaire.',
     },
+  },
+
+  pricing: {
+    meta: {
+      title: 'Tarifs — Tiroir',
+      description: 'Tiroir est gratuit, avec {free} actions IA par mois. Crédits IA dès {pack}, Premium à {premium} par mois, Pro à {pro} par mois, Business à {business} par siège.',
+    },
+    badge: 'Tarifs',
+    title: 'Rangez tout. Sachez ce que ça vaut.',
+    sub: 'Tiroir est gratuit pour tout le monde. Payez seulement quand vous allez plus loin.',
+    perMonth: '/mois',
+    perYear: 'ou {price} par an',
+    perSeat: 'par siège/mois',
+    soon: 'Bientôt disponible',
+    free: {
+      tagline: 'Pour cataloguer tout ce que vous possédez.',
+      features: [
+        'Objets et collections illimités',
+        '{n} actions IA par mois (identification, estimation)',
+        'Partage de collections en lecture seule',
+        'Crédits IA en plus, à la demande',
+      ],
+      start: 'Commencer gratuitement',
+    },
+    premium: {
+      tagline: 'Pour suivre la valeur de votre collection.',
+      features: [
+        'Estimation automatique avec quota mensuel',
+        'Courbe de suivi de valeur et bouton Actualiser',
+        'Sources résumées en une ligne',
+        'Suggestions d’objets par vos proches',
+        'Liens de partage protégés par mot de passe',
+      ],
+      cta: 'Passer Premium',
+    },
+    pro: {
+      tagline: 'Pour ceux qui vivent de leurs objets.',
+      features: [
+        'IA incluse, sans recharge',
+        'Estimation en lot',
+        'Détail des sources et comparaison marché',
+        'Export assurance',
+      ],
+      cta: 'Passer Pro',
+    },
+    business: {
+      tagline: 'Pour gérer un stock en équipe.',
+      features: [
+        'Tout le Pro, pour chaque membre',
+        'Rôles et comptes multiples',
+        'Facturation mensuelle, virement ou prélèvement',
+      ],
+      cta: 'Nous contacter',
+    },
+    note: 'Prix TTC. Business se règle sur facture.',
+    credits: {
+      title: 'Crédits IA',
+      sub: 'Besoin de plus ? Rechargez quand vous voulez, sans abonnement.',
+      unit: '{n} crédits',
+      popular: 'Le plus choisi',
+      note: 'Paiement sécurisé par carte. Les crédits n’expirent pas.',
+      cta: 'Acheter des crédits',
+    },
+    faqTitle: 'Questions fréquentes',
+    faq: [
+      { q: 'Qu’est-ce qu’une action IA ?', a: 'Une identification ou une estimation d’objet.' },
+      { q: 'Que se passe-t-il quand mon quota est épuisé ?', a: 'Tiroir reste utilisable ; seules les actions IA demandent des crédits.' },
+      { q: 'Les estimations sont-elles influencées par des partenaires ?', a: 'Non. Les estimations ne sont jamais influencées par nos partenaires : les offres marchandes sont séparées de l’estimation de valeur.' },
+      { q: 'Puis-je résilier ?', a: 'À tout moment, depuis l’App Store, le Play Store ou votre compte.' },
+    ],
+    final: {
+      title: 'Commencez gratuitement.',
+      sub: 'Objets et collections illimités, {n} actions IA par mois. Aucune carte bancaire requise.',
+    },
+  },
+
+  errors: {
+    notFoundTitle: 'Page introuvable',
+    notFoundText: 'La page demandée n’existe pas ou a été déplacée.',
+    serverTitle: 'Erreur interne',
+    serverText: 'Un problème est survenu de notre côté. Réessayez dans un instant.',
+    back: 'Retour à l’accueil',
   },
 }
 
