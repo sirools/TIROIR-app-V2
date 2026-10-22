@@ -1,52 +1,30 @@
 // pages/about.tsx — Page « À propos » : qui est derrière Tiroir, ce que je cherche,
 // et comment me joindre. Le contenu est un premier jet à relire/personnaliser.
+// Textes dans web/locales/about, en cinq langues.
 import Head from 'next/head'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
+import { localeLinks } from '../components/layout/LocaleLinks'
 import { FOUNDER, CONTACT_EMAIL, agendaHref, hasAgenda } from '../lib/founderLinks'
+import { fill, useCopy } from '../locales'
 
 // Portrait du fondateur. Laissé vide → monogramme typographique.
 // Pour utiliser une photo : la déposer dans /public/assets/ et mettre le chemin ici.
 const PHOTO_URL = ''
 
-const LOOKING_FOR = [
-  {
-    emoji: '🧭',
-    title: 'Des conseils, pas des injonctions',
-    body:
-      "Produit, pricing, growth, levée ou pas de levée : j'avance vite mais seul, et j'ai besoin de gens qui ont déjà fait le chemin pour challenger mes angles morts.",
-  },
-  {
-    emoji: '👥',
-    title: 'Des personnes qui connaissent le terrain',
-    body:
-      "Seconde main, friperies, brocanteurs, assurance, déménagement, succession : si vous vivez un de ces mondes au quotidien, votre regard vaut dix études de marché.",
-  },
-  {
-    emoji: '🤝',
-    title: "Peut-être un ou une associée",
-    body:
-      "Je conçois et je code le produit. Le jour où quelqu'un a envie de porter le business, la distribution ou la tech avec moi, la porte est grande ouverte.",
-  },
-  {
-    emoji: '🧪',
-    title: 'Des utilisateurs exigeants',
-    body:
-      "Des gens qui ont trop d'objets, qui testent l'app pour de vrai et qui me disent sans filtre ce qui coince. C'est ce qui fait avancer Tiroir le plus vite.",
-  },
-]
+// Émojis des cartes « ce que je cherche », dans l'ordre de t.looking.items.
+const LOOKING_EMOJIS = ['🧭', '👥', '🤝', '🧪']
 
 export default function About() {
-  const agendaCta = hasAgenda() ? 'Réserver un créneau' : "M'écrire pour caler un créneau"
+  const { t: { about: t }, locale } = useCopy()
+  const agendaCta = hasAgenda() ? t.agendaCta : t.agendaCtaMail
 
   return (
     <>
       <Head>
-        <title>À propos — Tiroir</title>
-        <meta
-          name="description"
-          content="Qui est derrière Tiroir : Clément Ougier, fondateur solo. Le projet, ce que je cherche (conseils, associés, testeurs) et comment me joindre."
-        />
+        <title>{t.meta.title}</title>
+        <meta name="description" content={t.meta.description} />
+        {localeLinks(locale, '/about')}
       </Head>
 
       <HeaderTiroirWeb />
@@ -57,22 +35,18 @@ export default function About() {
           <div className="container">
             <div className="about-hero__grid">
               <div>
-                <span className="badge">À propos</span>
+                <span className="badge">{t.hero.badge}</span>
                 <h1 className="h1" style={{ marginBottom: 16 }}>
-                  Bonjour, moi c’est Clément.
+                  {t.hero.title}
                 </h1>
                 <p className="p" style={{ fontSize: 18, maxWidth: 560 }}>
-                  Je suis product designer, et Tiroir est mon projet — conçu, dessiné et
-                  développé en solo. L’idée est simple : vous photographiez un objet,
-                  l’IA rédige sa fiche, et votre inventaire se tient enfin tout seul.
+                  {t.hero.p1}
                 </p>
                 <p className="p" style={{ maxWidth: 560 }}>
-                  Je construis en public, je me trompe en public, et j’apprends beaucoup
-                  plus vite quand je parle à des gens qu’en restant devant mon écran.
-                  C’est tout l’objet de cette page.
+                  {t.hero.p2}
                 </p>
                 <div className="about-hero__ctas">
-                  <a className="btn btn-primary" href={agendaHref('Parler de Tiroir')}>
+                  <a className="btn btn-primary" href={agendaHref(t.heroSubject)}>
                     {agendaCta}
                   </a>
                   <a
@@ -81,7 +55,7 @@ export default function About() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Me suivre sur LinkedIn
+                    {t.hero.linkedin}
                   </a>
                 </div>
               </div>
@@ -96,7 +70,7 @@ export default function About() {
                 )}
                 <div className="about-portrait__id">
                   <strong>{FOUNDER.name}</strong>
-                  <span>{FOUNDER.role}</span>
+                  <span>{t.role}</span>
                   <a
                     className="about-portrait__site"
                     href={FOUNDER.website}
@@ -114,24 +88,12 @@ export default function About() {
         {/* ── Pourquoi ───────────────────────────────────────────────────── */}
         <section className="section">
           <div className="container about-prose">
-            <h2 className="h2">Pourquoi Tiroir</h2>
-            <p className="p">
-              Tout le monde possède des centaines d’objets et personne ne sait vraiment ce
-              qu’il a. On rachète ce qu’on avait déjà, on brade ce qui valait quelque chose,
-              on ne retrouve pas la facture au moment où il faudrait. Faire un inventaire,
-              c’est utile à tout le monde — et suffisamment pénible pour que personne ne le
-              fasse.
-            </p>
-            <p className="p">
-              Tiroir supprime l’étape pénible. Une photo, et la fiche est écrite : catégorie,
-              matière, état, estimation de valeur. Le reste — collections, partage d’un lien,
-              suivi de ce qui est vendu ou rangé — sert juste à ce que l’inventaire vive
-              au-delà du jour où on l’a créé.
-            </p>
-            <p className="p">
-              L’app est disponible sur l’App Store et Google Play. Elle progresse chaque
-              semaine, avec les retours de celles et ceux qui l’utilisent pour de vrai.
-            </p>
+            <h2 className="h2">{t.why.title}</h2>
+            {t.why.paragraphs.map(text => (
+              <p className="p" key={text}>
+                {text}
+              </p>
+            ))}
           </div>
         </section>
 
@@ -139,18 +101,16 @@ export default function About() {
         <section className="section about-looking">
           <div className="container">
             <h2 className="h2" style={{ marginBottom: 8 }}>
-              Ce que je cherche
+              {t.looking.title}
             </h2>
             <p className="p" style={{ maxWidth: 640, marginBottom: 28 }}>
-              Je ne cherche pas (encore) à lever des fonds. Je cherche des gens : pour me
-              conseiller, me contredire, m’ouvrir une porte, ou simplement partager une
-              expérience que je n’ai pas.
+              {t.looking.intro}
             </p>
             <div className="about-cards">
-              {LOOKING_FOR.map(item => (
+              {t.looking.items.map((item, i) => (
                 <div className="card about-card" key={item.title}>
                   <span className="about-card__emoji" aria-hidden="true">
-                    {item.emoji}
+                    {LOOKING_EMOJIS[i]}
                   </span>
                   <h3 className="about-card__title">{item.title}</h3>
                   <p className="about-card__body">{item.body}</p>
@@ -165,22 +125,20 @@ export default function About() {
           <div className="container">
             <div className="about-agenda">
               <h2 className="h2" style={{ color: 'white', marginBottom: 8 }}>
-                Mon agenda est ouvert
+                {t.agenda.title}
               </h2>
               <p className="about-agenda__p">
-                30 minutes, en visio, sans ordre du jour imposé. Que vous ayez un conseil,
-                une question, une critique ou juste de la curiosité pour le projet : prenez
-                un créneau, il est pour vous.
+                {t.agenda.body}
               </p>
               <div className="about-agenda__ctas">
                 <a
                   className="btn about-agenda__btn"
-                  href={agendaHref('Un créneau pour parler de Tiroir')}
+                  href={agendaHref(t.agendaSubject)}
                 >
                   {agendaCta}
                 </a>
                 <a className="about-agenda__mail" href={`mailto:${CONTACT_EMAIL}`}>
-                  ou m’écrire à {CONTACT_EMAIL}
+                  {fill(t.agenda.mail, { email: CONTACT_EMAIL })}
                 </a>
               </div>
             </div>
@@ -191,7 +149,7 @@ export default function About() {
         <section className="section" id="contact">
           <div className="container about-prose">
             <h2 className="h2" style={{ marginBottom: 16 }}>
-              Où me trouver
+              {t.contact.title}
             </h2>
             <div className="about-links">
               <a
@@ -201,7 +159,7 @@ export default function About() {
                 rel="noopener noreferrer"
               >
                 <strong>LinkedIn</strong>
-                <span>Le journal de bord du projet, semaine après semaine.</span>
+                <span>{t.contact.linkedin}</span>
               </a>
               <a
                 className="about-link"
@@ -210,11 +168,11 @@ export default function About() {
                 rel="noopener noreferrer"
               >
                 <strong>{FOUNDER.blogLabel}</strong>
-                <span>cofondateurauchomage.fr — les coulisses, sans filtre.</span>
+                <span>{t.contact.blog}</span>
               </a>
               <a className="about-link" href={`mailto:${CONTACT_EMAIL}`}>
-                <strong>E-mail</strong>
-                <span>{CONTACT_EMAIL} — je réponds à tout le monde.</span>
+                <strong>{t.contact.emailLabel}</strong>
+                <span>{fill(t.contact.email, { email: CONTACT_EMAIL })}</span>
               </a>
             </div>
           </div>
