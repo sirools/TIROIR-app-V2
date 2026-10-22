@@ -131,16 +131,98 @@ const de: Copy = {
     faq: {
       title: 'Häufige Fragen',
       items: [
-        { q: 'Muss ich mich mit Technik auskennen?', a: 'Nein. Sie machen ein Foto, Tiroir füllt den Eintrag aus. Alles lässt sich mit einem Tippen ändern.' },
-        { q: 'Und wenn der Eintrag falsch ist?', a: 'Jedes Feld ist bearbeitbar, und Ihre Korrekturen haben immer Vorrang. Die genaue Marke oder den Kaufpreis kennen nur Sie.' },
-        { q: 'Sind meine Fotos privat?', a: 'Ja. Nichts ist öffentlich, solange Sie keinen Link teilen – und den können Sie jederzeit deaktivieren.' },
-        { q: 'Wie zuverlässig ist die Schätzung?', a: 'Sie basiert auf vergleichbaren Angeboten: ein verlässlicher Startpreis für gängige Dinge, eine Größenordnung für seltene Stücke.' },
+      { q: 'Muss ich mich mit Technik auskennen?', a: 'Nein. Sie machen ein Foto, Tiroir füllt den Eintrag aus. Alles lässt sich mit einem Tippen ändern.' },
+      { q: 'Und wenn der Eintrag falsch ist?', a: 'Jedes Feld ist bearbeitbar, und Ihre Korrekturen haben immer Vorrang. Die genaue Marke oder den Kaufpreis kennen nur Sie.' },
+      { q: 'Sind meine Fotos privat?', a: 'Ja. Nichts ist öffentlich, solange Sie keinen Link teilen – und den können Sie jederzeit deaktivieren.' },
+      { q: 'Wie zuverlässig ist die Schätzung?', a: 'Sie basiert auf vergleichbaren Angeboten: ein verlässlicher Startpreis für gängige Dinge, eine Größenordnung für seltene Stücke.' },
       ],
     },
     final: {
       title: 'Ihr erster Gegenstand, erfasst mit einem Foto.',
       sub: 'Kostenlos, ohne Kreditkarte.',
     },
+  },
+
+  pricing: {
+    meta: {
+      title: 'Preise — Tiroir',
+      description: 'Tiroir ist kostenlos, mit {free} KI-Aktionen pro Monat. KI-Credits ab {pack}, Premium für {premium} pro Monat, Pro für {pro} pro Monat, Business für {business} pro Platz.',
+    },
+    badge: 'Preise',
+    title: 'Alles erfasst. Wissen, was es wert ist.',
+    sub: 'Tiroir ist für alle kostenlos. Sie zahlen nur, wenn Sie mehr wollen.',
+    perMonth: '/Monat',
+    perYear: 'oder {price} pro Jahr',
+    perSeat: 'pro Platz/Monat',
+    soon: 'Demnächst verfügbar',
+    free: {
+      tagline: 'Um alles zu erfassen, was Sie besitzen.',
+      features: [
+        'Unbegrenzt viele Gegenstände und Sammlungen',
+        '{n} KI-Aktionen pro Monat (Erkennung, Schätzung)',
+        'Sammlungen nur zum Ansehen teilen',
+        'Zusätzliche KI-Credits bei Bedarf',
+      ],
+      start: 'Kostenlos starten',
+    },
+    premium: {
+      tagline: 'Um den Wert Ihrer Sammlung im Blick zu behalten.',
+      features: [
+        'Automatische Schätzung mit Monatskontingent',
+        'Wertverlauf als Kurve und Aktualisieren-Button',
+        'Quellen in einer Zeile zusammengefasst',
+        'Vorschläge für Gegenstände von Ihren Liebsten',
+        'Passwortgeschützte Freigabelinks',
+      ],
+      cta: 'Zu Premium wechseln',
+    },
+    pro: {
+      tagline: 'Für alle, die von ihren Gegenständen leben.',
+      features: [
+        'KI inklusive, ohne Nachkaufen',
+        'Schätzung im Stapel',
+        'Detaillierte Quellen und Marktvergleich',
+        'Export für die Versicherung',
+      ],
+      cta: 'Zu Pro wechseln',
+    },
+    business: {
+      tagline: 'Um Bestände im Team zu verwalten.',
+      features: [
+        'Alles aus Pro, für jedes Mitglied',
+        'Rollen und mehrere Konten',
+        'Monatliche Rechnung, Überweisung oder Lastschrift',
+      ],
+      cta: 'Kontakt aufnehmen',
+    },
+    note: 'Preise inkl. MwSt. Business wird per Rechnung bezahlt.',
+    credits: {
+      title: 'KI-Credits',
+      sub: 'Mehr nötig? Laden Sie jederzeit auf, ohne Abo.',
+      unit: '{n} Credits',
+      popular: 'Am beliebtesten',
+      note: 'Sichere Kartenzahlung. Credits verfallen nicht.',
+      cta: 'Credits kaufen',
+    },
+    faqTitle: 'Häufige Fragen',
+    faq: [
+      { q: 'Was ist eine KI-Aktion?', a: 'Die Erkennung oder Schätzung eines Gegenstands.' },
+      { q: 'Was passiert, wenn mein Kontingent aufgebraucht ist?', a: 'Tiroir bleibt nutzbar; nur KI-Aktionen benötigen Credits.' },
+      { q: 'Werden die Schätzungen von Partnern beeinflusst?', a: 'Nein. Die Schätzungen werden nie von unseren Partnern beeinflusst: Kaufangebote sind von der Wertschätzung getrennt.' },
+      { q: 'Kann ich kündigen?', a: 'Jederzeit, im App Store, im Play Store oder in Ihrem Konto.' },
+    ],
+    final: {
+      title: 'Kostenlos starten.',
+      sub: 'Unbegrenzt viele Gegenstände und Sammlungen, {n} KI-Aktionen pro Monat. Keine Kreditkarte nötig.',
+    },
+  },
+
+  errors: {
+    notFoundTitle: 'Seite nicht gefunden',
+    notFoundText: 'Die gesuchte Seite existiert nicht oder wurde verschoben.',
+    serverTitle: 'Serverfehler',
+    serverText: 'Bei uns ist ein Problem aufgetreten. Bitte versuchen Sie es gleich noch einmal.',
+    back: 'Zur Startseite',
   },
 }
 

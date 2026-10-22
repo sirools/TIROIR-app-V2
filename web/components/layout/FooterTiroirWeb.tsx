@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { appStoreUrlFor, playStoreUrlFor } from '../../lib/appLinks'
-import { HOME_ONLY_LOCALES, LOCALES } from '../../lib/localeRouting'
+import { LOCALES, isTranslated } from '../../lib/localeRouting'
 import { LOCALE_NAMES, useCopy } from '../../locales'
 import { FOUNDER, CONTACT_EMAIL, agendaHref } from '../../lib/founderLinks'
 
@@ -38,7 +38,7 @@ function MailIcon({ size = 18 }: { size?: number }) {
  */
 export default function FooterTiroirWeb() {
   const { t: { layout: t }, locale } = useCopy()
-  const { asPath } = useRouter()
+  const { asPath, pathname } = useRouter()
   const year = new Date().getFullYear()
 
   return (
@@ -111,13 +111,13 @@ export default function FooterTiroirWeb() {
         <div className="ti-footer__bottom">
           <span className="ti-footer__copy">© {year} Tiroir · {t.madeIn}</span>
 
-          {/* Langues. En danois, allemand et espagnol, seule la homepage
-              existe : depuis une autre page, on y arrive. */}
+          {/* Langues. Une page pas encore traduite dans une langue mène à
+              la homepage de cette langue. */}
           <nav className="ti-footer__langs" aria-label={t.language}>
             {LOCALES.map(l => (
               <Link
                 key={l}
-                href={HOME_ONLY_LOCALES.includes(l) ? '/' : asPath}
+                href={isTranslated(l, pathname) ? asPath : '/'}
                 locale={l}
                 legacyBehavior
                 passHref
