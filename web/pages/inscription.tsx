@@ -3,15 +3,21 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
 import { APPLE_WEB_ENABLED } from '../lib/identities'
-import { authErrorHint, authHref, safeNext, type AuthHint } from '../lib/authFlow'
+import { authHref, safeNext } from '../lib/authFlow'
+import { authErrorFromUrl, authErrorKey, suggestsLogin, type AccountErrorKey, type AuthErrorKey } from '../lib/authErrors'
+import { localePrefix } from '../lib/localeRouting'
+import { useCopy } from '../locales'
 import { firstTouch } from '../components/SiteVisitTracker'
 
 export default function Inscription() {
   const router = useRouter()
+  const { t: { account: t }, locale } = useCopy()
+  // Préfixe de langue des liens <a> et des retours Supabase (« » en français).
+  const prefix = localePrefix(locale)
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError]       = useState<string | null>(null)
-  const [hint, setHint]         = useState<AuthHint | null>(null)
+  const [error, setError]       = useState<AccountErrorKey | null>(null)
+  const [hint, setHint]         = useState<AuthErrorKey | null>(null)
   const [loading, setLoading]   = useState(false)
   // Venu d'un partage (?next=/s/…) : on l'y ramène, sans détour par l'accueil.
   const next = typeof router.query.next === 'string' ? safeNext(router.query.next) : null
@@ -20,7 +26,13 @@ export default function Inscription() {
   // Erreurs d'un retour OAuth raté (?error_description=…)
   useEffect(() => {
     const desc = router.query.error_description
-    if (typeof desc === 'string' && desc) setError(desc)
+    if (typeof desc === 'string' && desc) {
+      setError(authErrorFromUrl(k => {
+        const v = router.query[k]
+        return typeof v === 'string' ? v : null
+      }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query.error_description])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,10 +47,11 @@ export default function Inscription() {
       password,
       // Source du premier passage (campagne, réseau…) : chiffres agrégés de
       // la page Marketing du back-office.
-      options: { emailRedirectTo: `${window.location.origin}${confirm}`, data: { acq: firstTouch() ?? { source: 'direct' } } },
+      // Le lien de l'e-mail ramène dans la langue de l'inscription.
+      options: { emailRedirectTo: `${window.location.origin}${prefix}${confirm}`, data: { acq: firstTouch() ?? { source: 'direct' } } },
     })
     if (error) {
-      setHint(authErrorHint(error.message))
+      setHint(authErrorKey(error))
       setLoading(false)
       return
     }
@@ -61,16 +74,16 @@ export default function Inscription() {
     setError(null)
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}${next ?? '/bienvenue'}` },
+      options: { redirectTo: `${window.location.origin}${prefix}${next ?? '/bienvenue'}` },
     })
-    if (error) setError(error.message)
+    if (error) setError(authErrorKey(error))
   }
 
   return (
     <>
       <Head>
-        <title>Créer un compte — Tiroir</title>
-        <meta name="description" content="Créez votre compte Tiroir gratuitement et cataloguez vos objets." />
+        <title>{t.signup.metaTitle}</title>
+        <meta name="description" content={t.signup.metaDescription} />
       </Head>
 
       <main style={s.root}>
@@ -80,8 +93,8 @@ export default function Inscription() {
             <img src="/icons/app-icon.png" alt="" width={36} height={36} style={{ borderRadius: 10 }} />
             <strong style={s.logoText}>Tiroir</strong>
           </div>
-          <h1 style={s.title}>Créer un compte</h1>
-          <p style={s.subtitle}>Gratuit, sans carte bancaire. Commencez à cataloguer vos objets en quelques secondes.</p>
+          <h1 style={s.title}>{t.signup.title}</h1>
+          <p style={s.subtitle}>{t.signup.subtitle}</p>
 
           <button type="button" style={s.googleBtn} onClick={() => handleOAuth('google')}>
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -90,7 +103,7 @@ export default function Inscription() {
               <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            Continuer avec Google
+            {t.common.continueGoogle}
           </button>
 
           {/* Même interrupteur que la connexion (lib/identities.ts). */}
@@ -99,29 +112,29 @@ export default function Inscription() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M17.05 20.28c-.98.95-2.05.86-3.08.38-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.38C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
               </svg>
-              Continuer avec Apple
+              {t.common.continueApple}
             </button>
           )}
 
           <div style={s.dividerRow}>
             <div style={s.dividerLine} />
-            <span style={s.dividerText}>ou</span>
+            <span style={s.dividerText}>{t.common.or}</span>
             <div style={s.dividerLine} />
           </div>
 
           <form onSubmit={handleSubmit} style={s.form}>
-            <label style={s.label}>Email</label>
+            <label style={s.label}>{t.common.email}</label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
               style={s.input}
-              placeholder="exemple@gmail.com"
+              placeholder={t.common.emailPlaceholder}
               autoComplete="email"
             />
 
-            <label style={s.label}>Mot de passe</label>
+            <label style={s.label}>{t.common.password}</label>
             <input
               type="password"
               value={password}
@@ -132,37 +145,36 @@ export default function Inscription() {
               placeholder="••••••••"
               autoComplete="new-password"
             />
-            <span style={s.hint}>Au moins 6 caractères.</span>
+            <span style={s.hint}>{t.signup.passwordHint}</span>
 
-            {error && <p style={s.error}>{error}</p>}
+            {error && <p style={s.error}>{t.errors[error]}</p>}
             {hint && (
               <div style={s.error} role="alert">
-                <p style={{ margin: 0 }}>{hint.message}</p>
-                {hint.suggestLogin && (
-                  <a href={authHref('/login', next)} style={s.hintLink}>Me connecter →</a>
+                <p style={{ margin: 0 }}>{t.errors[hint]}</p>
+                {suggestsLogin(hint) && (
+                  <a href={prefix + authHref('/login', next)} style={s.hintLink}>{t.signup.logMeIn}</a>
                 )}
               </div>
             )}
             {sentTo && (
               <p style={s.sent} role="status">
-                Presque fini : ouvre l’e-mail envoyé à <strong>{sentTo}</strong> et touche le lien.
-                Tu reviendras directement au partage pour faire ta suggestion.
+                {t.signup.sentBefore}<strong>{sentTo}</strong>{t.signup.sentAfter}
               </p>
             )}
 
             <button type="submit" disabled={loading} style={s.btn}>
-              {loading ? 'Création…' : 'Créer mon compte'}
+              {loading ? t.signup.submitting : t.signup.submit}
             </button>
           </form>
 
           <p style={s.switch}>
-            Déjà un compte ?{' '}
-            <a href={authHref('/login', next)} style={s.switchLink}>Se connecter</a>
+            {t.signup.haveAccount}{' '}
+            <a href={prefix + authHref('/login', next)} style={s.switchLink}>{t.signup.login}</a>
           </p>
 
           <p style={s.cgu}>
-            En continuant, tu acceptes les{' '}
-            <a href="/cgu" style={s.cguLink}>Conditions Générales d&apos;Utilisation</a>.
+            {t.common.termsBefore}{' '}
+            <a href={`${prefix}/cgu`} style={s.cguLink}>{t.common.termsLink}</a>{t.common.termsAfter}
           </p>
         </div>
       </main>

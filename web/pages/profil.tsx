@@ -5,6 +5,10 @@ import { supabase, serverSupabase, signOutEverywhere } from '../lib/supabase'
 import { uploadAvatar, removeAvatar } from '../lib/avatar'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
+import { asLocale, localePrefix } from '../lib/localeRouting'
+import { intlLocale, useCopy } from '../locales'
+
+type ProfileError = 'saveError' | 'photoUnsupported' | 'photoSaveError' | 'photoRemoveError'
 
 interface Props {
   userId: string
@@ -17,15 +21,16 @@ interface Props {
 }
 
 export default function Profil({ userId, email, displayName, avatarUrl, avatarPath, memberSince }: Props) {
+  const { t: { account: { profile: t } }, locale } = useCopy()
   const [name, setName] = useState(displayName)
   const [savedName, setSavedName] = useState(displayName)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ProfileError | null>(null)
   const [photoUrl, setPhotoUrl] = useState(avatarUrl)
   const [photoPath, setPhotoPath] = useState(avatarPath)
   const [photoBusy, setPhotoBusy] = useState(false)
-  const [photoError, setPhotoError] = useState<string | null>(null)
+  const [photoError, setPhotoError] = useState<ProfileError | null>(null)
   const [viewerOpen, setViewerOpen] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
 
@@ -64,7 +69,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
 
     setSaving(false)
     if (updateError) {
-      setError("Impossible d'enregistrer. Réessaie.")
+      setError('saveError')
       return
     }
     setSavedName(trimmed)
@@ -86,9 +91,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
       setPhotoUrl(URL.createObjectURL(file))
     } catch (err) {
       const unreadable = err instanceof DOMException || (err instanceof Error && err.message === 'ENCODE')
-      setPhotoError(unreadable
-        ? 'Ce format d\'image n\'est pas pris en charge par ton navigateur. Essaie un JPEG ou un PNG.'
-        : 'Impossible d\'enregistrer la photo. Réessaie.')
+      setPhotoError(unreadable ? 'photoUnsupported' : 'photoSaveError')
     } finally {
       setPhotoBusy(false)
     }
@@ -103,7 +106,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
       setPhotoPath(null)
       setPhotoUrl(null)
     } catch {
-      setPhotoError('Impossible de retirer la photo. Réessaie.')
+      setPhotoError('photoRemoveError')
     } finally {
       setPhotoBusy(false)
     }
@@ -111,13 +114,13 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
 
   async function handleSignOut() {
     await signOutEverywhere()
-    window.location.assign('/')
+    window.location.assign(localePrefix(locale) || '/')
   }
 
   return (
     <>
       <Head>
-        <title>Mon profil — Tiroir</title>
+        <title>{t.metaTitle}</title>
         <meta name="robots" content="noindex" />
       </Head>
 
@@ -125,8 +128,8 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
 
       <main className="main">
         <div className="page-hero">
-          <h1 className="page-title">Mon profil</h1>
-          <p className="page-sub">Gère tes informations de compte.</p>
+          <h1 className="page-title">{t.title}</h1>
+          <p className="page-sub">{t.subtitle}</p>
         </div>
 
         <section className="card">
@@ -138,7 +141,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
                 className="avatar-btn"
                 onClick={() => (photoUrl ? setViewerOpen(true) : pickPhoto())}
                 disabled={photoBusy}
-                aria-label={photoUrl ? 'Voir la photo de profil en grand' : 'Ajouter une photo de profil'}
+                aria-label={photoUrl ? t.viewPhoto : t.addPhotoAria}
               >
                 {photoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -152,7 +155,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
                 className="avatar-badge"
                 onClick={pickPhoto}
                 disabled={photoBusy}
-                aria-label="Changer la photo de profil"
+                aria-label={t.changePhotoAria}
               >
                 {photoBusy ? '…' : '✎'}
               </button>
@@ -176,20 +179,20 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
               <p className="identity-email">{email}</p>
               <div className="photo-actions">
                 <button type="button" className="link-btn" onClick={pickPhoto} disabled={photoBusy}>
-                  {photoBusy ? 'Envoi…' : photoPath ? 'Changer la photo' : 'Ajouter une photo'}
+                  {photoBusy ? t.uploading : photoPath ? t.changePhoto : t.addPhoto}
                 </button>
                 {photoPath && (
                   <button type="button" className="link-btn link-btn--muted" onClick={handleRemovePhoto} disabled={photoBusy}>
-                    Retirer
+                    {t.removePhoto}
                   </button>
                 )}
               </div>
-              {photoError && <p className="feedback feedback--error">{photoError}</p>}
+              {photoError && <p className="feedback feedback--error">{t[photoError]}</p>}
             </div>
           </div>
 
           <form onSubmit={handleSave} className="form">
-            <label className="label" htmlFor="display-name">Nom affiché</label>
+            <label className="label" htmlFor="display-name">{t.nameLabel}</label>
             <div className="row">
               <input
                 id="display-name"
@@ -197,27 +200,27 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
                 type="text"
                 value={name}
                 maxLength={60}
-                placeholder="Ton nom"
+                placeholder={t.namePlaceholder}
                 onChange={e => { setName(e.target.value); setSaved(false) }}
               />
               <button className="save-btn" type="submit" disabled={saving || !dirty}>
-                {saving ? 'Enregistrement…' : 'Enregistrer'}
+                {saving ? t.saving : t.save}
               </button>
             </div>
-            {error && <p className="feedback feedback--error">{error}</p>}
-            {saved && !dirty && <p className="feedback feedback--ok">Nom mis à jour.</p>}
+            {error && <p className="feedback feedback--error">{t[error]}</p>}
+            {saved && !dirty && <p className="feedback feedback--ok">{t.nameSaved}</p>}
           </form>
 
           <dl className="meta">
             <div className="meta-row">
-              <dt>Email</dt>
+              <dt>{t.email}</dt>
               <dd>{email}</dd>
             </div>
             {memberSince && (
               <div className="meta-row">
-                <dt>Membre depuis</dt>
+                <dt>{t.memberSince}</dt>
                 <dd>
-                  {new Date(memberSince).toLocaleDateString('fr-FR', {
+                  {new Date(memberSince).toLocaleDateString(intlLocale(locale), {
                     day: 'numeric',
                     month: 'long',
                     year: 'numeric',
@@ -230,11 +233,11 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
 
         <section className="card card--danger">
           <div>
-            <p className="danger-title">Déconnexion</p>
-            <p className="danger-sub">Tu pourras te reconnecter à tout moment.</p>
+            <p className="danger-title">{t.signOutTitle}</p>
+            <p className="danger-sub">{t.signOutText}</p>
           </div>
           <button className="signout-btn" type="button" onClick={handleSignOut}>
-            Se déconnecter
+            {t.signOut}
           </button>
         </section>
       </main>
@@ -245,15 +248,15 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
           className="viewer"
           role="dialog"
           aria-modal="true"
-          aria-label="Photo de profil"
+          aria-label={t.photo}
           onClick={() => setViewerOpen(false)}
         >
-          <button type="button" className="viewer-close" aria-label="Fermer" onClick={() => setViewerOpen(false)}>✕</button>
+          <button type="button" className="viewer-close" aria-label={t.close} onClick={() => setViewerOpen(false)}>✕</button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="viewer-img" src={photoUrl} alt="Photo de profil" onClick={e => e.stopPropagation()} />
+          <img className="viewer-img" src={photoUrl} alt={t.photo} onClick={e => e.stopPropagation()} />
           <div className="viewer-actions" onClick={e => e.stopPropagation()}>
-            <button type="button" className="viewer-btn" onClick={pickPhoto}>Changer la photo</button>
-            <button type="button" className="viewer-btn viewer-btn--ghost" onClick={() => setViewerOpen(false)}>Fermer</button>
+            <button type="button" className="viewer-btn" onClick={pickPhoto}>{t.changePhoto}</button>
+            <button type="button" className="viewer-btn viewer-btn--ghost" onClick={() => setViewerOpen(false)}>{t.close}</button>
           </div>
         </div>
       )}
@@ -484,7 +487,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const session = verifiedUser ? { user: verifiedUser } : null
 
   if (!session) {
-    return { redirect: { destination: '/login', permanent: false } }
+    // Destination absolue : Next n'y ajoute pas la langue, on la garde.
+    return { redirect: { destination: `${localePrefix(asLocale(ctx.locale))}/login`, permanent: false } }
   }
 
   const { data: profile } = await sb

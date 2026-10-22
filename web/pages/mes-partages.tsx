@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { supabase, serverSupabase, adminSupabase } from '../lib/supabase'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
+import { asLocale, localePrefix } from '../lib/localeRouting'
+import { fill, intlLocale, useCopy } from '../locales'
 
 interface ShareOptions {
   password_protected?: boolean
@@ -18,7 +20,8 @@ interface ShareOptions {
 interface ShareLinkCard {
   id: string
   token: string
-  title: string
+  /** null : partage sans titre (libellé traduit à l'affichage). */
+  title: string | null
   objectCount: number
   createdAt: string
   expiresAt: string | null
@@ -47,11 +50,12 @@ function ShareSettingsModal({
   onClose: () => void
   onSaved: (updated: { isArchived: boolean; options: ShareOptions }) => void
 }) {
+  const { t: { account: { myShares: t } } } = useCopy()
   const [isPrivate, setIsPrivate] = useState(!!share.options.password_protected)
   const [isArchived, setIsArchived] = useState(share.isArchived)
   const [password, setPassword] = useState('')
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<'passwordRequired' | 'saveError' | null>(null)
 
   async function handleSave() {
     setError(null)
@@ -60,7 +64,7 @@ function ShareSettingsModal({
     const trimmed = password.trim()
 
     if (isPrivate && !wasPrivate && trimmed.length < 4) {
-      setError('Renseigne un mot de passe (4 caractères minimum) pour passer en privé.')
+      setError('passwordRequired')
       return
     }
 
@@ -77,7 +81,7 @@ function ShareSettingsModal({
         .eq('id', share.id)
 
       if (updateError) {
-        setError("Impossible d'enregistrer les modifications. Réessaie.")
+        setError('saveError')
         return
       }
 
@@ -90,32 +94,32 @@ function ShareSettingsModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2 className="modal-title">Paramètres du partage</h2>
-        <p className="modal-sub">{share.title}</p>
+        <h2 className="modal-title">{t.settings}</h2>
+        <p className="modal-sub">{share.title ?? t.untitled}</p>
 
         <div className="field">
-          <span className="field-label">Visibilité</span>
+          <span className="field-label">{t.visibility}</span>
           <div className="segmented">
             <button
               type="button"
               className={`segment ${!isPrivate ? 'active' : ''}`}
               onClick={() => setIsPrivate(false)}
             >
-              Public
+              {t.public}
             </button>
             <button
               type="button"
               className={`segment ${isPrivate ? 'active' : ''}`}
               onClick={() => setIsPrivate(true)}
             >
-              🔒 Privé
+              {t.private}
             </button>
           </div>
           {isPrivate && (
             <input
               type="password"
               className="password-input"
-              placeholder={share.options.password_protected ? 'Laisser vide pour garder le mot de passe actuel' : 'Mot de passe (min. 4 car.)'}
+              placeholder={share.options.password_protected ? t.keepPassword : t.passwordPlaceholder}
               value={password}
               onChange={e => setPassword(e.target.value)}
             />
@@ -123,34 +127,34 @@ function ShareSettingsModal({
         </div>
 
         <div className="field">
-          <span className="field-label">Statut</span>
+          <span className="field-label">{t.status}</span>
           <div className="segmented">
             <button
               type="button"
               className={`segment ${!isArchived ? 'active' : ''}`}
               onClick={() => setIsArchived(false)}
             >
-              Actif
+              {t.active}
             </button>
             <button
               type="button"
               className={`segment ${isArchived ? 'active' : ''}`}
               onClick={() => setIsArchived(true)}
             >
-              Archivé
+              {t.archived}
             </button>
           </div>
           {isArchived && (
-            <p className="field-hint">Le lien cessera de fonctionner pour toute personne qui l&apos;a déjà.</p>
+            <p className="field-hint">{t.archivedHint}</p>
           )}
         </div>
 
-        {error && <p className="modal-error">{error}</p>}
+        {error && <p className="modal-error">{t[error]}</p>}
 
         <div className="modal-actions">
-          <button type="button" className="btn-ghost" onClick={onClose} disabled={saving}>Annuler</button>
+          <button type="button" className="btn-ghost" onClick={onClose} disabled={saving}>{t.cancel}</button>
           <button type="button" className="btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'Enregistrement...' : 'Enregistrer'}
+            {saving ? t.saving : t.save}
           </button>
         </div>
       </div>
@@ -203,6 +207,7 @@ function ShareSettingsModal({
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function MesPartages({ shares: initialShares }: Props) {
+  const { t: { account: { myShares: t } }, locale } = useCopy()
   const now = Date.now()
   const [sortAsc, setSortAsc] = useState(false)
   const [shares, setShares] = useState(initialShares)
@@ -218,7 +223,7 @@ export default function MesPartages({ shares: initialShares }: Props) {
   return (
     <>
       <Head>
-        <title>Mes partages — TiROiR</title>
+        <title>{t.metaTitle}</title>
         <meta name="robots" content="noindex,nofollow" />
       </Head>
 
@@ -227,15 +232,15 @@ export default function MesPartages({ shares: initialShares }: Props) {
       <main className="main">
         <div className="page-hero">
           <div>
-            <h1 className="page-title">Mes partages</h1>
+            <h1 className="page-title">{t.title}</h1>
             <p className="page-sub">
-              {shares.length} partage{shares.length !== 1 ? 's' : ''} actif{shares.length !== 1 ? 's' : ''}
+              {fill(shares.length !== 1 ? t.countMany : t.countOne, { n: shares.length })}
             </p>
           </div>
           {shares.length > 1 && (
             <button className="sort-btn" onClick={() => setSortAsc(v => !v)} type="button">
               <span className="sort-arrow">{sortAsc ? '↑' : '↓'}</span>
-              {sortAsc ? 'Plus anciens d’abord' : 'Plus récents d’abord'}
+              {sortAsc ? t.oldestFirst : t.newestFirst}
             </button>
           )}
         </div>
@@ -243,8 +248,8 @@ export default function MesPartages({ shares: initialShares }: Props) {
         {shares.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🔗</div>
-            <h2 className="empty-title">Aucun partage pour le moment</h2>
-            <p className="empty-sub">Crée un partage depuis l&apos;app TiROiR pour le retrouver ici.</p>
+            <h2 className="empty-title">{t.emptyTitle}</h2>
+            <p className="empty-sub">{t.emptyText}</p>
           </div>
         ) : (
           <div className="grid">
@@ -254,18 +259,18 @@ export default function MesPartages({ shares: initialShares }: Props) {
               return (
                 <a
                   key={share.token}
-                  href={`/s/${share.token}`}
+                  href={`${localePrefix(locale)}/s/${share.token}`}
                   className={`card ${isUnavailable ? 'expired' : ''}`}
                 >
                   <div className="card-icon">🔗</div>
                   <div className="card-body">
-                    <h2 className="card-title">{share.title}</h2>
+                    <h2 className="card-title">{share.title ?? t.untitled}</h2>
                     <p className="card-meta">
-                      {share.objectCount} objet{share.objectCount !== 1 ? 's' : ''}
-                      {share.options.password_protected && ' · 🔒 Privé'}
+                      {fill(share.objectCount !== 1 ? t.objectsMany : t.objectsOne, { n: share.objectCount })}
+                      {share.options.password_protected && ` · ${t.private}`}
                     </p>
                     <p className="card-date">
-                      Créé le {new Date(share.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      {fill(t.createdOn, { date: new Date(share.createdAt).toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' }) })}
                     </p>
                     {(share.options.contact_name || share.options.contact_email) && (
                       <p className="card-contact">
@@ -273,14 +278,14 @@ export default function MesPartages({ shares: initialShares }: Props) {
                       </p>
                     )}
                     {share.isArchived
-                      ? <span className="badge-expired">Archivé</span>
-                      : isExpired && <span className="badge-expired">Expiré</span>
+                      ? <span className="badge-expired">{t.archived}</span>
+                      : isExpired && <span className="badge-expired">{t.expired}</span>
                     }
                   </div>
                   <button
                     type="button"
                     className="settings-btn"
-                    aria-label="Paramètres du partage"
+                    aria-label={t.settings}
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingToken(share.token) }}
                   >
                     ⚙️
@@ -405,7 +410,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const session = verifiedUser ? { user: verifiedUser } : null
 
   if (!session) {
-    return { redirect: { destination: '/login', permanent: false } }
+    // Destination absolue : Next n'y ajoute pas la langue, on la garde.
+    return { redirect: { destination: `${localePrefix(asLocale(ctx.locale))}/login`, permanent: false } }
   }
 
   const admin = adminSupabase()
@@ -418,7 +424,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const shares: ShareLinkCard[] = (links ?? []).map(l => ({
     id: l.id,
     token: l.token,
-    title: l.title ?? 'Partage sans titre',
+    title: l.title ?? null,
     objectCount: Array.isArray(l.object_ids) ? l.object_ids.length : 0,
     createdAt: l.created_at,
     expiresAt: l.expires_at,

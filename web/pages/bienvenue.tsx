@@ -1,15 +1,18 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import StoreButtons from '../components/StoreButtons'
+import { localePrefix } from '../lib/localeRouting'
+import { useCopy } from '../locales'
 
 export default function Bienvenue() {
   const { query } = useRouter()
+  const { t: { account: t }, locale } = useCopy()
   const pending = query.pending === '1'
 
   return (
     <>
       <Head>
-        <title>Bienvenue — Tiroir</title>
+        <title>{t.welcome.metaTitle}</title>
         <meta name="robots" content="noindex" />
       </Head>
 
@@ -21,26 +24,21 @@ export default function Bienvenue() {
             <strong style={s.logoText}>Tiroir</strong>
           </div>
 
-          <h1 style={s.title}>Bienvenue chez Tiroir 🎉</h1>
+          <h1 style={s.title}>{t.welcome.title}</h1>
 
           {pending ? (
             <p style={s.text}>
-              Ton compte est créé. On t&apos;a envoyé un <strong>e-mail de confirmation</strong> —
-              clique le lien pour l&apos;activer. Ensuite, télécharge l&apos;app pour commencer à
-              cataloguer tes objets :
+              {t.welcome.pendingBefore}<strong>{t.welcome.pendingStrong}</strong>{t.welcome.pendingAfter}
             </p>
           ) : (
-            <p style={s.text}>
-              Ton compte est prêt ! Télécharge l&apos;app et connecte-toi avec ce compte pour
-              commencer à cataloguer tes objets :
-            </p>
+            <p style={s.text}>{t.welcome.ready}</p>
           )}
 
           <div style={s.stores}>
-            <StoreButtons variant="card" full />
+            <StoreButtons variant="card" full locale={locale} />
           </div>
 
-          <a href="/" style={s.homeLink}>← Retour au site</a>
+          <a href={localePrefix(locale) || '/'} style={s.homeLink}>{t.common.backToSite}</a>
         </div>
       </main>
     </>
