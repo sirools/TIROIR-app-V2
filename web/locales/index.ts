@@ -21,8 +21,11 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   es: 'Español',
 }
 
-/** Balise BCP 47 pour Intl (formats de prix). */
+/** Balise BCP 47 pour Intl (formats de prix, de dates, de nombres). */
 const INTL: Record<Locale, string> = { fr: 'fr-FR', en: 'en-IE', da: 'da-DK', de: 'de-DE', es: 'es-ES' }
+
+/** Balise Intl d'une langue du site, pour toLocaleDateString / toLocaleString. */
+export const intlLocale = (locale: Locale) => INTL[locale]
 
 export function useCopy(): { t: Copy; locale: Locale } {
   const locale = asLocale(useRouter().locale)

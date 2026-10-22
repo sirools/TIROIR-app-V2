@@ -1,8 +1,12 @@
 // Textos del sitio en español (España). Misma estructura que fr.ts.
 // A revisar por un hablante nativo.
 import type { Copy } from './fr'
+import share from './share/es'
+import account from './account/es'
 
 const es: Copy = {
+  share,
+  account,
   layout: {
     pricing: 'Precios',
     download: 'Descargar la app',

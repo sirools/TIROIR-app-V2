@@ -1,8 +1,12 @@
 // Texte der Website auf Deutsch. Gleiche Struktur wie fr.ts.
 // Von einer Muttersprachlerin / einem Muttersprachler gegenlesen lassen.
 import type { Copy } from './fr'
+import share from './share/de'
+import account from './account/de'
 
 const de: Copy = {
+  share,
+  account,
   layout: {
     pricing: 'Preise',
     download: 'App herunterladen',

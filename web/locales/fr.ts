@@ -5,7 +5,12 @@
 // Positionnement : on vend un résultat, pas de l'IA. L'IA n'apparaît
 // jamais dans un titre, seulement comme explication discrète (home.why).
 
+import share from './share/fr'
+import account from './account/fr'
+
 const fr = {
+  share,
+  account,
   layout: {
     pricing: 'Tarifs',
     download: 'Télécharger l’app',

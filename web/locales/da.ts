@@ -1,8 +1,12 @@
 // Sidens tekster på dansk. Samme struktur som fr.ts.
 // Skal gennemlæses af en person med dansk som modersmål.
 import type { Copy } from './fr'
+import share from './share/da'
+import account from './account/da'
 
 const da: Copy = {
+  share,
+  account,
   layout: {
     pricing: 'Priser',
     download: 'Hent appen',

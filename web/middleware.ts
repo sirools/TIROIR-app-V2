@@ -2,7 +2,7 @@
 // (voir lib/backofficeRouting.ts). Sans BACKOFFICE_HOST, ne fait rien.
 import { NextResponse, type NextRequest } from 'next/server'
 import { routeFor } from './lib/backofficeRouting'
-import { untranslatedRedirect } from './lib/localeRouting'
+import { isRecipientPage, recipientLocale, untranslatedRedirect } from './lib/localeRouting'
 
 export function middleware(req: NextRequest) {
   const route = routeFor(
@@ -15,7 +15,21 @@ export function middleware(req: NextRequest) {
 
   if (route.action === 'redirect') return NextResponse.redirect(route.url, 307)
 
-  // Danois, allemand, espagnol : seule la homepage est traduite.
+  // Destinataire d'un partage arrivé par un lien sans langue (/s/…) : on
+  // le sert dans la langue de son navigateur. Un lien qui porte déjà une
+  // langue (/fr/s/…, /de/s/…) est respecté.
+  if (route.action === 'next' && isRecipientPage(req.nextUrl.pathname)) {
+    const raw = new URL(req.url).pathname
+    const explicit = /^\/(fr|en|da|de|es)(\/|$)/.test(raw)
+    const lang = explicit ? null : recipientLocale(req.headers.get('accept-language'))
+    if (lang) {
+      const url = req.nextUrl.clone()
+      url.locale = lang
+      return NextResponse.redirect(url, 307)
+    }
+  }
+
+  // Danois, allemand, espagnol : seules les pages traduites sont servies.
   if (route.action === 'next') {
     const en = untranslatedRedirect(req.nextUrl.locale, req.nextUrl.pathname)
     if (en) {
