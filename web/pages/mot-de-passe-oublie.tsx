@@ -3,11 +3,17 @@
 import Head from 'next/head'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { authErrorKey, type AuthErrorKey } from '../lib/authErrors'
+import { localePrefix } from '../lib/localeRouting'
+import { useCopy } from '../locales'
 
 export default function MotDePasseOublie() {
+  const { t: { account: t }, locale } = useCopy()
+  // Préfixe de langue des liens <a> et du lien de l'e-mail (« » en français).
+  const prefix = localePrefix(locale)
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<AuthErrorKey | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -16,14 +22,14 @@ export default function MotDePasseOublie() {
     setError(null)
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/nouveau-mot-de-passe`,
+      redirectTo: `${window.location.origin}${prefix}/nouveau-mot-de-passe`,
     })
     setLoading(false)
 
     // Seul le rate limit est affiché : signaler qu'une adresse est inconnue
     // permettrait d'énumérer les comptes. Sinon on confirme dans tous les cas.
-    if (error && /rate limit|too many/i.test(error.message)) {
-      setError(error.message)
+    if (error && authErrorKey(error) === 'rateLimit') {
+      setError('rateLimit')
       return
     }
     setSent(true)
@@ -31,7 +37,7 @@ export default function MotDePasseOublie() {
 
   return (
     <>
-      <Head><title>Mot de passe oublié — Tiroir</title></Head>
+      <Head><title>{t.forgot.metaTitle}</title></Head>
       <main style={s.root}>
         <div style={s.card}>
           <div style={s.logo}>
@@ -42,26 +48,19 @@ export default function MotDePasseOublie() {
 
           {sent ? (
             <>
-              <h1 style={s.title}>E-mail envoyé</h1>
+              <h1 style={s.title}>{t.forgot.sentTitle}</h1>
               <p style={s.text}>
-                Si un compte existe pour <strong>{email.trim()}</strong>, un lien de réinitialisation
-                vient d&apos;y être envoyé. Il est valable une heure et ne sert qu&apos;une fois.
+                {t.forgot.sentBefore}<strong>{email.trim()}</strong>{t.forgot.sentAfter}
               </p>
-              <p style={s.hint}>
-                Rien reçu ? Vérifie les indésirables. Si tu t&apos;es inscrit avec Google, ton compte
-                n&apos;a pas de mot de passe — utilise le bouton « Continuer avec Google » sur la page
-                de connexion.
-              </p>
-              <a href="/login" style={s.btnLink}>Retour à la connexion</a>
+              <p style={s.hint}>{t.forgot.notReceived}</p>
+              <a href={`${prefix}/login`} style={s.btnLink}>{t.forgot.backToLogin}</a>
             </>
           ) : (
             <>
-              <h1 style={s.title}>Mot de passe oublié</h1>
-              <p style={s.text}>
-                Indique ton adresse e-mail : on t&apos;envoie un lien pour choisir un nouveau mot de passe.
-              </p>
+              <h1 style={s.title}>{t.forgot.title}</h1>
+              <p style={s.text}>{t.forgot.intro}</p>
               <form onSubmit={handleSubmit} style={s.form}>
-                <label style={s.label}>Email</label>
+                <label style={s.label}>{t.common.email}</label>
                 <input
                   type="email"
                   value={email}
@@ -69,15 +68,15 @@ export default function MotDePasseOublie() {
                   required
                   autoFocus
                   style={s.input}
-                  placeholder="exemple@gmail.com"
+                  placeholder={t.common.emailPlaceholder}
                 />
-                {error && <p style={s.error}>{error}</p>}
+                {error && <p style={s.error}>{t.errors[error]}</p>}
                 <button type="submit" disabled={loading} style={s.btn}>
-                  {loading ? 'Envoi…' : 'Envoyer le lien'}
+                  {loading ? t.forgot.sending : t.forgot.send}
                 </button>
               </form>
               <p style={s.switch}>
-                <a href="/login" style={s.switchLink}>Retour à la connexion</a>
+                <a href={`${prefix}/login`} style={s.switchLink}>{t.forgot.backToLogin}</a>
               </p>
             </>
           )}

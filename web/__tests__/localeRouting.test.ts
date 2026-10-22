@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { LOCALES, isTranslated, localeUrl, untranslatedRedirect } from '../lib/localeRouting'
+import { LOCALES, isRecipientPage, isTranslated, localeUrl, recipientLocale, untranslatedRedirect } from '../lib/localeRouting'
 
 describe('langues du site', () => {
   test('next.config déclare les mêmes langues que lib/localeRouting', () => {
@@ -22,7 +22,9 @@ describe('langues du site', () => {
       expect(untranslatedRedirect(l, '/')).toBeNull()
       expect(untranslatedRedirect(l, '/pricing')).toBeNull()
       expect(untranslatedRedirect(l, '/about')).toBe('/en/about')
-      expect(untranslatedRedirect(l, '/s/abc123')).toBe('/en/s/abc123')
+      expect(untranslatedRedirect(l, '/s/abc123')).toBeNull()
+      expect(untranslatedRedirect(l, '/login')).toBeNull()
+      expect(untranslatedRedirect(l, '/cgu')).toBe('/en/cgu')
       expect(untranslatedRedirect(l, '/logo-tiroir.svg')).toBeNull()
       expect(untranslatedRedirect(l, '/api/health')).toBeNull()
     }
@@ -40,5 +42,17 @@ describe('langues du site', () => {
     expect(localeUrl('https://tiroir.app', 'de', '/')).toBe('https://tiroir.app/de')
     expect(localeUrl('https://tiroir.app', 'fr', '/pricing')).toBe('https://tiroir.app/pricing')
     expect(localeUrl('https://tiroir.app', 'es', '/pricing')).toBe('https://tiroir.app/es/pricing')
+  })
+
+  test('destinataire d’un partage : langue du navigateur', () => {
+    expect(recipientLocale('de-DE,de;q=0.9,en;q=0.8')).toBe('de')
+    expect(recipientLocale('en-GB')).toBe('en')
+    expect(recipientLocale('fr-FR,fr;q=0.9,en;q=0.8')).toBeNull()
+    expect(recipientLocale('it-IT,it;q=0.9,es;q=0.5')).toBe('es')
+    expect(recipientLocale('ja')).toBeNull()
+    expect(recipientLocale('en;q=0.4,da;q=0.9')).toBe('da')
+    expect(recipientLocale(null)).toBeNull()
+    expect(isRecipientPage('/s/abc/123')).toBe(true)
+    expect(isRecipientPage('/pricing')).toBe(false)
   })
 })

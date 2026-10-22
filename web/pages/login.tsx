@@ -3,14 +3,20 @@ import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 
 import { APPLE_WEB_ENABLED as APPLE_LOGIN_ENABLED } from '../lib/identities'
-import { authErrorHint, authHref, safeNext, type AuthHint } from '../lib/authFlow'
+import { authHref, safeNext } from '../lib/authFlow'
+import { authErrorFromUrl, authErrorKey, suggestsSignup, type AccountErrorKey, type AuthErrorKey } from '../lib/authErrors'
+import { localePrefix } from '../lib/localeRouting'
+import { useCopy } from '../locales'
 
 export default function Login() {
   const router = useRouter()
+  const { t: { account: t }, locale } = useCopy()
+  // Préfixe de langue des liens <a> et des retours Supabase (« » en français).
+  const prefix = localePrefix(locale)
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError]       = useState<string | null>(null)
-  const [hint, setHint]         = useState<AuthHint | null>(null)
+  const [error, setError]       = useState<AccountErrorKey | null>(null)
+  const [hint, setHint]         = useState<AuthErrorKey | null>(null)
   const [loading, setLoading]   = useState(false)
   const next = typeof router.query.next === 'string' ? safeNext(router.query.next) : null
 
@@ -44,7 +50,13 @@ export default function Login() {
   // Affiche les erreurs renvoyées par un retour OAuth raté (?error_description=…)
   useEffect(() => {
     const desc = router.query.error_description
-    if (typeof desc === 'string' && desc) setError(desc)
+    if (typeof desc === 'string' && desc) {
+      setError(authErrorFromUrl(k => {
+        const v = router.query[k]
+        return typeof v === 'string' ? v : null
+      }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query.error_description])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -55,7 +67,7 @@ export default function Login() {
 
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      setHint(authErrorHint(error.message))
+      setHint(authErrorKey(error))
       setLoading(false)
       return
     }
@@ -67,9 +79,9 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       // Sans destination, retour ici : le propriétaire y choisit Tiroir ou Torix.
-      options: { redirectTo: `${window.location.origin}${next ?? '/login'}` },
+      options: { redirectTo: `${window.location.origin}${prefix}${next ?? '/login'}` },
     })
-    if (error) setError(error.message)
+    if (error) setError(authErrorKey(error))
   }
 
   return (
@@ -82,15 +94,15 @@ export default function Login() {
         </div>
         {choice ? (
           <>
-            <h1 style={s.title}>Où veux-tu aller ?</h1>
+            <h1 style={s.title}>{t.login.choiceTitle}</h1>
             <div style={s.choice}>
-              <a href="/" style={s.choiceTiroir}>Tiroir</a>
+              <a href={prefix || '/'} style={s.choiceTiroir}>Tiroir</a>
               <a href="/admin/torix-lab" style={s.choiceTorix}>Torix</a>
             </div>
           </>
         ) : (
         <>
-        <h1 style={s.title}>Connexion</h1>
+        <h1 style={s.title}>{t.login.title}</h1>
 
         <button type="button" style={s.googleBtn} onClick={() => handleOAuth('google')}>
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -99,7 +111,7 @@ export default function Login() {
             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
           </svg>
-          Continuer avec Google
+          {t.common.continueGoogle}
         </button>
 
         {APPLE_LOGIN_ENABLED && (
@@ -107,30 +119,30 @@ export default function Login() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M17.05 20.28c-.98.95-2.05.86-3.08.38-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.38C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
             </svg>
-            Continuer avec Apple
+            {t.common.continueApple}
           </button>
         )}
 
         <div style={s.dividerRow}>
           <div style={s.dividerLine} />
-          <span style={s.dividerText}>ou</span>
+          <span style={s.dividerText}>{t.common.or}</span>
           <div style={s.dividerLine} />
         </div>
 
         <form onSubmit={handleSubmit} style={s.form}>
-          <label style={s.label}>Email</label>
+          <label style={s.label}>{t.common.email}</label>
           <input
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
             style={s.input}
-            placeholder="exemple@gmail.com"
+            placeholder={t.common.emailPlaceholder}
           />
 
           <div style={s.labelRow}>
-            <label style={s.label}>Mot de passe</label>
-            <a href="/mot-de-passe-oublie" style={s.forgotLink}>Mot de passe oublié ?</a>
+            <label style={s.label}>{t.common.password}</label>
+            <a href={`${prefix}/mot-de-passe-oublie`} style={s.forgotLink}>{t.login.forgot}</a>
           </div>
           <input
             type="password"
@@ -141,29 +153,29 @@ export default function Login() {
             placeholder="••••••••"
           />
 
-          {error && <p style={s.error}>{error}</p>}
+          {error && <p style={s.error}>{t.errors[error]}</p>}
           {hint && (
             <div style={s.error} role="alert">
-              <p style={{ margin: 0 }}>{hint.message}</p>
-              {hint.suggestSignup && (
-                <a href={authHref('/inscription', next)} style={s.hintLink}>Créer mon compte →</a>
+              <p style={{ margin: 0 }}>{t.errors[hint]}</p>
+              {suggestsSignup(hint) && (
+                <a href={prefix + authHref('/inscription', next)} style={s.hintLink}>{t.login.createMyAccount}</a>
               )}
             </div>
           )}
 
           <button type="submit" disabled={loading} style={s.btn}>
-            {loading ? 'Connexion…' : 'Se connecter'}
+            {loading ? t.login.submitting : t.login.submit}
           </button>
         </form>
 
         <p style={s.switch}>
-          Pas encore de compte ?{' '}
-          <a href={authHref('/inscription', next)} style={s.switchLink}>Créer un compte</a>
+          {t.login.noAccount}{' '}
+          <a href={prefix + authHref('/inscription', next)} style={s.switchLink}>{t.login.createAccount}</a>
         </p>
 
         <p style={s.cgu}>
-          En continuant, tu acceptes les{' '}
-          <a href="/cgu" style={s.cguLink}>Conditions Générales d&apos;Utilisation</a>.
+          {t.common.termsBefore}{' '}
+          <a href={`${prefix}/cgu`} style={s.cguLink}>{t.common.termsLink}</a>{t.common.termsAfter}
         </p>
         </>
         )}

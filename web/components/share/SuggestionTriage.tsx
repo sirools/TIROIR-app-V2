@@ -6,6 +6,8 @@
 //   « Annuler » / Ctrl+Z                               : défait le dernier choix
 import { useEffect, useRef, useState } from 'react'
 import { linkHost, type TriageDecision, type Wish } from '../../lib/suggestions'
+import type { Locale } from '../../lib/localeRouting'
+import { intlLocale, useCopy } from '../../locales'
 import AuthorAvatar from './AuthorAvatar'
 
 /** Distance (px) au-delà de laquelle un glissé vaut décision. */
@@ -20,21 +22,22 @@ interface Props {
   onUndo: () => void
 }
 
-function formatPrice(w: Wish): string | null {
+function formatPrice(w: Wish, locale: Locale): string | null {
   if (w.price === null) return null
   try {
-    return w.price.toLocaleString('fr-FR', { style: 'currency', currency: w.currency, maximumFractionDigits: w.price % 1 ? 2 : 0 })
+    return w.price.toLocaleString(intlLocale(locale), { style: 'currency', currency: w.currency, maximumFractionDigits: w.price % 1 ? 2 : 0 })
   } catch {
     return `${w.price} ${w.currency}`
   }
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: Locale): string {
   const d = new Date(iso)
-  return isNaN(d.getTime()) ? '' : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'long' })
 }
 
 export default function SuggestionTriage({ pending, canUndo, busy, error, onDecide, onUndo }: Props) {
+  const { t: { share: { triage: t } }, locale } = useCopy()
   const current = pending[0] ?? null
   const next = pending[1] ?? null
   const [dx, setDx] = useState(0)
@@ -85,15 +88,15 @@ export default function SuggestionTriage({ pending, canUndo, busy, error, onDeci
   const dragging = drag.current !== null
 
   return (
-    <section className="triage" aria-label="Suggestions à trier">
+    <section className="triage" aria-label={t.heading}>
       <div className="head">
         <h2 className="heading">
           {pending.length > 0
-            ? <>Suggestions à trier <span className="count">{pending.length}</span></>
-            : 'Tout est trié'}
+            ? <>{t.heading} <span className="count">{pending.length}</span></>
+            : t.allSorted}
         </h2>
         <button type="button" className="undo" onClick={onUndo} disabled={!canUndo || busy}>
-          ↶ Annuler le dernier choix
+          ↶ {t.undo}
         </button>
       </div>
 
@@ -110,15 +113,15 @@ export default function SuggestionTriage({ pending, canUndo, busy, error, onDeci
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerUp}
             >
-              <span className={`stamp stamp-keep ${intent === 'keep' ? 'on' : ''}`}>GARDER</span>
-              <span className={`stamp stamp-dismiss ${intent === 'dismiss' ? 'on' : ''}`}>ÉCARTER</span>
+              <span className={`stamp stamp-keep ${intent === 'keep' ? 'on' : ''}`}>{t.stampKeep}</span>
+              <span className={`stamp stamp-dismiss ${intent === 'dismiss' ? 'on' : ''}`}>{t.stampDismiss}</span>
               <div className="card-icon" aria-hidden>🎁</div>
               <h3 className="card-title">{current.title}</h3>
               <p className="card-meta">
-                {formatPrice(current) && <strong className="price">{formatPrice(current)}</strong>}
+                {formatPrice(current, locale) && <strong className="price">{formatPrice(current, locale)}</strong>}
                 {current.url && (
                   <a href={current.url} target="_blank" rel="noopener noreferrer nofollow" onPointerDown={e => e.stopPropagation()}>
-                    {linkHost(current.url) ?? 'Voir le lien'} ↗
+                    {linkHost(current.url) ?? t.seeLink} ↗
                   </a>
                 )}
               </p>
@@ -130,7 +133,7 @@ export default function SuggestionTriage({ pending, canUndo, busy, error, onDeci
                     {current.author.displayName && current.author.displayName !== current.author.firstName && (
                       <span className="muted"> · {current.author.displayName}</span>
                     )}
-                    <span className="muted"> · {formatDate(current.createdAt)}</span>
+                    <span className="muted"> · {formatDate(current.createdAt, locale)}</span>
                   </span>
                 </p>
               )}
@@ -139,16 +142,16 @@ export default function SuggestionTriage({ pending, canUndo, busy, error, onDeci
 
           <div className="actions">
             <button type="button" className="btn btn-dismiss" onClick={() => decide('dismiss')} disabled={busy || !!leaving}>
-              ✕ Écarter
+              ✕ {t.dismiss}
             </button>
             <button type="button" className="btn btn-keep" onClick={() => decide('keep')} disabled={busy || !!leaving}>
-              ♥ Garder
+              ♥ {t.keep}
             </button>
           </div>
-          <p className="help">Glisse la carte, ou utilise les flèches ← → du clavier.</p>
+          <p className="help">{t.help}</p>
         </>
       ) : (
-        <p className="done">Les idées gardées restent dans la collection, en pointillé.</p>
+        <p className="done">{t.done}</p>
       )}
       {error && <p className="error" role="alert">{error}</p>}
 

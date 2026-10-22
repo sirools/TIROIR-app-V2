@@ -1,9 +1,14 @@
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
-import { APP_STORE_URL_FR, PLAY_STORE_URL } from '../lib/appLinks'
+import { appStoreUrlFor, playStoreUrlFor } from '../lib/appLinks'
 import { authHref, safeNext } from '../lib/authFlow'
+import { localePrefix } from '../lib/localeRouting'
+import { useCopy } from '../locales'
 
 export default function EmailConfirme() {
+  const { t: { account: t }, locale } = useCopy()
+  // Préfixe de langue des liens <a> (« » en français).
+  const prefix = localePrefix(locale)
   const [errorCode, setErrorCode] = useState<string | null>(null)
   // Venu d'un partage (?next=/s/…) : le bouton principal y ramène.
   const [next, setNext] = useState<string | null>(null)
@@ -33,7 +38,7 @@ export default function EmailConfirme() {
   return (
     <>
       <Head>
-        <title>{isError ? 'Lien invalide — Tiroir' : 'Email confirmé — Tiroir'}</title>
+        <title>{isError ? t.confirm.metaTitleError : t.confirm.metaTitle}</title>
         <meta name="robots" content="noindex" />
       </Head>
 
@@ -47,44 +52,39 @@ export default function EmailConfirme() {
 
           {isError ? (
             <>
-              <h1 style={s.title}>Ce lien n&apos;est plus valide</h1>
+              <h1 style={s.title}>{t.confirm.errorTitle}</h1>
               <p style={s.text}>
-                {isExpired
-                  ? 'Le lien de confirmation a expiré.'
-                  : 'Le lien de confirmation a peut-être expiré ou déjà été utilisé.'}
-                {' '}Réessaie de te connecter dans l&apos;app : si ton adresse n&apos;est pas encore
-                confirmée, un nouveau lien pourra t&apos;être envoyé.
+                {isExpired ? t.confirm.expired : t.confirm.maybeExpired}
+                {' '}{t.confirm.retry}
               </p>
             </>
           ) : (
             <>
-              <h1 style={s.title}>Adresse email confirmée 🎉</h1>
-              <p style={s.text}>
-                Ton compte Tiroir est activé. Retourne dans l&apos;app et connecte-toi pour
-                commencer à cataloguer tes objets.
-              </p>
+              <h1 style={s.title}>{t.confirm.title}</h1>
+              <p style={s.text}>{t.confirm.text}</p>
             </>
           )}
 
           {next && !isError && (
             // Passe par la connexion : elle file directement au partage si la
             // session est déjà ouverte, sinon demande le mot de passe choisi.
-            <a href={authHref('/login', next)} style={s.btnPrimary}>
-              Revenir au partage et suggérer
+            <a href={prefix + authHref('/login', next)} style={s.btnPrimary}>
+              {t.confirm.backToShare}
             </a>
           )}
           <a href="tiroir://" style={next && !isError ? s.btnSecondary : s.btnPrimary}>
-            Ouvrir l&apos;app Tiroir
+            {t.confirm.openApp}
           </a>
-          <a href={APP_STORE_URL_FR} target="_blank" rel="noopener noreferrer" style={s.btnSecondary}>
-            Télécharger sur l&apos;App Store
+          {/* Fiche du store du pays de la langue du site. */}
+          <a href={appStoreUrlFor(locale)} target="_blank" rel="noopener noreferrer" style={s.btnSecondary}>
+            {t.confirm.appStore}
           </a>
-          <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" style={s.btnSecondary}>
-            Télécharger sur Google Play
+          <a href={playStoreUrlFor(locale)} target="_blank" rel="noopener noreferrer" style={s.btnSecondary}>
+            {t.confirm.googlePlay}
           </a>
 
-          <a href="/" style={s.homeLink}>
-            ← Retour au site
+          <a href={prefix || '/'} style={s.homeLink}>
+            {t.common.backToSite}
           </a>
         </div>
       </main>

@@ -1,7 +1,11 @@
 // Site copy in English (UK, Ireland, US). Same structure as fr.ts.
 import type { Copy } from './fr'
+import share from './share/en'
+import account from './account/en'
 
 const en: Copy = {
+  share,
+  account,
   layout: {
     pricing: 'Pricing',
     download: 'Download the app',

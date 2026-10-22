@@ -8,6 +8,9 @@ import Head from 'next/head'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
+import { authErrorFromUrl, authErrorKey, type AccountErrorKey } from '../lib/authErrors'
+import { localePrefix } from '../lib/localeRouting'
+import { fill, useCopy } from '../locales'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -15,10 +18,11 @@ type Phase = 'opening' | 'ready' | 'invalid' | 'done'
 
 export default function NouveauMotDePasse() {
   const router = useRouter()
+  const { t: { account: t }, locale } = useCopy()
   const [phase, setPhase] = useState<Phase>('opening')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<AccountErrorKey | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -26,8 +30,8 @@ export default function NouveauMotDePasse() {
 
     // Erreur renvoyée par Supabase (lien expiré, déjà utilisé…)
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
-    const urlError = hash.get('error_description')
-      ?? (typeof router.query.error_description === 'string' ? router.query.error_description : null)
+    const query = new URLSearchParams(window.location.search)
+    const urlError = authErrorFromUrl(k => hash.get(k) ?? query.get(k))
     if (urlError) {
       setError(urlError)
       setPhase('invalid')
@@ -43,7 +47,7 @@ export default function NouveauMotDePasse() {
       if (code) {
         const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
         if (cancelled) return
-        if (exchangeError) { setError(exchangeError.message); setPhase('invalid'); return }
+        if (exchangeError) { setError(authErrorKey(exchangeError)); setPhase('invalid'); return }
         setPhase('ready')
         return
       }
@@ -63,11 +67,11 @@ export default function NouveauMotDePasse() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Le mot de passe doit faire au moins ${MIN_PASSWORD_LENGTH} caractères.`)
+      setError('passwordTooShort')
       return
     }
     if (password !== confirm) {
-      setError('Les deux mots de passe ne correspondent pas.')
+      setError('passwordMismatch')
       return
     }
 
@@ -76,13 +80,13 @@ export default function NouveauMotDePasse() {
     const { error: updateError } = await supabase.auth.updateUser({ password })
     setLoading(false)
 
-    if (updateError) { setError(updateError.message); return }
+    if (updateError) { setError(authErrorKey(updateError)); return }
     setPhase('done')
   }
 
   return (
     <>
-      <Head><title>Nouveau mot de passe — Tiroir</title></Head>
+      <Head><title>{t.reset.metaTitle}</title></Head>
       <main style={s.root}>
         <div style={s.card}>
           <div style={s.logo}>
@@ -93,29 +97,26 @@ export default function NouveauMotDePasse() {
 
           {phase === 'opening' && (
             <>
-              <h1 style={s.title}>Nouveau mot de passe</h1>
-              <p style={s.text}>Ouverture du lien…</p>
+              <h1 style={s.title}>{t.reset.title}</h1>
+              <p style={s.text}>{t.reset.opening}</p>
             </>
           )}
 
           {phase === 'invalid' && (
             <>
-              <h1 style={s.title}>Lien invalide</h1>
-              <p style={s.text}>
-                Ce lien n&apos;est plus valable. Les liens de réinitialisation expirent au bout
-                d&apos;une heure et ne servent qu&apos;une fois.
-              </p>
-              {error && <p style={s.error}>{error}</p>}
-              <a href="/mot-de-passe-oublie" style={s.btnLink}>Demander un nouveau lien</a>
+              <h1 style={s.title}>{t.reset.invalidTitle}</h1>
+              <p style={s.text}>{t.reset.invalidText}</p>
+              {error && <p style={s.error}>{fill(t.errors[error], { min: MIN_PASSWORD_LENGTH })}</p>}
+              <a href={`${localePrefix(locale)}/mot-de-passe-oublie`} style={s.btnLink}>{t.reset.requestNew}</a>
             </>
           )}
 
           {phase === 'ready' && (
             <>
-              <h1 style={s.title}>Nouveau mot de passe</h1>
-              <p style={s.text}>Choisis un mot de passe pour ton compte Tiroir.</p>
+              <h1 style={s.title}>{t.reset.title}</h1>
+              <p style={s.text}>{t.reset.intro}</p>
               <form onSubmit={handleSubmit} style={s.form}>
-                <label style={s.label}>Nouveau mot de passe</label>
+                <label style={s.label}>{t.reset.newPassword}</label>
                 <input
                   type="password"
                   value={password}
@@ -124,9 +125,9 @@ export default function NouveauMotDePasse() {
                   autoFocus
                   autoComplete="new-password"
                   style={s.input}
-                  placeholder="8 caractères minimum"
+                  placeholder={fill(t.reset.passwordPlaceholder, { min: MIN_PASSWORD_LENGTH })}
                 />
-                <label style={s.label}>Confirmer</label>
+                <label style={s.label}>{t.reset.confirm}</label>
                 <input
                   type="password"
                   value={confirm}
@@ -136,9 +137,9 @@ export default function NouveauMotDePasse() {
                   style={s.input}
                   placeholder="••••••••"
                 />
-                {error && <p style={s.error}>{error}</p>}
+                {error && <p style={s.error}>{fill(t.errors[error], { min: MIN_PASSWORD_LENGTH })}</p>}
                 <button type="submit" disabled={loading} style={s.btn}>
-                  {loading ? 'Enregistrement…' : 'Enregistrer'}
+                  {loading ? t.reset.saving : t.reset.save}
                 </button>
               </form>
             </>
@@ -146,12 +147,10 @@ export default function NouveauMotDePasse() {
 
           {phase === 'done' && (
             <>
-              <h1 style={s.title}>Mot de passe enregistré</h1>
-              <p style={s.text}>
-                Tu es connecté. Ce mot de passe fonctionne aussi dans l&apos;application mobile.
-              </p>
+              <h1 style={s.title}>{t.reset.doneTitle}</h1>
+              <p style={s.text}>{t.reset.doneText}</p>
               <button type="button" style={s.btn} onClick={() => router.push('/')}>
-                Continuer
+                {t.reset.continue}
               </button>
             </>
           )}

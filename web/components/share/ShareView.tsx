@@ -5,8 +5,11 @@ import { useRouter } from 'next/router'
 import { useState } from 'react'
 import { YStack, XStack, Text, Separator } from 'tamagui'
 import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
+import { localePrefix } from '../../lib/localeRouting'
+import { fill, intlLocale, useCopy } from '../../locales'
 
 function PasswordForm({ slug }: { slug: string }) {
+  const { t: { share: { password: t } }, locale } = useCopy()
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -21,13 +24,14 @@ function PasswordForm({ slug }: { slug: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, password }),
       })
-      if (res.ok) { window.location.href = `/share/${slug}`; return }
-      if (res.status === 401) setError('Mot de passe incorrect. Réessaie.')
-      else if (res.status === 404) setError('Ce lien de partage est introuvable.')
-      else if (res.status === 410) setError('Ce lien a expiré.')
-      else setError("Une erreur est survenue. Réessaie plus tard.")
+      // Rechargement complet (le cookie vient d'être posé), dans la même langue.
+      if (res.ok) { window.location.href = `${localePrefix(locale)}/share/${slug}`; return }
+      if (res.status === 401) setError(t.wrong)
+      else if (res.status === 404) setError(t.notFound)
+      else if (res.status === 410) setError(t.expired)
+      else setError(t.generic)
     } catch {
-      setError("Impossible d'atteindre le serveur.")
+      setError(t.unreachable)
     } finally {
       setLoading(false)
     }
@@ -40,7 +44,7 @@ function PasswordForm({ slug }: { slug: string }) {
           <input
             name="password"
             type="password"
-            placeholder="Mot de passe"
+            placeholder={t.placeholder}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             style={{ flex: 1, padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(0,0,0,0.12)' }}
@@ -50,7 +54,7 @@ function PasswordForm({ slug }: { slug: string }) {
             disabled={loading}
             style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--orange, #F26900)', color: 'white', border: 0, fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
           >
-            {loading ? '...' : 'Valider'}
+            {loading ? '...' : t.submit}
           </button>
         </XStack>
         {error && <Text color="$red10" fontWeight="600">{error}</Text>}
@@ -94,6 +98,7 @@ type Props = {
 }
 
 export default function ShareView({ sharedLink, objetsPartages = [], slug, gated }: Props) {
+  const { t: { share: { legacy: t } }, locale } = useCopy()
   if (gated) {
     return (
       <YStack minHeight="100vh" bg="$background">
@@ -118,10 +123,10 @@ export default function ShareView({ sharedLink, objetsPartages = [], slug, gated
       <HeaderTiroirWeb />
       <YStack px="$4" py="$6" width="100%" maxWidth={1440} marginHorizontal="auto" space="$6">
         <XStack justifyContent="space-between" alignItems="center" flexWrap="wrap">
-          <Text fontSize="$6" fontWeight="700">Objets partagés</Text>
+          <Text fontSize="$6" fontWeight="700">{t.sharedObjects}</Text>
           {totalValue > 0 && (
             <Text fontSize="$6" fontWeight="600" color="$primary">
-              {totalValue.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}€ au total
+              {fill(t.totalValue, { amount: totalValue.toLocaleString(intlLocale(locale), { maximumFractionDigits: 0 }) })}
             </Text>
           )}
         </XStack>

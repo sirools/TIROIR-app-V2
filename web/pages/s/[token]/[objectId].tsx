@@ -9,6 +9,8 @@ import FooterTiroirWeb from '../../../components/layout/FooterTiroirWeb'
 import { hasSignedCookie } from '../../../lib/shareCookieSignature'
 import { serverSupabase } from '../../../lib/supabase'
 import { isLot, lotTotal } from '../../../lib/quantity'
+import type { Locale } from '../../../lib/localeRouting'
+import { fill, intlLocale, useCopy } from '../../../locales'
 
 interface ValueSource {
   site: string
@@ -101,25 +103,18 @@ interface Props {
   isOwner?: boolean
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  owned: 'Possédé', stored: 'En stockage', loaned: 'Prêté',
-  sold: 'Vendu', given: 'Donné', lost: 'Perdu',
-}
+// Libellés (statuts, types de document, confiance, périodicité) :
+// web/locales/share (status, object.docTypes, object.confidence, object.billing).
 const STATUS_COLOR: Record<string, string> = {
   owned: '#22C55E', stored: '#38BDF8', loaned: '#E879F9',
   sold: '#FBBF24', given: '#FB7185', lost: '#9CA3AF',
 }
-const DOC_TYPE_LABEL: Record<string, string> = {
-  facture: 'Facture', notice: 'Notice', assurance: 'Assurance', autre: 'Document',
-}
-const CONFIDENCE_LABEL: Record<string, string> = {
-  low: 'Confiance faible', medium: 'Confiance moyenne', high: 'Confiance élevée',
-}
 const CONFIDENCE_COLOR: Record<string, string> = {
   low: 'var(--text-tertiary)', medium: '#EA580C', high: '#16A34A',
 }
-const BILLING_LABEL: Record<string, string> = {
-  monthly: '/mois', yearly: '/an',
+/** Libellé traduit d'une clé, `undefined` si inconnue. */
+function pick(map: object, key: string): string | undefined {
+  return (map as Record<string, string>)[key]
 }
 
 function normCurrency(raw: string | null | undefined): string {
@@ -131,17 +126,17 @@ function normCurrency(raw: string | null | undefined): string {
   return 'EUR'
 }
 
-function money(amount: number, rawCurrency: string | null | undefined): string {
-  return amount.toLocaleString('fr-FR', {
+function formatMoney(locale: Locale, amount: number, rawCurrency: string | null | undefined): string {
+  return amount.toLocaleString(intlLocale(locale), {
     style: 'currency', currency: normCurrency(rawCurrency), maximumFractionDigits: 0,
   })
 }
 
-function formatDate(iso: string | null | undefined): string | null {
+function formatLongDate(locale: Locale, iso: string | null | undefined): string | null {
   if (!iso) return null
   const d = new Date(iso)
   if (isNaN(d.getTime())) return null
-  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  return d.toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function getAdmin() {
@@ -287,12 +282,16 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 }
 
 export default function SharedObjectDetailPage({ token, object, images, documents, insurances, fields = ALL_FIELDS, error, gated, isOwner = false }: Props) {
+  const { t: { share: t }, locale } = useCopy()
+  const to = t.object
+  const money = (amount: number, rawCurrency: string | null | undefined) => formatMoney(locale, amount, rawCurrency)
+  const formatDate = (iso: string | null | undefined) => formatLongDate(locale, iso)
   const [activeImg, setActiveImg] = useState(0)
   // Brief V4 : le détail de la valeur se replie, et s'ouvre dans le flux.
   const [valueOpen, setValueOpen] = useState(false)
   const pageTitle = gated
-    ? 'Partage protégé — TiROiR'
-    : error || !object ? 'Objet introuvable — TiROiR' : `${object.title} — TiROiR`
+    ? t.meta.protected
+    : error || !object ? t.meta.objectNotFound : fill(t.meta.pageTitle, { title: object.title })
 
   if (gated) {
     return (
@@ -303,9 +302,9 @@ export default function SharedObjectDetailPage({ token, object, images, document
           <main className="main">
             <div className="error-state">
               <div className="error-icon">🔒</div>
-              <h1 className="error-title">Partage protégé</h1>
-              <p className="error-sub">Retourne à la page du partage pour saisir le mot de passe.</p>
-              <Link href={`/s/${token}`} legacyBehavior passHref><a className="cta-btn">Retour au partage</a></Link>
+              <h1 className="error-title">{t.common.protectedTitle}</h1>
+              <p className="error-sub">{t.common.protectedSub}</p>
+              <Link href={`/s/${token}`} legacyBehavior passHref><a className="cta-btn">{t.common.backToShare}</a></Link>
             </div>
           </main>
           <FooterTiroirWeb />
@@ -324,8 +323,8 @@ export default function SharedObjectDetailPage({ token, object, images, document
           <main className="main">
             <div className="error-state">
               <div className="error-icon">{error === 'expired' ? '⏱' : '🔍'}</div>
-              <h1 className="error-title">{error === 'expired' ? 'Ce lien a expiré' : 'Objet introuvable'}</h1>
-              <Link href="/" legacyBehavior passHref><a className="cta-btn">Découvrir TiROiR</a></Link>
+              <h1 className="error-title">{error === 'expired' ? t.common.linkExpired : to.notFound}</h1>
+              <Link href="/" legacyBehavior passHref><a className="cta-btn">{t.common.discover}</a></Link>
             </div>
           </main>
           <FooterTiroirWeb />
@@ -343,7 +342,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
   const saleHeadline = fields.values && object.sale_price != null
   const headlineIsUser = !saleHeadline && object.user_value != null
   const headlineValue = saleHeadline ? object.sale_price : (object.user_value ?? object.market_value)
-  const headlineLabel = saleHeadline ? 'Prix de vente' : headlineIsUser ? 'Votre estimation' : 'Valeur marchande estimée'
+  const headlineLabel = saleHeadline ? to.salePrice : headlineIsUser ? to.yourEstimate : to.estimatedMarketValue
   // Total du lot affiché sous le prix : remise de lot comprise pour la vente.
   const headlineLot = saleHeadline
     ? (object.sale_price_lot ?? lotTotal(object.sale_price, object.quantity))
@@ -364,24 +363,24 @@ export default function SharedObjectDetailPage({ token, object, images, document
   const lotSub = (unit: number | null, override?: number | null) => {
     if (!isLot(object.quantity)) return null
     const total = override ?? lotTotal(unit, object.quantity)
-    return total == null ? null : `Total du lot : ${money(total, valCur)}`
+    return total == null ? null : fill(to.lotTotal, { amount: money(total, valCur) })
   }
 
   if (fields.values && saleHeadline && object.user_value != null) {
-    detailRows.push({ label: 'Estimation du propriétaire', sub: lotSub(object.user_value), amount: money(object.user_value, valCur) })
+    detailRows.push({ label: to.ownerEstimate, sub: lotSub(object.user_value), amount: money(object.user_value, valCur) })
   }
   if (fields.values && object.market_value != null && (headlineIsUser || saleHeadline)) {
-    detailRows.push({ label: 'Valeur marchande (IA)', sub: lotSub(object.market_value), amount: money(object.market_value, valCur) })
+    detailRows.push({ label: to.marketValueAi, sub: lotSub(object.market_value), amount: money(object.market_value, valCur) })
   }
   if (fields.values && object.purchase_price != null) {
     detailRows.push({
-      label: "Prix d'achat",
+      label: to.purchasePrice,
       sub: [formatDate(object.purchase_date), lotSub(object.purchase_price)].filter(Boolean).join(' · ') || null,
       amount: money(object.purchase_price, object.purchase_currency ?? valCur),
     })
   }
   if (fields.values && object.deposit_amount != null) {
-    valueRows.push({ label: 'Caution', sub: lotSub(object.deposit_amount), amount: money(object.deposit_amount, valCur) })
+    valueRows.push({ label: to.deposit, sub: lotSub(object.deposit_amount), amount: money(object.deposit_amount, valCur) })
   }
 
   const vs = object.value_sources
@@ -418,12 +417,12 @@ export default function SharedObjectDetailPage({ token, object, images, document
 
         <main className="main">
           <Link href={`/s/${token}`} legacyBehavior passHref>
-            <a className="back-link">← Retour au partage</a>
+            <a className="back-link">← {t.common.backToShare}</a>
           </Link>
 
           {isOwner && (
             <Link href={`/s/${token}/${object.id}/vente`} legacyBehavior passHref>
-              <a className="sale-preview">Voir en vente (prototype) →</a>
+              <a className="sale-preview">{to.salePreview}</a>
             </Link>
           )}
 
@@ -457,7 +456,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
                 {object.status && (
                   <div className="status-row">
                     <span className="status-dot" style={{ background: STATUS_COLOR[object.status] ?? '#9CA3AF' }} />
-                    <span className="status-label">{STATUS_LABEL[object.status] ?? object.status}</span>
+                    <span className="status-label">{pick(t.status, object.status) ?? object.status}</span>
                   </div>
                 )}
               </div>
@@ -477,11 +476,11 @@ export default function SharedObjectDetailPage({ token, object, images, document
                     )}
                     {diffPct !== null && (
                       <span className={`value-diff ${diffPct >= 0 ? 'up' : 'down'}`}>
-                        {diffPct >= 0 ? '▲' : '▼'} {Math.abs(diffPct)}% vs IA
+                        {diffPct >= 0 ? '▲' : '▼'} {fill(to.vsAi, { pct: Math.abs(diffPct) })}
                       </span>
                     )}
                   </div>
-                  {!saleHeadline && estimatedDate && <span className="value-meta">Estimé le {estimatedDate}</span>}
+                  {!saleHeadline && estimatedDate && <span className="value-meta">{fill(to.estimatedOn, { date: estimatedDate })}</span>}
                 </div>
               )}
             </div>
@@ -493,7 +492,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
               {/* ── Valeurs & prix ── */}
               {showValueCard && (
                 <div className="bento-card">
-                  <h2 className="section-title">Valeurs &amp; prix</h2>
+                  <h2 className="section-title">{to.valuesTitle}</h2>
                   {valueRows.length > 0 && (
                   <div className="attrs-list">
                     {valueRows.map((row, i) => (
@@ -519,7 +518,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
                         aria-controls="value-detail"
                         onClick={() => setValueOpen(o => !o)}
                       >
-                        <span>Détail de la valeur</span>
+                        <span>{to.valueDetail}</span>
                         <span className="value-toggle-chevron" aria-hidden="true">{valueOpen ? '▴' : '▾'}</span>
                       </button>
                       {valueOpen && (
@@ -540,16 +539,16 @@ export default function SharedObjectDetailPage({ token, object, images, document
                       {showEstimationDetail && (
                         <div className="estimation-detail">
                           <div className="estimation-head">
-                            <span className="estimation-title">Estimation IA</span>
+                            <span className="estimation-title">{to.aiEstimate}</span>
                             {vs?.confidence && (
                               <span className="conf-badge" style={{ color: CONFIDENCE_COLOR[vs.confidence] ?? 'var(--text-tertiary)' }}>
-                                {CONFIDENCE_LABEL[vs.confidence] ?? vs.confidence}
+                                {pick(to.confidence, vs.confidence) ?? vs.confidence}
                               </span>
                             )}
                           </div>
                           {hasRange && (
                             <p className="estimation-range">
-                              Fourchette : {money(vs!.value_min!, valCur)} – {money(vs!.value_max!, valCur)}
+                              {fill(to.range, { min: money(vs!.value_min!, valCur), max: money(vs!.value_max!, valCur) })}
                             </p>
                           )}
                           {vs?.summary && <p className="estimation-summary">{vs.summary}</p>}
@@ -580,7 +579,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
               {/* ── Caractéristiques ── */}
               {fields.attributes && attributes.length > 0 && (
                 <div className="bento-card">
-                  <h2 className="section-title">Caractéristiques</h2>
+                  <h2 className="section-title">{t.common.characteristics}</h2>
                   <div className="attrs-list">
                     {attributes.map(([key, val], i) => (
                       <div key={key} className={`attr-row ${i > 0 ? 'sep' : ''}`}>
@@ -595,23 +594,23 @@ export default function SharedObjectDetailPage({ token, object, images, document
               {/* ── Assurances ── */}
               {showInsuranceCard && (
                 <div className="bento-card">
-                  <h2 className="section-title">Assurance{insurances.length > 1 ? 's' : ''}</h2>
+                  <h2 className="section-title">{insurances.length > 1 ? to.insuranceOther : to.insuranceOne}</h2>
                   {insurances.length > 0 ? (
                     <div className="ins-list">
                       {insurances.map((ins, i) => (
                         <div key={ins.id} className={`ins-item ${i > 0 ? 'sep' : ''}`}>
                           <div className="ins-head">
-                            <span className="ins-label">{ins.label || 'Contrat d’assurance'}</span>
+                            <span className="ins-label">{ins.label || to.insuranceContract}</span>
                             {ins.price != null && (
                               <span className="ins-price">
                                 {money(ins.price, valCur)}
-                                {ins.billing_period && <span className="ins-period"> {BILLING_LABEL[ins.billing_period] ?? ''}</span>}
+                                {ins.billing_period && <span className="ins-period"> {pick(to.billing, ins.billing_period) ?? ''}</span>}
                               </span>
                             )}
                           </div>
                           <div className="ins-meta">
-                            {ins.coverage != null && <span className="ins-tag">Couverture {money(ins.coverage, valCur)}</span>}
-                            {formatDate(ins.date) && <span className="ins-tag">Échéance {formatDate(ins.date)}</span>}
+                            {ins.coverage != null && <span className="ins-tag">{fill(to.coverageTag, { amount: money(ins.coverage, valCur) })}</span>}
+                            {formatDate(ins.date) && <span className="ins-tag">{fill(to.dueTag, { date: formatDate(ins.date)! })}</span>}
                           </div>
                         </div>
                       ))}
@@ -619,22 +618,22 @@ export default function SharedObjectDetailPage({ token, object, images, document
                   ) : (
                     <div className="attrs-list">
                       {object.insurance_provider && (
-                        <div className="attr-row"><span className="attr-key">Assureur</span><span className="attr-val">{object.insurance_provider}</span></div>
+                        <div className="attr-row"><span className="attr-key">{to.insurer}</span><span className="attr-val">{object.insurance_provider}</span></div>
                       )}
                       {object.insurance_type && (
-                        <div className="attr-row sep"><span className="attr-key">Type</span><span className="attr-val">{object.insurance_type}</span></div>
+                        <div className="attr-row sep"><span className="attr-key">{to.type}</span><span className="attr-val">{object.insurance_type}</span></div>
                       )}
                       {object.insurance_coverage != null && (
-                        <div className="attr-row sep"><span className="attr-key">Couverture</span><span className="attr-val strong">{money(object.insurance_coverage, valCur)}</span></div>
+                        <div className="attr-row sep"><span className="attr-key">{to.coverage}</span><span className="attr-val strong">{money(object.insurance_coverage, valCur)}</span></div>
                       )}
                       {object.insurance_policy_ref && (
-                        <div className="attr-row sep"><span className="attr-key">N° de contrat</span><span className="attr-val">{object.insurance_policy_ref}</span></div>
+                        <div className="attr-row sep"><span className="attr-key">{to.policyRef}</span><span className="attr-val">{object.insurance_policy_ref}</span></div>
                       )}
                       {formatDate(object.insurance_expires_at) && (
-                        <div className="attr-row sep"><span className="attr-key">Échéance</span><span className="attr-val">{formatDate(object.insurance_expires_at)}</span></div>
+                        <div className="attr-row sep"><span className="attr-key">{to.due}</span><span className="attr-val">{formatDate(object.insurance_expires_at)}</span></div>
                       )}
                       {object.insured && !object.insurance_provider && !object.insurance_type && object.insurance_coverage == null && !object.insurance_policy_ref && !object.insurance_expires_at && (
-                        <div className="attr-row"><span className="attr-key">Statut</span><span className="attr-val">Assuré</span></div>
+                        <div className="attr-row"><span className="attr-key">{to.statusLabel}</span><span className="attr-val">{to.insured}</span></div>
                       )}
                     </div>
                   )}
@@ -653,7 +652,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
               {/* ── Documents (hors assurance) ── */}
               {otherDocs.length > 0 && (
                 <div className="bento-card">
-                  <h2 className="section-title">Documents</h2>
+                  <h2 className="section-title">{to.documents}</h2>
                   <div className="docs-list">
                     {otherDocs.map((doc, i) => (
                       <a
@@ -667,7 +666,7 @@ export default function SharedObjectDetailPage({ token, object, images, document
                         <div className="doc-info">
                           <span className="doc-name">{doc.file_name}</span>
                           <span className="doc-type">
-                            {doc.doc_type === 'autre' && doc.doc_type_label ? doc.doc_type_label : (DOC_TYPE_LABEL[doc.doc_type] ?? 'Document')}
+                            {doc.doc_type === 'autre' && doc.doc_type_label ? doc.doc_type_label : (pick(to.docTypes, doc.doc_type) ?? to.docTypes.autre)}
                           </span>
                         </div>
                       </a>
@@ -679,15 +678,15 @@ export default function SharedObjectDetailPage({ token, object, images, document
           )}
 
           {addedDate && (
-            <p className="page-meta">Ajouté le {addedDate}</p>
+            <p className="page-meta">{fill(t.common.addedOn, { date: addedDate })}</p>
           )}
         </main>
         <FooterTiroirWeb />
 
         <footer className="footer">
-          <Link href="/privacy" legacyBehavior passHref><a className="footer-link">Politique de confidentialité</a></Link>
+          <Link href="/privacy" legacyBehavior passHref><a className="footer-link">{t.common.privacy}</a></Link>
           <span className="footer-sep">·</span>
-          <span className="footer-copy">© 2026 TiROiR</span>
+          <span className="footer-copy">{t.common.copyright}</span>
         </footer>
       </div>
 

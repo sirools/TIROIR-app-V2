@@ -3,6 +3,7 @@
 // collection. Désactivé par défaut ; le partage reste alors en lecture seule.
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { fill, useCopy } from '../../locales'
 
 interface Props {
   collectionId: string
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function SuggestionsToggle({ collectionId, collectionName, enabled, onChange }: Props) {
+  const { t: { share: { toggle: t } } } = useCopy()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,18 +25,16 @@ export default function SuggestionsToggle({ collectionId, collectionName, enable
       p_enabled: next,
     })
     setBusy(false)
-    if (rpcErr) { setError('Le réglage n’a pas pu être enregistré. Réessaie.'); return }
+    if (rpcErr) { setError(t.error); return }
     onChange(next)
   }
 
   return (
     <div className="box">
       <div className="text">
-        <p className="title">Suggestions {enabled ? 'autorisées' : 'désactivées'}</p>
+        <p className="title">{enabled ? t.titleOn : t.titleOff}</p>
         <p className="sub">
-          {enabled
-            ? <>Les destinataires de ce lien peuvent te suggérer des objets pour « {collectionName} ».</>
-            : <>Ce partage est en lecture seule. Active les suggestions pour que ses destinataires te proposent des objets pour « {collectionName} ».</>}
+          {fill(enabled ? t.subOn : t.subOff, { name: collectionName })}
         </p>
         {error && <p className="error" role="alert">{error}</p>}
       </div>
@@ -42,7 +42,7 @@ export default function SuggestionsToggle({ collectionId, collectionName, enable
         type="button"
         role="switch"
         aria-checked={enabled}
-        aria-label="Autoriser les suggestions"
+        aria-label={t.aria}
         className={`switch ${enabled ? 'on' : ''}`}
         onClick={toggle}
         disabled={busy}

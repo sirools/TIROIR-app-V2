@@ -122,7 +122,14 @@ export default function FooterTiroirWeb() {
                 legacyBehavior
                 passHref
               >
-                <a hrefLang={l} lang={l} aria-current={l === locale ? 'true' : undefined}>
+                <a
+                  hrefLang={l}
+                  lang={l}
+                  aria-current={l === locale ? 'true' : undefined}
+                  // Choix mémorisé (cookie standard de Next) : il passe avant la
+                  // langue du navigateur sur les pages de partage (middleware.ts).
+                  onClick={() => { document.cookie = `NEXT_LOCALE=${l}; path=/; max-age=31536000; samesite=lax` }}
+                >
                   {LOCALE_NAMES[l]}
                 </a>
               </Link>

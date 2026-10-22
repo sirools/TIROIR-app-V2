@@ -1,6 +1,8 @@
 import Head from 'next/head'
 import type { GetServerSideProps } from 'next'
 import { adminSupabase } from '../lib/supabase'
+import { localePrefix } from '../lib/localeRouting'
+import { useCopy } from '../locales'
 
 /**
  * Page de désinscription.
@@ -38,10 +40,11 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
 }
 
 export default function Desinscription({ statut }: Props) {
+  const { t: { account: { unsubscribe: t } }, locale } = useCopy()
   return (
     <>
       <Head>
-        <title>Désinscription — Tiroir</title>
+        <title>{t.metaTitle}</title>
         {/* Une page de désinscription n'a aucune raison d'être indexée. */}
         <meta name="robots" content="noindex, nofollow" />
       </Head>
@@ -63,37 +66,34 @@ export default function Desinscription({ statut }: Props) {
           {statut === 'ok' ? (
             <>
               <h1 style={{ margin: '0 0 12px', fontSize: 24, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.4px' }}>
-                C’est fait.
+                {t.okTitle}
               </h1>
               <p style={{ margin: '0 0 8px', fontSize: 16, lineHeight: '26px', color: 'var(--muted)' }}>
-                Vous ne recevrez plus d’e-mails de Tiroir.
+                {t.okText}
               </p>
               <p style={{ margin: 0, fontSize: 15, lineHeight: '24px', color: 'var(--text-tertiary)' }}>
-                Votre compte et vos objets ne sont pas touchés&nbsp;: seuls les envois s’arrêtent.
-                Les messages liés à votre compte — réinitialisation de mot de passe, partage reçu —
-                continuent d’arriver.
+                {t.okDetail}
               </p>
             </>
           ) : (
             <>
               <h1 style={{ margin: '0 0 12px', fontSize: 24, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.4px' }}>
-                Vous êtes bien désinscrit·e
+                {t.unknownTitle}
               </h1>
               <p style={{ margin: '0 0 8px', fontSize: 16, lineHeight: '26px', color: 'var(--muted)' }}>
-                Ce lien a peut-être déjà été utilisé, ou il est incomplet.
+                {t.unknownText}
               </p>
               <p style={{ margin: 0, fontSize: 15, lineHeight: '24px', color: 'var(--text-tertiary)' }}>
-                Dans tous les cas, plus rien ne partira de notre côté. Si un message vous parvenait
-                malgré tout, répondez-y&nbsp;: quelqu’un le lira.
+                {t.unknownDetail}
               </p>
             </>
           )}
 
-          <a href="https://www.tiroir.app" style={{
+          <a href={`https://www.tiroir.app${localePrefix(locale)}`} style={{
             display: 'inline-block', marginTop: 28, fontSize: 15, fontWeight: 600,
             color: 'var(--orange)', textDecoration: 'none',
           }}>
-            Retour sur tiroir.app
+            {t.back}
           </a>
         </div>
       </main>

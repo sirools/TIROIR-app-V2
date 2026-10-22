@@ -11,6 +11,7 @@ import { hasValidCookie, makeCookieName, COOKIE_MAX_AGE_SEC } from '../../../../
 import { getStatusMeta } from '../../../../lib/statuses'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { hasSignedCookie } from '../../../../lib/shareCookieSignature'
+import { fill, intlLocale, useCopy } from '../../../../locales'
 
 type SharedObjectPageProps = {
   slug: string
@@ -94,6 +95,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 // ---- Page
 export default function SharedObjectPage({ slug, gated, object }: SharedObjectPageProps) {
   const router = useRouter()
+  const { t: { share: t }, locale } = useCopy()
+  const tl = t.legacy
 
   if (gated) {
     return (
@@ -105,14 +108,14 @@ export default function SharedObjectPage({ slug, gated, object }: SharedObjectPa
         <div className="container">
           <div className="card" style={{ padding: 20 }}>
             <Text fontSize="$6" fontWeight="700">
-              Ce partage est protégé.
+              {tl.protected}
             </Text>
             <Text fontSize="$3" color="$gray11">
-              Retourne à la page du partage pour saisir le mot de passe.
+              {t.common.protectedSub}
             </Text>
             <div style={{ height: 12 }} />
             <Button onPress={() => router.push(`/share/${slug}`)} borderRadius="$4">
-              Retour au partage
+              {t.common.backToShare}
             </Button>
           </div>
         </div>
@@ -124,13 +127,17 @@ export default function SharedObjectPage({ slug, gated, object }: SharedObjectPa
   if (!object) return null
 
   const statusMeta = object.status ? getStatusMeta(object.status) : null
+  // Libellé traduit du statut ; à défaut, celui de lib/statuses.ts.
+  const statusLabel = statusMeta
+    ? ((tl.status as Record<string, string>)[statusMeta.value] ?? statusMeta.label)
+    : null
   const images = (object.image_urls || []).map((src, i) => ({
     src,
-    alt: `${object.title || 'Image objet'} ${i + 1}`,
+    alt: `${object.title || tl.imageAlt} ${i + 1}`,
   }))
   const formatDate = (iso?: string) =>
     iso
-      ? new Date(iso).toLocaleDateString('fr-FR', {
+      ? new Date(iso).toLocaleDateString(intlLocale(locale), {
           day: '2-digit',
           month: 'long',
           year: 'numeric',
@@ -147,7 +154,7 @@ export default function SharedObjectPage({ slug, gated, object }: SharedObjectPa
       <div className="container">
         {/* Bouton retour */}
         <button className="back" onClick={() => router.back()}>
-          ← Retour
+          {tl.back}
         </button>
 
         {/* HERO — layout constant */}
@@ -158,7 +165,7 @@ export default function SharedObjectPage({ slug, gated, object }: SharedObjectPa
               {images.length > 0 ? (
                 <LightboxGallery images={images} thumbnailSize={56} />
               ) : (
-                <div className="media-empty">Aucune image</div>
+                <div className="media-empty">{tl.noImage}</div>
               )}
             </div>
 
@@ -175,17 +182,17 @@ export default function SharedObjectPage({ slug, gated, object }: SharedObjectPa
                       })`,
                     }}
                   />
-                  <span>{statusMeta.label}</span>
+                  <span>{statusLabel}</span>
                 </div>
               )}
 
               {object.created_at && (
-                <p className="muted">Ajouté le {formatDate(object.created_at)}</p>
+                <p className="muted">{fill(t.common.addedOn, { date: formatDate(object.created_at) })}</p>
               )}
 
               {object.description && (
                 <>
-                  <h3 className="section-h">Description</h3>
+                  <h3 className="section-h">{t.common.description}</h3>
                   <p className="body">{object.description}</p>
                 </>
               )}
@@ -194,11 +201,11 @@ export default function SharedObjectPage({ slug, gated, object }: SharedObjectPa
                 className="btn btn-primary"
                 onClick={() =>
                   (window.location.href = `mailto:hello@tiroir.app?subject=${encodeURIComponent(
-                    'Contact à propos de ' + (object.title || 'un objet')
+                    fill(tl.contactSubject, { title: object.title || tl.anObject })
                   )}`)
                 }
               >
-                Contacter le propriétaire
+                {tl.contactOwner}
               </button>
             </div>
           </div>
@@ -206,7 +213,7 @@ export default function SharedObjectPage({ slug, gated, object }: SharedObjectPa
 
         {/* Caractéristiques */}
         <div className="card">
-          <h2 className="block-title">Caractéristiques</h2>
+          <h2 className="block-title">{t.common.characteristics}</h2>
           {object.characteristics && Object.keys(object.characteristics).length ? (
             <div className="kv">
               {Object.entries(object.characteristics).map(([k, v]) => (
@@ -217,13 +224,13 @@ export default function SharedObjectPage({ slug, gated, object }: SharedObjectPa
               ))}
             </div>
           ) : (
-            <p className="muted">Aucune caractéristique renseignée.</p>
+            <p className="muted">{tl.noCharacteristics}</p>
           )}
         </div>
 
         {/* Souvenirs */}
         <div className="card">
-          <h2 className="block-title">Souvenirs</h2>
+          <h2 className="block-title">{tl.memories}</h2>
           {Array.isArray(object.memory_notes) && object.memory_notes.length ? (
             <div className="notes">
               {object.memory_notes.map((n, i) => (
@@ -234,7 +241,7 @@ export default function SharedObjectPage({ slug, gated, object }: SharedObjectPa
               ))}
             </div>
           ) : (
-            <p className="muted">Aucun souvenir rattaché.</p>
+            <p className="muted">{tl.noMemories}</p>
           )}
         </div>
       </div>

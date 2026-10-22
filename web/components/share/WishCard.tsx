@@ -7,20 +7,23 @@
 // scope pas le JSX rangé dans une variable, d'où les sélecteurs :global()
 // sous .card.
 import { linkHost, type Wish } from '../../lib/suggestions'
+import type { Locale } from '../../lib/localeRouting'
+import { intlLocale, useCopy } from '../../locales'
 import AuthorAvatar from './AuthorAvatar'
 
-function price(amount: number | null, currency: string): string | null {
+function price(amount: number | null, currency: string, locale: Locale): string | null {
   if (amount === null) return null
   try {
-    return amount.toLocaleString('fr-FR', { style: 'currency', currency, maximumFractionDigits: amount % 1 ? 2 : 0 })
+    return amount.toLocaleString(intlLocale(locale), { style: 'currency', currency, maximumFractionDigits: amount % 1 ? 2 : 0 })
   } catch {
     return `${amount} ${currency}`
   }
 }
 
 export default function WishCard({ wish }: { wish: Wish }) {
+  const { t: { share: { wish: t } }, locale } = useCopy()
   const host = linkHost(wish.url)
-  const amount = price(wish.price, wish.currency)
+  const amount = price(wish.price, wish.currency, locale)
   const pending = wish.status === 'suggested'
 
   const body = (
@@ -28,7 +31,7 @@ export default function WishCard({ wish }: { wish: Wish }) {
       <div className="cover">
         <span className="cover-icon" aria-hidden>{pending ? '🎁' : '💡'}</span>
         <span className={`kind ${pending ? 'kind-pending' : 'kind-idea'}`}>
-          {pending ? 'Suggestion' : 'Idée'}
+          {pending ? t.suggestion : t.idea}
         </span>
       </div>
       <div className="body">
@@ -43,7 +46,7 @@ export default function WishCard({ wish }: { wish: Wish }) {
         {pending && wish.author && (
           <p className="author">
             <AuthorAvatar author={wish.author} size={22} />
-            <span>Suggéré par <strong>{wish.author.firstName}</strong></span>
+            <span>{t.suggestedBy} <strong>{wish.author.firstName}</strong></span>
           </p>
         )}
       </div>
