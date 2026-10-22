@@ -18,7 +18,9 @@ import { isTorixOwner } from './torixOwner'
 import { isMarketingMember } from './marketingAccess'
 
 export type AdminPageGuard =
-  | { ok: true; user: User }
+  // isAdmin : le header du back-office (lib/adminNav.ts) n'affiche que les
+  // sections ouvertes à ce compte.
+  | { ok: true; user: User; isAdmin: boolean }
   | { ok: false; result: GetServerSidePropsResult<never> }
 
 /**
@@ -53,7 +55,7 @@ export async function requireAdminPage(
 
   if (!profile?.is_admin) return { ok: false, result: { notFound: true } }
 
-  return { ok: true, user }
+  return { ok: true, user, isAdmin: true }
 }
 
 /**
@@ -110,13 +112,15 @@ export async function requireMarketingPage(
     const next = encodeURIComponent(ctx.resolvedUrl)
     return { ok: false, result: { redirect: { destination: `/login?next=${next}`, permanent: false } } }
   }
-  if (isMarketingMember(user)) return { ok: true, user }
-
+  // Le profil est relu même pour MARKETING_EMAILS : une adresse listée peut
+  // aussi être admin, et le header doit alors lui montrer tout le
+  // back-office. L'accès, lui, ne change pas.
   const { data: profile } = await adminSupabase()
     .from('profiles')
     .select('is_admin')
     .eq('id', user.id)
     .single()
-  if (profile?.is_admin) return { ok: true, user }
+  const isAdmin = !!profile?.is_admin
+  if (isAdmin || isMarketingMember(user)) return { ok: true, user, isAdmin }
   return { ok: false, result: { notFound: true } }
 }

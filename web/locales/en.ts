@@ -138,16 +138,98 @@ const en: Copy = {
     faq: {
       title: 'FAQ',
       items: [
-        { q: 'Do I need to be good with tech?', a: 'No. You take a photo, Tiroir fills in the entry. Anything can be changed with a tap.' },
-        { q: 'What if the entry gets something wrong?', a: 'Every field is editable, and your changes always win. The exact brand or what you paid — that’s something only you know.' },
-        { q: 'Are my photos private?', a: 'Yes. Nothing is public unless you share a link, and you can switch it off at any time.' },
-        { q: 'How reliable is the estimate?', a: 'It’s based on comparable listings: a solid starting price for everyday items, a ballpark for rare pieces.' },
+      { q: 'Do I need to be good with tech?', a: 'No. You take a photo, Tiroir fills in the entry. Anything can be changed with a tap.' },
+      { q: 'What if the entry gets something wrong?', a: 'Every field is editable, and your changes always win. The exact brand or what you paid — that’s something only you know.' },
+      { q: 'Are my photos private?', a: 'Yes. Nothing is public unless you share a link, and you can switch it off at any time.' },
+      { q: 'How reliable is the estimate?', a: 'It’s based on comparable listings: a solid starting price for everyday items, a ballpark for rare pieces.' },
       ],
     },
     final: {
       title: 'Your first item, sorted in one photo.',
       sub: 'Free, no card needed.',
     },
+  },
+
+  pricing: {
+    meta: {
+      title: 'Pricing — Tiroir',
+      description: 'Tiroir is free, with {free} AI actions a month. AI credits from {pack}, Premium at {premium} a month, Pro at {pro} a month, Business at {business} per seat.',
+    },
+    badge: 'Pricing',
+    title: 'Sort everything. Know what it’s worth.',
+    sub: 'Tiroir is free for everyone. Only pay when you want to go further.',
+    perMonth: '/month',
+    perYear: 'or {price} a year',
+    perSeat: 'per seat/month',
+    soon: 'Coming soon',
+    free: {
+      tagline: 'To catalogue everything you own.',
+      features: [
+        'Unlimited items and collections',
+        '{n} AI actions a month (identification, estimates)',
+        'Read-only collection sharing',
+        'Extra AI credits, on demand',
+      ],
+      start: 'Start for free',
+    },
+    premium: {
+      tagline: 'To keep track of what your collection is worth.',
+      features: [
+        'Automatic estimates with a monthly quota',
+        'Value tracking chart and Refresh button',
+        'Sources summed up in one line',
+        'Item suggestions from friends and family',
+        'Password-protected share links',
+      ],
+      cta: 'Go Premium',
+    },
+    pro: {
+      tagline: 'For people who make a living from their things.',
+      features: [
+        'AI included, no top-ups',
+        'Batch estimates',
+        'Detailed sources and market comparison',
+        'Insurance export',
+      ],
+      cta: 'Go Pro',
+    },
+    business: {
+      tagline: 'To manage stock as a team.',
+      features: [
+        'Everything in Pro, for every member',
+        'Roles and multiple accounts',
+        'Monthly invoicing, bank transfer or direct debit',
+      ],
+      cta: 'Contact us',
+    },
+    note: 'Prices include VAT. Business is invoiced.',
+    credits: {
+      title: 'AI credits',
+      sub: 'Need more? Top up whenever you like, no subscription.',
+      unit: '{n} credits',
+      popular: 'Most popular',
+      note: 'Credits never expire.',
+      cta: 'Buy credits',
+    },
+    faqTitle: 'FAQ',
+    faq: [
+      { q: 'What is an AI action?', a: 'Identifying or estimating an item.' },
+      { q: 'What happens when my quota runs out?', a: 'Tiroir keeps working; only AI actions need credits.' },
+      { q: 'Are estimates influenced by partners?', a: 'No. Estimates are never influenced by our partners: shopping offers are kept separate from value estimates.' },
+      { q: 'Can I cancel?', a: 'Any time, from the App Store, the Play Store or your account.' },
+    ],
+    final: {
+      title: 'Start for free.',
+      sub: 'Unlimited items and collections, {n} AI actions a month. No card required.',
+    },
+  },
+
+  errors: {
+    notFoundTitle: 'Page not found',
+    notFoundText: 'The page you’re looking for doesn’t exist or has moved.',
+    serverTitle: 'Server error',
+    serverText: 'Something went wrong on our side. Please try again in a moment.',
+    back: 'Back to home',
   },
 }
 

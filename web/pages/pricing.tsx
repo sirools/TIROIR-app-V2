@@ -1,38 +1,21 @@
 import Head from 'next/head'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
+import { localeLinks } from '../components/layout/LocaleLinks'
 import StoreButtons from '../components/StoreButtons'
-import { OFFERS_V4, credits, euros } from '../lib/offers'
-import { useCopy } from '../locales'
+import { OFFERS_V4 } from '../lib/offers'
+import { fill, formatEur, useCopy } from '../locales'
 
 // Grille V4 (page Notion « Page Tarifs — textes V4 »). Tous les prix
 // viennent de lib/offers.ts : la page, Torix et les tests lisent la même
-// source.
+// source. Textes dans web/locales (pricing), en cinq langues ; prix au
+// format de la langue.
 //
 // Le paiement sur le web n'est pas ouvert (Stripe en mode test). Premium et
 // les crédits s'achètent dans l'app (App Store / Google Play, RevenueCat) :
 // leurs boutons mènent aux stores. Pro reste « Bientôt disponible » — l'app
 // ne le vend pas encore — et Business renvoie vers une adresse e-mail.
 const { free, packs, premium, pro, business } = OFFERS_V4
-
-const FAQ = [
-  {
-    q: 'Qu’est-ce qu’une action IA ?',
-    a: 'Une identification ou une estimation d’objet.',
-  },
-  {
-    q: 'Que se passe-t-il quand mon quota est épuisé ?',
-    a: 'Tiroir reste utilisable ; seules les actions IA demandent des crédits.',
-  },
-  {
-    q: 'Les estimations sont-elles influencées par des partenaires ?',
-    a: 'Non. Les estimations ne sont jamais influencées par nos partenaires : les offres marchandes sont séparées de l’estimation de valeur.',
-  },
-  {
-    q: 'Puis-je résilier ?',
-    a: 'À tout moment, depuis l’App Store, le Play Store ou votre compte.',
-  },
-]
 
 const PLAN_CARD: React.CSSProperties = { padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }
 const PLAN_NAME: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }
@@ -43,15 +26,23 @@ const LIST: React.CSSProperties = { listStyle: 'none', padding: 0, margin: 0, di
 const ITEM: React.CSSProperties = { display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 15, color: 'var(--ink)', lineHeight: 1.35 }
 
 export default function Pricing() {
-  const { t: { inApp } } = useCopy()
+  const { t: copy, locale } = useCopy()
+  const t = copy.pricing
+  const inApp = copy.inApp
+  const eur = (n: number) => formatEur(n, locale)
+  const n = free.aiActionsPerMonth
   return (
     <>
       <Head>
-        <title>Tarifs — Tiroir</title>
+        <title>{t.meta.title}</title>
         <meta
           name="description"
-          content={`Tiroir est gratuit, avec ${free.aiActionsPerMonth} actions IA par mois. Crédits IA dès ${euros(packs[0].priceTtc)}, Premium à ${euros(premium.monthlyTtc)} par mois, Pro à ${euros(pro.monthlyTtc)} par mois, Business à ${euros(business.seatMonthly)} par siège.`}
+          content={fill(t.meta.description, {
+            free: n, pack: eur(packs[0].priceTtc), premium: eur(premium.monthlyTtc),
+            pro: eur(pro.monthlyTtc), business: eur(business.seatMonthly),
+          })}
         />
+        {localeLinks(locale, '/pricing')}
       </Head>
 
       <HeaderTiroirWeb />
@@ -61,11 +52,11 @@ export default function Pricing() {
         <section className="section" style={{ background: 'var(--beige)', textAlign: 'center', paddingBottom: 48 }}>
           <div className="container" style={{ maxWidth: 640 }}>
             <div style={{ display: 'inline-block', background: '#FFE4CC', color: 'var(--orange)', padding: '5px 14px', borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 16 }}>
-              Tarifs
+              {t.badge}
             </div>
-            <h1 className="h1" style={{ marginBottom: 16 }}>Rangez tout. Sachez ce que ça vaut.</h1>
+            <h1 className="h1" style={{ marginBottom: 16 }}>{t.title}</h1>
             <p className="p" style={{ fontSize: 18, maxWidth: 520, margin: '0 auto' }}>
-              Tiroir est gratuit pour tout le monde. Payez seulement quand vous allez plus loin.
+              {t.sub}
             </p>
           </div>
         </section>
@@ -79,22 +70,17 @@ export default function Pricing() {
               <div className="card" style={PLAN_CARD}>
                 <div>
                   <div style={PLAN_NAME}>Free</div>
-                  <div style={PRICE}>0 €</div>
-                  <div style={PRICE_SUB}>Pour cataloguer tout ce que vous possédez.</div>
+                  <div style={PRICE}>{eur(0)}</div>
+                  <div style={PRICE_SUB}>{t.free.tagline}</div>
                 </div>
                 <ul style={LIST}>
-                  {[
-                    'Objets et collections illimités',
-                    `${free.aiActionsPerMonth} actions IA par mois (identification, estimation)`,
-                    'Partage de collections en lecture seule',
-                    'Crédits IA en plus, à la demande',
-                  ].map(f => (
+                  {t.free.features.map(f => fill(f, { n })).map(f => (
                     <li key={f} style={ITEM}><CheckIcon /> {f}</li>
                   ))}
                 </ul>
                 <div style={{ marginTop: 'auto' }}>
-                  <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 8, textAlign: 'center' }}>Commencer gratuitement</div>
-                  <StoreButtons variant="card" full />
+                  <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 8, textAlign: 'center' }}>{t.free.start}</div>
+                  <StoreButtons variant="card" full locale={locale} />
                 </div>
               </div>
 
@@ -103,20 +89,14 @@ export default function Pricing() {
                 <div>
                   <div style={{ ...PLAN_NAME, color: 'var(--orange)' }}>Premium</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={PRICE}>{euros(premium.monthlyTtc)}</span>
-                    <span style={PRICE_UNIT}>/mois</span>
+                    <span style={PRICE}>{eur(premium.monthlyTtc)}</span>
+                    <span style={PRICE_UNIT}>{t.perMonth}</span>
                   </div>
-                  <div style={PRICE_SUB}>ou {euros(premium.yearlyTtc)} par an</div>
-                  <div style={PRICE_SUB}>Pour suivre la valeur de votre collection.</div>
+                  <div style={PRICE_SUB}>{fill(t.perYear, { price: eur(premium.yearlyTtc) })}</div>
+                  <div style={PRICE_SUB}>{t.premium.tagline}</div>
                 </div>
                 <ul style={LIST}>
-                  {[
-                    'Estimation automatique avec quota mensuel',
-                    'Courbe de suivi de valeur et bouton Actualiser',
-                    'Sources résumées en une ligne',
-                    'Suggestions d’objets par vos proches',
-                    'Liens de partage protégés par mot de passe',
-                  ].map(f => (
+                  {t.premium.features.map(f => (
                     <li key={f} style={ITEM}><CheckIcon orange /> {f}</li>
                   ))}
                 </ul>
@@ -130,23 +110,18 @@ export default function Pricing() {
                 <div>
                   <div style={PLAN_NAME}>Pro</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={PRICE}>{euros(pro.monthlyTtc)}</span>
-                    <span style={PRICE_UNIT}>/mois</span>
+                    <span style={PRICE}>{eur(pro.monthlyTtc)}</span>
+                    <span style={PRICE_UNIT}>{t.perMonth}</span>
                   </div>
-                  <div style={PRICE_SUB}>Pour ceux qui vivent de leurs objets.</div>
+                  <div style={PRICE_SUB}>{t.pro.tagline}</div>
                 </div>
                 <ul style={LIST}>
-                  {[
-                    'IA incluse, sans recharge',
-                    'Estimation en lot',
-                    'Détail des sources et comparaison marché',
-                    'Export assurance',
-                  ].map(f => (
+                  {t.pro.features.map(f => (
                     <li key={f} style={ITEM}><CheckIcon /> {f}</li>
                   ))}
                 </ul>
                 <div style={{ marginTop: 'auto' }}>
-                  <SoonButton label="Passer Pro" />
+                  <SoonButton label={t.pro.cta} soon={t.soon} />
                 </div>
               </div>
 
@@ -155,17 +130,13 @@ export default function Pricing() {
                 <div>
                   <div style={{ ...PLAN_NAME, color: 'rgba(255,255,255,0.7)' }}>Business</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={{ ...PRICE, color: 'white' }}>{euros(business.seatMonthly)}</span>
-                    <span style={{ ...PRICE_UNIT, color: 'rgba(255,255,255,0.7)' }}>par siège/mois</span>
+                    <span style={{ ...PRICE, color: 'white' }}>{eur(business.seatMonthly)}</span>
+                    <span style={{ ...PRICE_UNIT, color: 'rgba(255,255,255,0.7)' }}>{t.perSeat}</span>
                   </div>
-                  <div style={{ ...PRICE_SUB, color: 'rgba(255,255,255,0.7)' }}>Pour gérer un stock en équipe.</div>
+                  <div style={{ ...PRICE_SUB, color: 'rgba(255,255,255,0.7)' }}>{t.business.tagline}</div>
                 </div>
                 <ul style={LIST}>
-                  {[
-                    'Tout le Pro, pour chaque membre',
-                    'Rôles et comptes multiples',
-                    'Facturation mensuelle, virement ou prélèvement',
-                  ].map(f => (
+                  {t.business.features.map(f => (
                     <li key={f} style={{ ...ITEM, color: 'white' }}><CheckIcon dark /> {f}</li>
                   ))}
                 </ul>
@@ -178,14 +149,14 @@ export default function Pricing() {
                       color: 'var(--ink)', fontWeight: 700, fontSize: 15, textDecoration: 'none',
                     }}
                   >
-                    Nous contacter
+                    {t.business.cta}
                   </a>
                 </div>
               </div>
 
             </div>
             <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted)', maxWidth: 640, margin: '24px auto 0' }}>
-              Prix TTC. Business se règle sur facture.
+              {t.note}
             </p>
           </div>
         </section>
@@ -193,27 +164,27 @@ export default function Pricing() {
         {/* ── Crédits IA ── */}
         <section className="section" style={{ background: 'var(--beige-2)' }}>
           <div className="container" style={{ maxWidth: 680 }}>
-            <h2 className="h2" style={{ marginBottom: 12 }}>Crédits IA</h2>
+            <h2 className="h2" style={{ marginBottom: 12 }}>{t.credits.title}</h2>
             <p className="p" style={{ marginBottom: 24 }}>
-              Besoin de plus ? Rechargez quand vous voulez, sans abonnement.
+              {t.credits.sub}
             </p>
             <div className="card" style={{ padding: '4px 20px' }}>
               {packs.map((p, i) => (
                 <div key={p.credits} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, padding: '16px 0', borderTop: i === 0 ? undefined : '1px solid rgba(0,0,0,0.06)', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 16, color: 'var(--ink)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    {credits(p.credits)} crédits
+                    {fill(t.credits.unit, { n: p.credits.toLocaleString(locale) })}
                     {p.popular && (
                       <span style={{ background: 'var(--orange)', color: 'white', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 999 }}>
-                        Le plus choisi
+                        {t.credits.popular}
                       </span>
                     )}
                   </span>
-                  <strong style={{ fontSize: 16, whiteSpace: 'nowrap' }}>{euros(p.priceTtc)}</strong>
+                  <strong style={{ fontSize: 16, whiteSpace: 'nowrap' }}>{eur(p.priceTtc)}</strong>
                 </div>
               ))}
             </div>
             <p style={{ fontSize: 14, color: 'var(--muted)', margin: '16px 0 20px' }}>
-              Les crédits n’expirent pas.
+              {t.credits.note}
             </p>
             <div style={{ maxWidth: 320 }}>
               <InAppBuy label={inApp.buyCredits} note={inApp.creditsNote} />
@@ -224,9 +195,9 @@ export default function Pricing() {
         {/* ── FAQ ── */}
         <section className="section">
           <div className="container" style={{ maxWidth: 680 }}>
-            <h2 className="h2" style={{ marginBottom: 32 }}>Questions fréquentes</h2>
+            <h2 className="h2" style={{ marginBottom: 32 }}>{t.faqTitle}</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {FAQ.map(({ q, a }, i) => (
+              {t.faq.map(({ q, a }, i) => (
                 <div key={q} style={{ borderTop: i === 0 ? '1px solid rgba(0,0,0,0.08)' : undefined, borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 0' }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', marginBottom: 8 }}>{q}</div>
                   <div style={{ fontSize: 15, color: 'var(--muted)', lineHeight: 1.6 }}>{a}</div>
@@ -240,12 +211,12 @@ export default function Pricing() {
         <section className="section">
           <div className="container">
             <div className="cta-final">
-              <h3 className="h2" style={{ color: 'white' }}>Commencez gratuitement.</h3>
+              <h3 className="h2" style={{ color: 'white' }}>{t.final.title}</h3>
               <p style={{ opacity: 0.85, marginTop: 8 }}>
-                Objets et collections illimités, {free.aiActionsPerMonth} actions IA par mois. Aucune carte bancaire requise.
+                {fill(t.final.sub, { n })}
               </p>
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
-                <StoreButtons variant="onColor" />
+                <StoreButtons variant="onColor" locale={locale} />
               </div>
             </div>
           </div>
@@ -273,13 +244,13 @@ function InAppBuy({ label, note }: { label: string; note: string }) {
 }
 
 /** Bouton d'achat inactif : Pro n'est pas encore vendu (ni sur le web, ni dans l'app). */
-function SoonButton({ label, primary }: { label: string; primary?: boolean }) {
+function SoonButton({ label, soon, primary }: { label: string; soon: string; primary?: boolean }) {
   return (
     <button
       type="button"
       disabled
       aria-disabled="true"
-      aria-label={`${label} — bientôt disponible`}
+      aria-label={`${label} — ${soon}`}
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
         width: '100%', padding: '11px 16px', borderRadius: 12, cursor: 'not-allowed',
@@ -290,7 +261,7 @@ function SoonButton({ label, primary }: { label: string; primary?: boolean }) {
       }}
     >
       <span style={{ fontWeight: 700, fontSize: 15 }}>{label}</span>
-      <span style={{ fontSize: 12, fontWeight: 500 }}>Bientôt disponible</span>
+      <span style={{ fontSize: 12, fontWeight: 500 }}>{soon}</span>
     </button>
   )
 }

@@ -1,5 +1,7 @@
 import ErrorPage from '../components/layout/ErrorPage'
+import { useCopy } from '../locales'
 
 export default function NotFound() {
-  return <ErrorPage title="Page introuvable" text="La page demandée n’existe pas ou a été déplacée." />
+  const { t: { errors: t } } = useCopy()
+  return <ErrorPage title={t.notFoundTitle} text={t.notFoundText} />
 }

@@ -139,16 +139,98 @@ const es: Copy = {
     faq: {
       title: 'Preguntas frecuentes',
       items: [
-        { q: '¿Hace falta saber de tecnología?', a: 'No. Haces una foto y Tiroir rellena la ficha. Todo se corrige con un toque.' },
-        { q: '¿Y si la ficha se equivoca?', a: 'Todos los campos se pueden editar y tus correcciones siempre mandan. La marca exacta o el precio de compra solo los sabes tú.' },
-        { q: '¿Mis fotos son privadas?', a: 'Sí. Nada es público mientras no compartas un enlace, y puedes desactivarlo en cualquier momento.' },
-        { q: '¿Es fiable la estimación?', a: 'Se basa en anuncios comparables: un precio de salida fiable para un objeto corriente, un orden de magnitud para una pieza rara.' },
+      { q: '¿Hace falta saber de tecnología?', a: 'No. Haces una foto y Tiroir rellena la ficha. Todo se corrige con un toque.' },
+      { q: '¿Y si la ficha se equivoca?', a: 'Todos los campos se pueden editar y tus correcciones siempre mandan. La marca exacta o el precio de compra solo los sabes tú.' },
+      { q: '¿Mis fotos son privadas?', a: 'Sí. Nada es público mientras no compartas un enlace, y puedes desactivarlo en cualquier momento.' },
+      { q: '¿Es fiable la estimación?', a: 'Se basa en anuncios comparables: un precio de salida fiable para un objeto corriente, un orden de magnitud para una pieza rara.' },
       ],
     },
     final: {
       title: 'Tu primer objeto, ordenado con una foto.',
       sub: 'Gratis, sin tarjeta.',
     },
+  },
+
+  pricing: {
+    meta: {
+      title: 'Precios — Tiroir',
+      description: 'Tiroir es gratis, con {free} acciones de IA al mes. Créditos de IA desde {pack}, Premium a {premium} al mes, Pro a {pro} al mes, Business a {business} por usuario.',
+    },
+    badge: 'Precios',
+    title: 'Ordénalo todo. Sabe lo que vale.',
+    sub: 'Tiroir es gratis para todos. Paga solo cuando quieras ir más allá.',
+    perMonth: '/mes',
+    perYear: 'o {price} al año',
+    perSeat: 'por usuario/mes',
+    soon: 'Próximamente',
+    free: {
+      tagline: 'Para catalogar todo lo que tienes.',
+      features: [
+        'Objetos y colecciones ilimitados',
+        '{n} acciones de IA al mes (identificación, estimación)',
+        'Compartir colecciones solo para ver',
+        'Créditos de IA extra, cuando quieras',
+      ],
+      start: 'Empieza gratis',
+    },
+    premium: {
+      tagline: 'Para seguir el valor de tu colección.',
+      features: [
+        'Estimación automática con cuota mensual',
+        'Curva de evolución del valor y botón Actualizar',
+        'Fuentes resumidas en una línea',
+        'Sugerencias de objetos de tus allegados',
+        'Enlaces compartidos protegidos con contraseña',
+      ],
+      cta: 'Pasar a Premium',
+    },
+    pro: {
+      tagline: 'Para quienes viven de sus objetos.',
+      features: [
+        'IA incluida, sin recargas',
+        'Estimación por lotes',
+        'Detalle de fuentes y comparación de mercado',
+        'Exportación para el seguro',
+      ],
+      cta: 'Pasar a Pro',
+    },
+    business: {
+      tagline: 'Para gestionar un stock en equipo.',
+      features: [
+        'Todo Pro, para cada miembro',
+        'Roles y varias cuentas',
+        'Facturación mensual, transferencia o domiciliación',
+      ],
+      cta: 'Contáctanos',
+    },
+    note: 'IVA incluido. Business se paga con factura.',
+    credits: {
+      title: 'Créditos de IA',
+      sub: '¿Necesitas más? Recarga cuando quieras, sin suscripción.',
+      unit: '{n} créditos',
+      popular: 'El más elegido',
+      note: 'Los créditos no caducan.',
+      cta: 'Comprar créditos',
+    },
+    faqTitle: 'Preguntas frecuentes',
+    faq: [
+      { q: '¿Qué es una acción de IA?', a: 'Una identificación o una estimación de un objeto.' },
+      { q: '¿Qué pasa cuando se agota mi cuota?', a: 'Tiroir sigue funcionando; solo las acciones de IA necesitan créditos.' },
+      { q: '¿Influyen los socios en las estimaciones?', a: 'No. Nuestros socios nunca influyen en las estimaciones: las ofertas comerciales están separadas de la estimación de valor.' },
+      { q: '¿Puedo cancelar?', a: 'Cuando quieras, desde el App Store, el Play Store o tu cuenta.' },
+    ],
+    final: {
+      title: 'Empieza gratis.',
+      sub: 'Objetos y colecciones ilimitados, {n} acciones de IA al mes. Sin tarjeta.',
+    },
+  },
+
+  errors: {
+    notFoundTitle: 'Página no encontrada',
+    notFoundText: 'La página que buscas no existe o se ha movido.',
+    serverTitle: 'Error del servidor',
+    serverText: 'Algo ha fallado por nuestra parte. Vuelve a intentarlo en un momento.',
+    back: 'Volver al inicio',
   },
 }
 

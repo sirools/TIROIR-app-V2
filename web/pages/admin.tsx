@@ -1,9 +1,9 @@
 import type { GetServerSideProps } from 'next'
 import { useState, useEffect } from 'react'
 import { Settings } from 'lucide-react'
-import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import { serverSupabase, adminSupabase } from '../lib/supabase'
 import { isTorixOwner } from '../lib/torixOwner'
+import { adminNavFor } from '../lib/adminNav'
 import { computeTreasury, HYPOTHESES, type Treasury } from '../lib/treasury'
 import { isRestTime } from '../components/torix/commandments'
 
@@ -236,17 +236,17 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
 
   return (
     <main style={s.root}>
-      <HeaderTiroirWeb />
-
+      {/* Header : celui du back-office, commun à toutes les pages admin
+          (components/admin/AdminLayout.tsx, posé par _app.tsx). */}
       <div style={s.content}>
         <h1 style={s.title}>{TAB_META[tab].title}</h1>
         <p style={s.subtitle}>{TAB_META[tab].subtitle}</p>
 
-        {/* ── Navigation : les onglets du back-office sur une ligne (elle
-            défile sur téléphone), les espaces à part (Marketing, Torix)
-            à droite, pour ne pas les confondre avec un onglet. ── */}
+        {/* ── Onglets de l'accueil, sur une ligne (elle défile sur
+            téléphone). Marketing et Torix Lab sont des sections du header
+            du back-office, plus des liens ici. ── */}
         <div style={s.navRow}>
-          <nav style={s.tabBar} aria-label="Onglets du back-office">
+          <nav style={s.tabBar} aria-label="Onglets de l’accueil">
             {TABS.map(t => (
               <button
                 key={t}
@@ -258,18 +258,6 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
               </button>
             ))}
           </nav>
-          <div style={s.spaceLinks}>
-            {/* Chiffres marketing agrégés : page à part, ouverte aussi à
-                MARKETING_EMAILS sans donner accès au reste du back-office. */}
-            <a href="/admin/marketing" style={{ ...s.tabBtn, ...s.tabLink }}>Marketing</a>
-            {/* Pas un onglet : une page à part, plein écran, réservée au
-                propriétaire de Torix (la page a sa propre garde serveur). */}
-            {torixLink && (
-              <a href={torixLink.href} style={{ ...s.tabBtn, ...s.tabLink, ...TORIX_BUTTON }}>
-                {torixLink.label}
-              </a>
-            )}
-          </div>
         </div>
 
         {tab === 'dashboard' && (<>
@@ -2489,6 +2477,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     props: {
       treasury,
       torixLink: isTorixOwner(session.user) ? { href: '/admin/torix-lab', label: 'Torix Lab' } : null,
+      // Lu par le header du back-office (_app.tsx), pas par la page.
+      adminNav: adminNavFor(session.user, true),
       kpis: {
         siteVisits24h: siteVisits24h ?? 0,
         siteVisits7d: siteVisits7d ?? 0,
@@ -2627,7 +2617,6 @@ const s: Record<string, React.CSSProperties> = {
   footnote:          { fontSize: 13, color: '#999' },
   navRow:            { display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 28 },
   tabBar:            { display: 'flex', gap: 4, background: 'white', padding: 4, borderRadius: 12, border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', maxWidth: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' },
-  spaceLinks:        { display: 'flex', gap: 8, flexWrap: 'wrap' },
   tabBtn:            { flexShrink: 0, whiteSpace: 'nowrap', padding: '9px 18px', borderRadius: 9, background: 'transparent', color: '#5b5b5b', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer' },
   tabBtnActive:      { background: '#F26900', color: 'white' },
   tabLink:           { background: '#0a1630', color: '#eaf3ff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' },

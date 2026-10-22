@@ -75,3 +75,39 @@ Ouverte aux admins et aux adresses de la variable serveur
 adresses séparées par des virgules), qui n'ont accès à rien d'autre du
 back-office. L'adresse doit être confirmée. Garde :
 `requireMarketingPage` (`lib/adminAuth.ts`).
+
+## Header du back-office (navigation commune)
+
+Un seul header, sticky, sur toutes les pages admin : logo (retour à
+l'accueil), une entrée par section (l'active en orange, sous-pages
+comprises), « Voir le site » (accueil de `tiroir.app`, adresse calculée
+par `siteUrlFor` dans `lib/adminNav.ts`), compte et déconnexion ; sous
+760 px, un menu compact. Sur les sous-pages, un fil d'Ariane
+(Back-office › Marketing › Campagnes). Dans l'autre sens, le menu compte
+du header du site public a une entrée Admin (`/admin`, qui renvoie vers
+le back-office) — visible si l'on est connecté en admin sur `tiroir.app`,
+la session étant propre à chaque domaine.
+
+- `components/admin/AdminLayout.tsx` — le header, posé **une seule fois**
+  par `pages/_app.tsx` autour de toute page qui renvoie `adminNav`.
+- `lib/adminNav.ts` — la liste des sections et qui les voit (lue
+  seulement par le serveur). Un compte ne voit que ce que ses gardes lui
+  ouvrent : Torix Lab pour son seul propriétaire, Marketing seul pour
+  `MARKETING_EMAILS`.
+- `components/admin/adminNavPaths.ts` — onglet actif et fil d'Ariane.
+
+Le header ne protège rien : les gardes (`lib/adminAuth.ts`) restent la
+vraie protection. Sans garde passée, pas de `adminNav`, donc pas de header.
+
+### Ajouter une section
+
+1. `lib/adminNav.ts`, tableau `SECTIONS` : une ligne, par exemple
+   `{ key: 'support', label: 'Support', href: '/admin/support', visible: a => a.isAdmin }`.
+   `visible` doit refléter la garde de la page. Facultatif : `pages`
+   (libellés du fil d'Ariane, ex. `{ tickets: 'Tickets' }`), `tone: 'dark'`.
+2. La page (`pages/admin/support.tsx`, et ses sous-pages
+   `pages/admin/support/…`) appelle sa garde puis renvoie
+   `adminNav: adminNavFor(guard.user, guard.isAdmin)` dans ses props.
+
+Rien d'autre : l'onglet, l'état actif, le menu mobile et le fil d'Ariane
+suivent.

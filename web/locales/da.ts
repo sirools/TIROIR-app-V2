@@ -139,16 +139,98 @@ const da: Copy = {
     faq: {
       title: 'Ofte stillede spørgsmål',
       items: [
-        { q: 'Skal jeg være god til teknik?', a: 'Nej. Du tager et billede, Tiroir udfylder beskrivelsen. Alt kan rettes med et tryk.' },
-        { q: 'Hvad hvis beskrivelsen tager fejl?', a: 'Alle felter kan redigeres, og dine rettelser vinder altid. Det præcise mærke eller købsprisen kender kun du.' },
-        { q: 'Er mine billeder private?', a: 'Ja. Intet er offentligt, før du deler et link – og det kan du slå fra når som helst.' },
-        { q: 'Hvor pålideligt er skønnet?', a: 'Det bygger på sammenlignelige annoncer: en pålidelig startpris for almindelige ting, en størrelsesorden for sjældne stykker.' },
+      { q: 'Skal jeg være god til teknik?', a: 'Nej. Du tager et billede, Tiroir udfylder beskrivelsen. Alt kan rettes med et tryk.' },
+      { q: 'Hvad hvis beskrivelsen tager fejl?', a: 'Alle felter kan redigeres, og dine rettelser vinder altid. Det præcise mærke eller købsprisen kender kun du.' },
+      { q: 'Er mine billeder private?', a: 'Ja. Intet er offentligt, før du deler et link – og det kan du slå fra når som helst.' },
+      { q: 'Hvor pålideligt er skønnet?', a: 'Det bygger på sammenlignelige annoncer: en pålidelig startpris for almindelige ting, en størrelsesorden for sjældne stykker.' },
       ],
     },
     final: {
       title: 'Din første genstand, på plads med ét billede.',
       sub: 'Gratis, uden kreditkort.',
     },
+  },
+
+  pricing: {
+    meta: {
+      title: 'Priser — Tiroir',
+      description: 'Tiroir er gratis med {free} AI-handlinger om måneden. AI-kreditter fra {pack}, Premium til {premium} om måneden, Pro til {pro} om måneden, Business til {business} pr. bruger.',
+    },
+    badge: 'Priser',
+    title: 'Få styr på det hele. Vid, hvad det er værd.',
+    sub: 'Tiroir er gratis for alle. Betal kun, når du vil videre.',
+    perMonth: '/md.',
+    perYear: 'eller {price} om året',
+    perSeat: 'pr. bruger/md.',
+    soon: 'Kommer snart',
+    free: {
+      tagline: 'Til at registrere alt, hvad du ejer.',
+      features: [
+        'Ubegrænset antal genstande og samlinger',
+        '{n} AI-handlinger om måneden (genkendelse, vurdering)',
+        'Deling af samlinger kun til visning',
+        'Ekstra AI-kreditter efter behov',
+      ],
+      start: 'Kom gratis i gang',
+    },
+    premium: {
+      tagline: 'Til at holde øje med, hvad din samling er værd.',
+      features: [
+        'Automatisk vurdering med månedlig kvote',
+        'Graf over værdien og en Opdatér-knap',
+        'Kilder opsummeret på én linje',
+        'Forslag til genstande fra dine nærmeste',
+        'Delingslinks beskyttet med adgangskode',
+      ],
+      cta: 'Skift til Premium',
+    },
+    pro: {
+      tagline: 'Til dem, der lever af deres ting.',
+      features: [
+        'AI inkluderet, uden genopfyldning',
+        'Vurdering af mange genstande ad gangen',
+        'Detaljerede kilder og markedssammenligning',
+        'Eksport til forsikringen',
+      ],
+      cta: 'Skift til Pro',
+    },
+    business: {
+      tagline: 'Til at styre et lager som team.',
+      features: [
+        'Alt fra Pro, til hvert medlem',
+        'Roller og flere konti',
+        'Månedlig fakturering, bankoverførsel eller betalingsservice',
+      ],
+      cta: 'Kontakt os',
+    },
+    note: 'Priser inkl. moms. Business faktureres.',
+    credits: {
+      title: 'AI-kreditter',
+      sub: 'Brug for mere? Fyld op, når du vil, uden abonnement.',
+      unit: '{n} kreditter',
+      popular: 'Mest valgt',
+      note: 'Kreditterne udløber ikke.',
+      cta: 'Køb kreditter',
+    },
+    faqTitle: 'Ofte stillede spørgsmål',
+    faq: [
+      { q: 'Hvad er en AI-handling?', a: 'En genkendelse eller en vurdering af en genstand.' },
+      { q: 'Hvad sker der, når min kvote er brugt?', a: 'Tiroir kan stadig bruges; kun AI-handlinger kræver kreditter.' },
+      { q: 'Påvirkes vurderingerne af samarbejdspartnere?', a: 'Nej. Vurderingerne påvirkes aldrig af vores partnere: kommercielle tilbud holdes adskilt fra værdivurderingen.' },
+      { q: 'Kan jeg opsige?', a: 'Når som helst, fra App Store, Play Store eller din konto.' },
+    ],
+    final: {
+      title: 'Kom gratis i gang.',
+      sub: 'Ubegrænset antal genstande og samlinger, {n} AI-handlinger om måneden. Intet kreditkort nødvendigt.',
+    },
+  },
+
+  errors: {
+    notFoundTitle: 'Siden blev ikke fundet',
+    notFoundText: 'Siden findes ikke eller er blevet flyttet.',
+    serverTitle: 'Serverfejl',
+    serverText: 'Der opstod et problem hos os. Prøv igen om et øjeblik.',
+    back: 'Tilbage til forsiden',
   },
 }
 
