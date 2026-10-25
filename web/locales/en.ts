@@ -36,6 +36,14 @@ const en: Copy = {
     language: 'Language',
   },
 
+  // Achats dans l'app (page Tarifs) : Premium et crédits passent par les stores.
+  inApp: {
+    subscribe: 'Subscribe in the app',
+    buyCredits: 'Buy credits in the app',
+    subscriptionNote: 'Your subscription is managed in the app.',
+    creditsNote: 'Credits are bought in the app.',
+  },
+
   home: {
     meta: {
       title: 'Tiroir — one photo, and your things are sorted',
@@ -208,7 +216,7 @@ const en: Copy = {
       sub: 'Need more? Top up whenever you like, no subscription.',
       unit: '{n} credits',
       popular: 'Most popular',
-      note: 'Secure card payment. Credits never expire.',
+      note: 'Credits never expire.',
       cta: 'Buy credits',
     },
     faqTitle: 'FAQ',

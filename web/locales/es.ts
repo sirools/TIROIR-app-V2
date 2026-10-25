@@ -37,6 +37,14 @@ const es: Copy = {
     language: 'Idioma',
   },
 
+  // Achats dans l'app (page Tarifs) : Premium et crédits passent par les stores.
+  inApp: {
+    subscribe: 'Suscríbete en la app',
+    buyCredits: 'Compra créditos en la app',
+    subscriptionNote: 'La suscripción se gestiona desde la app.',
+    creditsNote: 'Los créditos se compran desde la app.',
+  },
+
   home: {
     meta: {
       title: 'Tiroir — una foto y tus cosas quedan ordenadas',
@@ -209,7 +217,7 @@ const es: Copy = {
       sub: '¿Necesitas más? Recarga cuando quieras, sin suscripción.',
       unit: '{n} créditos',
       popular: 'El más elegido',
-      note: 'Pago seguro con tarjeta. Los créditos no caducan.',
+      note: 'Los créditos no caducan.',
       cta: 'Comprar créditos',
     },
     faqTitle: 'Preguntas frecuentes',

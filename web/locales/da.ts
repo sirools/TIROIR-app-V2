@@ -37,6 +37,14 @@ const da: Copy = {
     language: 'Sprog',
   },
 
+  // Achats dans l'app (page Tarifs) : Premium et crédits passent par les stores.
+  inApp: {
+    subscribe: 'Abonnér i appen',
+    buyCredits: 'Køb kreditter i appen',
+    subscriptionNote: 'Abonnementet styres i appen.',
+    creditsNote: 'Kreditter købes i appen.',
+  },
+
   home: {
     meta: {
       title: 'Tiroir — ét billede, og dine ting er på plads',
@@ -209,7 +217,7 @@ const da: Copy = {
       sub: 'Brug for mere? Fyld op, når du vil, uden abonnement.',
       unit: '{n} kreditter',
       popular: 'Mest valgt',
-      note: 'Sikker kortbetaling. Kreditterne udløber ikke.',
+      note: 'Kreditterne udløber ikke.',
       cta: 'Køb kreditter',
     },
     faqTitle: 'Ofte stillede spørgsmål',

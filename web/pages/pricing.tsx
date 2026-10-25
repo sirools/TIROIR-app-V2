@@ -11,9 +11,10 @@ import { fill, formatEur, useCopy } from '../locales'
 // source. Textes dans web/locales (pricing), en cinq langues ; prix au
 // format de la langue.
 //
-// Le paiement n'est pas encore ouvert (Stripe en mode test) : les boutons
-// d'achat affichent « Bientôt disponible » et ne mènent nulle part. Seul le
-// gratuit renvoie vers les stores, et Business vers une adresse e-mail.
+// Le paiement sur le web n'est pas ouvert (Stripe en mode test). Premium et
+// les crédits s'achètent dans l'app (App Store / Google Play, RevenueCat) :
+// leurs boutons mènent aux stores. Pro reste « Bientôt disponible » — l'app
+// ne le vend pas encore — et Business renvoie vers une adresse e-mail.
 const { free, packs, premium, pro, business } = OFFERS_V4
 
 const PLAN_CARD: React.CSSProperties = { padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }
@@ -25,7 +26,9 @@ const LIST: React.CSSProperties = { listStyle: 'none', padding: 0, margin: 0, di
 const ITEM: React.CSSProperties = { display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 15, color: 'var(--ink)', lineHeight: 1.35 }
 
 export default function Pricing() {
-  const { t: { pricing: t }, locale } = useCopy()
+  const { t: copy, locale } = useCopy()
+  const t = copy.pricing
+  const inApp = copy.inApp
   const eur = (n: number) => formatEur(n, locale)
   const n = free.aiActionsPerMonth
   return (
@@ -98,7 +101,7 @@ export default function Pricing() {
                   ))}
                 </ul>
                 <div style={{ marginTop: 'auto' }}>
-                  <SoonButton label={t.premium.cta} soon={t.soon} primary />
+                  <InAppBuy label={inApp.subscribe} note={inApp.subscriptionNote} />
                 </div>
               </div>
 
@@ -184,7 +187,7 @@ export default function Pricing() {
               {t.credits.note}
             </p>
             <div style={{ maxWidth: 320 }}>
-              <SoonButton label={t.credits.cta} soon={t.soon} primary />
+              <InAppBuy label={inApp.buyCredits} note={inApp.creditsNote} />
             </div>
           </div>
         </section>
@@ -225,7 +228,22 @@ export default function Pricing() {
   )
 }
 
-/** Bouton d'achat inactif : le paiement n'est pas ouvert (Stripe en mode test). */
+/**
+ * Achat dans l'app : libellé, boutons des stores (celui du téléphone mis en
+ * avant) et une phrase qui rappelle que tout se gère depuis l'app.
+ */
+function InAppBuy({ label, note }: { label: string; note: string }) {
+  const { locale } = useCopy()
+  return (
+    <div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 8, textAlign: 'center' }}>{label}</div>
+      <StoreButtons variant="card" full highlight locale={locale} />
+      <p style={{ fontSize: 13, color: 'var(--muted)', margin: '8px 0 0', textAlign: 'center' }}>{note}</p>
+    </div>
+  )
+}
+
+/** Bouton d'achat inactif : Pro n'est pas encore vendu (ni sur le web, ni dans l'app). */
 function SoonButton({ label, soon, primary }: { label: string; soon: string; primary?: boolean }) {
   return (
     <button

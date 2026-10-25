@@ -41,6 +41,14 @@ const fr = {
     language: 'Langue',
   },
 
+  // Achats dans l'app (page Tarifs) : Premium et crédits passent par les stores.
+  inApp: {
+    subscribe: 'S’abonner dans l’app',
+    buyCredits: 'Acheter des crédits dans l’app',
+    subscriptionNote: 'L’abonnement se gère depuis l’app.',
+    creditsNote: 'Les crédits s’achètent depuis l’app.',
+  },
+
   home: {
     meta: {
       title: 'Tiroir — une photo, et vos objets sont rangés',
@@ -214,7 +222,7 @@ const fr = {
       sub: 'Besoin de plus ? Rechargez quand vous voulez, sans abonnement.',
       unit: '{n} crédits',
       popular: 'Le plus choisi',
-      note: 'Paiement sécurisé par carte. Les crédits n’expirent pas.',
+      note: 'Les crédits n’expirent pas.',
       cta: 'Acheter des crédits',
     },
     faqTitle: 'Questions fréquentes',
