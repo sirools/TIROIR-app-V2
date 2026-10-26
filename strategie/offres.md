@@ -39,12 +39,14 @@ d'IA, 1 retouche ≈ 3,9 centimes — `strategie/torix-et-tiroir.md` § 3) :
 | | Net par mois* | Coût IA au pire | Marge au pire |
 | --- | --- | --- | --- |
 | Pro 14,99 € (store) | ≈ 10,62 € | ≈ 9,90 € | ≈ + 0,70 € |
-| Pro 14,99 € (Stripe, site) | ≈ 12,00 € | ≈ 9,90 € | ≈ + 2,10 € |
+| Pro 14,99 € (Stripe, site) | ≈ 14,52 € | ≈ 9,90 € | ≈ + 4,60 € |
 | Premium 4,99 €/mois (store) | ≈ 3,53 € | ≈ 3,45 € | ≈ 0 € |
 | Premium 39 €/an (store) | ≈ 2,30 €/mois | ≈ 3,45 € | **≈ − 1,15 €** |
 
-\* Après TVA (20 %) et commission des stores (15 %) ; Stripe ≈ 1,5 % +
-0,25 €. L'usage réel est très inférieur au pire cas (§ 4 de
+\* Store : après la TVA (20 %) que retiennent Apple et Google, puis leur
+commission (15 %). Site (Stripe) : **pas de TVA**, Tiroir étant en
+franchise en base (confirmé le 26/10/2026), seulement les frais Stripe
+(≈ 1,5 % + 0,25 €). L'usage réel est très inférieur au pire cas (§ 4 de
 `torix-et-tiroir.md` : ~1,50 $/mois pour un payant), mais **l'annuel
 Premium perd de l'argent sur un gros consommateur** : à surveiller, ou
 réduire les retouches photo Premium (50 → 30 ramènerait le pire cas à
@@ -78,6 +80,11 @@ multiplient, le levier est le quota de retouches photo (100), pas le prix.
 ---
 
 # Historique — grille du 29/30 septembre 2026 (remplacée le 19/10)
+
+> Calculs de l'époque : la TVA (20 %) y est déduite de toutes les ventes.
+> Depuis le 26/10/2026 (franchise en base confirmée), elle ne l'est plus que
+> sur les ventes des stores, qui la retiennent eux-mêmes ; les ventes
+> directes (site, Pro et Business sur facture) n'en portent pas.
 
 Décision du fondateur : quatre façons d'utiliser Tiroir, selon l'usage
 de l'IA. Grille révisée le **30 septembre 2026** : prix alignés sur le
