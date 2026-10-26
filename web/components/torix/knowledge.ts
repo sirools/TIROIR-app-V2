@@ -136,12 +136,13 @@ export const TOPICS: Topic[] = [
     id: 'quotas',
     keywords: ['quota', 'limite', 'gratuit', 'premium', 'forfait', 'abonnement', 'combien d analyses', 'offre'],
     register: 'fait',
-    source: 'web/lib/offers.ts · strategie/offres.md · Notion « Page Tarifs — textes V4 » · app_settings',
+    source: 'web/lib/offers.ts · strategie/offres.md · strategie/paiements-stripe.md · Notion « Page Tarifs — textes V4 » · app_settings',
     answer:
       'Page Tarifs du site : grille V4, paiement pas encore ouvert (boutons « Bientôt disponible », Stripe en mode test) — Free (20 actions IA par mois), crédits (50 à 2,99 €, 150 à 6,99 €, 500 à 19,99 €), Premium (4,99 €/mois ou 39 €/an), Pro (14,99 €/mois), Business (39 € par siège/mois, sur facture).\n' +
       'Dans l’app, toujours la grille du 30/09/2026 : Gratuit (20 objets avec l’IA offerts), packs de crédits (30 crédits à 4,99 €, 80 à 9,99 €, sans expiration), Premium (49,99 €/mois, illimité en usage raisonnable), Pro (à partir de 1 700 € HT/mois avec 20 000 crédits inclus, puis 0,05 € HT le crédit).\n' +
       'Les abonnés actuels gardent 6,99 €/mois. Tant que la bascule n’est pas faite, les quotas mensuels en vigueur se règlent dans le back-office, onglet Quotas.\n' +
-      'Les analyses sont pondérées par leur coût : une scène Sonnet (Premium) pèse 4 unités, une scène Opus (Pro) 13.',
+      'Les analyses sont pondérées par leur coût : une scène Sonnet (Premium) pèse 4 unités, une scène Opus (Pro) 13.\n' +
+      'Paiement sur le site par Stripe, prêt en mode test seulement (pas encore en prod) : packs de crédits sur la page Crédits, crédités par le webhook dans le même journal que l’app ; Business facturé par siège, sur facture à 30 jours (virement ou SEPA), Pro pour les membres sans toucher aux Premium.',
   },
   {
     id: 'commandements',

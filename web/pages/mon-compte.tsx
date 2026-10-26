@@ -175,6 +175,16 @@ export default function MonCompte() {
           </div>
 
           {/* ── Mot de passe ── */}
+          {/* ── Crédits IA et équipe Business (pages /credits et /equipe) ── */}
+          <div className="card" style={s.card}>
+            <h2 style={s.cardTitle}>{t.myAccount.billingTitle}</h2>
+            <p style={s.cardText}>{t.myAccount.billingText}</p>
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+              <a href={`${prefix}/credits`} style={s.link}>{t.myAccount.creditsLink}</a>
+              <a href={`${prefix}/equipe`} style={s.link}>{t.myAccount.teamLink}</a>
+            </div>
+          </div>
+
           <div id="mot-de-passe" className="card" style={s.card}>
             <h2 style={s.cardTitle}>
               {oauthOnly ? t.myAccount.setPasswordTitle : t.myAccount.changePasswordTitle}

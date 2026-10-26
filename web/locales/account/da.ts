@@ -116,6 +116,10 @@ const accountDa: AccountCopy = {
   },
 
   myAccount: {
+    billingTitle: 'AI-kreditter og team',
+    billingText: 'Din saldo og historik for AI-kreditter samt kreditpakker. For et Business-team: medlemmer og fakturaer.',
+    creditsLink: 'Mine AI-kreditter →',
+    teamLink: 'Mit Business-team →',
     metaTitle: 'Min konto — Tiroir',
     title: 'Min konto',
     signedInAs: 'Logget ind med ',

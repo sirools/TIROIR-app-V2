@@ -31,6 +31,9 @@ export const OFFERS = {
 // ouvert : Stripe reste en mode test, et l'app vend toujours la grille
 // OFFERS ci-dessus. Les identifiants des packs ne sont pas encore ceux de
 // l'app : ne pas les relier au webhook avant la bascule.
+// Le site vend ces packs et le siège Business par Stripe à partir de cette
+// grille (lib/stripeConfig.ts) ; paiement fermé tant que STRIPE_MODE et la
+// clé ne sont pas posés.
 export const OFFERS_V4 = {
   free: { aiActionsPerMonth: 20 },
   packs: [

@@ -116,6 +116,10 @@ const accountDe: AccountCopy = {
   },
 
   myAccount: {
+    billingTitle: 'KI-Credits und Team',
+    billingText: 'Dein KI-Credit-Guthaben, der Verlauf und Credit-Pakete. Für ein Business-Team: Mitglieder und Rechnungen.',
+    creditsLink: 'Meine KI-Credits →',
+    teamLink: 'Mein Business-Team →',
     metaTitle: 'Mein Konto — Tiroir',
     title: 'Mein Konto',
     signedInAs: 'Angemeldet als ',

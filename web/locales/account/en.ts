@@ -116,6 +116,10 @@ const accountEn: AccountCopy = {
   },
 
   myAccount: {
+    billingTitle: 'AI credits and team',
+    billingText: 'Your AI credit balance and history, and credit packs. For a Business team: members and invoices.',
+    creditsLink: 'My AI credits →',
+    teamLink: 'My Business team →',
     metaTitle: 'My account — Tiroir',
     title: 'My account',
     signedInAs: 'Signed in as ',
