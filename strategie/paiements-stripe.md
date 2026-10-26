@@ -18,10 +18,10 @@
    défaut du code (`vatMode`, `web/lib/stripeConfig.ts`). Le jour où le
    seuil est dépassé : `BILLING_VAT_MODE=assujetti`, un taux de TVA dans
    Stripe (§ 6.9) et revoir les prix TTC.
-3. **Proratisation Business** : option retenue par défaut ci-dessous
-   (§ 3), à valider.
-4. **Délai de grâce** en cas d'impayé : 14 jours par défaut
-   (`BUSINESS.graceDays`, `web/lib/stripeConfig.ts`).
+3. ✅ **Proratisation Business — décidé le 26/10/2026** : ajout facturé au
+   prorata sur la facture suivante, retrait sans avoir (§ 3).
+4. ✅ **Délai de grâce — décidé le 26/10/2026** : 14 jours après le premier
+   impayé (`BUSINESS.graceDays`, `web/lib/stripeConfig.ts`).
 
 ## 1. Mobile : vendre des crédits dans l'app iOS / Android
 
@@ -156,11 +156,11 @@ l'historique, sans entrer dans le solde.
   l'organisation qu'au prochain événement Stripe (facture, changement de
   sièges). Rares ; à revoir si ça arrive.
 
-### Proratisation (à valider)
+### Proratisation (décidée le 26/10/2026 : option par défaut)
 
 | Option | Ajout d'un membre | Retrait d'un membre | Pour |
 | --- | --- | --- | --- |
-| **Retenue par défaut** | Prorata ajouté à la **facture suivante** (`create_prorations`) | Pas d'avoir : siège payé jusqu'à la fin du mois (`none`) | Une facture par mois, pas de remboursement à gérer en virement |
+| **Retenue** | Prorata ajouté à la **facture suivante** (`create_prorations`) | Pas d'avoir : siège payé jusqu'à la fin du mois (`none`) | Une facture par mois, pas de remboursement à gérer en virement |
 | Facture immédiate | Petite facture à chaque ajout (`always_invoice`) | Avoir immédiat | Trésorerie au plus juste, mais beaucoup de petites factures à payer par virement |
 | Sans prorata | Pris en compte au mois suivant (`none`) | Idem | Le plus simple ; un membre ajouté en début de mois est presque gratuit |
 

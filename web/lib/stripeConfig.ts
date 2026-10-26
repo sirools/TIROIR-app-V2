@@ -40,7 +40,7 @@ export function packByKey(key: unknown): CreditPack | null {
 
 /**
  * Proratisation quand le nombre de sièges change (Stripe :
- * proration_behavior). Option retenue par défaut, modifiable ici :
+ * proration_behavior). Option décidée par le fondateur le 26/10/2026 :
  *   - un membre ajouté en cours de mois est facturé au prorata, sur la
  *     facture suivante (pas de petite facture à chaque ajout) ;
  *   - un membre retiré : son siège reste payé jusqu'à la fin du mois, pas
@@ -57,7 +57,7 @@ export const BUSINESS = {
   /** Centimes TTC par siège et par mois. */
   seatAmount: Math.round(OFFERS_V4.business.seatMonthly * 100),
   daysUntilDue: 30,
-  /** Jours de droits Pro gardés après une échéance impayée. */
+  /** Jours de droits Pro gardés après une échéance impayée (décidé le 26/10/2026). */
   graceDays: 14,
   /** Virement (solde client Stripe, IBAN dédié) et prélèvement SEPA. */
   paymentMethodTypes: ['customer_balance', 'sepa_debit'] as const,
