@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { OFFERS_V4 } from '../lib/offers'
-import { BUSINESS, CREDIT_PACKS, invoiceFooter, packByKey, prorationFor, stripeEnv } from '../lib/stripeConfig'
+import { BUSINESS, CREDIT_PACKS, invoiceFooter, packByKey, prorationFor, stripeEnv, vatMode } from '../lib/stripeConfig'
 import { signPayload, verifyStripeSignature } from '../lib/stripe/signature'
 import { encodeForm, type StripeCall } from '../lib/stripe/api'
 import { accessUntil, invoiceRow, subscriptionSnapshot } from '../lib/stripe/business'
@@ -51,7 +51,13 @@ describe('config Stripe', () => {
     expect(footer).toContain('Jean Martin EI — SIRET 123')
     expect(footer).toContain('TVA non applicable, art. 293 B du CGI.')
     expect(footer).toContain('40 €')
-    expect(invoiceFooter({ BILLING_VAT_NUMBER: 'FR00123' })).not.toContain('293 B')
+    expect(invoiceFooter({ BILLING_VAT_MODE: 'assujetti', BILLING_VAT_NUMBER: 'FR00123' })).not.toContain('293 B')
+  })
+
+  test('franchise en base par défaut (confirmée le 26/10/2026)', () => {
+    expect(vatMode({})).toBe('franchise')
+    expect(invoiceFooter({})).toContain('TVA non applicable, art. 293 B du CGI.')
+    expect(vatMode({ BILLING_VAT_MODE: 'assujetti' })).toBe('assujetti')
   })
 })
 

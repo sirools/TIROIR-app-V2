@@ -104,16 +104,25 @@ export function siteUrl(env: Env = process.env): string {
 }
 
 /**
+ * Régime de TVA de Tiroir. Franchise en base, confirmée par le fondateur
+ * le 26/10/2026 : aucune TVA facturée, prix TTC = HT. Seul
+ * BILLING_VAT_MODE=assujetti (le jour où le seuil est dépassé) fait
+ * appliquer la TVA.
+ */
+export function vatMode(env: Env = process.env): 'franchise' | 'assujetti' {
+  return env.BILLING_VAT_MODE?.trim() === 'assujetti' ? 'assujetti' : 'franchise'
+}
+
+/**
  * Mentions de bas de facture (Business), lues dans l'environnement : ce
- * sont les coordonnées de l'EI du fondateur, pas du code. Le régime de TVA
- * est à confirmer par le fondateur (franchise en base ou non).
+ * sont les coordonnées de l'EI du fondateur, pas du code.
  */
 export function invoiceFooter(env: Env = process.env): string {
   const lines: string[] = []
   const issuer = [env.BILLING_LEGAL_NAME, env.BILLING_SIRET && `SIRET ${env.BILLING_SIRET}`, env.BILLING_ADDRESS]
     .map(s => s?.trim()).filter(Boolean)
   if (issuer.length) lines.push(issuer.join(' — '))
-  if (env.BILLING_VAT_MODE?.trim() === 'franchise') lines.push('TVA non applicable, art. 293 B du CGI.')
+  if (vatMode(env) === 'franchise') lines.push('TVA non applicable, art. 293 B du CGI.')
   else if (env.BILLING_VAT_NUMBER?.trim()) lines.push(`N° de TVA intracommunautaire : ${env.BILLING_VAT_NUMBER.trim()}`)
   lines.push(
     'Nature des opérations : prestations de services.',

@@ -11,10 +11,13 @@
    Recommandation : achat intégré dans l'app (déjà codé) **et** Stripe sur
    le site, en parallèle, sans lien de l'app vers le site. Aucune ligne de
    code mobile n'a été écrite dans cette branche.
-2. **TVA** : Tiroir (EI) est-il en **franchise en base** ? Si oui, les
-   factures portent « TVA non applicable, art. 293 B du CGI » et 39 € TTC =
-   39 € HT. Sinon, 39 € TTC = 32,50 € HT + 6,50 € de TVA, et il faut un taux
-   de TVA dans Stripe (§ 5). **À confirmer, idéalement avec le comptable.**
+2. ✅ **TVA — décidé le 26/10/2026** : Tiroir (EI) est en **franchise en
+   base**. Aucune TVA facturée ; les factures portent « TVA non
+   applicable, art. 293 B du CGI » ; 39 € TTC = 39 € HT, et un pack à
+   6,99 € rapporte 6,99 € (avant frais Stripe). C'est le réglage par
+   défaut du code (`vatMode`, `web/lib/stripeConfig.ts`). Le jour où le
+   seuil est dépassé : `BILLING_VAT_MODE=assujetti`, un taux de TVA dans
+   Stripe (§ 6.9) et revoir les prix TTC.
 3. **Proratisation Business** : option retenue par défaut ci-dessous
    (§ 3), à valider.
 4. **Délai de grâce** en cas d'impayé : 14 jours par défaut
@@ -167,7 +170,7 @@ Ce que Stripe et le code couvrent, et ce qui reste à faire :
 | --- | --- |
 | Numérotation continue, chronologique, sans trou | Dashboard Stripe : numérotation **au niveau du compte** (pas par client), préfixe ex. `TIROIR-` — action manuelle |
 | Vendeur : nom suivi de « EI », adresse, SIREN/SIRET | Dashboard (infos publiques de l'entreprise) **et** pied de facture (`BILLING_LEGAL_NAME`, `BILLING_SIRET`, `BILLING_ADDRESS`) |
-| TVA : « TVA non applicable, art. 293 B du CGI » si franchise ; sinon n° de TVA et taux | `BILLING_VAT_MODE=franchise` ou `BILLING_VAT_NUMBER` + `STRIPE_TAX_RATE_ID` — **à confirmer** |
+| TVA : « TVA non applicable, art. 293 B du CGI » (franchise en base, confirmée) | Pied de facture, par défaut ; plus tard `BILLING_VAT_MODE=assujetti` + `BILLING_VAT_NUMBER` + `STRIPE_TAX_RATE_ID` |
 | Client : raison sociale, adresse, SIREN, n° de TVA | Fiche de l'organisation (back-office) → client Stripe (SIREN en champ personnalisé, TVA en `tax_id`) |
 | Nature : prestations de services ; période ; quantité ; prix unitaire | Pied de facture ; lignes Stripe (période et sièges) |
 | Échéance, pénalités de retard, indemnité de 40 €, pas d'escompte | Pied de facture (`invoiceFooter`) ; échéance 30 jours |
@@ -234,7 +237,8 @@ de l'ouverture.
    « Tiroir », e-mail de support, liens CGU (`https://tiroir.app/cgu`) et
    confidentialité (`https://tiroir.app/privacy`) ; reçus par e-mail
    activés (Settings → Emails : paiements réussis, remboursements).
-9. **TVA** (seulement si pas en franchise) : Product catalog → Tax rates
+9. **TVA** : rien à faire tant que Tiroir est en franchise en base. Plus
+   tard seulement, si le seuil est dépassé : Product catalog → Tax rates
    → « TVA 20 % », inclusive → son id dans `STRIPE_TAX_RATE_ID`.
 10. **Préprod, impayé simulé** : Billing → Test clocks → nouvelle horloge
     → son id dans `STRIPE_TEST_CLOCK_ID` (voir § 8, B6).
@@ -248,7 +252,7 @@ de l'ouverture.
 | `STRIPE_WEBHOOK_SECRET` | `whsec_…` de `stripe listen` | `whsec_…` de l'endpoint |
 | `SITE_URL` | `http://192.168.1.23:8151` | (défaut `https://tiroir.app`) |
 | `BILLING_LEGAL_NAME`, `BILLING_SIRET`, `BILLING_ADDRESS` | identité de l'EI | idem |
-| `BILLING_VAT_MODE` / `BILLING_VAT_NUMBER`, `STRIPE_TAX_RATE_ID` | selon § 0.2 | idem |
+| `BILLING_VAT_MODE` | rien (franchise par défaut) | rien ; `assujetti` seulement si le seuil est dépassé |
 | `STRIPE_TEST_CLOCK_ID` | facultatif (tests d'impayé) | jamais |
 
 Sans `STRIPE_MODE` et une clé du même mode, le paiement reste fermé
@@ -292,7 +296,7 @@ de test. Les tests SQL automatiques passent d'abord sur une base jetable :
 | B5 | Ajouter un membre, puis en retirer un | Sièges 3 → 4 (prorata visible sur la facture à venir), puis 4 → 3 sans avoir ; le retiré redevient gratuit |
 | B6 | **Impayé simulé** : créer l'organisation avec `STRIPE_TEST_CLOCK_ID` posé ; avancer l'horloge de 31 jours, puis de 14 de plus | `past_due` → droits jusqu'à J+14 ; puis `unpaid` → tous les membres Pro par l'organisation redeviennent gratuits, le Premium garde son palier |
 | B7 | Résilier l'abonnement dans le dashboard | `customer.subscription.deleted` → retour au gratuit immédiat |
-| B8 | Ouvrir le PDF d'une facture | Numéro `TIROIR-…` continu, mentions de l'EI, TVA (293 B ou taux), échéance, pénalités et 40 € |
+| B8 | Ouvrir le PDF d'une facture | Numéro `TIROIR-…` continu, mentions de l'EI, « TVA non applicable, art. 293 B du CGI », aucune ligne de TVA, échéance, pénalités et 40 € |
 
 ### Revenus
 

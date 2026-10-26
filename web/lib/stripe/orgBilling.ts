@@ -1,6 +1,6 @@
 // Appels Stripe de la formule Business : créer le client et l'abonnement
 // d'une organisation, ajuster le nombre de sièges. Serveur seulement.
-import { BUSINESS, invoiceFooter, prorationFor } from '../stripeConfig'
+import { BUSINESS, invoiceFooter, prorationFor, vatMode } from '../stripeConfig'
 import { priceIdFor, type StripeCall } from './api'
 
 export type OrgForBilling = {
@@ -56,7 +56,8 @@ export async function ensureCustomer(stripe: StripeCall, org: OrgForBilling, env
  */
 export async function createSeatSubscription(stripe: StripeCall, customerId: string, org: OrgForBilling, seats: number, env = process.env) {
   const price = await priceIdFor(stripe, BUSINESS.lookupKey)
-  const taxRate = env.STRIPE_TAX_RATE_ID?.trim()
+  // Franchise en base : jamais de taux de TVA, même si un id traîne dans l'environnement.
+  const taxRate = vatMode(env) === 'assujetti' ? env.STRIPE_TAX_RATE_ID?.trim() : undefined
   return stripe<{ id: string; status: string }>('POST', '/v1/subscriptions', {
     customer: customerId,
     items: [{ price, quantity: Math.max(1, seats) }],
@@ -68,7 +69,6 @@ export async function createSeatSubscription(stripe: StripeCall, customerId: str
         customer_balance: { funding_type: 'bank_transfer', bank_transfer: { type: 'eu_bank_transfer', eu_bank_transfer: { country: 'FR' } } },
       },
     },
-    // TVA : seulement si Tiroir n'est pas en franchise en base (à confirmer).
     default_tax_rates: taxRate ? [taxRate] : undefined,
     metadata: { org_id: org.id },
   }, { idempotencyKey: `org-subscription-${org.id}-${customerId}` })
