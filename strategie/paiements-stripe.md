@@ -7,10 +7,10 @@
 
 ## 0. Ce qu'il faut décider avant d'aller plus loin
 
-1. **Mobile (point bloquant)** : stratégie d'achat dans l'app — § 1.
-   Recommandation : achat intégré dans l'app (déjà codé) **et** Stripe sur
-   le site, en parallèle, sans lien de l'app vers le site. Aucune ligne de
-   code mobile n'a été écrite dans cette branche.
+1. ✅ **Mobile — décidé le 26/10/2026** : achat intégré dans l'app
+   (RevenueCat, déjà codé) **et** Stripe sur le site, en parallèle, sans
+   lien de l'app vers le site (option B, § 1). Aucune ligne de code
+   mobile dans cette branche ; ce qu'il reste côté app est listé au § 1.
 2. ✅ **TVA — décidé le 26/10/2026** : Tiroir (EI) est en **franchise en
    base**. Aucune TVA facturée ; les factures portent « TVA non
    applicable, art. 293 B du CGI » ; 39 € TTC = 39 € HT, et un pack à
@@ -52,7 +52,7 @@ l'achat intégré existe aussi dans l'app**.
 | Risque de rejet | **Élevé chez Apple** : crédits consommés dans l'app sans achat intégré (3.1.3(b) exige l'achat intégré en parallèle) | Faible : c'est le cas prévu par les règles | Moyen : logique par pays, habilitation Apple UE, écran imposé, règles encore mouvantes aux US |
 | Travail | Retirer l'écran de packs de l'app | Aucun nouveau : les produits stores restent à créer (`strategie/packs-stores.md`) | Code par storefront, demandes d'habilitation, revue Apple/Google |
 
-**Recommandation : B.** Un seul journal de crédits (`ai_credit_ledger`) :
+**Décision du fondateur (26/10/2026) : B.** Un seul journal de crédits (`ai_credit_ledger`) :
 qu'un pack soit acheté dans l'app ou sur le site, il crédite le même solde
 (références `rc:…` ou `stripe:…`). L'app ne mentionne jamais le site pour
 acheter ; le site, lui, peut vendre librement. Même grille partout
@@ -65,6 +65,22 @@ devient significative.
 l'app, le bouton doit ouvrir l'écran d'achat intégré, **pas le site** —
 c'est le seul code mobile à écrire, après décision (les fonctions IA
 renvoient déjà `QUOTA_EXCEEDED`, `supabase/functions/_shared/aiSpend.ts`).
+
+### Reste à faire côté app (après la décision B)
+
+1. **Produits stores alignés sur la grille V4** (50 / 150 / 500 crédits) :
+   `strategie/packs-stores.md`, puis identifiants dans
+   `mobile/src/lib/creditPacks.ts` et le webhook RevenueCat (le test
+   `creditPacks.test.ts` les compare). Aujourd'hui l'app vend encore les
+   packs 30 / 80 de la grille du 30/09.
+2. **Bouton « Acheter des crédits » sur chaque refus `QUOTA_EXCEEDED`**,
+   qui ouvre l'écran d'achat intégré (`mobile/app/(app)/paywall.tsx`).
+   Aujourd'hui, seule la retouche photo traite ce code
+   (`objects/[id].tsx`), par une simple alerte ; l'analyse de scène
+   affiche le message brut (`capture/scene.tsx`).
+3. **Aucune mention du site** pour acheter dans l'app (ni lien, ni prix
+   web, ni « moins cher sur le site »).
+4. Nouvelle version de l'app à publier (revue Apple et Google).
 
 ## 2. Crédits IA sur le site (tâche 1)
 

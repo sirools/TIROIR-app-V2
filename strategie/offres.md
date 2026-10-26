@@ -73,6 +73,9 @@ multiplient, le levier est le quota de retouches photo (100), pas le prix.
    crédits (PR #72), puis Pro dès qu'il est en vente dans l'app.
 4. **Plus tard** : paiement sur le site par Stripe (Pro, Business), une
    fois le mode réel de Stripe activé.
+   Décision du 26/10/2026 : crédits vendus **dans l'app par l'achat
+   intégré et sur le site par Stripe, en parallèle**, même solde, sans
+   lien de l'app vers le site.
    ✅ Code prêt en mode test (26/10/2026) pour les **crédits sur le site**
    et la **facturation Business** par siège : `strategie/paiements-stripe.md`
    (stratégie mobile à trancher, actions Stripe, plan de tests en préprod).
