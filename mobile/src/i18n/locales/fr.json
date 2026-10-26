@@ -877,5 +877,10 @@
     "thumbRedo": "Refaire",
     "thumbNoCrop": "Aucune découpe disponible pour cet objet.",
     "illustration": "Illustration IA"
+  },
+  "credits": {
+    "outTitle": "Plus de crédits IA",
+    "outBody": "Le quota du mois est atteint et il ne reste pas assez de crédits. Un pack de crédits permet de continuer tout de suite.",
+    "buy": "Acheter des crédits"
   }
 }

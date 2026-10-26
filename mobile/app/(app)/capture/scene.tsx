@@ -11,7 +11,8 @@ import * as FileSystem from 'expo-file-system/legacy'
 import { ArrowLeft, Camera, Images, AlertTriangle, Minus, Plus, Trash2, RotateCcw, Sparkles } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
-import { functionMessage } from '@/lib/functionError'
+import { functionError } from '@/lib/functionError'
+import { BUY_CREDITS_ROUTE, isCreditsRefusal, offerCredits } from '@/lib/buyCredits'
 import { cropSceneObjects, ensureLocalScenePhoto, SceneCrop } from '@/services/sceneCrops'
 import {
   Screen, Colors, Typography, Spacing, Radius,
@@ -149,6 +150,8 @@ export default function SceneDetectionScreen() {
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState<DetectionResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Refus « quota atteint, crédits insuffisants » : l'encadré propose un pack.
+  const [outOfCredits, setOutOfCredits] = useState(false)
 
   /**
    * Analyse rejouée depuis l'historique : la photo vient du Storage et non
@@ -219,6 +222,7 @@ export default function SceneDetectionScreen() {
   async function replay(entry: HistoryEntry) {
     setUri(null)
     setError(null)
+    setOutOfCredits(false)
     setRemoved(new Set())
     setQuantities({})
     setCrops({})
@@ -303,7 +307,7 @@ export default function SceneDetectionScreen() {
       const { data: res, error: fnError } = await supabase.functions.invoke('scene-thumbnail', {
         body: { scene_id: result.scene_id, index: i, mode, image },
       })
-      if (fnError) throw new Error(await functionMessage(fnError))
+      if (fnError) throw await functionError(fnError)
       if (res?.error) throw new Error(res.error.message ?? res.error.code)
 
       setThumbs(prev => ({
@@ -311,7 +315,8 @@ export default function SceneDetectionScreen() {
         [i]: { path: res.storage_path, url: res.url, kind: mode, mime: res.mime_type },
       }))
     } catch (e) {
-      Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e))
+      if (isCreditsRefusal(e)) offerCredits(router, t, (e as Error).message)
+      else Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e))
     } finally {
       setBusyThumb(null)
     }
@@ -356,6 +361,7 @@ export default function SceneDetectionScreen() {
     setReplayUrl(null)
     setResult(null)
     setError(null)
+    setOutOfCredits(false)
     setRemoved(new Set())
     setQuantities({})
     setCrops({})
@@ -377,6 +383,7 @@ export default function SceneDetectionScreen() {
     if (res.canceled || !res.assets[0]) return
     setResult(null)
     setError(null)
+    setOutOfCredits(false)
     setReplayUrl(null)
     setCrops({})
     setThumbs({})
@@ -387,6 +394,7 @@ export default function SceneDetectionScreen() {
     if (!uri || running) return
     setRunning(true)
     setError(null)
+    setOutOfCredits(false)
     setResult(null)
     try {
       const resized = await ImageManipulator.manipulateAsync(
@@ -405,7 +413,7 @@ export default function SceneDetectionScreen() {
       })
       // Le motif — quota atteint, modèle indisponible — vit dans le corps
       // de la réponse ; `invoke` ne rend qu'un « non-2xx status code ».
-      if (fnError) throw new Error(await functionMessage(fnError))
+      if (fnError) throw await functionError(fnError)
       if (res?.error) throw new Error(res.error.message ?? res.error.code)
       setRemoved(new Set())
       setQuantities({})
@@ -417,6 +425,7 @@ export default function SceneDetectionScreen() {
       loadHistory()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
+      setOutOfCredits(isCreditsRefusal(e))
     } finally {
       setRunning(false)
     }
@@ -671,6 +680,11 @@ export default function SceneDetectionScreen() {
         {error && (
           <View style={s.errorBox}>
             <Text style={s.errorText}>{error}</Text>
+            {outOfCredits && (
+              <TouchableOpacity onPress={() => router.push(BUY_CREDITS_ROUTE)} activeOpacity={0.85} style={s.buyCredits}>
+                <Text style={s.buyCreditsText}>{t('credits.buy')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -915,6 +929,11 @@ const s = StyleSheet.create({
     backgroundColor: Colors.errorLight, borderRadius: Radius.md, padding: Spacing.md,
   },
   errorText: { fontSize: Typography.sm, color: Colors.error },
+  buyCredits: {
+    alignSelf: 'flex-start', marginTop: Spacing.sm, backgroundColor: Colors.accent,
+    borderRadius: Radius.md, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md,
+  },
+  buyCreditsText: { fontSize: Typography.sm, fontWeight: Typography.bold, color: Colors.textInverse },
 
   warnBox: {
     flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm,

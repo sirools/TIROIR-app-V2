@@ -877,5 +877,10 @@
     "thumbRedo": "Neu",
     "thumbNoCrop": "Für dieses Objekt ist kein Ausschnitt verfügbar.",
     "illustration": "KI-Illustration"
+  },
+  "credits": {
+    "outTitle": "Keine KI-Credits mehr",
+    "outBody": "Das Monatskontingent ist aufgebraucht und es sind nicht genug Credits übrig. Mit einem Credit-Paket geht es sofort weiter.",
+    "buy": "Credits kaufen"
   }
 }
