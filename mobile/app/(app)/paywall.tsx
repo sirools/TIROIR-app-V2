@@ -11,10 +11,12 @@ import Purchases, { PurchasesPackage } from 'react-native-purchases'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { supabase } from '@/lib/supabase'
 import { CREDITS_OFFERING, creditsForProduct } from '@/lib/creditPacks'
+import { isProProduct } from '@/lib/plan'
 
 const MOCK_PACKAGES: PurchasesPackage[] = Platform.OS === 'web' ? [
   { identifier: '$rc_monthly', packageType: 'MONTHLY', product: { identifier: 'tiroir_premium_monthly', price: 6.99, priceString: '6,99 €', introPrice: { price: 0, priceString: '0 €', periodNumberOfUnits: 7, periodUnit: 'DAY' } } } as any,
   { identifier: '$rc_annual',  packageType: 'ANNUAL',  product: { identifier: 'tiroir_premium_annual',  price: 59.99, priceString: '59,99 €', introPrice: { price: 0, priceString: '0 €', periodNumberOfUnits: 7, periodUnit: 'DAY' } } } as any,
+  { identifier: 'pro_monthly', packageType: 'CUSTOM',  product: { identifier: 'tiroir_pro_monthly',     price: 14.99, priceString: '14,99 €', introPrice: null } } as any,
 ] : []
 
 const FEATURES = [
@@ -32,6 +34,10 @@ export default function PaywallScreen() {
   const [monthly, setMonthly]     = useState<PurchasesPackage | null>(null)
   const [annual, setAnnual]       = useState<PurchasesPackage | null>(null)
   const [isAnnual, setIsAnnual]   = useState(true)
+  // Pro = Premium avec des quotas plus élevés (grille V4) ; proposé dès que
+  // l'offre courante de RevenueCat contient un produit tiroir_pro_*.
+  const [pro, setPro]             = useState<PurchasesPackage | null>(null)
+  const [tier, setTier]           = useState<'premium' | 'pro'>('premium')
   const [loading, setLoading]     = useState(true)
   const [purchasing, setPurchasing] = useState(false)
   // Packs de crédits (achat à l'unité, sans abonnement)
@@ -57,6 +63,7 @@ export default function PaywallScreen() {
     if (Platform.OS === 'web') {
       setMonthly(MOCK_PACKAGES[0])
       setAnnual(MOCK_PACKAGES[1])
+      setPro(MOCK_PACKAGES[2])
       setIsAnnual(true)
       setLoading(false)
       return
@@ -71,8 +78,10 @@ export default function PaywallScreen() {
         .filter(p => creditsForProduct(p.product.identifier) != null)
         .sort((x, y) => (creditsForProduct(x.product.identifier) ?? 0) - (creditsForProduct(y.product.identifier) ?? 0))
       setPacks(creditPkgs)
-      const m = pkgs.find(p => p.packageType === 'MONTHLY') ?? null
-      const a = pkgs.find(p => p.packageType === 'ANNUAL') ?? null
+      const premiumPkgs = pkgs.filter(p => !isProProduct(p.product.identifier))
+      const m = premiumPkgs.find(p => p.packageType === 'MONTHLY') ?? null
+      const a = premiumPkgs.find(p => p.packageType === 'ANNUAL') ?? null
+      setPro(pkgs.find(p => isProProduct(p.product.identifier)) ?? null)
       setMonthly(m)
       setAnnual(a)
       setIsAnnual(!!a)
@@ -99,7 +108,8 @@ export default function PaywallScreen() {
     }
   }, [refreshCredits])
 
-  const selected = isAnnual ? (annual ?? monthly) : (monthly ?? annual)
+  const isPro = tier === 'pro' && !!pro
+  const selected = isPro ? pro : isAnnual ? (annual ?? monthly) : (monthly ?? annual)
 
   // Économie annuelle vs mensuel × 12
   const savings = monthly && annual
@@ -117,7 +127,7 @@ export default function PaywallScreen() {
     setPurchasing(true)
     try {
       await Purchases.purchasePackage(selected)
-      Alert.alert(t('paywall.welcomeTitle'), t('paywall.welcomeMessage'), [
+      Alert.alert(t(isPro ? 'paywall.welcomeProTitle' : 'paywall.welcomeTitle'), t('paywall.welcomeMessage'), [
         { text: t('paywall.welcomeCta'), onPress: () => router.back() },
       ])
     } catch (e: any) {
@@ -127,7 +137,7 @@ export default function PaywallScreen() {
     } finally {
       setPurchasing(false)
     }
-  }, [selected])
+  }, [selected, isPro])
 
   const handleRestore = useCallback(async () => {
     setPurchasing(true)
@@ -178,8 +188,29 @@ export default function PaywallScreen() {
           ))}
         </View>
 
-        {/* Toggle mensuel / annuel */}
-        {hasBothPlans && (
+        {/* Premium ou Pro (Pro : mêmes fonctions, quotas plus élevés) */}
+        {!!pro && (
+          <View style={s.tiers} accessibilityRole="tablist">
+            {(['premium', 'pro'] as const).map(key => (
+              <TouchableOpacity
+                key={key}
+                style={[s.tierBtn, tier === key && s.tierBtnActive]}
+                onPress={() => setTier(key)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: tier === key }}
+                activeOpacity={0.85}
+              >
+                <Text style={[s.tierText, tier === key && s.tierTextActive]}>
+                  {t(key === 'pro' ? 'paywall.tierPro' : 'paywall.tierPremium')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        {isPro && <Text style={s.proHint}>{t('paywall.proHint')}</Text>}
+
+        {/* Toggle mensuel / annuel (Premium seulement : Pro est mensuel) */}
+        {hasBothPlans && !isPro && (
           <View style={s.toggleWrap}>
             <Text style={[s.toggleLabel, !isAnnual && s.toggleLabelActive]}>{t('paywall.monthly')}</Text>
             <Switch
@@ -205,12 +236,12 @@ export default function PaywallScreen() {
           <Text style={s.unavailable}>{t('paywall.unavailable')}</Text>
         ) : (
           <View style={s.priceCard}>
-            {isAnnual && annual?.product.introPrice && (
+            {!isPro && isAnnual && annual?.product.introPrice && (
               <View style={s.trialBadge}>
                 <Text style={s.trialText}>{t('paywall.freeTrial')}</Text>
               </View>
             )}
-            {!isAnnual && monthly?.product.introPrice && (
+            {(isPro ? !!pro?.product.introPrice : !isAnnual && !!monthly?.product.introPrice) && (
               <View style={s.trialBadge}>
                 <Text style={s.trialText}>{t('paywall.freeTrial')}</Text>
               </View>
@@ -219,11 +250,11 @@ export default function PaywallScreen() {
             <View style={s.priceRow}>
               <Text style={s.price}>{selected.product.priceString}</Text>
               <Text style={s.pricePer}>
-                {isAnnual && annual ? t('paywall.perYear') : t('paywall.perMonth')}
+                {!isPro && isAnnual && annual ? t('paywall.perYear') : t('paywall.perMonth')}
               </Text>
             </View>
 
-            {isAnnual && monthlyEquiv && (
+            {!isPro && isAnnual && monthlyEquiv && (
               <Text style={s.priceEquiv}>
                 {t('paywall.equiv')}<Text style={s.priceEquivBold}>{t('paywall.equivPerMonth', { price: monthlyEquiv })}</Text>
                 {savings !== null ? t('paywall.savingsVsMonthly', { percent: savings }) : ''}
@@ -329,6 +360,16 @@ const s = StyleSheet.create({
   featureRow:   { flexDirection: 'row', alignItems: 'center', gap: 12 },
   featureCheck: { width: 24, height: 24, borderRadius: 99, backgroundColor: Colors.accentLight, alignItems: 'center', justifyContent: 'center' },
   featureLabel: { fontSize: Typography.base, color: Colors.textPrimary, fontWeight: Typography.medium },
+
+  tiers: {
+    flexDirection: 'row', gap: 4, padding: 4,
+    borderRadius: Radius.lg, backgroundColor: Colors.accentLight,
+  },
+  tierBtn:        { flex: 1, paddingVertical: 10, borderRadius: Radius.md, alignItems: 'center' },
+  tierBtnActive:  { backgroundColor: Colors.surface },
+  tierText:       { fontSize: Typography.base, color: Colors.textSecondary, fontWeight: Typography.medium },
+  tierTextActive: { color: Colors.textPrimary, fontWeight: Typography.bold },
+  proHint:        { fontSize: Typography.sm, color: Colors.textSecondary, textAlign: 'center', lineHeight: 20 },
 
   toggleWrap: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,

@@ -350,7 +350,11 @@
     "noSubMessage": "No previous purchase to restore.",
     "restoreError": "Couldn't restore.",
     "terms": "Terms of Use",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "tierPremium": "Premium",
+    "tierPro": "Pro",
+    "proHint": "Everything in Premium, with more AI analyses and photo touch-ups every month.",
+    "welcomeProTitle": "Welcome to Tiroir Pro! 🎉"
   },
   "assistant": {
     "title": "Assistant",

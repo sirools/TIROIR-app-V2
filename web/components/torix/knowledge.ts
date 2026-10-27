@@ -138,9 +138,9 @@ export const TOPICS: Topic[] = [
     register: 'fait',
     source: 'web/lib/offers.ts · strategie/offres.md · Notion « Page Tarifs — textes V4 » · app_settings',
     answer:
-      'Page Tarifs du site : grille V4, paiement pas encore ouvert (boutons « Bientôt disponible », Stripe en mode test) — Free (20 actions IA par mois), crédits (50 à 2,99 €, 150 à 6,99 €, 500 à 19,99 €), Premium (4,99 €/mois ou 39 €/an), Pro (14,99 €/mois), Business (39 € par siège/mois, sur facture).\n' +
-      'Dans l’app, toujours la grille du 30/09/2026 : Gratuit (20 objets avec l’IA offerts), packs de crédits (30 crédits à 4,99 €, 80 à 9,99 €, sans expiration), Premium (49,99 €/mois, illimité en usage raisonnable), Pro (à partir de 1 700 € HT/mois avec 20 000 crédits inclus, puis 0,05 € HT le crédit).\n' +
-      'Les abonnés actuels gardent 6,99 €/mois. Tant que la bascule n’est pas faite, les quotas mensuels en vigueur se règlent dans le back-office, onglet Quotas.\n' +
+      'Une seule grille (V4), figée par le fondateur le 19/10/2026, la même sur le site, dans l’app (App Store, Google Play) et dans Stripe : Free (20 actions IA par mois), crédits (50 à 2,99 €, 150 à 6,99 €, 500 à 19,99 €, sans expiration), Premium (4,99 €/mois ou 39 €/an), Pro (14,99 €/mois), Business (39 € par siège/mois, sur facture).\n' +
+      'Pro = Premium avec des quotas plus élevés. Premium, Pro et crédits s’achètent dans l’app (Pro à partir de la version qui le propose) ; sur le site, paiement pas encore ouvert (Stripe en mode test). Un Pro sur facture, posé dans le back-office, n’est jamais modifié par les stores.\n' +
+      'Quotas mensuels décidés le 19/10 : Free 20 unités IA, Premium 150 unités et 50 retouches photo, Pro 600 unités et 100 retouches. Ils se règlent dans le back-office, onglet Quotas (la valeur en base fait foi).\n' +
       'Les analyses sont pondérées par leur coût : une scène Sonnet (Premium) pèse 4 unités, une scène Opus (Pro) 13.',
   },
   {

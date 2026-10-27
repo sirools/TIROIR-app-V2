@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
-import { OFFERS, OFFERS_V4, credits, euros } from '../lib/offers'
+import { OFFERS_V4, euros } from '../lib/offers'
 import { answerQuestion, findTopic, SUGGESTIONS, TOPICS, UNKNOWN } from '../components/torix/knowledge'
 
 const repo = (p: string) => readFileSync(path.resolve(__dirname, '../..', p), 'utf8')
@@ -95,18 +95,14 @@ describe('les fiches suivent le code', () => {
     expect(byId('ia')).toContain('Sonnet 4.6 + recherche web')
   })
 
-  test('prix des forfaits : la fiche suit lib/offers.ts, la page aussi', () => {
+  test('prix des forfaits : une seule grille, la page la lit dans lib/offers.ts', () => {
     const pricing = repo('web/pages/pricing.tsx')
     expect(pricing).toContain("from '../lib/offers'")
     expect(pricing).not.toMatch(/\d+,\d{2} €/)
     const fiche = byId('quotas')
-    expect(fiche).toContain(`${OFFERS.free.aiObjects} objets`)
-    for (const pack of OFFERS.packs) expect(fiche).toContain(`${pack.credits} ${pack === OFFERS.packs[0] ? 'crédits ' : ''}à ${euros(pack.priceTtc)}`)
-    expect(fiche).toContain(euros(OFFERS.premium.monthlyTtc))
-    expect(fiche).toContain(euros(OFFERS.pro.baseHt))
-    expect(fiche).toContain(`${credits(OFFERS.pro.includedCredits)} crédits`)
-    expect(fiche).toContain(euros(OFFERS.pro.extraCreditHt))
-    expect(fiche).toContain(euros(OFFERS.legacyPremiumTtc))
+    // L'ancienne grille du 30/09 (49,99 €, 1 700 € HT) n'a plus cours.
+    expect(fiche).not.toContain('49,99')
+    expect(fiche).not.toContain('1 700')
   })
 
   test('grille V4 de la page Tarifs : la fiche suit OFFERS_V4', () => {

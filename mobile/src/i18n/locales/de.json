@@ -350,7 +350,11 @@
     "noSubMessage": "Kein früherer Kauf zum Wiederherstellen.",
     "restoreError": "Wiederherstellung nicht möglich.",
     "terms": "Nutzungsbedingungen",
-    "privacy": "Datenschutzerklärung"
+    "privacy": "Datenschutzerklärung",
+    "tierPremium": "Premium",
+    "tierPro": "Pro",
+    "proHint": "Alles aus Premium, mit mehr KI-Analysen und Fotobearbeitungen pro Monat.",
+    "welcomeProTitle": "Willkommen bei Tiroir Pro! 🎉"
   },
   "assistant": {
     "title": "Assistent",
