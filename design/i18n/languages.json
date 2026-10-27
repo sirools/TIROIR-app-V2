@@ -1,20 +1,20 @@
 {
-  "$comment": "Seule liste des langues de Tiroir. Ajouter une langue ici, ajouter ses textes dans app/, site/ ou system/, puis node design/generate.mjs. « app » / « site » : la langue est-elle proposée sur ce support ? Une langue de l'app sans « site » (ou l'inverse) est un écart ISO, signalé par node scripts/i18n-check.mjs. « fallback » : langue partielle, dont les clés absentes viennent de cette langue mère.",
+  "$comment": "Seule liste des langues de Tiroir. Ajouter une langue ici, ajouter ses textes dans app/, site/ ou system/, puis node design/generate.mjs. « app » / « site » / « email » : la langue est-elle proposée sur ce support ? Une langue de l'app sans « site » (ou l'inverse) est un écart ISO, signalé par node scripts/i18n-check.mjs. « fallback » : langue partielle, dont les clés absentes viennent de cette langue mère.",
   "reference": "fr",
   "default": "en",
   "$default": "Langue par défaut quand celle de l'appareil n'est pas proposée : l'anglais couvre le plus grand nombre des 175 pays de l'App Store.",
   "languages": [
-    { "code": "fr", "name": "Français", "intl": "fr-FR", "app": true, "site": true },
-    { "code": "en", "name": "English", "intl": "en-IE", "app": true, "site": true },
-    { "code": "es", "name": "Español", "intl": "es-ES", "app": true, "site": true },
-    { "code": "de", "name": "Deutsch", "intl": "de-DE", "app": true, "site": true },
-    { "code": "pt-BR", "name": "Português (Brasil)", "intl": "pt-BR", "app": true, "site": false },
+    { "code": "fr", "name": "Français", "intl": "fr-FR", "app": true, "site": true, "email": true },
+    { "code": "en", "name": "English", "intl": "en-IE", "app": true, "site": true, "email": true },
+    { "code": "es", "name": "Español", "intl": "es-ES", "app": true, "site": true, "email": true },
+    { "code": "de", "name": "Deutsch", "intl": "de-DE", "app": true, "site": true, "email": true },
+    { "code": "pt-BR", "name": "Português (Brasil)", "intl": "pt-BR", "app": true, "site": false, "email": true },
     {
-      "code": "pt-PT", "name": "Português (Portugal)", "intl": "pt-PT", "app": true, "site": false,
+      "code": "pt-PT", "name": "Português (Portugal)", "intl": "pt-PT", "app": true, "site": false, "email": true,
       "fallback": "pt-BR",
       "regions": ["PT", "AO", "MZ", "CV", "GW", "ST", "TL", "MO"],
       "$regions": "Pays où l'on écrit le portugais européen ; partout ailleurs, « pt » donne pt-BR."
     },
-    { "code": "da", "name": "Dansk", "intl": "da-DK", "app": false, "site": true }
+    { "code": "da", "name": "Dansk", "intl": "da-DK", "app": false, "site": true, "email": true }
   ]
 }

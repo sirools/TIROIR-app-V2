@@ -58,6 +58,19 @@ store, de RevenueCat ou de Stripe touché, aucun secret ajouté.
 | Brouillon `profiles.locale` : accepte `pt-BR` et `pt-PT` (« pt_PT » → pt-PT, « pt » → pt-BR) | `supabase/drafts/profiles_locale.sql` | 14 tests sur une base Postgres jetable (`run_locale.sh`) |
 | **Traductions centralisées dans le design system** : `design/i18n/` (langues, app, site, textes système), générées par `node design/generate.mjs` comme les couleurs | `design/i18n/`, `design/i18n.mjs` ; fichiers générés dans `mobile/` et `web/` | les 25 fichiers du site régénérés donnent **exactement les mêmes textes** (valeurs comparées) ; fichiers de l'app identiques à l'octet ; `generate.mjs --check` ; `web/__tests__/i18nCentral.test.ts` |
 
+**Troisième passage — les e-mails sur `design/i18n/`** : e-mail de partage
+et e-mail de présentation (J+3) lisent leurs textes dans
+`design/i18n/email/` ; la présentation a un gabarit HTML sans texte
+(`marketing/emails/gabarits/presentation.html`) et le générateur remplace
+`scripts/build-email-template.py`. Vérifié : HTML envoyé, aperçu, objet,
+première phrase, version texte et e-mail de partage dans les 5 langues
+existantes **identiques à l'octet** ; seul changement voulu, un expéditeur
+en portugais envoie désormais l'e-mail de partage en portugais (le lien
+ouvre le site en anglais). `deno check` passe sur `create-share-link`,
+`send-lifecycle-emails` et `describe-object` ; `chat-turn` a une erreur de
+type **déjà présente sur `main`** (ligne 220, `ChatTurnErrorCode`), non
+corrigée ici. À redéployer : `create-share-link`, `send-lifecycle-emails`.
+
 Tests lancés au premier passage : `web` → 302 tests sur 303 passent ; le seul échec est
 `build.test.ts`, qui exige `NEXT_PUBLIC_SUPABASE_URL` et la clé anonyme,
 absentes de ce conteneur (même erreur sans mes changements). `mobile` →

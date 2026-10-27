@@ -4,6 +4,8 @@
 //   app/<langue>.json      textes de l'app (référence : fr)
 //   site/<langue>.json     textes du site (référence : fr)
 //   system/<langue>.json   textes système de l'app (demandes d'accès iOS)
+//   email/<langue>.json    textes des e-mails (partage, présentation) ; gabarits
+//                          HTML sans texte dans marketing/emails/gabarits/
 //
 // Appelé par design/generate.mjs, qui écrit les fichiers ou vérifie (--check)
 // qu'ils sont à jour. Sans dépendance. Les clés qui commencent par « $ » sont
@@ -131,6 +133,8 @@ function languagesModule(root, header) {
 export const APP_LANGUAGES = ${JSON.stringify(codes(l => l.app))} as const
 /** Langues proposées sur le site. */
 export const SITE_LANGUAGES = ${JSON.stringify(codes(l => l.site))} as const
+/** Langues dans lesquelles partent les e-mails. */
+export const EMAIL_LANGUAGES = ${JSON.stringify(codes(l => l.email))} as const
 /** Langue de référence : toutes les autres suivent ses clés. */
 export const REFERENCE_LANGUAGE = ${JSON.stringify(meta.reference)}
 /** Langue par défaut quand celle de l'appareil n'est pas proposée. */
@@ -178,6 +182,115 @@ export function i18nOutputs(root) {
   out.push(['mobile/src/i18n/languages.generated.ts', languages])
   out.push(['web/locales/languages.generated.ts', languages])
   out.push(['supabase/functions/_shared/languages.generated.ts', languages])
+  out.push(...emailOutputs(root, header))
+  return out
+}
+
+// ── E-mails ───────────────────────────────────────────────────────
+
+/** Fusion profonde : les clés de « own » l'emportent (langue partielle sur sa langue mère). */
+function merge(base, own) {
+  if (!base) return own
+  if (!own) return base
+  const out = { ...base }
+  for (const [k, v] of Object.entries(own)) {
+    out[k] = v && typeof v === 'object' && !Array.isArray(v) && base[k] && typeof base[k] === 'object' ? merge(base[k], v) : v
+  }
+  return out
+}
+
+/** Textes e-mail d'une langue, langue mère comprise. */
+function emailTexts(root, code) {
+  const { langs, load } = loadI18n(root)
+  const lang = langs.find(l => l.code === code)
+  const own = load('email', code)
+  if (!own) throw new Error(`design/i18n/email/${code}.json manquant (langue des e-mails)`)
+  return lang?.fallback ? merge(emailTexts(root, lang.fallback), own) : own
+}
+
+/** Gabarit HTML + textes : chaque [[clé]] est remplacé ; une clé absente fait échouer. */
+export function renderLayout(layout, texts, code, src) {
+  return layout.replace(/\[\[(\w+)\]\]/g, (_, k) => {
+    if (k === 'lang') return code
+    if (typeof texts[k] !== 'string') throw new Error(`${src} : texte « ${k} » manquant en ${code}`)
+    return texts[k]
+  })
+}
+
+// Ce qui part chez les destinataires : sans les commentaires de conception
+// (Gmail tronque au-delà de 102 Ko, en coupant le lien de désinscription),
+// sauf les commentaires conditionnels d'Outlook ; puis échappé pour un
+// gabarit littéral JavaScript. Mêmes règles que l'ancien script Python
+// qui transcrivait le gabarit (retiré : ce générateur le remplace).
+function sentHtml(html) {
+  return html.replace(/<!--(?!\[if )(?:(?!-->)[\s\S])*?-->/g, '').replace(/\n{3,}/g, '\n\n')
+}
+const literal = s => s.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')
+
+function emailOutputs(root, header) {
+  const { langs } = loadI18n(root)
+  const codes = langs.filter(l => l.email).map(l => l.code)
+  const all = Object.fromEntries(codes.map(c => [c, stripNotes(emailTexts(root, c))]))
+  const out = []
+
+  // Partage : des données, mises en forme par _shared/shareEmailCopy.ts.
+  const shareKeys = Object.keys(all[codes[0]].share)
+  const presentationLangs = codes.filter(c => all[c].presentation)
+  const presentation = Object.fromEntries(presentationLangs.map(c => {
+    const { html, ...rest } = all[c].presentation
+    return [c, rest]
+  }))
+  out.push(['supabase/functions/_shared/emailCopy.generated.ts', `// ${header('email/')}
+/** Langues dans lesquelles partent les e-mails. */
+export const EMAIL_LANGUAGES = ${JSON.stringify(codes)} as const
+export type EmailLanguage = (typeof EMAIL_LANGUAGES)[number]
+
+export interface ShareEmailTexts {
+${shareKeys.map(k => `  ${k}: string`).join('\n')}
+}
+
+/** E-mail de partage. Marqueurs {name}, {n}, {sender}, {objects}, {title}. */
+export const SHARE_EMAIL_TEXTS: Record<EmailLanguage, ShareEmailTexts> = ${JSON.stringify(Object.fromEntries(codes.map(c => [c, all[c].share])), null, 2)}
+
+export interface PresentationTexts {
+  subject: string
+  opening: Record<string, string>
+  text: { lines: string[] }
+}
+
+/** E-mail de présentation : objet, première phrase, version texte (le HTML est dans emailPresentation.ts). */
+export const PRESENTATION_TEXTS: Partial<Record<EmailLanguage, PresentationTexts>> = ${JSON.stringify(presentation, null, 2)}
+`])
+
+  // Présentation : gabarit sans texte + textes de chaque langue.
+  const layoutFile = 'marketing/emails/gabarits/presentation.html'
+  const layout = readFileSync(join(root, layoutFile), 'utf8')
+  const rendered = Object.fromEntries(presentationLangs.map(c => [c, renderLayout(layout, all[c].presentation.html, c, layoutFile)]))
+  // Aperçu : le gabarit rempli en français, toujours ouvrable seul dans un navigateur.
+  out.push(['marketing/emails/presentation.html', rendered.fr])
+  const sent = Object.fromEntries(presentationLangs.map(c => [c, sentHtml(rendered[c])]))
+  const variables = [...new Set([...sent.fr.matchAll(/\{\{(\w+)\}\}/g)].map(m => m[1]))].sort()
+  for (const c of presentationLangs) {
+    const v = [...new Set([...sent[c].matchAll(/\{\{(\w+)\}\}/g)].map(m => m[1]))].sort()
+    if (v.join() !== variables.join()) throw new Error(`Présentation ${c} : variables ${v} ≠ ${variables}`)
+  }
+  out.push(['supabase/functions/_shared/emailPresentation.ts', [
+    `// ${header('email/ et marketing/emails/gabarits/presentation.html')}`,
+    '//',
+    "// Rejouer node design/generate.mjs après toute modification du gabarit ou",
+    "// des textes, sinon c'est l'ancienne version qui part chez les destinataires.",
+    '',
+    "/** Variables attendues par le gabarit, dans l'ordre alphabétique. */",
+    `export const VARIABLES_PRESENTATION = [${variables.map(v => `'${v}'`).join(', ')}] as const`,
+    '',
+    `export const HTML_PRESENTATION = \`${literal(sent.fr)}\``,
+    '',
+    '/** Le même message dans chaque langue où il est traduit (français sinon). */',
+    'export const HTML_PRESENTATION_BY_LANG: Record<string, string> = {',
+    ...presentationLangs.map(c => c === 'fr' ? '  fr: HTML_PRESENTATION,' : `  ${quote(c)}: \`${literal(sent[c])}\`,`),
+    '}',
+    '',
+  ].join('\n')])
   return out
 }
 

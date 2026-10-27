@@ -1,0 +1,16 @@
+{
+  "share": {
+    "greeting": "Hej {name},",
+    "greetingAnonymous": "Hej,",
+    "objects_one": "1 genstand",
+    "objects_other": "{n} genstande",
+    "body": "{sender} har lige delt en liste med {objects}{title} med dig på Tiroir.",
+    "quote": " „{title}“",
+    "button": "SE DE DELTE GENSTANDE",
+    "password": "🔒 Linket er beskyttet med en adgangskode, som du skal have modtaget separat.",
+    "fallback": "Hvis knappen ikke virker, så kopiér dette link ind i din browser:",
+    "footer": "Tiroir — overblik over dine ting, helt enkelt.",
+    "subject": "{sender} har delt nogle genstande med dig på Tiroir",
+    "anonymousSender": "En Tiroir-bruger"
+  }
+}

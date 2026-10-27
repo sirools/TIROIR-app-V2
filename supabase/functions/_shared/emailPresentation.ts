@@ -1,8 +1,7 @@
-// Généré par scripts/build-email-template.py — NE PAS ÉDITER À LA MAIN.
-// Source : marketing/emails/presentation.html
+// Généré par design/generate.mjs depuis design/i18n/email/ et marketing/emails/gabarits/presentation.html — ne pas modifier à la main.
 //
-// Rejouer le script après toute modification du gabarit, sinon c'est
-// l'ancienne version qui part chez les destinataires.
+// Rejouer node design/generate.mjs après toute modification du gabarit ou
+// des textes, sinon c'est l'ancienne version qui part chez les destinataires.
 
 /** Variables attendues par le gabarit, dans l'ordre alphabétique. */
 export const VARIABLES_PRESENTATION = ['adresse_postale', 'lien_app', 'lien_desinscription', 'lien_preferences', 'ouverture'] as const
@@ -219,3 +218,8 @@ export const HTML_PRESENTATION = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 T
 </body>
 </html>
 `
+
+/** Le même message dans chaque langue où il est traduit (français sinon). */
+export const HTML_PRESENTATION_BY_LANG: Record<string, string> = {
+  fr: HTML_PRESENTATION,
+}

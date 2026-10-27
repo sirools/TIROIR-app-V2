@@ -1,25 +1,36 @@
-// Textes de l'e-mail de partage, dans les langues du site.
+// Textes de l'e-mail de partage — mise en forme seulement. Les textes
+// viennent de design/i18n/email/ (seule source, emailCopy.generated.ts) ;
+// la liste des langues de design/i18n/languages.json.
 //
 // La langue est celle de l'app de l'expéditeur (envoyée par le mobile) :
 // on suppose qu'on écrit à quelqu'un qui parle sa langue. Sans langue
 // reconnue — anciennes versions de l'app —, l'e-mail part en français,
-// comme avant. Traductions da/de/es à faire relire par un natif.
+// comme avant. Traductions da/de/es/pt à faire relire par un natif.
+import { EMAIL_LANGUAGES, SHARE_EMAIL_TEXTS, type EmailLanguage, type ShareEmailTexts } from './emailCopy.generated.ts'
+import { REGIONAL_VARIANTS, SITE_LANGUAGES } from './languages.generated.ts'
 
-export const SHARE_EMAIL_LANGS = ['fr', 'en', 'da', 'de', 'es'] as const
-export type ShareEmailLang = (typeof SHARE_EMAIL_LANGS)[number]
+export const SHARE_EMAIL_LANGS = EMAIL_LANGUAGES
+export type ShareEmailLang = EmailLanguage
 
+const isEmailLang = (code: string): code is ShareEmailLang => (EMAIL_LANGUAGES as readonly string[]).includes(code)
+
+/** « de-DE » → de, « pt-PT » / « pt_PT » → pt-PT, « pt » → pt-BR ; inconnue → français. */
 export function shareEmailLang(value: unknown): ShareEmailLang {
-  const code = typeof value === 'string' ? value.trim().toLowerCase().slice(0, 2) : ''
-  // Portugais (app V4) : pas encore de texte ni de page web en portugais,
-  // l'anglais se lit mieux que le français. À retirer quand pt-BR / pt-PT
-  // arrivent sur le site.
-  if (code === 'pt') return 'en'
-  return (SHARE_EMAIL_LANGS as readonly string[]).includes(code) ? (code as ShareEmailLang) : 'fr'
+  const raw = typeof value === 'string' ? value.trim().replace('_', '-') : ''
+  const base = raw.slice(0, 2).toLowerCase()
+  const variants = REGIONAL_VARIANTS[base]
+  if (variants) {
+    const code = variants.byRegion[raw.slice(3, 5).toUpperCase()] ?? variants.default
+    if (isEmailLang(code)) return code
+  }
+  return isEmailLang(base) ? base : 'fr'
 }
 
-/** Lien de l'e-mail : préfixé par la langue, pour que la page suive l'e-mail. */
+/** Lien de l'e-mail : préfixé par la langue, pour que la page suive l'e-mail
+ *  (en anglais si le site n'existe pas encore dans cette langue). */
 export function shareEmailUrl(lang: ShareEmailLang, token: string): string {
-  return lang === 'fr' ? `https://tiroir.app/s/${token}` : `https://tiroir.app/${lang}/s/${token}`
+  const page = (SITE_LANGUAGES as readonly string[]).includes(lang) ? lang : 'en'
+  return page === 'fr' ? `https://tiroir.app/s/${token}` : `https://tiroir.app/${page}/s/${token}`
 }
 
 interface ShareEmailCopy {
@@ -38,65 +49,25 @@ interface ShareEmailCopy {
   anonymousSender: string
 }
 
-export const SHARE_EMAIL_COPY: Record<ShareEmailLang, ShareEmailCopy> = {
-  fr: {
-    greeting: (name) => (name ? `Bonjour ${name},` : 'Bonjour,'),
-    objects: (n) => (n > 1 ? `${n} objets` : '1 objet'),
-    body: (sender, objects, title) => `${sender} vient de partager une liste de ${objects}${title} avec vous sur Tiroir.`,
-    quote: (title) => ` « ${title} »`,
-    button: 'VOIR LES OBJETS PARTAGÉS',
-    password: '🔒 Ce lien est protégé par un mot de passe que vous devez avoir reçu séparément.',
-    fallback: 'Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :',
-    footer: "Tiroir — l'inventaire de vos objets, simplement.",
-    subject: (sender) => `${sender} a partagé des objets avec vous sur Tiroir`,
-    anonymousSender: 'Un utilisateur Tiroir',
-  },
-  en: {
-    greeting: (name) => (name ? `Hi ${name},` : 'Hi,'),
-    objects: (n) => (n > 1 ? `${n} items` : '1 item'),
-    body: (sender, objects, title) => `${sender} has just shared a list of ${objects}${title} with you on Tiroir.`,
-    quote: (title) => ` “${title}”`,
-    button: 'VIEW THE SHARED ITEMS',
-    password: '🔒 This link is protected by a password, which you should have received separately.',
-    fallback: 'If the button doesn’t work, copy this link into your browser:',
-    footer: 'Tiroir — an inventory of your things, made simple.',
-    subject: (sender) => `${sender} shared some items with you on Tiroir`,
-    anonymousSender: 'A Tiroir user',
-  },
-  da: {
-    greeting: (name) => (name ? `Hej ${name},` : 'Hej,'),
-    objects: (n) => (n > 1 ? `${n} genstande` : '1 genstand'),
-    body: (sender, objects, title) => `${sender} har lige delt en liste med ${objects}${title} med dig på Tiroir.`,
-    quote: (title) => ` „${title}“`,
-    button: 'SE DE DELTE GENSTANDE',
-    password: '🔒 Linket er beskyttet med en adgangskode, som du skal have modtaget separat.',
-    fallback: 'Hvis knappen ikke virker, så kopiér dette link ind i din browser:',
-    footer: 'Tiroir — overblik over dine ting, helt enkelt.',
-    subject: (sender) => `${sender} har delt nogle genstande med dig på Tiroir`,
-    anonymousSender: 'En Tiroir-bruger',
-  },
-  de: {
-    greeting: (name) => (name ? `Hallo ${name},` : 'Hallo,'),
-    objects: (n) => (n > 1 ? `${n} Gegenständen` : '1 Gegenstand'),
-    body: (sender, objects, title) => `${sender} hat gerade eine Liste mit ${objects}${title} auf Tiroir mit Ihnen geteilt.`,
-    quote: (title) => ` „${title}“`,
-    button: 'GETEILTE GEGENSTÄNDE ANSEHEN',
-    password: '🔒 Dieser Link ist durch ein Passwort geschützt, das Sie separat erhalten haben sollten.',
-    fallback: 'Falls der Button nicht funktioniert, kopieren Sie diesen Link in Ihren Browser:',
-    footer: 'Tiroir — das Inventar Ihrer Dinge, ganz einfach.',
-    subject: (sender) => `${sender} hat Gegenstände auf Tiroir mit Ihnen geteilt`,
-    anonymousSender: 'Ein Tiroir-Nutzer',
-  },
-  es: {
-    greeting: (name) => (name ? `Hola, ${name}:` : 'Hola:'),
-    objects: (n) => (n > 1 ? `${n} objetos` : '1 objeto'),
-    body: (sender, objects, title) => `${sender} acaba de compartir contigo en Tiroir una lista de ${objects}${title}.`,
-    quote: (title) => ` «${title}»`,
-    button: 'VER LOS OBJETOS COMPARTIDOS',
-    password: '🔒 Este enlace está protegido con una contraseña que deberías haber recibido por separado.',
-    fallback: 'Si el botón no funciona, copia este enlace en tu navegador:',
-    footer: 'Tiroir — el inventario de tus cosas, así de fácil.',
-    subject: (sender) => `${sender} ha compartido objetos contigo en Tiroir`,
-    anonymousSender: 'Un usuario de Tiroir',
-  },
+/** Remplace les marqueurs {clé} ; les valeurs insérées ne sont pas relues. */
+const fill = (text: string, vars: Record<string, string | number>) =>
+  text.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m))
+
+function copyFor(t: ShareEmailTexts): ShareEmailCopy {
+  return {
+    greeting: (name) => (name ? fill(t.greeting, { name }) : t.greetingAnonymous),
+    objects: (n) => (n > 1 ? fill(t.objects_other, { n }) : t.objects_one),
+    body: (sender, objects, title) => fill(t.body, { sender, objects, title }),
+    quote: (title) => fill(t.quote, { title }),
+    button: t.button,
+    password: t.password,
+    fallback: t.fallback,
+    footer: t.footer,
+    subject: (sender) => fill(t.subject, { sender }),
+    anonymousSender: t.anonymousSender,
+  }
 }
+
+export const SHARE_EMAIL_COPY = Object.fromEntries(
+  EMAIL_LANGUAGES.map(l => [l, copyFor(SHARE_EMAIL_TEXTS[l])]),
+) as Record<ShareEmailLang, ShareEmailCopy>

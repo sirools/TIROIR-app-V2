@@ -2,13 +2,13 @@
 
 **Seule source : ce dossier.** Comme les couleurs (`design/tokens.json`), un
 texte de l'app ou du site se décide ici, et nulle part ailleurs. Une même
-langue, un même dossier, pour l'app et le site : quand un utilisateur change
+langue, un même dossier, pour l'app, le site et les e-mails : quand un utilisateur change
 de langue, tout Tiroir suit (sa langue est aussi gardée dans son compte,
 `user_metadata.locale`, lue par le site et les e-mails).
 
 ## Modifier ou ajouter un texte
 
-1. Changer le texte dans `app/<langue>.json` ou `site/<langue>.json`
+1. Changer le texte dans `app/`, `site/` ou `email/<langue>.json`
    (référence : le français ; les autres langues suivent ses clés).
 2. `node design/generate.mjs` — réécrit les fichiers générés.
 3. `node scripts/i18n-check.mjs` — signale les clés manquantes par langue.
@@ -38,6 +38,7 @@ de langue, tout Tiroir suit (sa langue est aussi gardée dans son compte,
 | `app/<langue>.json` | textes de l'app (i18next, `{{variable}}`, pluriels `_one` / `_other`) | `mobile/src/i18n/locales/<langue>.json`, `mobile/src/i18n/resources.generated.ts` |
 | `site/<langue>.json` | textes du site (`{variable}`) ; `share`, `account`, `about`, `legal` deviennent des fichiers à part | `web/locales/<langue>.ts` et `web/locales/<section>/<langue>.ts` (types `Copy`, `ShareCopy`…) |
 | `system/<langue>.json` | textes système de l'app (demandes d'accès caméra et photothèque) | `mobile/locales/<langue>.json`, déclarés dans `mobile/app.json` |
+| `email/<langue>.json` | e-mails : `share` (partage) et `presentation` (J+3, HTML + version texte) ; une langue partielle hérite de sa langue mère | `supabase/functions/_shared/emailCopy.generated.ts`, `_shared/emailPresentation.ts` (avec le gabarit `marketing/emails/gabarits/presentation.html`), aperçu `marketing/emails/presentation.html` |
 
 Les clés qui commencent par `$` sont des notes pour les humains :
 `$comment` décrit l'objet, `$clé` décrit la clé qui la suit. Elles
@@ -46,9 +47,12 @@ des fichiers de l'app.
 
 ## Pas encore ici
 
-- Les e-mails (`supabase/functions/_shared/shareEmailCopy.ts`,
-  `marketing/emails/`) : leurs textes contiennent du code (fonctions de
-  pluriel, HTML). À ramener ici en séparant textes et gabarits.
+- L'e-mail de présentation dans d'autres langues que le français : la
+  mise en page est prête, il manque les textes (et `profiles.locale` en
+  base pour choisir la langue de chaque compte).
+- Les e-mails d'authentification (confirmation, mot de passe oublié) : ils
+  sont réglés dans le tableau de bord Supabase, pas dans ce dépôt.
+- Les quatre gabarits marketing collés à la main (`marketing/emails/`).
 - Le prompt des Edge Functions d'IA (`chat-turn`, `describe-object`) : la
   liste générée `_shared/languages.generated.ts` est prête, pas encore lue
   (à faire avec un redéploiement des fonctions).

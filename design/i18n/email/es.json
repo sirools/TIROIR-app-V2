@@ -1,0 +1,16 @@
+{
+  "share": {
+    "greeting": "Hola, {name}:",
+    "greetingAnonymous": "Hola:",
+    "objects_one": "1 objeto",
+    "objects_other": "{n} objetos",
+    "body": "{sender} acaba de compartir contigo en Tiroir una lista de {objects}{title}.",
+    "quote": " «{title}»",
+    "button": "VER LOS OBJETOS COMPARTIDOS",
+    "password": "🔒 Este enlace está protegido con una contraseña que deberías haber recibido por separado.",
+    "fallback": "Si el botón no funciona, copia este enlace en tu navegador:",
+    "footer": "Tiroir — el inventario de tus cosas, así de fácil.",
+    "subject": "{sender} ha compartido objetos contigo en Tiroir",
+    "anonymousSender": "Un usuario de Tiroir"
+  }
+}

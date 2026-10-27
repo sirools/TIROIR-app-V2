@@ -3,6 +3,8 @@
 export const APP_LANGUAGES = ["fr","en","es","de","pt-BR","pt-PT"] as const
 /** Langues proposées sur le site. */
 export const SITE_LANGUAGES = ["fr","en","es","de","da"] as const
+/** Langues dans lesquelles partent les e-mails. */
+export const EMAIL_LANGUAGES = ["fr","en","es","de","pt-BR","pt-PT","da"] as const
 /** Langue de référence : toutes les autres suivent ses clés. */
 export const REFERENCE_LANGUAGE = "fr"
 /** Langue par défaut quand celle de l'appareil n'est pas proposée. */

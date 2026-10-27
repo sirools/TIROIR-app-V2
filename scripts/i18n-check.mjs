@@ -4,7 +4,8 @@
 //   node scripts/i18n-check.mjs                  rapport ; sortie 1 si une langue est trouée
 //   node scripts/i18n-check.mjs --list [app|site]  liste les clés de référence (fr) et leur texte
 //
-// Ce qui est vérifié, pour l'app (design/i18n/app) et le site (design/i18n/site) :
+// Ce qui est vérifié, pour l'app (design/i18n/app), le site (design/i18n/site)
+// et les e-mails (design/i18n/email) :
 //   1. chaque langue complète a toutes les clés de la référence, et rien de plus ;
 //   2. une langue partielle (« fallback » dans languages.json, ex. pt-PT) n'a
 //      que des clés connues, et aucune copie inutile de sa langue mère ;
@@ -85,6 +86,42 @@ for (const kind of ['app', 'site']) {
     if (extra.length || badVars.length) failed = true
   }
   console.log('')
+}
+
+// ── E-mails ──────────────────────────────────────────────────────
+// Partage : complet dans chaque langue des e-mails (langue mère comprise).
+// Présentation : on liste les langues traduites ; les autres reçoivent le français.
+{
+  const emailLangs = meta.languages.filter(l => l.email)
+  const merged = code => {
+    const l = meta.languages.find(x => x.code === code)
+    const own = load('email', code) ?? {}
+    if (!l?.fallback) return own
+    const base = merged(l.fallback)
+    return { ...base, ...own, share: { ...base.share, ...own.share } }
+  }
+  const ref = flatten(load('email', REFERENCE)?.share)
+  const refPres = flatten(load('email', REFERENCE)?.presentation)
+  const withPres = []
+  console.log(`── E-mails — partage : ${Object.keys(ref).length} textes`)
+  for (const l of emailLangs) {
+    const data = merged(l.code)
+    const flat = flatten(data.share)
+    const missing = Object.keys(ref).filter(k => !(k in flat))
+    const badVars = Object.keys(flat).filter(k => k in ref && VARS.site(flat[k]) !== VARS.site(ref[k]))
+    if (missing.length) { console.log(`${l.code} : ${missing.length} MANQUANTES — ${missing.join(', ')}`); failed = true }
+    for (const k of badVars) { console.log(`  variables différentes : ${l.code} share.${k}`); failed = true }
+    if (data.presentation) {
+      withPres.push(l.code)
+      const p = flatten(data.presentation)
+      const miss = Object.keys(refPres).filter(k => !(k in p))
+      if (miss.length) { console.log(`${l.code} présentation : ${miss.length} MANQUANTES — ${miss.join(', ')}`); failed = true }
+      for (const k of Object.keys(p).filter(k => k in refPres && (VARS.app(p[k]) !== VARS.app(refPres[k]) || VARS.site(p[k]) !== VARS.site(refPres[k])))) {
+        console.log(`  variables différentes : ${l.code} presentation.${k}`); failed = true
+      }
+    }
+  }
+  console.log(`Partage : ${emailLangs.map(l => l.code).join(', ')} · présentation traduite : ${withPres.join(', ')} (les autres comptes la reçoivent en ${REFERENCE})\n`)
 }
 
 // ── Textes système de l'app ──────────────────────────────────────

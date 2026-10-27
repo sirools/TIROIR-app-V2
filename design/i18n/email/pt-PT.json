@@ -1,0 +1,12 @@
+{
+  "share": {
+    "body": "{sender} acabou de partilhar consigo no Tiroir uma lista de {objects}{title}.",
+    "quote": " «{title}»",
+    "button": "VER OS OBJETOS PARTILHADOS",
+    "password": "🔒 Esta ligação está protegida por uma palavra-passe, que deverá ter recebido em separado.",
+    "fallback": "Se o botão não funcionar, copie esta ligação para o seu navegador:",
+    "footer": "Tiroir — o inventário das suas coisas, de forma simples.",
+    "subject": "{sender} partilhou objetos consigo no Tiroir",
+    "anonymousSender": "Um utilizador do Tiroir"
+  }
+}
