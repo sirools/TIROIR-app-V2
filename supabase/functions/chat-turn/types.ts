@@ -23,7 +23,7 @@ export interface ChatTurnRequest {
 }
 
 /** Langues dans lesquelles l'IA peut rédiger une fiche (miroir de SUPPORTED_LANGUAGES côté app). */
-export type AiLocale = 'fr' | 'en' | 'es' | 'de'
+export type AiLocale = 'fr' | 'en' | 'es' | 'de' | 'pt-BR' | 'pt-PT'
 
 // ── Réponse sortante ─────────────────────────────────────────────
 

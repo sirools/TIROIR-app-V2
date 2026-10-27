@@ -16,8 +16,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.sirools.tiroir",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "CFBundleLocalizations": ["fr", "en", "es", "de"]
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -50,7 +49,29 @@
       "@react-native-community/datetimepicker",
       "expo-web-browser",
       "expo-apple-authentication",
-      "expo-localization"
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": [
+              "fr",
+              "en",
+              "es",
+              "de",
+              "pt-BR",
+              "pt-PT"
+            ],
+            "android": [
+              "fr",
+              "en",
+              "es",
+              "de",
+              "pt-BR",
+              "pt-PT"
+            ]
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -61,6 +82,14 @@
         "projectId": "aa3c951d-bb0e-4398-8e90-3142a4f0d844"
       }
     },
-    "owner": "sirools"
+    "owner": "sirools",
+    "locales": {
+      "fr": "./locales/fr.json",
+      "en": "./locales/en.json",
+      "es": "./locales/es.json",
+      "de": "./locales/de.json",
+      "pt-BR": "./locales/pt-BR.json",
+      "pt-PT": "./locales/pt-PT.json"
+    }
   }
 }

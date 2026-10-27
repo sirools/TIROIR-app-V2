@@ -10,6 +10,10 @@ export type ShareEmailLang = (typeof SHARE_EMAIL_LANGS)[number]
 
 export function shareEmailLang(value: unknown): ShareEmailLang {
   const code = typeof value === 'string' ? value.trim().toLowerCase().slice(0, 2) : ''
+  // Portugais (app V4) : pas encore de texte ni de page web en portugais,
+  // l'anglais se lit mieux que le français. À retirer quand pt-BR / pt-PT
+  // arrivent sur le site.
+  if (code === 'pt') return 'en'
   return (SHARE_EMAIL_LANGS as readonly string[]).includes(code) ? (code as ShareEmailLang) : 'fr'
 }
 

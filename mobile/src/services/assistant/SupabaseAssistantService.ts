@@ -7,9 +7,10 @@ import i18n, { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, type AppLanguage } from '@
  * Langue active de l'app à transmettre à l'IA pour qu'elle rédige la fiche
  * dans la bonne langue. i18n.language peut être une variante régionale
  * (ex: 'en-US') : on ne garde que le code base et on retombe sur la langue
- * par défaut si non supporté.
+ * par défaut si non supporté. Le portugais garde sa variante (pt-BR, pt-PT).
  */
 function currentAiLocale(): AppLanguage {
+  if ((SUPPORTED_LANGUAGES as readonly string[]).includes(i18n.language)) return i18n.language as AppLanguage
   const base = i18n.language?.split('-')[0]?.toLowerCase()
   return (SUPPORTED_LANGUAGES as readonly string[]).includes(base ?? '')
     ? (base as AppLanguage)

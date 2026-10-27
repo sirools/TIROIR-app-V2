@@ -21,6 +21,8 @@ const LANGUAGE_NATIVE_NAME: Record<AiLocale, string> = {
   en: 'English',
   es: 'español',
   de: 'Deutsch',
+  'pt-BR': 'português do Brasil',
+  'pt-PT': 'português europeu',
 }
 
 /** Langue par défaut côté serveur si le client n'envoie rien de valide. */
@@ -140,6 +142,8 @@ export function buildUserMessage(
     en: `Analyze ${count === 1 ? 'this photo' : `these ${count} photos`} and return the structured JSON for the item.`,
     es: `Analiza ${count === 1 ? 'esta foto' : `estas ${count} fotos`} y devuelve el JSON estructurado del objeto.`,
     de: `Analysiere ${count === 1 ? 'dieses Foto' : `diese ${count} Fotos`} und gib das strukturierte JSON des Objekts zurück.`,
+    'pt-BR': `Analise ${count === 1 ? 'esta foto' : `estas ${count} fotos`} e retorne o JSON estruturado do objeto.`,
+    'pt-PT': `Analise ${count === 1 ? 'esta fotografia' : `estas ${count} fotografias`} e devolva o JSON estruturado do objeto.`,
   }
   let textContent = instruction[locale] ?? instruction[DEFAULT_AI_LOCALE]
 
