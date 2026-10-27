@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 import { acquisitionFrom, FIRST_TOUCH_KEY, parseAcquisition, type Acquisition } from '../lib/attribution'
+import { accountLocale } from '../lib/accountLocale'
 
 const VISITOR_STORAGE_KEY = 'tiroir_visitor_id'
 
@@ -43,18 +44,22 @@ export function firstTouch(): Acquisition | null {
 }
 
 /**
- * Compte tout juste créé sur le site (moins d'un jour) et sans source :
- * on y rattache le premier passage. Les comptes anciens ne sont jamais
- * réattribués : ils ne viennent pas de cette visite.
+ * Compte tout juste créé sur le site (moins d'un jour), par Google ou
+ * Apple, qui n'a ni source ni langue : on y rattache le premier passage
+ * et la langue de la page. Les comptes anciens ne sont jamais modifiés :
+ * ils ne viennent pas de cette visite.
  */
-async function attachAcquisition() {
-  const acq = firstTouch()
-  if (!acq) return
+async function attachSignupInfo(pageLocale: string | undefined) {
   const { data } = await supabase.auth.getUser()
   const user = data.user
-  if (!user || user.user_metadata?.acq) return
+  if (!user) return
   if (Date.now() - new Date(user.created_at).getTime() > 24 * 60 * 60 * 1000) return
-  await supabase.auth.updateUser({ data: { acq } })
+  const updates: Record<string, unknown> = {}
+  const acq = firstTouch()
+  if (acq && !user.user_metadata?.acq) updates.acq = acq
+  const locale = accountLocale(pageLocale)
+  if (locale && !accountLocale(user.user_metadata?.locale)) updates.locale = locale
+  if (Object.keys(updates).length) await supabase.auth.updateUser({ data: updates })
 }
 
 function trackPageview(path: string) {
@@ -82,11 +87,14 @@ function trackPageview(path: string) {
 
 export default function SiteVisitTracker() {
   const router = useRouter()
+  // Langue de la page au moment de la connexion (retour Google ou Apple).
+  const locale = useRef(router.locale)
+  locale.current = router.locale
 
   useEffect(() => {
     rememberFirstTouch()
     const { data } = supabase.auth.onAuthStateChange(event => {
-      if (event === 'SIGNED_IN') void attachAcquisition().catch(() => undefined)
+      if (event === 'SIGNED_IN') void attachSignupInfo(locale.current).catch(() => undefined)
     })
     return () => data.subscription.unsubscribe()
   }, [])

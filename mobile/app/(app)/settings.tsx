@@ -18,6 +18,7 @@ import {
   SUPPORTED_REGIONS, type RegionPreference,
 } from '@/i18n/region'
 import { Screen, Button, Input, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { saveAccountLocale } from '@/features/auth/accountLocale'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -45,6 +46,9 @@ export default function SettingsScreen() {
   async function chooseLanguage(pref: LanguagePreference) {
     setLanguagePref(pref)
     await setAppLanguage(pref)
+    // La langue suit le compte (e-mails, site) : « Automatique » y inscrit
+    // la langue résolue de l'appareil.
+    void saveAccountLocale(pref === 'auto' ? deviceLanguage() : pref).catch(() => undefined)
   }
 
   async function chooseRegion(pref: RegionPreference) {

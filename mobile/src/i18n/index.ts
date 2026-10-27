@@ -101,6 +101,19 @@ export async function loadStoredLanguage() {
   }
 }
 
+// Langue à donner au compte (user_metadata.locale, lue par les e-mails et
+// le site) : le choix mémorisé, sinon celle de l'app. Lit le stockage, au
+// cas où loadStoredLanguage n'aurait pas encore fini.
+export async function preferredLanguage(): Promise<AppLanguage> {
+  try {
+    const stored = await AsyncStorage.getItem(STORAGE_KEY)
+    if (isSupported(stored)) return stored
+  } catch {
+    /* AsyncStorage indisponible : langue courante */
+  }
+  return isSupported(i18n.language) ? i18n.language : DEFAULT_LANGUAGE
+}
+
 /** Préférence enregistrée : une langue choisie, ou « auto » (rien d'enregistré). */
 export async function getLanguagePreference(): Promise<LanguagePreference> {
   try {
