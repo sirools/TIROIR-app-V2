@@ -67,9 +67,11 @@ première phrase, version texte et e-mail de partage dans les 5 langues
 existantes **identiques à l'octet** ; seul changement voulu, un expéditeur
 en portugais envoie désormais l'e-mail de partage en portugais (le lien
 ouvre le site en anglais). `deno check` passe sur `create-share-link`,
-`send-lifecycle-emails` et `describe-object` ; `chat-turn` a une erreur de
-type **déjà présente sur `main`** (ligne 220, `ChatTurnErrorCode`), non
-corrigée ici. À redéployer : `create-share-link`, `send-lifecycle-emails`.
+`send-lifecycle-emails` et `describe-object`. L'erreur de type de
+`chat-turn`, **présente sur `main` depuis le 30/09** (code de refus de
+`refusal()` typé `string`), est corrigée : `deno check` passe sur
+`chat-turn` et les cinq autres fonctions qui utilisent `refusal()`.
+À redéployer : `create-share-link`, `send-lifecycle-emails`, `chat-turn`.
 
 Tests lancés au premier passage : `web` → 302 tests sur 303 passent ; le seul échec est
 `build.test.ts`, qui exige `NEXT_PUBLIC_SUPABASE_URL` et la clé anonyme,
