@@ -20,8 +20,8 @@ describe('config/tiers.json', () => {
   })
 
   test('les packs sont ceux de la grille V4', () => {
-    const packs = tiers.creditPacks.packs.map((p: { credits: number; price: number; popular: boolean }) =>
-      ({ credits: p.credits, priceTtc: p.price, popular: p.popular }))
+    const packs = tiers.creditPacks.packs.map((p: { id: string; credits: number; price: number; popular: boolean }) =>
+      ({ id: p.id, credits: p.credits, priceTtc: p.price, popular: p.popular }))
     expect(packs).toEqual(OFFERS_V4.packs)
   })
 
