@@ -356,6 +356,11 @@
     "proHint": "Tout Premium, avec plus d'analyses IA et de retouches photo chaque mois.",
     "welcomeProTitle": "Bienvenue dans Tiroir Pro ! 🎉"
   },
+  "credits": {
+    "outTitle": "Plus de crédits IA",
+    "outBody": "Le quota du mois est atteint et il ne reste pas assez de crédits. Un pack de crédits permet de continuer tout de suite.",
+    "buy": "Acheter des crédits"
+  },
   "assistant": {
     "title": "Assistant",
     "lockedTitle": "Fonctionnalité Premium",

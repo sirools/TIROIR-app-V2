@@ -28,7 +28,8 @@ import { decode } from 'base64-arraybuffer'
 import { Plus, Minus, Pencil, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, ChevronUp, ChevronDown, MapPin, Share2, Sparkles, Star, Info, CalendarDays, UserRound, ExternalLink } from 'lucide-react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
-import { functionMessage } from '@/lib/functionError'
+import { functionError } from '@/lib/functionError'
+import { isCreditsRefusal, offerCredits } from '@/lib/buyCredits'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan } from '@/lib/plan'
 import {
@@ -575,7 +576,8 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
           // garde le message par défaut
         }
         if (code === 'QUOTA_EXCEEDED') {
-          crossAlert(t('object.photo.quotaTitle'), t('object.photo.quotaMessage'))
+          // Quota du mois et crédits épuisés : la sortie, c'est un pack.
+          offerCredits(router, t, message)
         } else if (code === 'PREMIUM_REQUIRED') {
           crossAlert(t('object.photo.enhancePremiumTitle'), t('object.photo.premiumRequiredMessage'))
         } else {
@@ -2685,14 +2687,15 @@ export default function ObjectScreen() {
       const { data, error: fnError } = await supabase.functions.invoke('describe-object', {
         body: { object_id: id, locale: i18n.language },
       })
-      if (fnError) throw new Error(await functionMessage(fnError))
+      if (fnError) throw await functionError(fnError)
       if (data?.error) throw new Error(data.error.message ?? data.error.code)
 
       // La fonction a déjà écrit en base : on aligne l'écran plutôt que
       // de renvoyer une seconde écriture derrière.
       setObject(prev => prev ? ({ ...prev, description: data.description } as TiroirObject) : prev)
     } catch (e) {
-      Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e))
+      if (isCreditsRefusal(e)) offerCredits(router, t, (e as Error).message)
+      else Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e))
     } finally {
       setDescribing(false)
     }
@@ -2784,7 +2787,7 @@ export default function ObjectScreen() {
       })
       // Le motif vit dans le corps de la réponse : `invoke` ne rend qu'un
       // « non-2xx status code ».
-      if (res.error) throw new Error(await functionMessage(res.error))
+      if (res.error) throw await functionError(res.error)
       if (res.data?.error) throw new Error(res.data.error.message ?? res.data.error.code)
       const est = res.data
       setObject(prev => prev ? {
@@ -2804,7 +2807,9 @@ export default function ObjectScreen() {
       const message = err instanceof Error ? err.message : t('object.estimateFailed')
       // Au plafond, l'erreur seule laisserait l'utilisateur sans issue :
       // on lui montre la sortie plutôt que le mur.
-      if (/quota/i.test(message)) {
+      if (isCreditsRefusal(err)) {
+        offerCredits(router, t, message)
+      } else if (/quota/i.test(message)) {
         Alert.alert(t('object.value.quotaTitle'), t('object.value.quotaBody'), [
           { text: t('common.cancel'), style: 'cancel' },
           { text: t('object.value.quotaUpgrade'), onPress: () => router.push('/paywall') },

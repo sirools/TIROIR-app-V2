@@ -356,6 +356,11 @@
     "proHint": "Everything in Premium, with more AI analyses and photo touch-ups every month.",
     "welcomeProTitle": "Welcome to Tiroir Pro! 🎉"
   },
+  "credits": {
+    "outTitle": "Out of AI credits",
+    "outBody": "This month's allowance is used up and there aren't enough credits left. A credit pack lets you carry on right away.",
+    "buy": "Buy credits"
+  },
   "assistant": {
     "title": "Assistant",
     "lockedTitle": "Premium feature",

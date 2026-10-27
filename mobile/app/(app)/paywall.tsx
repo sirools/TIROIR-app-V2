@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ActivityIndicator, Alert, ScrollView, Switch, Platform, Linking,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Zap, Package, Brain, Camera, Check, Sparkles } from 'lucide-react-native'
 import Purchases, { PurchasesPackage } from 'react-native-purchases'
@@ -28,6 +28,10 @@ const FEATURES = [
 
 export default function PaywallScreen() {
   const router = useRouter()
+  // Ouvert après un refus « crédits insuffisants » (lib/buyCredits.ts) :
+  // on descend directement aux packs.
+  const { section } = useLocalSearchParams<{ section?: string }>()
+  const scrollRef = useRef<ScrollView>(null)
   const insets = useSafeAreaInsets()
   const { t } = useTranslation()
 
@@ -167,7 +171,7 @@ export default function PaywallScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
         {/* Hero */}
         <View style={s.hero}>
           <View style={s.heroIcon}>
@@ -280,7 +284,10 @@ export default function PaywallScreen() {
 
         {/* ── Packs de crédits : l'IA à l'unité, sans abonnement ── */}
         {packs.length > 0 && (
-          <View style={s.packs}>
+          <View
+            style={s.packs}
+            onLayout={e => { if (section === 'credits') scrollRef.current?.scrollTo({ y: e.nativeEvent.layout.y, animated: true }) }}
+          >
             <Text style={s.packsTitle}>{t('paywall.packsTitle')}</Text>
             <Text style={s.packsHint}>
               {credits != null

@@ -147,7 +147,11 @@
     "welcomeMessage": "A sua subscrição está ativa.",
     "welcomeCta": "Ótimo!",
     "restoredTitle": "Subscrição restaurada ✓",
-    "noSubTitle": "Nenhuma subscrição encontrada"
+    "noSubTitle": "Nenhuma subscrição encontrada",
+    "proHint": "Tudo do Premium, com mais análises de IA e retoques de fotografia todos os meses."
+  },
+  "credits": {
+    "outBody": "A quota do mês esgotou-se e não há créditos suficientes. Um pacote de créditos permite continuar de imediato."
   },
   "assistant": {
     "lockedSub": "O Assistente por conversa é exclusivo para subscritores Premium.",

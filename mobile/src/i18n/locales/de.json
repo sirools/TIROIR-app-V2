@@ -356,6 +356,11 @@
     "proHint": "Alles aus Premium, mit mehr KI-Analysen und Fotobearbeitungen pro Monat.",
     "welcomeProTitle": "Willkommen bei Tiroir Pro! 🎉"
   },
+  "credits": {
+    "outTitle": "Keine KI-Credits mehr",
+    "outBody": "Das Monatskontingent ist aufgebraucht und es sind nicht genug Credits übrig. Mit einem Credit-Paket geht es sofort weiter.",
+    "buy": "Credits kaufen"
+  },
   "assistant": {
     "title": "Assistent",
     "lockedTitle": "Premium-Funktion",

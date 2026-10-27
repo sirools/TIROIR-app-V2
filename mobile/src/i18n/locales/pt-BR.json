@@ -350,7 +350,16 @@
     "noSubMessage": "Nenhuma compra anterior para restaurar.",
     "restoreError": "Não foi possível restaurar.",
     "terms": "Termos de Uso",
-    "privacy": "Política de Privacidade"
+    "privacy": "Política de Privacidade",
+    "tierPremium": "Premium",
+    "tierPro": "Pro",
+    "proHint": "Tudo do Premium, com mais análises de IA e retoques de foto todo mês.",
+    "welcomeProTitle": "Boas-vindas ao Tiroir Pro! 🎉"
+  },
+  "credits": {
+    "outTitle": "Sem créditos de IA",
+    "outBody": "A cota do mês acabou e não há créditos suficientes. Um pacote de créditos permite continuar agora mesmo.",
+    "buy": "Comprar créditos"
   },
   "assistant": {
     "title": "Assistente",
