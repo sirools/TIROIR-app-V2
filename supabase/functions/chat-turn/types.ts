@@ -50,6 +50,7 @@ export type ChatTurnErrorCode =
   | 'NO_IMAGES'
   | 'CLAUDE_ERROR'
   | 'QUOTA_EXCEEDED'
+  | 'PREMIUM_REQUIRED'
   | 'INTERNAL_ERROR'
 
 // ── Données proposées par l'IA ───────────────────────────────────
