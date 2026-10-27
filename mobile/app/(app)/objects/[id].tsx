@@ -33,7 +33,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan } from '@/lib/plan'
 import {
   Screen, Colors, Typography, Spacing, Radius, ActionSheet, Checkbox, useToast,
-  CollectionPickerSheet, PickedCollection,
+  CollectionPickerSheet, PickedCollection, TorixMark,
 } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
 import { DocumentsSection, ObjectDocument } from '@/components/DocumentsSection'
@@ -1574,7 +1574,7 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
               </TouchableOpacity>
             )}
           </View>
-          <Text style={vc.amountHint}>{t('object.value.marketHint')}</Text>
+          <TorixMark label={t('object.value.marketHint')} size={11} textStyle={vc.amountHint} style={{ marginTop: 2 }} />
         </View>
 
         {estimating ? (
@@ -3041,8 +3041,7 @@ export default function ObjectScreen() {
                     actions passent par le ••• : un seul point d'entrée, et
                     plus deux crayons côte à côte qui se ressemblaient sans
                     faire la même chose. */}
-                <Sparkles size={14} color={Colors.accent} strokeWidth={2} />
-                <Text style={s.cardLabel}>{t('object.aiSummary')}</Text>
+                <TorixMark label={t('object.aiSummary')} textStyle={s.cardLabel} style={{ flex: 1 }} />
                 <TouchableOpacity
                   onPress={() => setSummaryMenuVisible(true)}
                   disabled={describing}
