@@ -49,7 +49,16 @@ store, de RevenueCat ou de Stripe touché, aucun secret ajouté.
 | Brouillon de la **config unique des paliers** | `config/tiers.json` | `web/__tests__/tiersConfig.test.ts` (6 tests) : prix = `OFFERS_V4`, packs, produits de la checklist stores, colonnes `app_settings`, coût des crédits |
 | Script de clés manquantes par langue (+ variables `{{…}}`, langues partielles, ISO langues app/site, langues natives) | `scripts/i18n-check.mjs` | sortie 0 |
 
-Tests lancés : `web` → 302 tests sur 303 passent ; le seul échec est
+**Deuxième passage (27/10, après-midi)**
+
+| Livrable | Fichiers | Vérifié par |
+| --- | --- | --- |
+| Fusion de `feat/stores-grille-v4`, `claude/mobile-credits-cta`, `feat/langue-compte` dans cette branche | conflits des fichiers de langue et de Paramètres résolus ; clés ajoutées par ces branches traduites en pt-BR / pt-PT | `i18n-check`, `tsc`, tests du site |
+| La langue suit le compte : choisir une langue (ou « Automatique », résolue) l'inscrit dans `user_metadata.locale`, lu par le site et les e-mails | `mobile/app/(app)/settings.tsx`, `mobile/src/features/auth/accountLocale.ts` | `tsc` |
+| Brouillon `profiles.locale` : accepte `pt-BR` et `pt-PT` (« pt_PT » → pt-PT, « pt » → pt-BR) | `supabase/drafts/profiles_locale.sql` | 14 tests sur une base Postgres jetable (`run_locale.sh`) |
+| **Traductions centralisées dans le design system** : `design/i18n/` (langues, app, site, textes système), générées par `node design/generate.mjs` comme les couleurs | `design/i18n/`, `design/i18n.mjs` ; fichiers générés dans `mobile/` et `web/` | les 25 fichiers du site régénérés donnent **exactement les mêmes textes** (valeurs comparées) ; fichiers de l'app identiques à l'octet ; `generate.mjs --check` ; `web/__tests__/i18nCentral.test.ts` |
+
+Tests lancés au premier passage : `web` → 302 tests sur 303 passent ; le seul échec est
 `build.test.ts`, qui exige `NEXT_PUBLIC_SUPABASE_URL` et la clé anonyme,
 absentes de ce conteneur (même erreur sans mes changements). `mobile` →
 `tsc --noEmit` sans erreur.
@@ -74,6 +83,7 @@ Préférences, et Réglages iOS › Tiroir › Langue.
 | `strategie/` | offres, packs stores, Torix | grille V4 **figée le 19/10/2026** (`strategie/offres.md`) |
 | `preprod/` | stack de pré-prod sur le NAS | runbook Supabase preprod |
 | `config/` | *(nouveau)* `tiers.json` | brouillon |
+| `design/i18n/` | *(nouveau)* seule source des traductions | voir `design/i18n/README.md` |
 
 ### 1.2 État de la « branche V4 »
 
@@ -87,8 +97,8 @@ Préférences, et Réglages iOS › Tiroir › Langue.
 - J'ai donc créé `claude/v4-holistique` depuis `main` (option la plus
   réversible : une branche se supprime). **À confirmer** (décision D1).
 
-Branches non fusionnées qui touchent directement la V4 — à fusionner ou
-fermer **avant** de coder la suite, sinon conflits :
+Branches qui touchent directement la V4 (les trois premières sont
+**fusionnées dans cette branche** depuis le second passage) :
 
 | Branche | Contenu | Conflit avec cette branche |
 | --- | --- | --- |
@@ -224,7 +234,7 @@ Total code ≈ 37 jours, dont ≈ 10 jours bloqués par des décisions.
 
 ### 3.1 Clés existantes
 
-802 clés dans `mobile/src/i18n/locales/fr.json` (référence). Liste complète,
+809 clés dans `design/i18n/app/fr.json` (référence de l’app ; 802 au premier passage, +7 venues des branches fusionnées), 652 dans `design/i18n/site/fr.json`. Liste complète,
 clé et texte : `node scripts/i18n-check.mjs --list`.
 
 | Espace | Clés | Espace | Clés | Espace | Clés |
@@ -271,7 +281,8 @@ générique, et `fallbackLng` déclare `{ 'pt-PT': ['pt-BR', 'en'] }`.
 
 ```bash
 node scripts/i18n-check.mjs          # rapport ; sortie 1 si une langue complète est trouée
-node scripts/i18n-check.mjs --list   # toutes les clés de référence
+node scripts/i18n-check.mjs --list app    # toutes les clés de référence de l'app
+node scripts/i18n-check.mjs --list site   # du site
 ```
 
 Il signale : clés manquantes par langue, clés inconnues, variables `{{…}}`
@@ -317,7 +328,17 @@ déjà traduite). Décision D5.
   anciennes valeurs (proposition : jamais de conversion automatique, la
   devise reste celle de l'estimation).
 
-### 3.6 Web : mêmes langues, mêmes clés
+### 3.6 Web : mêmes langues, mêmes clés — source unique en place
+
+**Fait au second passage** : `design/i18n/` porte les textes de l'app et du
+site, la liste des langues et les textes système ; `node design/generate.mjs`
+écrit `mobile/src/i18n/locales/*.json`, `web/locales/**/*.ts` et les listes
+de langues. Ajouter le portugais au site = écrire `design/i18n/site/pt-BR.json`
+(le script liste les 652 clés), passer `"site": true` dans `languages.json`,
+ajouter la langue à `next.config.js` et `localeRouting.ts` (un test vérifie
+qu'elles concordent). Le paragraphe ci-dessous est l'étape suivante.
+
+Constat de départ, gardé pour l'historique :
 
 État : site en fr, en, da, de, es ; seule la homepage est traduite en
 da/de/es ; détection désactivée.

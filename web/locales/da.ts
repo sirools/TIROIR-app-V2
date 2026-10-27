@@ -1,3 +1,5 @@
+// Généré par design/generate.mjs depuis design/i18n/site/da.json — ne pas modifier à la main.
+//
 // Sidens tekster på dansk. Samme struktur som fr.ts.
 // Skal gennemlæses af en person med dansk som modersmål.
 import type { Copy } from './fr'
@@ -36,7 +38,6 @@ const da: Copy = {
     contact: 'Kontakt',
     language: 'Sprog',
   },
-
   home: {
     meta: {
       title: 'Tiroir — ét billede, og dine ting er på plads',
@@ -77,11 +78,27 @@ const da: Copy = {
       eyebrow: 'Sådan virker det',
       title: 'Tre trin, intet at indstille.',
       steps: [
-        { title: 'Tag et billede', text: 'Én genstand, ét billede. Eller hundrede på én gang i serietilstand.' },
-        { title: 'Beskrivelsen skriver sig selv', text: 'Navn, kategori, materiale, stand: alt er udfyldt. Ret til, hvis du vil.' },
-        { title: 'Alt er på plads', text: 'Samlinger, søgning, status: du finder alt, når som helst.' },
+        {
+          title: 'Tag et billede',
+          text: 'Én genstand, ét billede. Eller hundrede på én gang i serietilstand.',
+        },
+        {
+          title: 'Beskrivelsen skriver sig selv',
+          text: 'Navn, kategori, materiale, stand: alt er udfyldt. Ret til, hvis du vil.',
+        },
+        {
+          title: 'Alt er på plads',
+          text: 'Samlinger, søgning, status: du finder alt, når som helst.',
+        },
       ],
-      fiche: { name: 'Cowboyjakke', rows: [['Kategori', 'Tøj'], ['Materiale', 'Denim'], ['Stand', 'God']] },
+      fiche: {
+        name: 'Cowboyjakke',
+        rows: [
+          ['Kategori', 'Tøj'],
+          ['Materiale', 'Denim'],
+          ['Stand', 'God'],
+        ],
+      },
       collections: ['Garderobe', 'Til salg', 'Studie'],
       search: 'blå jakke',
     },
@@ -90,10 +107,26 @@ const da: Copy = {
       title: 'Mindre indtastning, mere tid til faget.',
       sub: 'Dit udstyr, dit lager, dine samlinger: dokumenteret med et par billeder, mens du arbejder.',
       personas: [
-        { who: 'Stylist', text: 'Hvert stykke fotograferet og sorteret efter shoot. Du ved, hvad der er ude, og hvad der er kommet retur.', chip: 'Udlånt · retur fredag' },
-        { who: 'Produktionsleder', text: 'Udstyret registreret før optagelsen og tjekket ved retur. Hele lageret i lommen.', chip: '42 dele · 3 udlånt' },
-        { who: 'Genbrugshandler', text: 'En hel stand registreret på én gang med serietilstand – med en startpris på hvert stykke.', chip: 'Serie · 60 genstande' },
-        { who: 'Musiker', text: 'Instrumenter og tilbehør dokumenteret, kvitteringer vedhæftet: klar til forsikring eller videresalg.', chip: 'Værdi ≈ {price}' },
+        {
+          who: 'Stylist',
+          text: 'Hvert stykke fotograferet og sorteret efter shoot. Du ved, hvad der er ude, og hvad der er kommet retur.',
+          chip: 'Udlånt · retur fredag',
+        },
+        {
+          who: 'Produktionsleder',
+          text: 'Udstyret registreret før optagelsen og tjekket ved retur. Hele lageret i lommen.',
+          chip: '42 dele · 3 udlånt',
+        },
+        {
+          who: 'Genbrugshandler',
+          text: 'En hel stand registreret på én gang med serietilstand – med en startpris på hvert stykke.',
+          chip: 'Serie · 60 genstande',
+        },
+        {
+          who: 'Musiker',
+          text: 'Instrumenter og tilbehør dokumenteret, kvitteringer vedhæftet: klar til forsikring eller videresalg.',
+          chip: 'Værdi ≈ {price}',
+        },
       ],
     },
     everyone: {
@@ -101,12 +134,26 @@ const da: Copy = {
       title: 'Du behøver ikke være professionel. Eller teknisk.',
       sub: 'Kan du tage et billede, kan du bruge Tiroir.',
       points: [
-        { title: 'Ingen forkundskaber', text: 'Ingen regneark, ingen tomme formularer. Du tager billedet, Tiroir udfylder.' },
-        { title: 'Dine data er dine', text: 'Ingen reklamer, intet videresælges eller bruges til at træne modeller. Sletter du din konto, forsvinder alt – med det samme.' },
-        { title: 'Deling kun til visning', text: 'Et link til en samling: andre kan se den uden konto eller app. Du slår linket fra, når du vil.' },
+        {
+          title: 'Ingen forkundskaber',
+          text: 'Ingen regneark, ingen tomme formularer. Du tager billedet, Tiroir udfylder.',
+        },
+        {
+          title: 'Dine data er dine',
+          text: 'Ingen reklamer, intet videresælges eller bruges til at træne modeller. Sletter du din konto, forsvinder alt – med det samme.',
+        },
+        {
+          title: 'Deling kun til visning',
+          text: 'Et link til en samling: andre kan se den uden konto eller app. Du slår linket fra, når du vil.',
+        },
       ],
       usesTitle: 'Den er også god til at…',
-      uses: ['Forberede en sag til forsikringen', 'Flytte uden at miste noget', 'Prissætte til loppemarkedet', 'Rydde op i garderoben'],
+      uses: [
+        'Forberede en sag til forsikringen',
+        'Flytte uden at miste noget',
+        'Prissætte til loppemarkedet',
+        'Rydde op i garderoben',
+      ],
       why: 'Derfor virker det: en kunstig intelligens til billedgenkendelse beskriver hvert billede. Resultatet er kun et forslag – alle felter kan rettes, og dine rettelser vinder altid.',
     },
     value: {
@@ -114,12 +161,25 @@ const da: Copy = {
       title: 'Vid, hvad det er værd – og følg med.',
       sub: 'Et skøn baseret på sammenlignelige annoncer, ikke et tal grebet ud af luften.',
       items: [
-        { title: 'Vurdér', text: 'Et prisinterval – og de annoncer, det bygger på.' },
-        { title: 'Følg', text: 'Værdien af hver genstand og hver samling, opdateret når du vil.' },
-        { title: 'Sælg videre', text: 'Markér som „Solgt“ med den faktiske pris: genstanden bliver i din historik.' },
+        {
+          title: 'Vurdér',
+          text: 'Et prisinterval – og de annoncer, det bygger på.',
+        },
+        {
+          title: 'Følg',
+          text: 'Værdien af hver genstand og hver samling, opdateret når du vil.',
+        },
+        {
+          title: 'Sælg videre',
+          text: 'Markér som „Solgt“ med den faktiske pris: genstanden bliver i din historik.',
+        },
       ],
       note: 'Det er ikke en professionel vurdering: for et sjældent stykke er det en størrelsesorden.',
-      demo: { comparable: 'Lignende annonce', sold: 'Solgt', trend: 'Samlingens værdi' },
+      demo: {
+        comparable: 'Lignende annonce',
+        sold: 'Solgt',
+        trend: 'Samlingens værdi',
+      },
     },
     pricing: {
       eyebrow: 'Priser',
@@ -139,10 +199,22 @@ const da: Copy = {
     faq: {
       title: 'Ofte stillede spørgsmål',
       items: [
-      { q: 'Skal jeg være god til teknik?', a: 'Nej. Du tager et billede, Tiroir udfylder beskrivelsen. Alt kan rettes med et tryk.' },
-      { q: 'Hvad hvis beskrivelsen tager fejl?', a: 'Alle felter kan redigeres, og dine rettelser vinder altid. Det præcise mærke eller købsprisen kender kun du.' },
-      { q: 'Er mine billeder private?', a: 'Ja. Intet er offentligt, før du deler et link – og det kan du slå fra når som helst.' },
-      { q: 'Hvor pålideligt er skønnet?', a: 'Det bygger på sammenlignelige annoncer: en pålidelig startpris for almindelige ting, en størrelsesorden for sjældne stykker.' },
+        {
+          q: 'Skal jeg være god til teknik?',
+          a: 'Nej. Du tager et billede, Tiroir udfylder beskrivelsen. Alt kan rettes med et tryk.',
+        },
+        {
+          q: 'Hvad hvis beskrivelsen tager fejl?',
+          a: 'Alle felter kan redigeres, og dine rettelser vinder altid. Det præcise mærke eller købsprisen kender kun du.',
+        },
+        {
+          q: 'Er mine billeder private?',
+          a: 'Ja. Intet er offentligt, før du deler et link – og det kan du slå fra når som helst.',
+        },
+        {
+          q: 'Hvor pålideligt er skønnet?',
+          a: 'Det bygger på sammenlignelige annoncer: en pålidelig startpris for almindelige ting, en størrelsesorden for sjældne stykker.',
+        },
       ],
     },
     final: {
@@ -150,7 +222,6 @@ const da: Copy = {
       sub: 'Gratis, uden kreditkort.',
     },
   },
-
   pricing: {
     meta: {
       title: 'Priser — Tiroir',
@@ -214,17 +285,28 @@ const da: Copy = {
     },
     faqTitle: 'Ofte stillede spørgsmål',
     faq: [
-      { q: 'Hvad er en AI-handling?', a: 'En genkendelse eller en vurdering af en genstand.' },
-      { q: 'Hvad sker der, når min kvote er brugt?', a: 'Tiroir kan stadig bruges; kun AI-handlinger kræver kreditter.' },
-      { q: 'Påvirkes vurderingerne af samarbejdspartnere?', a: 'Nej. Vurderingerne påvirkes aldrig af vores partnere: kommercielle tilbud holdes adskilt fra værdivurderingen.' },
-      { q: 'Kan jeg opsige?', a: 'Når som helst, fra App Store, Play Store eller din konto.' },
+      {
+        q: 'Hvad er en AI-handling?',
+        a: 'En genkendelse eller en vurdering af en genstand.',
+      },
+      {
+        q: 'Hvad sker der, når min kvote er brugt?',
+        a: 'Tiroir kan stadig bruges; kun AI-handlinger kræver kreditter.',
+      },
+      {
+        q: 'Påvirkes vurderingerne af samarbejdspartnere?',
+        a: 'Nej. Vurderingerne påvirkes aldrig af vores partnere: kommercielle tilbud holdes adskilt fra værdivurderingen.',
+      },
+      {
+        q: 'Kan jeg opsige?',
+        a: 'Når som helst, fra App Store, Play Store eller din konto.',
+      },
     ],
     final: {
       title: 'Kom gratis i gang.',
       sub: 'Ubegrænset antal genstande og samlinger, {n} AI-handlinger om måneden. Intet kreditkort nødvendigt.',
     },
   },
-
   errors: {
     notFoundTitle: 'Siden blev ikke fundet',
     notFoundText: 'Siden findes ikke eller er blevet flyttet.',

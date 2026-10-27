@@ -1,3 +1,4 @@
+// Généré par design/generate.mjs depuis design/i18n/site/da.json — ne pas modifier à la main.
 import type { ShareCopy } from './fr'
 
 const shareDa: ShareCopy = {
@@ -25,13 +26,26 @@ const shareDa: ShareCopy = {
     close: 'Luk',
   },
   status: {
-    owned: 'Ejet', stored: 'Opbevaret', loaned: 'Udlånt',
-    sold: 'Solgt', given: 'Givet væk', lost: 'Mistet',
+    owned: 'Ejet',
+    stored: 'Opbevaret',
+    loaned: 'Udlånt',
+    sold: 'Solgt',
+    given: 'Givet væk',
+    lost: 'Mistet',
   },
   attrs: {
-    brand: 'Mærke', model: 'Model', category: 'Kategori', serial_number: 'Serienr.',
-    color: 'Farve', material: 'Materiale', dimensions: 'Mål', voltage: 'Spænding',
-    condition: 'Stand', size: 'Størrelse', weight: 'Vægt', year: 'År',
+    brand: 'Mærke',
+    model: 'Model',
+    category: 'Kategori',
+    serial_number: 'Serienr.',
+    color: 'Farve',
+    material: 'Materiale',
+    dimensions: 'Mål',
+    voltage: 'Spænding',
+    condition: 'Stand',
+    size: 'Størrelse',
+    weight: 'Vægt',
+    year: 'År',
   },
   password: {
     title: 'Beskyttet deling',
@@ -103,13 +117,18 @@ const shareDa: ShareCopy = {
     valueDetail: 'Værdien i detaljer',
     aiEstimate: 'AI-vurdering',
     confidence: {
-      low: 'Lav sikkerhed', medium: 'Middel sikkerhed', high: 'Høj sikkerhed',
+      low: 'Lav sikkerhed',
+      medium: 'Middel sikkerhed',
+      high: 'Høj sikkerhed',
     },
     range: 'Interval: {min} – {max}',
     insuranceOne: 'Forsikring',
     insuranceOther: 'Forsikringer',
     insuranceContract: 'Forsikringsaftale',
-    billing: { monthly: '/md.', yearly: '/år' },
+    billing: {
+      monthly: '/md.',
+      yearly: '/år',
+    },
     coverageTag: 'Dækning {amount}',
     dueTag: 'Forfald {date}',
     insurer: 'Forsikringsselskab',
@@ -121,7 +140,10 @@ const shareDa: ShareCopy = {
     insured: 'Forsikret',
     documents: 'Dokumenter',
     docTypes: {
-      facture: 'Faktura', notice: 'Vejledning', assurance: 'Forsikring', autre: 'Dokument',
+      facture: 'Faktura',
+      notice: 'Vejledning',
+      assurance: 'Forsikring',
+      autre: 'Dokument',
     },
   },
   sale: {
@@ -244,8 +266,12 @@ const shareDa: ShareCopy = {
     memories: 'Minder',
     noMemories: 'Ingen minder tilknyttet.',
     status: {
-      to_keep: 'På plads', to_store: 'Skal ryddes op', for_sale: 'Til salg',
-      to_repare: 'Skal repareres', loaned: 'Udlånt', lost: 'Mistet',
+      to_keep: 'På plads',
+      to_store: 'Skal ryddes op',
+      for_sale: 'Til salg',
+      to_repare: 'Skal repareres',
+      loaned: 'Udlånt',
+      lost: 'Mistet',
     },
   },
 }

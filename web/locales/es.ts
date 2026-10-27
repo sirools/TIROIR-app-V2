@@ -1,3 +1,5 @@
+// Généré par design/generate.mjs depuis design/i18n/site/es.json — ne pas modifier à la main.
+//
 // Textos del sitio en español (España). Misma estructura que fr.ts.
 // A revisar por un hablante nativo.
 import type { Copy } from './fr'
@@ -36,7 +38,6 @@ const es: Copy = {
     contact: 'Contacto',
     language: 'Idioma',
   },
-
   home: {
     meta: {
       title: 'Tiroir — una foto y tus cosas quedan ordenadas',
@@ -77,11 +78,27 @@ const es: Copy = {
       eyebrow: 'Cómo funciona',
       title: 'Tres gestos, nada que configurar.',
       steps: [
-        { title: 'Haz la foto', text: 'Un objeto, una foto. O cien de golpe, en modo ráfaga.' },
-        { title: 'La ficha se escribe sola', text: 'Nombre, categoría, material, estado: todo relleno. Corrige si hace falta.' },
-        { title: 'Todo ordenado', text: 'Colecciones, búsqueda, estado: lo encuentras todo, cuando quieras.' },
+        {
+          title: 'Haz la foto',
+          text: 'Un objeto, una foto. O cien de golpe, en modo ráfaga.',
+        },
+        {
+          title: 'La ficha se escribe sola',
+          text: 'Nombre, categoría, material, estado: todo relleno. Corrige si hace falta.',
+        },
+        {
+          title: 'Todo ordenado',
+          text: 'Colecciones, búsqueda, estado: lo encuentras todo, cuando quieras.',
+        },
       ],
-      fiche: { name: 'Chaqueta vaquera', rows: [['Categoría', 'Ropa'], ['Material', 'Denim'], ['Estado', 'Bueno']] },
+      fiche: {
+        name: 'Chaqueta vaquera',
+        rows: [
+          ['Categoría', 'Ropa'],
+          ['Material', 'Denim'],
+          ['Estado', 'Bueno'],
+        ],
+      },
       collections: ['Armario', 'Para vender', 'Estudio'],
       search: 'chaqueta azul',
     },
@@ -90,10 +107,26 @@ const es: Copy = {
       title: 'Menos papeleo, más oficio.',
       sub: 'Tu material, tu stock, tus colecciones: documentados en unas fotos, mientras trabajas.',
       personas: [
-        { who: 'Estilista', text: 'Cada prenda fotografiada y ordenada por sesión. Sabes qué ha salido y qué ha vuelto.', chip: 'Prestada · vuelve el viernes' },
-        { who: 'Jefe de producción', text: 'El material inventariado antes del rodaje y revisado a la vuelta. Todo el equipo, en tu bolsillo.', chip: '42 piezas · 3 prestadas' },
-        { who: 'Anticuario', text: 'Un puesto entero en una sola sesión gracias al modo ráfaga, con un precio de salida para cada pieza.', chip: 'Ráfaga · 60 objetos' },
-        { who: 'Músico', text: 'Instrumentos y accesorios documentados, facturas adjuntas: listos para el seguro o la reventa.', chip: 'Valor ≈ {price}' },
+        {
+          who: 'Estilista',
+          text: 'Cada prenda fotografiada y ordenada por sesión. Sabes qué ha salido y qué ha vuelto.',
+          chip: 'Prestada · vuelve el viernes',
+        },
+        {
+          who: 'Jefe de producción',
+          text: 'El material inventariado antes del rodaje y revisado a la vuelta. Todo el equipo, en tu bolsillo.',
+          chip: '42 piezas · 3 prestadas',
+        },
+        {
+          who: 'Anticuario',
+          text: 'Un puesto entero en una sola sesión gracias al modo ráfaga, con un precio de salida para cada pieza.',
+          chip: 'Ráfaga · 60 objetos',
+        },
+        {
+          who: 'Músico',
+          text: 'Instrumentos y accesorios documentados, facturas adjuntas: listos para el seguro o la reventa.',
+          chip: 'Valor ≈ {price}',
+        },
       ],
     },
     everyone: {
@@ -101,12 +134,26 @@ const es: Copy = {
       title: 'No hace falta ser profesional. Ni experto en tecnología.',
       sub: 'Si sabes hacer una foto, sabes usar Tiroir.',
       points: [
-        { title: 'Sin conocimientos previos', text: 'Ni hojas de cálculo ni formularios en blanco. Tú haces la foto, Tiroir lo rellena.' },
-        { title: 'Tus datos son tuyos', text: 'Sin publicidad, nada se revende ni se usa para entrenar modelos. Si borras tu cuenta, se borra todo, al instante.' },
-        { title: 'Compartir solo para ver', text: 'Un enlace a una colección: la otra persona la ve sin cuenta ni app. Desactivas el enlace cuando quieras.' },
+        {
+          title: 'Sin conocimientos previos',
+          text: 'Ni hojas de cálculo ni formularios en blanco. Tú haces la foto, Tiroir lo rellena.',
+        },
+        {
+          title: 'Tus datos son tuyos',
+          text: 'Sin publicidad, nada se revende ni se usa para entrenar modelos. Si borras tu cuenta, se borra todo, al instante.',
+        },
+        {
+          title: 'Compartir solo para ver',
+          text: 'Un enlace a una colección: la otra persona la ve sin cuenta ni app. Desactivas el enlace cuando quieras.',
+        },
       ],
       usesTitle: 'También sirve para…',
-      uses: ['Preparar un expediente para el seguro', 'Mudarte sin perder nada', 'Poner precio a un mercadillo', 'Ordenar el armario'],
+      uses: [
+        'Preparar un expediente para el seguro',
+        'Mudarte sin perder nada',
+        'Poner precio a un mercadillo',
+        'Ordenar el armario',
+      ],
       why: 'Por qué funciona: una inteligencia artificial de reconocimiento de imágenes describe cada foto. El resultado es solo una propuesta: todos los campos se pueden editar y tus correcciones siempre mandan.',
     },
     value: {
@@ -114,12 +161,25 @@ const es: Copy = {
       title: 'Sabe lo que vale, y síguelo.',
       sub: 'Una estimación basada en anuncios comparables, no una cifra sacada de la manga.',
       items: [
-        { title: 'Estimar', text: 'Una horquilla de precios y los anuncios en los que se basa.' },
-        { title: 'Seguir', text: 'El valor de cada objeto y de cada colección, actualizado cuando quieras.' },
-        { title: 'Revender', text: 'Márcalo como «Vendido» con el precio real: el objeto se queda en tu historial.' },
+        {
+          title: 'Estimar',
+          text: 'Una horquilla de precios y los anuncios en los que se basa.',
+        },
+        {
+          title: 'Seguir',
+          text: 'El valor de cada objeto y de cada colección, actualizado cuando quieras.',
+        },
+        {
+          title: 'Revender',
+          text: 'Márcalo como «Vendido» con el precio real: el objeto se queda en tu historial.',
+        },
       ],
       note: 'No es una tasación: para una pieza rara, es un orden de magnitud.',
-      demo: { comparable: 'Anuncio similar', sold: 'Vendido', trend: 'Valor de la colección' },
+      demo: {
+        comparable: 'Anuncio similar',
+        sold: 'Vendido',
+        trend: 'Valor de la colección',
+      },
     },
     pricing: {
       eyebrow: 'Precios',
@@ -139,10 +199,22 @@ const es: Copy = {
     faq: {
       title: 'Preguntas frecuentes',
       items: [
-      { q: '¿Hace falta saber de tecnología?', a: 'No. Haces una foto y Tiroir rellena la ficha. Todo se corrige con un toque.' },
-      { q: '¿Y si la ficha se equivoca?', a: 'Todos los campos se pueden editar y tus correcciones siempre mandan. La marca exacta o el precio de compra solo los sabes tú.' },
-      { q: '¿Mis fotos son privadas?', a: 'Sí. Nada es público mientras no compartas un enlace, y puedes desactivarlo en cualquier momento.' },
-      { q: '¿Es fiable la estimación?', a: 'Se basa en anuncios comparables: un precio de salida fiable para un objeto corriente, un orden de magnitud para una pieza rara.' },
+        {
+          q: '¿Hace falta saber de tecnología?',
+          a: 'No. Haces una foto y Tiroir rellena la ficha. Todo se corrige con un toque.',
+        },
+        {
+          q: '¿Y si la ficha se equivoca?',
+          a: 'Todos los campos se pueden editar y tus correcciones siempre mandan. La marca exacta o el precio de compra solo los sabes tú.',
+        },
+        {
+          q: '¿Mis fotos son privadas?',
+          a: 'Sí. Nada es público mientras no compartas un enlace, y puedes desactivarlo en cualquier momento.',
+        },
+        {
+          q: '¿Es fiable la estimación?',
+          a: 'Se basa en anuncios comparables: un precio de salida fiable para un objeto corriente, un orden de magnitud para una pieza rara.',
+        },
       ],
     },
     final: {
@@ -150,7 +222,6 @@ const es: Copy = {
       sub: 'Gratis, sin tarjeta.',
     },
   },
-
   pricing: {
     meta: {
       title: 'Precios — Tiroir',
@@ -214,17 +285,28 @@ const es: Copy = {
     },
     faqTitle: 'Preguntas frecuentes',
     faq: [
-      { q: '¿Qué es una acción de IA?', a: 'Una identificación o una estimación de un objeto.' },
-      { q: '¿Qué pasa cuando se agota mi cuota?', a: 'Tiroir sigue funcionando; solo las acciones de IA necesitan créditos.' },
-      { q: '¿Influyen los socios en las estimaciones?', a: 'No. Nuestros socios nunca influyen en las estimaciones: las ofertas comerciales están separadas de la estimación de valor.' },
-      { q: '¿Puedo cancelar?', a: 'Cuando quieras, desde el App Store, el Play Store o tu cuenta.' },
+      {
+        q: '¿Qué es una acción de IA?',
+        a: 'Una identificación o una estimación de un objeto.',
+      },
+      {
+        q: '¿Qué pasa cuando se agota mi cuota?',
+        a: 'Tiroir sigue funcionando; solo las acciones de IA necesitan créditos.',
+      },
+      {
+        q: '¿Influyen los socios en las estimaciones?',
+        a: 'No. Nuestros socios nunca influyen en las estimaciones: las ofertas comerciales están separadas de la estimación de valor.',
+      },
+      {
+        q: '¿Puedo cancelar?',
+        a: 'Cuando quieras, desde el App Store, el Play Store o tu cuenta.',
+      },
     ],
     final: {
       title: 'Empieza gratis.',
       sub: 'Objetos y colecciones ilimitados, {n} acciones de IA al mes. Sin tarjeta.',
     },
   },
-
   errors: {
     notFoundTitle: 'Página no encontrada',
     notFoundText: 'La página que buscas no existe o se ha movido.',

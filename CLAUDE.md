@@ -20,6 +20,12 @@ Seule source de vérité : `design/tokens.json` (le site web actuel fait
 foi). Jamais de couleur ni de police décidée ailleurs : modifier le
 fichier, puis `node design/generate.mjs`. Voir `design/README.md`.
 
+Traductions : seule source `design/i18n/` (textes de l'app et du site,
+liste des langues). Jamais de texte modifié dans `mobile/src/i18n/locales`
+ni `web/locales` (générés) : modifier `design/i18n/`, puis
+`node design/generate.mjs` et `node scripts/i18n-check.mjs`. Voir
+`design/i18n/README.md`.
+
 ## Documents de référence à lire avant de décider
 
 - `strategie/torix-et-tiroir.md` — relation Torix / Tiroir, coûts IA,

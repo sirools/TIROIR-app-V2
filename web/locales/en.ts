@@ -1,3 +1,5 @@
+// Généré par design/generate.mjs depuis design/i18n/site/en.json — ne pas modifier à la main.
+//
 // Site copy in English (UK, Ireland, US). Same structure as fr.ts.
 import type { Copy } from './fr'
 import share from './share/en'
@@ -35,7 +37,6 @@ const en: Copy = {
     contact: 'Contact',
     language: 'Language',
   },
-
   home: {
     meta: {
       title: 'Tiroir — one photo, and your things are sorted',
@@ -76,11 +77,27 @@ const en: Copy = {
       eyebrow: 'How it works',
       title: 'Three steps. Nothing to set up.',
       steps: [
-        { title: 'Snap it', text: 'One item, one photo. Or a hundred at once in burst mode.' },
-        { title: 'The entry writes itself', text: 'Name, category, material, condition: all filled in. Tweak it if you like.' },
-        { title: 'It’s sorted', text: 'Collections, search, status: find anything, any time.' },
+        {
+          title: 'Snap it',
+          text: 'One item, one photo. Or a hundred at once in burst mode.',
+        },
+        {
+          title: 'The entry writes itself',
+          text: 'Name, category, material, condition: all filled in. Tweak it if you like.',
+        },
+        {
+          title: 'It’s sorted',
+          text: 'Collections, search, status: find anything, any time.',
+        },
       ],
-      fiche: { name: 'Denim jacket', rows: [['Category', 'Clothing'], ['Material', 'Denim'], ['Condition', 'Good']] },
+      fiche: {
+        name: 'Denim jacket',
+        rows: [
+          ['Category', 'Clothing'],
+          ['Material', 'Denim'],
+          ['Condition', 'Good'],
+        ],
+      },
       collections: ['Wardrobe', 'To sell', 'Studio'],
       search: 'blue jacket',
     },
@@ -89,10 +106,26 @@ const en: Copy = {
       title: 'Less admin, more of your actual job.',
       sub: 'Your kit, your stock, your collections: documented in a few photos, while you work.',
       personas: [
-        { who: 'Stylist', text: 'Every piece photographed and filed by shoot. You know what went out and what came back.', chip: 'On loan · back Friday' },
-        { who: 'Production manager', text: 'Kit logged before the shoot, checked on return. Your whole inventory fits in your pocket.', chip: '42 items · 3 on loan' },
-        { who: 'Second-hand dealer', text: 'A full stall catalogued in one session with burst mode, with a starting price for every piece.', chip: 'Burst · 60 items' },
-        { who: 'Musician', text: 'Instruments and gear documented, receipts attached: ready for insurance or resale.', chip: 'Value ≈ {price}' },
+        {
+          who: 'Stylist',
+          text: 'Every piece photographed and filed by shoot. You know what went out and what came back.',
+          chip: 'On loan · back Friday',
+        },
+        {
+          who: 'Production manager',
+          text: 'Kit logged before the shoot, checked on return. Your whole inventory fits in your pocket.',
+          chip: '42 items · 3 on loan',
+        },
+        {
+          who: 'Second-hand dealer',
+          text: 'A full stall catalogued in one session with burst mode, with a starting price for every piece.',
+          chip: 'Burst · 60 items',
+        },
+        {
+          who: 'Musician',
+          text: 'Instruments and gear documented, receipts attached: ready for insurance or resale.',
+          chip: 'Value ≈ {price}',
+        },
       ],
     },
     everyone: {
@@ -100,12 +133,26 @@ const en: Copy = {
       title: 'No need to be a pro. Or a techie.',
       sub: 'If you can take a photo, you can use Tiroir.',
       points: [
-        { title: 'No skills required', text: 'No spreadsheets, no blank forms. You take the photo, Tiroir fills it in.' },
-        { title: 'Your data stays yours', text: 'No ads, nothing sold on, nothing used to train models. Delete your account and everything goes, instantly.' },
-        { title: 'Read-only sharing', text: 'Share a link to a collection: people can look, no account or app needed. Switch the link off whenever you like.' },
+        {
+          title: 'No skills required',
+          text: 'No spreadsheets, no blank forms. You take the photo, Tiroir fills it in.',
+        },
+        {
+          title: 'Your data stays yours',
+          text: 'No ads, nothing sold on, nothing used to train models. Delete your account and everything goes, instantly.',
+        },
+        {
+          title: 'Read-only sharing',
+          text: 'Share a link to a collection: people can look, no account or app needed. Switch the link off whenever you like.',
+        },
       ],
       usesTitle: 'It’s also great for…',
-      uses: ['Putting together an insurance claim', 'Moving house without losing a thing', 'Pricing a garage sale', 'Clearing out a wardrobe'],
+      uses: [
+        'Putting together an insurance claim',
+        'Moving house without losing a thing',
+        'Pricing a garage sale',
+        'Clearing out a wardrobe',
+      ],
       why: 'Why it works: image-recognition AI describes each photo. The result is only a suggestion — every field can be edited, and your changes always win.',
     },
     value: {
@@ -113,12 +160,25 @@ const en: Copy = {
       title: 'Know what it’s worth, and keep track.',
       sub: 'An estimate based on comparable listings, not a number pulled out of thin air.',
       items: [
-        { title: 'Estimate', text: 'A price range, plus the listings behind it.' },
-        { title: 'Track', text: 'The value of every item and every collection, refreshed whenever you want.' },
-        { title: 'Resell', text: 'Mark it “Sold” with the real price: the item stays in your history.' },
+        {
+          title: 'Estimate',
+          text: 'A price range, plus the listings behind it.',
+        },
+        {
+          title: 'Track',
+          text: 'The value of every item and every collection, refreshed whenever you want.',
+        },
+        {
+          title: 'Resell',
+          text: 'Mark it “Sold” with the real price: the item stays in your history.',
+        },
       ],
       note: 'It’s not a professional valuation: for a rare piece, treat it as a ballpark.',
-      demo: { comparable: 'Similar listing', sold: 'Sold', trend: 'Collection value' },
+      demo: {
+        comparable: 'Similar listing',
+        sold: 'Sold',
+        trend: 'Collection value',
+      },
     },
     pricing: {
       eyebrow: 'Pricing',
@@ -138,10 +198,22 @@ const en: Copy = {
     faq: {
       title: 'FAQ',
       items: [
-      { q: 'Do I need to be good with tech?', a: 'No. You take a photo, Tiroir fills in the entry. Anything can be changed with a tap.' },
-      { q: 'What if the entry gets something wrong?', a: 'Every field is editable, and your changes always win. The exact brand or what you paid — that’s something only you know.' },
-      { q: 'Are my photos private?', a: 'Yes. Nothing is public unless you share a link, and you can switch it off at any time.' },
-      { q: 'How reliable is the estimate?', a: 'It’s based on comparable listings: a solid starting price for everyday items, a ballpark for rare pieces.' },
+        {
+          q: 'Do I need to be good with tech?',
+          a: 'No. You take a photo, Tiroir fills in the entry. Anything can be changed with a tap.',
+        },
+        {
+          q: 'What if the entry gets something wrong?',
+          a: 'Every field is editable, and your changes always win. The exact brand or what you paid — that’s something only you know.',
+        },
+        {
+          q: 'Are my photos private?',
+          a: 'Yes. Nothing is public unless you share a link, and you can switch it off at any time.',
+        },
+        {
+          q: 'How reliable is the estimate?',
+          a: 'It’s based on comparable listings: a solid starting price for everyday items, a ballpark for rare pieces.',
+        },
       ],
     },
     final: {
@@ -149,7 +221,6 @@ const en: Copy = {
       sub: 'Free, no card needed.',
     },
   },
-
   pricing: {
     meta: {
       title: 'Pricing — Tiroir',
@@ -213,17 +284,28 @@ const en: Copy = {
     },
     faqTitle: 'FAQ',
     faq: [
-      { q: 'What is an AI action?', a: 'Identifying or estimating an item.' },
-      { q: 'What happens when my quota runs out?', a: 'Tiroir keeps working; only AI actions need credits.' },
-      { q: 'Are estimates influenced by partners?', a: 'No. Estimates are never influenced by our partners: shopping offers are kept separate from value estimates.' },
-      { q: 'Can I cancel?', a: 'Any time, from the App Store, the Play Store or your account.' },
+      {
+        q: 'What is an AI action?',
+        a: 'Identifying or estimating an item.',
+      },
+      {
+        q: 'What happens when my quota runs out?',
+        a: 'Tiroir keeps working; only AI actions need credits.',
+      },
+      {
+        q: 'Are estimates influenced by partners?',
+        a: 'No. Estimates are never influenced by our partners: shopping offers are kept separate from value estimates.',
+      },
+      {
+        q: 'Can I cancel?',
+        a: 'Any time, from the App Store, the Play Store or your account.',
+      },
     ],
     final: {
       title: 'Start for free.',
       sub: 'Unlimited items and collections, {n} AI actions a month. No card required.',
     },
   },
-
   errors: {
     notFoundTitle: 'Page not found',
     notFoundText: 'The page you’re looking for doesn’t exist or has moved.',

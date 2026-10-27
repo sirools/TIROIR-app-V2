@@ -1,33 +1,38 @@
 #!/usr/bin/env node
-// Contrôle des traductions de l'app (mobile/src/i18n/locales).
+// Contrôle des traductions de Tiroir — source unique design/i18n/.
 //
-//   node scripts/i18n-check.mjs            rapport, code de sortie 1 si une langue complète est trouée
-//   node scripts/i18n-check.mjs --list     liste toutes les clés de référence (fr)
+//   node scripts/i18n-check.mjs                  rapport ; sortie 1 si une langue est trouée
+//   node scripts/i18n-check.mjs --list [app|site]  liste les clés de référence (fr) et leur texte
 //
-// Ce qui est vérifié :
-//   1. chaque langue complète a toutes les clés du français (référence), et rien de plus ;
-//   2. une langue partielle (pt-PT) n'a que des clés connues, et aucune copie
-//      inutile de sa langue mère (pt-BR) ;
-//   3. les variables {{…}} sont les mêmes que dans la référence ;
-//   4. le repli pt-PT → pt-BR → en fonctionne vraiment dans i18next (si
-//      mobile/node_modules est installé ; sinon, le contrôle est sauté et signalé) ;
-//   5. ISO web / mobile : les langues du site (web/next.config.js) et de l'app.
-import { readFileSync, readdirSync, existsSync } from 'node:fs'
+// Ce qui est vérifié, pour l'app (design/i18n/app) et le site (design/i18n/site) :
+//   1. chaque langue complète a toutes les clés de la référence, et rien de plus ;
+//   2. une langue partielle (« fallback » dans languages.json, ex. pt-PT) n'a
+//      que des clés connues, et aucune copie inutile de sa langue mère ;
+//   3. les variables {{…}} (app) et {…} (site) sont les mêmes que dans la référence ;
+//   4. textes système (design/i18n/system) : une version par langue de l'app ;
+//   5. le repli de l'app fonctionne vraiment dans i18next (si mobile/node_modules
+//      est installé ; sinon, le contrôle est sauté et signalé) ;
+//   6. ISO web / mobile : langues de l'app et du site (languages.json), et
+//      liste écrite à la main dans web/next.config.js.
+// Les fichiers générés (app, site) sont vérifiés par node design/generate.mjs --check.
+import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const dir = path.join(root, 'mobile/src/i18n/locales')
-const REFERENCE = 'fr'
-// Langue partielle → langue dont elle hérite les clés absentes.
-const PARTIAL = { 'pt-PT': 'pt-BR' }
+const dir = path.join(root, 'design/i18n')
+const meta = JSON.parse(readFileSync(path.join(dir, 'languages.json'), 'utf8'))
+const REFERENCE = meta.reference
+const load = (kind, code) => {
+  const f = path.join(dir, kind, `${code}.json`)
+  return existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : null
+}
 
-const load = lang => JSON.parse(readFileSync(path.join(dir, `${lang}.json`), 'utf8'))
-
-/** { "a.b.c": "texte" } à partir d'un objet imbriqué. */
+/** { "a.b.c": "texte" } à partir d'un objet imbriqué ; les notes « $… » sont ignorées. */
 function flatten(obj, prefix = '', out = {}) {
-  for (const [k, v] of Object.entries(obj)) {
+  for (const [k, v] of Object.entries(obj ?? {})) {
+    if (k.startsWith('$')) continue
     const key = prefix ? `${prefix}.${k}` : k
     if (v && typeof v === 'object') flatten(v, key, out)
     else out[key] = v
@@ -35,46 +40,63 @@ function flatten(obj, prefix = '', out = {}) {
   return out
 }
 
-const vars = s => [...String(s).matchAll(/\{\{\s*(\w+)\s*\}\}/g)].map(m => m[1]).sort().join(',')
+const VARS = {
+  app: s => [...String(s).matchAll(/\{\{\s*(\w+)\s*\}\}/g)].map(m => m[1]).sort().join(','),
+  site: s => [...String(s).matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort().join(','),
+}
 
-const langs = readdirSync(dir).filter(f => f.endsWith('.json')).map(f => f.slice(0, -5)).sort()
-const ref = flatten(load(REFERENCE))
-const refKeys = Object.keys(ref)
-
-if (process.argv.includes('--list')) {
-  for (const k of refKeys) console.log(`${k}\t${ref[k]}`)
+const list = process.argv.indexOf('--list')
+if (list > -1) {
+  const kind = process.argv[list + 1] === 'site' ? 'site' : 'app'
+  for (const [k, v] of Object.entries(flatten(load(kind, REFERENCE)))) console.log(`${k}\t${v}`)
   process.exit(0)
 }
 
 let failed = false
-console.log(`Référence : ${REFERENCE} (${refKeys.length} clés)\n`)
 
-for (const lang of langs) {
-  if (lang === REFERENCE) continue
-  const flat = flatten(load(lang))
-  const keys = Object.keys(flat)
-  const extra = keys.filter(k => !(k in ref))
-  const badVars = keys.filter(k => k in ref && vars(flat[k]) !== vars(ref[k]))
-  const parent = PARTIAL[lang]
-
-  if (parent) {
-    const parentFlat = flatten(load(parent))
-    const copies = keys.filter(k => flat[k] === parentFlat[k])
-    console.log(`${lang} (partielle, repli sur ${parent}) : ${keys.length} clés propres`)
-    if (copies.length) console.log(`  identiques à ${parent}, inutiles : ${copies.join(', ')}`)
-  } else {
-    const missing = refKeys.filter(k => !(k in flat))
-    console.log(`${lang} : ${keys.length}/${refKeys.length} clés${missing.length ? ` — ${missing.length} MANQUANTES` : ''}`)
-    for (const k of missing) console.log(`  manquante : ${k}`)
-    if (missing.length) failed = true
+for (const kind of ['app', 'site']) {
+  const langs = meta.languages.filter(l => l[kind])
+  const ref = flatten(load(kind, REFERENCE))
+  const refKeys = Object.keys(ref)
+  console.log(`── ${kind === 'app' ? 'App' : 'Site'} — référence ${REFERENCE} : ${refKeys.length} clés`)
+  for (const lang of langs) {
+    if (lang.code === REFERENCE) continue
+    const data = load(kind, lang.code)
+    if (!data) { console.log(`${lang.code} : FICHIER MANQUANT (design/i18n/${kind}/${lang.code}.json)`); failed = true; continue }
+    const flat = flatten(data)
+    const keys = Object.keys(flat)
+    const extra = keys.filter(k => !(k in ref))
+    const badVars = keys.filter(k => k in ref && VARS[kind](flat[k]) !== VARS[kind](ref[k]))
+    if (lang.fallback) {
+      const parent = flatten(load(kind, lang.fallback))
+      const copies = keys.filter(k => flat[k] === parent[k])
+      console.log(`${lang.code} (partielle, repli sur ${lang.fallback}) : ${keys.length} clés propres`)
+      if (copies.length) console.log(`  identiques à ${lang.fallback}, inutiles : ${copies.join(', ')}`)
+    } else {
+      // Le site type ses textes sur le français : un texte vide ou recopié tel
+      // quel n'est pas une traduction, mais il compile. On ne compte que l'absence.
+      const missing = refKeys.filter(k => !(k in flat))
+      console.log(`${lang.code} : ${keys.length - extra.length}/${refKeys.length} clés${missing.length ? ` — ${missing.length} MANQUANTES` : ''}`)
+      for (const k of missing) console.log(`  manquante : ${k}`)
+      if (missing.length) failed = true
+    }
+    for (const k of extra) console.log(`  inconnue de ${REFERENCE} : ${k}`)
+    for (const k of badVars) console.log(`  variables différentes : ${k} (${VARS[kind](flat[k])} ≠ ${VARS[kind](ref[k])})`)
+    if (extra.length || badVars.length) failed = true
   }
-  for (const k of extra) console.log(`  inconnue de ${REFERENCE} : ${k}`)
-  for (const k of badVars) console.log(`  variables différentes : ${k} (${vars(flat[k])} ≠ ${vars(ref[k])})`)
-  if (extra.length || badVars.length) failed = true
+  console.log('')
 }
 
+// ── Textes système de l'app ──────────────────────────────────────
+const sysRef = Object.keys(flatten(load('system', REFERENCE))).sort().join(',')
+for (const l of meta.languages.filter(x => x.app)) {
+  const sys = load('system', l.code)
+  if (!sys) { console.log(`Textes système : ${l.code} MANQUANT`); failed = true; continue }
+  if (Object.keys(flatten(sys)).sort().join(',') !== sysRef) { console.log(`Textes système : ${l.code} n'a pas les mêmes clés que ${REFERENCE}`); failed = true }
+}
+console.log(`Textes système (demandes d'accès iOS) : ${meta.languages.filter(x => x.app).map(x => x.code).join(', ')}`)
+
 // ── Repli réel dans i18next ──────────────────────────────────────
-console.log('')
 const req = createRequire(path.join(root, 'mobile/package.json'))
 let i18next = null
 try {
@@ -83,49 +105,46 @@ try {
 } catch {
   /* dépendances de l'app non installées */
 }
+const partial = meta.languages.find(l => l.app && l.fallback)
 if (!i18next) {
   console.log('Repli i18next : non vérifié (lancer `npm install` dans mobile/, ou NODE_PATH vers un i18next 25)')
-} else {
-  const resources = Object.fromEntries(langs.map(l => [l, { translation: load(l) }]))
+} else if (partial) {
+  const appLangs = meta.languages.filter(l => l.app).map(l => l.code)
+  const fallbackLng = { default: [meta.default] }
+  for (const l of meta.languages) if (l.fallback) fallbackLng[l.code] = [l.fallback, meta.default]
   const inst = i18next.createInstance()
   await inst.init({
-    resources,
-    lng: 'pt-PT',
-    // Même déclaration que mobile/src/i18n/index.ts (FALLBACKS).
-    fallbackLng: { 'pt-PT': ['pt-BR', 'en'], default: ['en'] },
-    supportedLngs: langs,
+    resources: Object.fromEntries(appLangs.map(c => [c, { translation: load('app', c) }])),
+    lng: partial.code,
+    fallbackLng,
+    supportedLngs: appLangs,
     load: 'currentOnly',
     interpolation: { escapeValue: false },
   })
-  const pt = flatten(load('pt-PT'))
-  const br = flatten(load('pt-BR'))
-  const inherited = Object.keys(br).find(k => !(k in pt) && !/_(one|other)$/.test(k))
-  const own = Object.keys(pt).find(k => !/_(one|other)$/.test(k))
-  const ok1 = inst.t(inherited) === br[inherited]
-  const ok2 = inst.t(own) === pt[own]
-  // Pluriel hérité : la forme « other » de pt-BR doit sortir pour count = 3.
-  const ok3 = inst.t('common.objects', { count: 3 }) === (pt['common.objects_other'] ?? br['common.objects_other']).replace('{{count}}', '3')
-  console.log(`Repli i18next ${i18next.default?.VERSION ?? ''}: pt-PT → pt-BR « ${inherited} » ${ok1 ? 'OK' : 'ÉCHEC'} ; clé propre « ${own} » ${ok2 ? 'OK' : 'ÉCHEC'} ; pluriel ${ok3 ? 'OK' : 'ÉCHEC'}`)
+  const own = flatten(load('app', partial.code))
+  const parent = flatten(load('app', partial.fallback))
+  const inherited = Object.keys(parent).find(k => !(k in own) && !/_(one|other)$/.test(k))
+  const ownKey = Object.keys(own).find(k => !/_(one|other)$/.test(k))
+  const ok1 = inst.t(inherited) === parent[inherited]
+  const ok2 = inst.t(ownKey) === own[ownKey]
+  const ok3 = inst.t('common.objects', { count: 3 }) === (own['common.objects_other'] ?? parent['common.objects_other']).replace('{{count}}', '3')
+  console.log(`Repli i18next : ${partial.code} → ${partial.fallback} « ${inherited} » ${ok1 ? 'OK' : 'ÉCHEC'} ; clé propre « ${ownKey} » ${ok2 ? 'OK' : 'ÉCHEC'} ; pluriel ${ok3 ? 'OK' : 'ÉCHEC'}`)
   if (!ok1 || !ok2 || !ok3) failed = true
 }
 
 // ── ISO web / mobile ─────────────────────────────────────────────
-const nextConfig = readFileSync(path.join(root, 'web/next.config.js'), 'utf8')
-const webLocales = (nextConfig.match(/locales:\s*\[([^\]]*)\]/)?.[1] ?? '').match(/'[^']+'/g)?.map(s => s.slice(1, -1)) ?? []
-const appLangs = langs
-const norm = l => l.toLowerCase()
-const onlyApp = appLangs.filter(l => !webLocales.some(w => norm(w) === norm(l)))
-const onlyWeb = webLocales.filter(w => !appLangs.some(l => norm(l) === norm(w)))
-console.log(`\nISO langues — app : ${appLangs.join(', ')} · site : ${webLocales.join(', ')}`)
+const app = meta.languages.filter(l => l.app).map(l => l.code)
+const site = meta.languages.filter(l => l.site).map(l => l.code)
+console.log(`\nISO langues — app : ${app.join(', ')} · site : ${site.join(', ')}`)
+const onlyApp = app.filter(c => !site.includes(c))
+const onlySite = site.filter(c => !app.includes(c))
 if (onlyApp.length) console.log(`  seulement dans l'app : ${onlyApp.join(', ')}`)
-if (onlyWeb.length) console.log(`  seulement sur le site : ${onlyWeb.join(', ')}`)
-if (existsSync(path.join(root, 'mobile/app.json'))) {
-  const appJson = JSON.parse(readFileSync(path.join(root, 'mobile/app.json'), 'utf8'))
-  const declared = appJson.expo?.ios?.infoPlist?.CFBundleLocalizations ?? []
-  const plugin = (appJson.expo?.plugins ?? []).find(p => Array.isArray(p) && p[0] === 'expo-localization')
-  const ios = plugin?.[1]?.supportedLocales?.ios ?? declared
-  const missingNative = appLangs.filter(l => !ios.includes(l))
-  console.log(`  langues natives iOS déclarées : ${ios.join(', ') || '(aucune)'}${missingNative.length ? ` — manquent ${missingNative.join(', ')}` : ''}`)
+if (onlySite.length) console.log(`  seulement sur le site : ${onlySite.join(', ')}`)
+const nextConfig = readFileSync(path.join(root, 'web/next.config.js'), 'utf8')
+const nextLocales = (nextConfig.match(/locales:\s*\[([^\]]*)\]/)?.[1] ?? '').match(/'[^']+'/g)?.map(s => s.slice(1, -1)) ?? []
+if ([...nextLocales].sort().join() !== [...site].sort().join()) {
+  console.log(`  web/next.config.js (${nextLocales.join(', ')}) ≠ languages.json (${site.join(', ')})`)
+  failed = true
 }
 
 process.exit(failed ? 1 : 0)

@@ -1,3 +1,4 @@
+// Généré par design/generate.mjs depuis design/i18n/site/es.json — ne pas modifier à la main.
 import type { ShareCopy } from './fr'
 
 const shareEs: ShareCopy = {
@@ -25,13 +26,26 @@ const shareEs: ShareCopy = {
     close: 'Cerrar',
   },
   status: {
-    owned: 'En propiedad', stored: 'Guardado', loaned: 'Prestado',
-    sold: 'Vendido', given: 'Regalado', lost: 'Perdido',
+    owned: 'En propiedad',
+    stored: 'Guardado',
+    loaned: 'Prestado',
+    sold: 'Vendido',
+    given: 'Regalado',
+    lost: 'Perdido',
   },
   attrs: {
-    brand: 'Marca', model: 'Modelo', category: 'Categoría', serial_number: 'N.º de serie',
-    color: 'Color', material: 'Material', dimensions: 'Dimensiones', voltage: 'Voltaje',
-    condition: 'Estado', size: 'Talla', weight: 'Peso', year: 'Año',
+    brand: 'Marca',
+    model: 'Modelo',
+    category: 'Categoría',
+    serial_number: 'N.º de serie',
+    color: 'Color',
+    material: 'Material',
+    dimensions: 'Dimensiones',
+    voltage: 'Voltaje',
+    condition: 'Estado',
+    size: 'Talla',
+    weight: 'Peso',
+    year: 'Año',
   },
   password: {
     title: 'Enlace protegido',
@@ -103,13 +117,18 @@ const shareEs: ShareCopy = {
     valueDetail: 'Detalle del valor',
     aiEstimate: 'Estimación IA',
     confidence: {
-      low: 'Confianza baja', medium: 'Confianza media', high: 'Confianza alta',
+      low: 'Confianza baja',
+      medium: 'Confianza media',
+      high: 'Confianza alta',
     },
     range: 'Horquilla: {min} – {max}',
     insuranceOne: 'Seguro',
     insuranceOther: 'Seguros',
     insuranceContract: 'Póliza de seguro',
-    billing: { monthly: '/mes', yearly: '/año' },
+    billing: {
+      monthly: '/mes',
+      yearly: '/año',
+    },
     coverageTag: 'Cobertura {amount}',
     dueTag: 'Vencimiento {date}',
     insurer: 'Aseguradora',
@@ -121,7 +140,10 @@ const shareEs: ShareCopy = {
     insured: 'Asegurado',
     documents: 'Documentos',
     docTypes: {
-      facture: 'Factura', notice: 'Manual', assurance: 'Seguro', autre: 'Documento',
+      facture: 'Factura',
+      notice: 'Manual',
+      assurance: 'Seguro',
+      autre: 'Documento',
     },
   },
   sale: {
@@ -244,8 +266,12 @@ const shareEs: ShareCopy = {
     memories: 'Recuerdos',
     noMemories: 'Ningún recuerdo asociado.',
     status: {
-      to_keep: 'En su sitio', to_store: 'Por guardar', for_sale: 'En venta',
-      to_repare: 'Por reparar', loaned: 'Prestado', lost: 'Perdido',
+      to_keep: 'En su sitio',
+      to_store: 'Por guardar',
+      for_sale: 'En venta',
+      to_repare: 'Por reparar',
+      loaned: 'Prestado',
+      lost: 'Perdido',
     },
   },
 }

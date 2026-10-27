@@ -1,3 +1,4 @@
+// Généré par design/generate.mjs depuis design/i18n/site/es.json — ne pas modifier à la main.
 import type { LegalCopy } from './fr'
 
 const legalEs: LegalCopy = {

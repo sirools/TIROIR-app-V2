@@ -1,3 +1,4 @@
+// Généré par design/generate.mjs depuis design/i18n/site/da.json — ne pas modifier à la main.
 import type { AccountCopy } from './fr'
 
 const accountDa: AccountCopy = {
@@ -13,7 +14,6 @@ const accountDa: AccountCopy = {
     termsAfter: '.',
     backToSite: '← Tilbage til hjemmesiden',
   },
-
   login: {
     choiceTitle: 'Hvor vil du hen?',
     title: 'Log ind',
@@ -24,7 +24,6 @@ const accountDa: AccountCopy = {
     noAccount: 'Har du ikke en konto endnu?',
     createAccount: 'Opret en konto',
   },
-
   signup: {
     metaTitle: 'Opret en konto — Tiroir',
     metaDescription: 'Opret din Tiroir-konto gratis, og katalogisér dine ting.',
@@ -39,7 +38,6 @@ const accountDa: AccountCopy = {
     haveAccount: 'Har du allerede en konto?',
     login: 'Log ind',
   },
-
   forgot: {
     metaTitle: 'Glemt adgangskode — Tiroir',
     sentTitle: 'E-mail sendt',
@@ -52,7 +50,6 @@ const accountDa: AccountCopy = {
     sending: 'Sender…',
     send: 'Send linket',
   },
-
   reset: {
     metaTitle: 'Ny adgangskode — Tiroir',
     title: 'Ny adgangskode',
@@ -70,7 +67,6 @@ const accountDa: AccountCopy = {
     doneText: 'Du er logget ind. Denne adgangskode virker også i mobilappen.',
     continue: 'Fortsæt',
   },
-
   confirm: {
     metaTitle: 'E-mail bekræftet — Tiroir',
     metaTitleError: 'Ugyldigt link — Tiroir',
@@ -85,7 +81,6 @@ const accountDa: AccountCopy = {
     appStore: 'Hent i App Store',
     googlePlay: 'Hent på Google Play',
   },
-
   welcome: {
     metaTitle: 'Velkommen — Tiroir',
     title: 'Velkommen til Tiroir 🎉',
@@ -94,7 +89,6 @@ const accountDa: AccountCopy = {
     pendingAfter: ' — klik på linket for at aktivere den. Hent derefter appen for at komme i gang med at katalogisere dine ting:',
     ready: 'Din konto er klar! Hent appen, og log ind med denne konto for at komme i gang med at katalogisere dine ting:',
   },
-
   thanks: {
     metaTitle: 'Tak — Tiroir',
     badge: 'Tilmelding bekræftet',
@@ -103,7 +97,6 @@ const accountDa: AccountCopy = {
     features: 'Se funktionerne',
     home: 'Tilbage til forsiden',
   },
-
   unsubscribe: {
     metaTitle: 'Afmelding — Tiroir',
     okTitle: 'Så er det gjort.',
@@ -114,7 +107,6 @@ const accountDa: AccountCopy = {
     unknownDetail: 'Under alle omstændigheder sender vi ikke mere. Hvis du alligevel modtager en besked, så svar på den: Nogen vil læse den.',
     back: 'Tilbage til tiroir.app',
   },
-
   myAccount: {
     metaTitle: 'Min konto — Tiroir',
     title: 'Min konto',
@@ -152,7 +144,6 @@ const accountDa: AccountCopy = {
     footnoteLink: 'Min profil',
     footnoteAfter: '.',
   },
-
   profile: {
     metaTitle: 'Min profil — Tiroir',
     title: 'Min profil',
@@ -181,7 +172,6 @@ const accountDa: AccountCopy = {
     photo: 'Profilbillede',
     close: 'Luk',
   },
-
   myShares: {
     metaTitle: 'Mine delinger — TiROiR',
     title: 'Mine delinger',
@@ -212,7 +202,6 @@ const accountDa: AccountCopy = {
     passwordRequired: 'Angiv en adgangskode (mindst 4 tegn) for at gøre delingen privat.',
     saveError: 'Ændringerne kunne ikke gemmes. Prøv igen.',
   },
-
   errors: {
     invalidCredentials: 'Forkert e-mail eller adgangskode. Har du ikke en Tiroir-konto endnu? Den er oprettet på et minut.',
     emailNotConfirmed: 'Din adresse er endnu ikke bekræftet: Åbn e-mailen fra Tiroir, tryk på linket, og kom så tilbage hertil.',

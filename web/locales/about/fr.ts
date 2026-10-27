@@ -1,14 +1,15 @@
+// Généré par design/generate.mjs depuis design/i18n/site/fr.json — ne pas modifier à la main.
+//
 // Textes about en français — référence de structure pour en, da, de, es
 // (type AboutCopy). Importé par ../fr.ts sous la clé « about ».
 const aboutFr = {
   meta: {
     title: 'À propos — Tiroir',
-    description:
-      'Qui est derrière Tiroir : Clément Ougier, fondateur solo. Le projet, ce que je cherche (conseils, associés, testeurs) et comment me joindre.',
+    description: 'Qui est derrière Tiroir : Clément Ougier, fondateur solo. Le projet, ce que je cherche (conseils, associés, testeurs) et comment me joindre.',
   },
   // Libellés du bouton d'agenda : lien d'agenda configuré, ou repli sur un e-mail.
   agendaCta: 'Réserver un créneau',
-  agendaCtaMail: "M'écrire pour caler un créneau",
+  agendaCtaMail: 'M\'écrire pour caler un créneau',
   // Objets des e-mails préremplis (repli sans agenda).
   heroSubject: 'Parler de Tiroir',
   agendaSubject: 'Un créneau pour parler de Tiroir',
@@ -30,13 +31,12 @@ const aboutFr = {
   },
   looking: {
     title: 'Ce que je cherche',
-    intro:
-      'Je ne cherche pas (encore) à lever des fonds. Je cherche des gens : pour me conseiller, me contredire, m’ouvrir une porte, ou simplement partager une expérience que je n’ai pas.',
+    intro: 'Je ne cherche pas (encore) à lever des fonds. Je cherche des gens : pour me conseiller, me contredire, m’ouvrir une porte, ou simplement partager une expérience que je n’ai pas.',
     // Même ordre que les émojis de la page.
     items: [
       {
         title: 'Des conseils, pas des injonctions',
-        body: "Produit, pricing, growth, levée ou pas de levée : j'avance vite mais seul, et j'ai besoin de gens qui ont déjà fait le chemin pour challenger mes angles morts.",
+        body: 'Produit, pricing, growth, levée ou pas de levée : j\'avance vite mais seul, et j\'ai besoin de gens qui ont déjà fait le chemin pour challenger mes angles morts.',
       },
       {
         title: 'Des personnes qui connaissent le terrain',
@@ -44,11 +44,11 @@ const aboutFr = {
       },
       {
         title: 'Peut-être un ou une associée',
-        body: "Je conçois et je code le produit. Le jour où quelqu'un a envie de porter le business, la distribution ou la tech avec moi, la porte est grande ouverte.",
+        body: 'Je conçois et je code le produit. Le jour où quelqu\'un a envie de porter le business, la distribution ou la tech avec moi, la porte est grande ouverte.',
       },
       {
         title: 'Des utilisateurs exigeants',
-        body: "Des gens qui ont trop d'objets, qui testent l'app pour de vrai et qui me disent sans filtre ce qui coince. C'est ce qui fait avancer Tiroir le plus vite.",
+        body: 'Des gens qui ont trop d\'objets, qui testent l\'app pour de vrai et qui me disent sans filtre ce qui coince. C\'est ce qui fait avancer Tiroir le plus vite.',
       },
     ],
   },

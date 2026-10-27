@@ -1,3 +1,5 @@
+// Généré par design/generate.mjs depuis design/i18n/site/fr.json — ne pas modifier à la main.
+//
 // Textes share en français — référence de structure pour en, da, de, es
 // (type ShareCopy). Importé par ../fr.ts sous la clé « share ».
 //
@@ -7,7 +9,7 @@
 // chaque texte d'origine.
 const shareFr = {
   meta: {
-    /** Titre d'un partage sans nom. */
+    // Titre d'un partage sans nom.
     defaultTitle: 'Partage TiROiR',
     pageTitle: '{title} — TiROiR',
     linkNotFound: 'Lien introuvable — TiROiR',
@@ -30,16 +32,29 @@ const shareFr = {
     cancel: 'Annuler',
     close: 'Fermer',
   },
-  /** Statuts d'un objet (table objects). */
+  // Statuts d'un objet (table objects).
   status: {
-    owned: 'Possédé', stored: 'En stockage', loaned: 'Prêté',
-    sold: 'Vendu', given: 'Donné', lost: 'Perdu',
+    owned: 'Possédé',
+    stored: 'En stockage',
+    loaned: 'Prêté',
+    sold: 'Vendu',
+    given: 'Donné',
+    lost: 'Perdu',
   },
-  /** Libellés des attributs connus (à défaut : la clé brute). */
+  // Libellés des attributs connus (à défaut : la clé brute).
   attrs: {
-    brand: 'Marque', model: 'Modèle', category: 'Catégorie', serial_number: 'N° de série',
-    color: 'Couleur', material: 'Matière', dimensions: 'Dimensions', voltage: 'Voltage',
-    condition: 'État', size: 'Taille', weight: 'Poids', year: 'Année',
+    brand: 'Marque',
+    model: 'Modèle',
+    category: 'Catégorie',
+    serial_number: 'N° de série',
+    color: 'Couleur',
+    material: 'Matière',
+    dimensions: 'Dimensions',
+    voltage: 'Voltage',
+    condition: 'État',
+    size: 'Taille',
+    weight: 'Poids',
+    year: 'Année',
   },
   password: {
     title: 'Partage protégé',
@@ -111,13 +126,18 @@ const shareFr = {
     valueDetail: 'Détail de la valeur',
     aiEstimate: 'Estimation IA',
     confidence: {
-      low: 'Confiance faible', medium: 'Confiance moyenne', high: 'Confiance élevée',
+      low: 'Confiance faible',
+      medium: 'Confiance moyenne',
+      high: 'Confiance élevée',
     },
     range: 'Fourchette : {min} – {max}',
     insuranceOne: 'Assurance',
     insuranceOther: 'Assurances',
     insuranceContract: 'Contrat d’assurance',
-    billing: { monthly: '/mois', yearly: '/an' },
+    billing: {
+      monthly: '/mois',
+      yearly: '/an',
+    },
     coverageTag: 'Couverture {amount}',
     dueTag: 'Échéance {date}',
     insurer: 'Assureur',
@@ -129,7 +149,10 @@ const shareFr = {
     insured: 'Assuré',
     documents: 'Documents',
     docTypes: {
-      facture: 'Facture', notice: 'Notice', assurance: 'Assurance', autre: 'Document',
+      facture: 'Facture',
+      notice: 'Notice',
+      assurance: 'Assurance',
+      autre: 'Document',
     },
   },
   sale: {
@@ -190,7 +213,7 @@ const shareFr = {
     error: 'Une erreur est survenue.',
     errorRetry: 'Une erreur est survenue. Réessaie plus tard.',
     unreachable: 'Impossible d’atteindre le serveur.',
-    /** Codes d'erreur de l'API /api/shares/<jeton>/suggestions. */
+    // Codes d'erreur de l'API /api/shares/<jeton>/suggestions.
     apiErrors: {
       AUTH_REQUIRED: 'Ta session a expiré : reconnecte-toi pour suggérer.',
       PASSWORD_REQUIRED: 'Saisis de nouveau le mot de passe du partage.',
@@ -199,7 +222,7 @@ const shareFr = {
       TOO_MANY_PENDING: 'Tu as déjà beaucoup de suggestions en attente. Laisse le propriétaire les trier.',
       LINK_UNAVAILABLE: 'Ce lien a expiré.',
     },
-    /** Codes de parseSuggestionInput (lib/suggestions.ts). */
+    // Codes de parseSuggestionInput (lib/suggestions.ts).
     inputErrors: {
       title_required: 'Donne un nom à l’objet.',
       title_too_long: 'Le nom ne doit pas dépasser {max} caractères.',
@@ -240,7 +263,7 @@ const shareFr = {
     idea: 'Idée',
     suggestedBy: 'Suggéré par',
   },
-  /** Anciennes pages /share/<slug> et /share/o/… (liens shared_links). */
+  // Anciennes pages /share/<slug> et /share/o/… (liens shared_links).
   legacy: {
     sharedObjects: 'Objets partagés',
     totalValue: '{amount}€ au total',
@@ -254,10 +277,14 @@ const shareFr = {
     noCharacteristics: 'Aucune caractéristique renseignée.',
     memories: 'Souvenirs',
     noMemories: 'Aucun souvenir rattaché.',
-    /** Statuts de lib/statuses.ts (à défaut : son libellé). */
+    // Statuts de lib/statuses.ts (à défaut : son libellé).
     status: {
-      to_keep: 'En place', to_store: 'À ranger', for_sale: 'À vendre',
-      to_repare: 'À réparer', loaned: 'Prêté', lost: 'Perdu',
+      to_keep: 'En place',
+      to_store: 'À ranger',
+      for_sale: 'À vendre',
+      to_repare: 'À réparer',
+      loaned: 'Prêté',
+      lost: 'Perdu',
     },
   },
 }

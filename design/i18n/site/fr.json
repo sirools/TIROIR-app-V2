@@ -1,0 +1,919 @@
+{
+  "$comment": "Textes du site en français — langue de référence : les autres fichiers\n(en, da, de, es) suivent exactement cette structure (type `Copy`).\nLes marqueurs {n}, {price}… sont remplacés à l'affichage.\n\nPositionnement : on vend un résultat, pas de l'IA. L'IA n'apparaît\njamais dans un titre, seulement comme explication discrète (home.why).",
+  "share": {
+    "$comment": "Textes share en français — référence de structure pour en, da, de, es\n(type ShareCopy). Importé par ../fr.ts sous la clé « share ».\n\nPages de partage (/s/<jeton>, sa fiche objet, l'aperçu de vente) et\nanciennes pages /share/… ; les marqueurs {n}, {date}… sont remplacés à\nl'affichage (fill). Le tutoiement et le vouvoiement suivent ceux de\nchaque texte d'origine.",
+    "meta": {
+      "$defaultTitle": "Titre d'un partage sans nom.",
+      "defaultTitle": "Partage TiROiR",
+      "pageTitle": "{title} — TiROiR",
+      "linkNotFound": "Lien introuvable — TiROiR",
+      "objectNotFound": "Objet introuvable — TiROiR",
+      "protected": "Partage protégé — TiROiR",
+      "sale": "Fiche de vente — Tiroir",
+      "saleItem": "{title} — à vendre sur Tiroir"
+    },
+    "common": {
+      "backToShare": "Retour au partage",
+      "discover": "Découvrir TiROiR",
+      "privacy": "Politique de confidentialité",
+      "copyright": "© 2026 TiROiR",
+      "linkExpired": "Ce lien a expiré",
+      "protectedTitle": "Partage protégé",
+      "protectedSub": "Retourne à la page du partage pour saisir le mot de passe.",
+      "addedOn": "Ajouté le {date}",
+      "description": "Description",
+      "characteristics": "Caractéristiques",
+      "cancel": "Annuler",
+      "close": "Fermer"
+    },
+    "$status": "Statuts d'un objet (table objects).",
+    "status": {
+      "owned": "Possédé",
+      "stored": "En stockage",
+      "loaned": "Prêté",
+      "sold": "Vendu",
+      "given": "Donné",
+      "lost": "Perdu"
+    },
+    "$attrs": "Libellés des attributs connus (à défaut : la clé brute).",
+    "attrs": {
+      "brand": "Marque",
+      "model": "Modèle",
+      "category": "Catégorie",
+      "serial_number": "N° de série",
+      "color": "Couleur",
+      "material": "Matière",
+      "dimensions": "Dimensions",
+      "voltage": "Voltage",
+      "condition": "État",
+      "size": "Taille",
+      "weight": "Poids",
+      "year": "Année"
+    },
+    "password": {
+      "title": "Partage protégé",
+      "sub": "Ce partage est protégé par un mot de passe.",
+      "placeholder": "Mot de passe",
+      "submit": "Valider",
+      "wrong": "Mot de passe incorrect. Réessaie.",
+      "notFound": "Ce lien de partage est introuvable.",
+      "expired": "Ce lien a expiré.",
+      "generic": "Une erreur est survenue. Réessaie plus tard.",
+      "unreachable": "Impossible d'atteindre le serveur."
+    },
+    "list": {
+      "backToMyShares": "← Retour à mes partages",
+      "notFoundTitle": "Lien introuvable",
+      "expiredSub": "Demandez un nouveau lien au propriétaire.",
+      "notFoundSub": "Vérifiez l'adresse ou demandez un nouveau lien.",
+      "sharedVia": "Partagé via TiROiR · {count}",
+      "objectsOne": "{n} objet",
+      "objectsOther": "{n} objets",
+      "expiresToday": "Ce lien expire aujourd'hui",
+      "expiresTomorrow": "Ce lien expire demain, le {date}",
+      "expiresIn": "Ce lien expire dans {days} jours, le {date}",
+      "suggest": "Suggérer un objet",
+      "viewMode": "Mode d'affichage",
+      "grid": "Grille",
+      "table": "Tableau",
+      "suggestSent": "Suggestion envoyée. Elle apparaît en pointillé jusqu’à ce que le propriétaire la trie.",
+      "triageError": "Ce choix n’a pas pu être enregistré. Réessaie.",
+      "undoError": "L’annulation n’a pas pu être enregistrée. Réessaie.",
+      "columns": {
+        "title": "Titre",
+        "status": "Statut",
+        "location": "Emplacement",
+        "description": "Description",
+        "quantity": "Qté",
+        "estimatedValue": "Valeur estimée",
+        "marketValue": "Valeur marché",
+        "purchasePrice": "Prix d'achat",
+        "salePrice": "Prix de vente",
+        "deposit": "Caution",
+        "insured": "Assuré",
+        "addedOn": "Ajouté le",
+        "total": "Total"
+      },
+      "yes": "Oui",
+      "downloadCsv": "Télécharger CSV",
+      "selectAll": "Tout sélectionner",
+      "deselectAll": "Tout désélectionner",
+      "selectedOne": "{n} objet sélectionné",
+      "selectedOther": "{n} objets sélectionnés",
+      "ctaTitle": "Créez votre inventaire personnel",
+      "ctaSub": "TiROiR — photographiez, cataloguez, retrouvez."
+    },
+    "object": {
+      "notFound": "Objet introuvable",
+      "salePreview": "Voir en vente (prototype) →",
+      "salePrice": "Prix de vente",
+      "yourEstimate": "Votre estimation",
+      "estimatedMarketValue": "Valeur marchande estimée",
+      "lotTotal": "Total du lot : {amount}",
+      "ownerEstimate": "Estimation du propriétaire",
+      "marketValueAi": "Valeur marchande (IA)",
+      "purchasePrice": "Prix d'achat",
+      "deposit": "Caution",
+      "vsAi": "{pct}% vs IA",
+      "estimatedOn": "Estimé le {date}",
+      "valuesTitle": "Valeurs & prix",
+      "valueDetail": "Détail de la valeur",
+      "aiEstimate": "Estimation IA",
+      "confidence": {
+        "low": "Confiance faible",
+        "medium": "Confiance moyenne",
+        "high": "Confiance élevée"
+      },
+      "range": "Fourchette : {min} – {max}",
+      "insuranceOne": "Assurance",
+      "insuranceOther": "Assurances",
+      "insuranceContract": "Contrat d’assurance",
+      "billing": {
+        "monthly": "/mois",
+        "yearly": "/an"
+      },
+      "coverageTag": "Couverture {amount}",
+      "dueTag": "Échéance {date}",
+      "insurer": "Assureur",
+      "type": "Type",
+      "coverage": "Couverture",
+      "policyRef": "N° de contrat",
+      "due": "Échéance",
+      "statusLabel": "Statut",
+      "insured": "Assuré",
+      "documents": "Documents",
+      "docTypes": {
+        "facture": "Facture",
+        "notice": "Notice",
+        "assurance": "Assurance",
+        "autre": "Document"
+      }
+    },
+    "sale": {
+      "errorGated": "Ce partage est protégé : ouvre-le d’abord et saisis son mot de passe.",
+      "errorExpired": "Ce partage a expiré.",
+      "errorNotFound": "Cet objet est introuvable.",
+      "prototype": "Prototype de vente — aucune offre n’est envoyée pour l’instant.",
+      "backToSheet": "← Fiche du partage",
+      "photo": "Photo {n}",
+      "noPhoto": "Pas encore de photo",
+      "sold": "Déjà vendu",
+      "priceToDiscuss": "Prix à discuter",
+      "negotiable": "À débattre",
+      "originSeller": "Prix indicatif fixé par {owner}. Fais une offre : c’est une vente à l’amiable.",
+      "originEstimate": "Pas encore de prix fixé : repère tiré de l’estimation de Tiroir. Propose le tien.",
+      "originNone": "{owner} n’a pas encore fixé de prix. Propose le tien.",
+      "range": "Estimé entre {min} et {max} sur le marché.",
+      "offeredBy": "Proposé par {owner}",
+      "member": "Membre de Tiroir · vente entre particuliers",
+      "storyTitle": "Son histoire",
+      "storySince": "Dans le Tiroir de {owner} depuis {date}.",
+      "storyBought": "Acheté en {date}.",
+      "storyLot": "Vendu en lot de {n}.",
+      "conditionTitle": "État et usage",
+      "conditionEmpty": "{owner} n’a pas encore décrit l’état. Pose-lui la question avec ton offre.",
+      "detailsTitle": "Détails",
+      "howTitle": "Comment ça se passe",
+      "step1": "Tu proposes un prix, avec un mot pour {owner}.",
+      "step2": "{owner} accepte, refuse ou te fait une contre-proposition.",
+      "step3": "Vous convenez de la remise, en main propre pour commencer.",
+      "makeOffer": "Faire une offre",
+      "offerReady": "Offre prête : {amount}",
+      "sentText": "C’est un prototype : rien n’est envoyé. Dans la vraie version, {owner} reçoit ton offre, puis l’accepte, la refuse ou te propose un autre prix.",
+      "sentTextWithMessage": "C’est un prototype : rien n’est envoyé. Dans la vraie version, {owner} reçoit ton offre et ton message, puis l’accepte, la refuse ou te propose un autre prix.",
+      "offerTitle": "Ton offre à {owner}",
+      "indicativePrice": "Prix indicatif : {amount}.",
+      "yourPrice": "Ton prix",
+      "amountPlaceholder": "Montant",
+      "note": "Un mot (facultatif)",
+      "notePlaceholder": "Bonjour {owner}, …",
+      "propose": "Proposer {amount}"
+    },
+    "suggest": {
+      "title": "Suggérer un objet",
+      "passwordHint": "Ce partage est protégé. Confirme le mot de passe pour pouvoir suggérer.",
+      "passwordPlaceholder": "Mot de passe",
+      "submitPassword": "Valider",
+      "formHint": "Le propriétaire verra ta suggestion, avec ton prénom et ta photo, et décidera de la garder.",
+      "nameLabel": "Nom de l’objet",
+      "namePlaceholder": "Ex. : Couteau de chef",
+      "linkLabel": "Lien",
+      "priceLabel": "Prix",
+      "optional": "(optionnel)",
+      "pricePlaceholder": "Ex. : 49,90",
+      "sending": "Envoi…",
+      "send": "Envoyer la suggestion",
+      "wrongPassword": "Mot de passe incorrect.",
+      "error": "Une erreur est survenue.",
+      "errorRetry": "Une erreur est survenue. Réessaie plus tard.",
+      "unreachable": "Impossible d’atteindre le serveur.",
+      "$apiErrors": "Codes d'erreur de l'API /api/shares/<jeton>/suggestions.",
+      "apiErrors": {
+        "AUTH_REQUIRED": "Ta session a expiré : reconnecte-toi pour suggérer.",
+        "PASSWORD_REQUIRED": "Saisis de nouveau le mot de passe du partage.",
+        "SUGGESTIONS_DISABLED": "Le propriétaire n’accepte plus de suggestions sur cette collection.",
+        "OWNER_CANNOT_SUGGEST": "C’est ta collection : tu ne peux pas te suggérer d’objet.",
+        "TOO_MANY_PENDING": "Tu as déjà beaucoup de suggestions en attente. Laisse le propriétaire les trier.",
+        "LINK_UNAVAILABLE": "Ce lien a expiré."
+      },
+      "$inputErrors": "Codes de parseSuggestionInput (lib/suggestions.ts).",
+      "inputErrors": {
+        "title_required": "Donne un nom à l’objet.",
+        "title_too_long": "Le nom ne doit pas dépasser {max} caractères.",
+        "url_invalid": "Le lien doit commencer par http:// ou https://.",
+        "price_invalid": "Le prix doit être un nombre positif."
+      }
+    },
+    "signup": {
+      "title": "Crée ton compte Tiroir",
+      "text": "Le propriétaire de ce partage accepte les suggestions. Pour en faire une, il faut un compte Tiroir, gratuit : il verra qui la lui propose.",
+      "soon": "Une minute, et tu reviens ici, prêt à suggérer.",
+      "create": "Créer mon compte",
+      "haveAccount": "J’ai déjà un compte",
+      "later": "Plus tard"
+    },
+    "triage": {
+      "heading": "Suggestions à trier",
+      "allSorted": "Tout est trié",
+      "undo": "Annuler le dernier choix",
+      "stampKeep": "GARDER",
+      "stampDismiss": "ÉCARTER",
+      "seeLink": "Voir le lien",
+      "dismiss": "Écarter",
+      "keep": "Garder",
+      "help": "Glisse la carte, ou utilise les flèches ← → du clavier.",
+      "done": "Les idées gardées restent dans la collection, en pointillé."
+    },
+    "toggle": {
+      "titleOn": "Suggestions autorisées",
+      "titleOff": "Suggestions désactivées",
+      "subOn": "Les destinataires de ce lien peuvent te suggérer des objets pour « {name} ».",
+      "subOff": "Ce partage est en lecture seule. Active les suggestions pour que ses destinataires te proposent des objets pour « {name} ».",
+      "error": "Le réglage n’a pas pu être enregistré. Réessaie.",
+      "aria": "Autoriser les suggestions"
+    },
+    "wish": {
+      "suggestion": "Suggestion",
+      "idea": "Idée",
+      "suggestedBy": "Suggéré par"
+    },
+    "$legacy": "Anciennes pages /share/<slug> et /share/o/… (liens shared_links).",
+    "legacy": {
+      "sharedObjects": "Objets partagés",
+      "totalValue": "{amount}€ au total",
+      "protected": "Ce partage est protégé.",
+      "back": "← Retour",
+      "imageAlt": "Image objet",
+      "noImage": "Aucune image",
+      "contactOwner": "Contacter le propriétaire",
+      "contactSubject": "Contact à propos de {title}",
+      "anObject": "un objet",
+      "noCharacteristics": "Aucune caractéristique renseignée.",
+      "memories": "Souvenirs",
+      "noMemories": "Aucun souvenir rattaché.",
+      "$status": "Statuts de lib/statuses.ts (à défaut : son libellé).",
+      "status": {
+        "to_keep": "En place",
+        "to_store": "À ranger",
+        "for_sale": "À vendre",
+        "to_repare": "À réparer",
+        "loaned": "Prêté",
+        "lost": "Perdu"
+      }
+    }
+  },
+  "account": {
+    "$comment": "Textes account en français — référence de structure pour en, da, de, es\n(type AccountCopy). Importé par ../fr.ts sous la clé « account ».\nPages de compte : connexion, inscription, mot de passe, confirmation,\nbienvenue, merci, désinscription, mon compte, profil, mes partages.\nLes marqueurs {email}, {min}, {n}, {date} sont remplacés à l'affichage.",
+    "$common": "Éléments communs aux écrans de connexion et d'inscription.",
+    "common": {
+      "continueGoogle": "Continuer avec Google",
+      "continueApple": "Continuer avec Apple",
+      "or": "ou",
+      "email": "Email",
+      "emailPlaceholder": "exemple@gmail.com",
+      "password": "Mot de passe",
+      "termsBefore": "En continuant, tu acceptes les",
+      "termsLink": "Conditions Générales d'Utilisation",
+      "termsAfter": ".",
+      "backToSite": "← Retour au site"
+    },
+    "login": {
+      "choiceTitle": "Où veux-tu aller ?",
+      "title": "Connexion",
+      "forgot": "Mot de passe oublié ?",
+      "createMyAccount": "Créer mon compte →",
+      "submitting": "Connexion…",
+      "submit": "Se connecter",
+      "noAccount": "Pas encore de compte ?",
+      "createAccount": "Créer un compte"
+    },
+    "signup": {
+      "metaTitle": "Créer un compte — Tiroir",
+      "metaDescription": "Créez votre compte Tiroir gratuitement et cataloguez vos objets.",
+      "title": "Créer un compte",
+      "subtitle": "Gratuit, sans carte bancaire. Commencez à cataloguer vos objets en quelques secondes.",
+      "passwordHint": "Au moins 6 caractères.",
+      "logMeIn": "Me connecter →",
+      "sentBefore": "Presque fini : ouvre l’e-mail envoyé à ",
+      "sentAfter": " et touche le lien. Tu reviendras directement au partage pour faire ta suggestion.",
+      "submitting": "Création…",
+      "submit": "Créer mon compte",
+      "haveAccount": "Déjà un compte ?",
+      "login": "Se connecter"
+    },
+    "forgot": {
+      "metaTitle": "Mot de passe oublié — Tiroir",
+      "sentTitle": "E-mail envoyé",
+      "sentBefore": "Si un compte existe pour ",
+      "sentAfter": ", un lien de réinitialisation vient d'y être envoyé. Il est valable une heure et ne sert qu'une fois.",
+      "notReceived": "Rien reçu ? Vérifie les indésirables. Si tu t'es inscrit avec Google, ton compte n'a pas de mot de passe — utilise le bouton « Continuer avec Google » sur la page de connexion.",
+      "backToLogin": "Retour à la connexion",
+      "title": "Mot de passe oublié",
+      "intro": "Indique ton adresse e-mail : on t'envoie un lien pour choisir un nouveau mot de passe.",
+      "sending": "Envoi…",
+      "send": "Envoyer le lien"
+    },
+    "reset": {
+      "metaTitle": "Nouveau mot de passe — Tiroir",
+      "title": "Nouveau mot de passe",
+      "opening": "Ouverture du lien…",
+      "invalidTitle": "Lien invalide",
+      "invalidText": "Ce lien n'est plus valable. Les liens de réinitialisation expirent au bout d'une heure et ne servent qu'une fois.",
+      "requestNew": "Demander un nouveau lien",
+      "intro": "Choisis un mot de passe pour ton compte Tiroir.",
+      "newPassword": "Nouveau mot de passe",
+      "passwordPlaceholder": "{min} caractères minimum",
+      "confirm": "Confirmer",
+      "saving": "Enregistrement…",
+      "save": "Enregistrer",
+      "doneTitle": "Mot de passe enregistré",
+      "doneText": "Tu es connecté. Ce mot de passe fonctionne aussi dans l'application mobile.",
+      "continue": "Continuer"
+    },
+    "confirm": {
+      "metaTitle": "Email confirmé — Tiroir",
+      "metaTitleError": "Lien invalide — Tiroir",
+      "errorTitle": "Ce lien n'est plus valide",
+      "expired": "Le lien de confirmation a expiré.",
+      "maybeExpired": "Le lien de confirmation a peut-être expiré ou déjà été utilisé.",
+      "retry": "Réessaie de te connecter dans l'app : si ton adresse n'est pas encore confirmée, un nouveau lien pourra t'être envoyé.",
+      "title": "Adresse email confirmée 🎉",
+      "text": "Ton compte Tiroir est activé. Retourne dans l'app et connecte-toi pour commencer à cataloguer tes objets.",
+      "backToShare": "Revenir au partage et suggérer",
+      "openApp": "Ouvrir l'app Tiroir",
+      "appStore": "Télécharger sur l'App Store",
+      "googlePlay": "Télécharger sur Google Play"
+    },
+    "welcome": {
+      "metaTitle": "Bienvenue — Tiroir",
+      "title": "Bienvenue chez Tiroir 🎉",
+      "pendingBefore": "Ton compte est créé. On t'a envoyé un ",
+      "pendingStrong": "e-mail de confirmation",
+      "pendingAfter": " — clique le lien pour l'activer. Ensuite, télécharge l'app pour commencer à cataloguer tes objets :",
+      "ready": "Ton compte est prêt ! Télécharge l'app et connecte-toi avec ce compte pour commencer à cataloguer tes objets :"
+    },
+    "thanks": {
+      "metaTitle": "Merci — Tiroir",
+      "badge": "Inscription confirmée",
+      "title": "Merci d’avoir rejoint la bêta ✨",
+      "text": "On te prévient dès qu’un accès est dispo. En attendant, découvre les fonctionnalités.",
+      "features": "Voir les fonctionnalités",
+      "home": "Retour à l’accueil"
+    },
+    "unsubscribe": {
+      "metaTitle": "Désinscription — Tiroir",
+      "okTitle": "C’est fait.",
+      "okText": "Vous ne recevrez plus d’e-mails de Tiroir.",
+      "okDetail": "Votre compte et vos objets ne sont pas touchés : seuls les envois s’arrêtent. Les messages liés à votre compte — réinitialisation de mot de passe, partage reçu — continuent d’arriver.",
+      "unknownTitle": "Vous êtes bien désinscrit·e",
+      "unknownText": "Ce lien a peut-être déjà été utilisé, ou il est incomplet.",
+      "unknownDetail": "Dans tous les cas, plus rien ne partira de notre côté. Si un message vous parvenait malgré tout, répondez-y : quelqu’un le lira.",
+      "back": "Retour sur tiroir.app"
+    },
+    "myAccount": {
+      "metaTitle": "Mon compte — Tiroir",
+      "title": "Mon compte",
+      "signedInAs": "Connecté avec ",
+      "noPassword": " — sans mot de passe.",
+      "methodsTitle": "Moyens de connexion",
+      "methodsText": "Un seul compte Tiroir, sur le site comme dans l’application, quel que soit le moyen de connexion. Relie-les ici pour retrouver partout les mêmes objets.",
+      "providerEmail": "E-mail et mot de passe",
+      "linked": " — relié",
+      "linkedAs": " — relié ({email})",
+      "notLinked": " — non relié",
+      "link": "Relier",
+      "unlink": "Retirer",
+      "setPassword": "Définir",
+      "appOnly": "se relie depuis l’app",
+      "linkAdded": "Moyen de connexion ajouté à ton compte.",
+      "linkRemoved": "Moyen de connexion retiré.",
+      "setPasswordTitle": "Définir un mot de passe",
+      "changePasswordTitle": "Changer le mot de passe",
+      "setPasswordText": "Ton compte n'a pas encore de mot de passe. Définis-en un pour pouvoir aussi te connecter par e-mail — tous tes moyens de connexion fonctionneront ensuite.",
+      "changePasswordText": "Choisis un nouveau mot de passe. Il sera valable sur le site comme dans l’application mobile.",
+      "newPassword": "Nouveau mot de passe",
+      "passwordPlaceholder": "{min} caractères minimum",
+      "confirm": "Confirmer",
+      "passwordSaved": "Mot de passe enregistré.",
+      "saving": "Enregistrement…",
+      "save": "Enregistrer",
+      "resetTitle": "Recevoir un lien par e-mail",
+      "resetBefore": "Tu préfères passer par ta boîte mail ? On t’envoie un lien de réinitialisation à ",
+      "resetAfter": ". Il est valable une heure et ne sert qu’une fois.",
+      "resetSent": "E-mail envoyé. Vérifie ta boîte de réception.",
+      "sending": "Envoi…",
+      "sendLink": "M’envoyer un lien",
+      "footnoteBefore": "Pour modifier ton nom d’affichage, rends-toi sur ",
+      "footnoteLink": "Mon profil",
+      "footnoteAfter": "."
+    },
+    "profile": {
+      "metaTitle": "Mon profil — Tiroir",
+      "title": "Mon profil",
+      "subtitle": "Gère tes informations de compte.",
+      "viewPhoto": "Voir la photo de profil en grand",
+      "addPhotoAria": "Ajouter une photo de profil",
+      "changePhotoAria": "Changer la photo de profil",
+      "uploading": "Envoi…",
+      "changePhoto": "Changer la photo",
+      "addPhoto": "Ajouter une photo",
+      "removePhoto": "Retirer",
+      "nameLabel": "Nom affiché",
+      "namePlaceholder": "Ton nom",
+      "saving": "Enregistrement…",
+      "save": "Enregistrer",
+      "nameSaved": "Nom mis à jour.",
+      "saveError": "Impossible d'enregistrer. Réessaie.",
+      "photoUnsupported": "Ce format d'image n'est pas pris en charge par ton navigateur. Essaie un JPEG ou un PNG.",
+      "photoSaveError": "Impossible d'enregistrer la photo. Réessaie.",
+      "photoRemoveError": "Impossible de retirer la photo. Réessaie.",
+      "email": "Email",
+      "memberSince": "Membre depuis",
+      "signOutTitle": "Déconnexion",
+      "signOutText": "Tu pourras te reconnecter à tout moment.",
+      "signOut": "Se déconnecter",
+      "photo": "Photo de profil",
+      "close": "Fermer"
+    },
+    "myShares": {
+      "metaTitle": "Mes partages — TiROiR",
+      "title": "Mes partages",
+      "countOne": "{n} partage actif",
+      "countMany": "{n} partages actifs",
+      "oldestFirst": "Plus anciens d’abord",
+      "newestFirst": "Plus récents d’abord",
+      "emptyTitle": "Aucun partage pour le moment",
+      "emptyText": "Crée un partage depuis l'app TiROiR pour le retrouver ici.",
+      "objectsOne": "{n} objet",
+      "objectsMany": "{n} objets",
+      "private": "🔒 Privé",
+      "createdOn": "Créé le {date}",
+      "archived": "Archivé",
+      "expired": "Expiré",
+      "settings": "Paramètres du partage",
+      "untitled": "Partage sans titre",
+      "$visibility": "Modale de paramètres",
+      "visibility": "Visibilité",
+      "public": "Public",
+      "keepPassword": "Laisser vide pour garder le mot de passe actuel",
+      "passwordPlaceholder": "Mot de passe (min. 4 car.)",
+      "status": "Statut",
+      "active": "Actif",
+      "archivedHint": "Le lien cessera de fonctionner pour toute personne qui l'a déjà.",
+      "cancel": "Annuler",
+      "saving": "Enregistrement...",
+      "save": "Enregistrer",
+      "passwordRequired": "Renseigne un mot de passe (4 caractères minimum) pour passer en privé.",
+      "saveError": "Impossible d'enregistrer les modifications. Réessaie."
+    },
+    "$errors": "Erreurs affichées (Supabase Auth via lib/authErrors.ts, et contrôles du formulaire).",
+    "errors": {
+      "invalidCredentials": "E-mail ou mot de passe incorrect. Pas encore de compte Tiroir ? Il se crée en une minute.",
+      "emailNotConfirmed": "Ton adresse n’est pas encore confirmée : ouvre l’e-mail de Tiroir et touche le lien, puis reviens ici.",
+      "userAlreadyExists": "Tu as déjà un compte Tiroir avec cette adresse : connecte-toi.",
+      "weakPassword": "Mot de passe trop court : au moins 6 caractères.",
+      "samePassword": "C’est déjà ton mot de passe actuel : choisis-en un autre.",
+      "invalidEmail": "Cette adresse e-mail ne semble pas valide.",
+      "rateLimit": "Trop d’essais d’affilée. Attends une minute, puis réessaie.",
+      "linkExpired": "Ce lien a expiré ou a déjà été utilisé. Demandes-en un nouveau.",
+      "accessDenied": "Connexion annulée ou refusée. Réessaie.",
+      "network": "Connexion au serveur impossible. Vérifie ta connexion internet, puis réessaie.",
+      "generic": "Une erreur est survenue. Réessaie dans un instant.",
+      "passwordTooShort": "Le mot de passe doit faire au moins {min} caractères.",
+      "passwordMismatch": "Les deux mots de passe ne correspondent pas.",
+      "linkingDisabled": "La liaison de comptes doit d’abord être activée dans Supabase (Authentication → « Allow manual linking »).",
+      "identityTaken": "Ce compte est déjà rattaché à un autre compte Tiroir. Connecte-toi avec lui, supprime ce second compte ou écris à support@tiroir.app.",
+      "lastIdentity": "Impossible de délier ton dernier moyen de connexion : ajoute-en un autre d’abord."
+    }
+  },
+  "about": {
+    "$comment": "Textes about en français — référence de structure pour en, da, de, es\n(type AboutCopy). Importé par ../fr.ts sous la clé « about ».",
+    "meta": {
+      "title": "À propos — Tiroir",
+      "description": "Qui est derrière Tiroir : Clément Ougier, fondateur solo. Le projet, ce que je cherche (conseils, associés, testeurs) et comment me joindre."
+    },
+    "$agendaCta": "Libellés du bouton d'agenda : lien d'agenda configuré, ou repli sur un e-mail.",
+    "agendaCta": "Réserver un créneau",
+    "agendaCtaMail": "M'écrire pour caler un créneau",
+    "$heroSubject": "Objets des e-mails préremplis (repli sans agenda).",
+    "heroSubject": "Parler de Tiroir",
+    "agendaSubject": "Un créneau pour parler de Tiroir",
+    "hero": {
+      "badge": "À propos",
+      "title": "Bonjour, moi c’est Clément.",
+      "p1": "Je suis product designer, et Tiroir est mon projet — conçu, dessiné et développé en solo. L’idée est simple : vous photographiez un objet, l’IA rédige sa fiche, et votre inventaire se tient enfin tout seul.",
+      "p2": "Je construis en public, je me trompe en public, et j’apprends beaucoup plus vite quand je parle à des gens qu’en restant devant mon écran. C’est tout l’objet de cette page.",
+      "linkedin": "Me suivre sur LinkedIn"
+    },
+    "role": "Senior Product Designer & Builder, concepteur de Tiroir",
+    "why": {
+      "title": "Pourquoi Tiroir",
+      "paragraphs": [
+        "Tout le monde possède des centaines d’objets et personne ne sait vraiment ce qu’il a. On rachète ce qu’on avait déjà, on brade ce qui valait quelque chose, on ne retrouve pas la facture au moment où il faudrait. Faire un inventaire, c’est utile à tout le monde — et suffisamment pénible pour que personne ne le fasse.",
+        "Tiroir supprime l’étape pénible. Une photo, et la fiche est écrite : catégorie, matière, état, estimation de valeur. Le reste — collections, partage d’un lien, suivi de ce qui est vendu ou rangé — sert juste à ce que l’inventaire vive au-delà du jour où on l’a créé.",
+        "L’app est disponible sur l’App Store et Google Play. Elle progresse chaque semaine, avec les retours de celles et ceux qui l’utilisent pour de vrai."
+      ]
+    },
+    "looking": {
+      "title": "Ce que je cherche",
+      "intro": "Je ne cherche pas (encore) à lever des fonds. Je cherche des gens : pour me conseiller, me contredire, m’ouvrir une porte, ou simplement partager une expérience que je n’ai pas.",
+      "$items": "Même ordre que les émojis de la page.",
+      "items": [
+        {
+          "title": "Des conseils, pas des injonctions",
+          "body": "Produit, pricing, growth, levée ou pas de levée : j'avance vite mais seul, et j'ai besoin de gens qui ont déjà fait le chemin pour challenger mes angles morts."
+        },
+        {
+          "title": "Des personnes qui connaissent le terrain",
+          "body": "Seconde main, friperies, brocanteurs, assurance, déménagement, succession : si vous vivez un de ces mondes au quotidien, votre regard vaut dix études de marché."
+        },
+        {
+          "title": "Peut-être un ou une associée",
+          "body": "Je conçois et je code le produit. Le jour où quelqu'un a envie de porter le business, la distribution ou la tech avec moi, la porte est grande ouverte."
+        },
+        {
+          "title": "Des utilisateurs exigeants",
+          "body": "Des gens qui ont trop d'objets, qui testent l'app pour de vrai et qui me disent sans filtre ce qui coince. C'est ce qui fait avancer Tiroir le plus vite."
+        }
+      ]
+    },
+    "agenda": {
+      "title": "Mon agenda est ouvert",
+      "body": "30 minutes, en visio, sans ordre du jour imposé. Que vous ayez un conseil, une question, une critique ou juste de la curiosité pour le projet : prenez un créneau, il est pour vous.",
+      "mail": "ou m’écrire à {email}"
+    },
+    "contact": {
+      "title": "Où me trouver",
+      "linkedin": "Le journal de bord du projet, semaine après semaine.",
+      "blog": "cofondateurauchomage.fr — les coulisses, sans filtre.",
+      "emailLabel": "E-mail",
+      "email": "{email} — je réponds à tout le monde."
+    }
+  },
+  "legal": {
+    "$comment": "Textes legal en français — référence de structure pour en, da, de, es\n(type LegalCopy). Importé par ../fr.ts sous la clé « legal ».\nLe corps des documents vit dans components/legal/{cgu,privacy}/.",
+    "$updated": "Date de mise à jour, {date} formatée dans la langue (components/legal/date.ts).",
+    "updated": "Dernière mise à jour : {date}",
+    "$notice": "Avertissement en tête des traductions, suivi d'un lien vers la version\nfrançaise. Vide en français : la page française n'en affiche pas.",
+    "notice": "",
+    "noticeLink": "",
+    "cgu": {
+      "title": "Conditions Générales d'Utilisation — Tiroir",
+      "description": "Conditions Générales d'Utilisation de l'application Tiroir.",
+      "heading": "Conditions Générales d'Utilisation"
+    },
+    "privacy": {
+      "title": "Politique de confidentialité — Tiroir",
+      "description": "Politique de confidentialité de l'application Tiroir.",
+      "heading": "Politique de confidentialité"
+    }
+  },
+  "layout": {
+    "pricing": "Tarifs",
+    "download": "Télécharger l’app",
+    "myProfile": "Mon profil",
+    "myAccount": "Mon compte",
+    "myShares": "Mes partages",
+    "signOut": "Se déconnecter",
+    "signUp": "Créer un compte",
+    "signIn": "Se connecter",
+    "newHere": "Pas encore inscrit ?",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "footerTagline": "Photographiez vos objets, Tiroir rédige la fiche. Votre inventaire, enfin tenu à jour.",
+    "product": "Produit",
+    "project": "Le projet",
+    "about": "À propos",
+    "bookSlot": "Réserver un créneau",
+    "bookSubject": "Parler de Tiroir",
+    "legal": "Légal",
+    "terms": "CGU",
+    "privacy": "Confidentialité",
+    "madeIn": "Fait en France",
+    "contact": "Contact",
+    "language": "Langue"
+  },
+  "home": {
+    "meta": {
+      "title": "Tiroir — une photo, et vos objets sont rangés",
+      "description": "Photographiez un objet : Tiroir rédige sa fiche, le range et estime sa valeur. Pour les créatifs, les pros et tous ceux qui veulent savoir ce qu’ils possèdent."
+    },
+    "hero": {
+      "badge": "Disponible sur iOS et Android",
+      "$variants": "Trois accroches ; la variante active se choisit dans locales/index.ts.",
+      "variants": [
+        {
+          "title": "Une photo, et tout ce que vous possédez est rangé.",
+          "sub": "Tiroir rédige la fiche de chaque objet à votre place, catégorie, état et valeur comprises."
+        },
+        {
+          "title": "Sachez enfin ce que vous avez, et ce que ça vaut.",
+          "sub": "Tiroir rédige la fiche de chaque objet à votre place, catégorie, état et valeur comprises."
+        },
+        {
+          "title": "Votre inventaire se fait tout seul.",
+          "sub": "Prenez une photo, Tiroir s’occupe du reste. Aucune compétence technique requise."
+        }
+      ],
+      "free": "Gratuit pour commencer",
+      "demoLabel": "Démonstration : une photo de montre devient une fiche complète, avec sa valeur estimée.",
+      "steps": [
+        "Photo",
+        "Fiche",
+        "Valeur"
+      ],
+      "object": {
+        "ready": "Fiche prête",
+        "name": "Montre vintage",
+        "meta": "Années 1970 · acier",
+        "rows": [
+          [
+            "Catégorie",
+            "Horlogerie"
+          ],
+          [
+            "Collection",
+            "Vitrine"
+          ],
+          [
+            "État",
+            "Très bon"
+          ]
+        ],
+        "valueLabel": "Valeur estimée"
+      }
+    },
+    "how": {
+      "eyebrow": "Comment ça marche",
+      "title": "Trois gestes, aucun réglage.",
+      "steps": [
+        {
+          "title": "Photographiez",
+          "text": "Un objet, une photo. Ou cent d’un coup, en mode rafale."
+        },
+        {
+          "title": "La fiche s’écrit",
+          "text": "Nom, catégorie, matière, état : tout est rempli. Vous corrigez si besoin."
+        },
+        {
+          "title": "C’est rangé",
+          "text": "Collections, recherche, statut : vous retrouvez tout, à tout moment."
+        }
+      ],
+      "fiche": {
+        "name": "Veste en jean",
+        "rows": [
+          [
+            "Catégorie",
+            "Vêtements"
+          ],
+          [
+            "Matière",
+            "Denim"
+          ],
+          [
+            "État",
+            "Bon"
+          ]
+        ]
+      },
+      "collections": [
+        "Dressing",
+        "À vendre",
+        "Studio"
+      ],
+      "search": "veste bleue"
+    },
+    "pros": {
+      "eyebrow": "Pour les créatifs et les pros",
+      "title": "Moins de saisie, plus de métier.",
+      "sub": "Votre matériel, votre stock, vos collections : documentés en quelques photos, pendant que vous travaillez.",
+      "personas": [
+        {
+          "who": "Styliste",
+          "text": "Chaque pièce photographiée, rangée par shooting. Vous savez ce qui est sorti et ce qui est revenu.",
+          "chip": "Prêtée · retour vendredi"
+        },
+        {
+          "who": "Régisseur",
+          "text": "Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans votre poche.",
+          "chip": "42 pièces · 3 prêtées"
+        },
+        {
+          "who": "Brocanteur",
+          "text": "Un déballage entier en une session grâce au mode rafale, avec un prix de départ pour chaque pièce.",
+          "chip": "Rafale · 60 objets"
+        },
+        {
+          "who": "Musicien",
+          "text": "Instruments et accessoires documentés, factures jointes : prêts pour l’assurance ou la revente.",
+          "chip": "Valeur ≈ {price}"
+        }
+      ]
+    },
+    "everyone": {
+      "eyebrow": "Et pour tout le monde",
+      "title": "Pas besoin d’être pro. Ni technicien.",
+      "sub": "Si vous savez prendre une photo, vous savez utiliser Tiroir.",
+      "points": [
+        {
+          "title": "Aucune compétence requise",
+          "text": "Pas de tableau ni de formulaire vide. Vous photographiez, Tiroir remplit."
+        },
+        {
+          "title": "Vos données restent à vous",
+          "text": "Pas de publicité, rien n’est revendu ni utilisé pour entraîner des modèles. Supprimer votre compte efface tout, immédiatement."
+        },
+        {
+          "title": "Partage en lecture seule",
+          "text": "Un lien vers une collection : la personne regarde, sans compte ni application. Vous coupez le lien quand vous voulez."
+        }
+      ],
+      "usesTitle": "Ça sert aussi à…",
+      "uses": [
+        "Préparer un dossier d’assurance",
+        "Déménager sans rien perdre",
+        "Fixer les prix d’un vide-grenier",
+        "Faire le tri dans un dressing"
+      ],
+      "why": "Pourquoi ça marche : une intelligence artificielle de reconnaissance d’image décrit chaque photo. Le résultat reste une proposition — chaque champ se modifie, et vos corrections priment toujours."
+    },
+    "value": {
+      "eyebrow": "La valeur de vos objets",
+      "title": "Sachez ce que ça vaut, et suivez-le.",
+      "sub": "Une estimation fondée sur des annonces comparables, pas un chiffre sorti d’un chapeau.",
+      "items": [
+        {
+          "title": "Estimer",
+          "text": "Une fourchette de prix, et les annonces qui l’ont produite."
+        },
+        {
+          "title": "Suivre",
+          "text": "La valeur de chaque objet et de chaque collection, actualisée quand vous voulez."
+        },
+        {
+          "title": "Revendre",
+          "text": "Marquez « Vendu » avec le prix réel : l’objet reste dans votre historique."
+        }
+      ],
+      "note": "Ce n’est pas une expertise : pour une pièce rare, c’est un ordre de grandeur.",
+      "demo": {
+        "comparable": "Annonce similaire",
+        "sold": "Vendu",
+        "trend": "Valeur de la collection"
+      }
+    },
+    "pricing": {
+      "eyebrow": "Tarifs",
+      "title": "Gratuit pour commencer.",
+      "sub": "Passez à la formule supérieure quand vous en avez besoin.",
+      "perMonth": "/mois",
+      "perSeat": "par siège/mois",
+      "plans": {
+        "free": "Objets et collections illimités, {n} analyses par mois.",
+        "premium": "Pour suivre la valeur de votre collection.",
+        "pro": "Pour ceux qui vivent de leurs objets.",
+        "business": "Pour gérer un stock en équipe."
+      },
+      "note": "Prix TTC.",
+      "details": "Voir le détail des offres"
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "items": [
+        {
+          "q": "Faut-il s’y connaître en technologie ?",
+          "a": "Non. Vous prenez une photo, Tiroir remplit la fiche. Tout se corrige d’un geste."
+        },
+        {
+          "q": "Et si la fiche se trompe ?",
+          "a": "Chaque champ est modifiable, et vos corrections priment toujours. La marque exacte ou le prix d’achat, c’est vous qui les connaissez."
+        },
+        {
+          "q": "Mes photos sont-elles privées ?",
+          "a": "Oui. Rien n’est public tant que vous ne partagez pas un lien, et vous pouvez le désactiver à tout moment."
+        },
+        {
+          "q": "L’estimation est-elle fiable ?",
+          "a": "Elle s’appuie sur des annonces comparables : un prix de départ fiable pour un objet courant, un ordre de grandeur pour une pièce rare."
+        }
+      ]
+    },
+    "final": {
+      "title": "Votre premier objet, rangé en une photo.",
+      "sub": "Gratuit, sans carte bancaire."
+    }
+  },
+  "pricing": {
+    "meta": {
+      "title": "Tarifs — Tiroir",
+      "description": "Tiroir est gratuit, avec {free} actions IA par mois. Crédits IA dès {pack}, Premium à {premium} par mois, Pro à {pro} par mois, Business à {business} par siège."
+    },
+    "badge": "Tarifs",
+    "title": "Rangez tout. Sachez ce que ça vaut.",
+    "sub": "Tiroir est gratuit pour tout le monde. Payez seulement quand vous allez plus loin.",
+    "perMonth": "/mois",
+    "perYear": "ou {price} par an",
+    "perSeat": "par siège/mois",
+    "soon": "Bientôt disponible",
+    "free": {
+      "tagline": "Pour cataloguer tout ce que vous possédez.",
+      "features": [
+        "Objets et collections illimités",
+        "{n} actions IA par mois (identification, estimation)",
+        "Partage de collections en lecture seule",
+        "Crédits IA en plus, à la demande"
+      ],
+      "start": "Commencer gratuitement"
+    },
+    "premium": {
+      "tagline": "Pour suivre la valeur de votre collection.",
+      "features": [
+        "Estimation automatique avec quota mensuel",
+        "Courbe de suivi de valeur et bouton Actualiser",
+        "Sources résumées en une ligne",
+        "Suggestions d’objets par vos proches",
+        "Liens de partage protégés par mot de passe"
+      ],
+      "cta": "Passer Premium"
+    },
+    "pro": {
+      "tagline": "Pour ceux qui vivent de leurs objets.",
+      "features": [
+        "IA incluse, sans recharge",
+        "Estimation en lot",
+        "Détail des sources et comparaison marché",
+        "Export assurance"
+      ],
+      "cta": "Passer Pro"
+    },
+    "business": {
+      "tagline": "Pour gérer un stock en équipe.",
+      "features": [
+        "Tout le Pro, pour chaque membre",
+        "Rôles et comptes multiples",
+        "Facturation mensuelle, virement ou prélèvement"
+      ],
+      "cta": "Nous contacter"
+    },
+    "note": "Prix TTC. Business se règle sur facture.",
+    "credits": {
+      "title": "Crédits IA",
+      "sub": "Besoin de plus ? Rechargez quand vous voulez, sans abonnement.",
+      "unit": "{n} crédits",
+      "popular": "Le plus choisi",
+      "note": "Paiement sécurisé par carte. Les crédits n’expirent pas.",
+      "cta": "Acheter des crédits"
+    },
+    "faqTitle": "Questions fréquentes",
+    "faq": [
+      {
+        "q": "Qu’est-ce qu’une action IA ?",
+        "a": "Une identification ou une estimation d’objet."
+      },
+      {
+        "q": "Que se passe-t-il quand mon quota est épuisé ?",
+        "a": "Tiroir reste utilisable ; seules les actions IA demandent des crédits."
+      },
+      {
+        "q": "Les estimations sont-elles influencées par des partenaires ?",
+        "a": "Non. Les estimations ne sont jamais influencées par nos partenaires : les offres marchandes sont séparées de l’estimation de valeur."
+      },
+      {
+        "q": "Puis-je résilier ?",
+        "a": "À tout moment, depuis l’App Store, le Play Store ou votre compte."
+      }
+    ],
+    "final": {
+      "title": "Commencez gratuitement.",
+      "sub": "Objets et collections illimités, {n} actions IA par mois. Aucune carte bancaire requise."
+    }
+  },
+  "errors": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundText": "La page demandée n’existe pas ou a été déplacée.",
+    "serverTitle": "Erreur interne",
+    "serverText": "Un problème est survenu de notre côté. Réessayez dans un instant.",
+    "back": "Retour à l’accueil"
+  }
+}

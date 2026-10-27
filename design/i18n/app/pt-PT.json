@@ -1,0 +1,285 @@
+{
+  "common": {
+    "delete": "Eliminar",
+    "save": "Guardar"
+  },
+  "auth": {
+    "login": {
+      "passwordLabel": "Palavra-passe",
+      "signIn": "Iniciar sessão",
+      "forgotQuestion": "Esqueceu-se da palavra-passe? ",
+      "errorMissingCredentials": "Indique o seu e-mail e a sua palavra-passe.",
+      "errorInvalidCredentials": "E-mail ou palavra-passe incorretos.",
+      "errorAppleFailed": "Não foi possível iniciar sessão com a Apple.",
+      "errorGoogleFailed": "Não foi possível iniciar sessão com a Google."
+    },
+    "register": {
+      "passwordLabel": "Palavra-passe",
+      "successText": "Consulte o seu e-mail para confirmar o endereço e, depois, inicie sessão.",
+      "successSignIn": "Iniciar sessão",
+      "errorMissingFields": "Indique o seu nome, o seu e-mail e uma palavra-passe.",
+      "errorPasswordTooShort": "A palavra-passe tem de ter pelo menos 6 caracteres.",
+      "errorAppleFailed": "Não foi possível iniciar sessão com a Apple.",
+      "errorGoogleFailed": "Não foi possível iniciar sessão com a Google."
+    },
+    "forgot": {
+      "title": "Esqueci-me da palavra-passe",
+      "successText": "Consulte o seu e-mail e toque na ligação para criar uma nova palavra-passe.",
+      "backToLogin": "Voltar ao início de sessão",
+      "sendLink": "Enviar a ligação",
+      "subtitle": "Enviamos uma ligação de reposição por e-mail."
+    },
+    "reset": {
+      "title": "Nova palavra-passe",
+      "subtitle": "Escolha uma palavra-passe para a sua conta Tiroir.",
+      "invalidSubtitle": "Esta ligação já não é válida. As ligações de reposição expiram ao fim de uma hora e só funcionam uma vez.",
+      "opening": "A abrir a ligação…",
+      "newPasswordLabel": "Nova palavra-passe",
+      "confirmPlaceholder": "Escreva novamente a palavra-passe",
+      "submit": "Guardar",
+      "errorTooShort": "A palavra-passe tem de ter pelo menos {{count}} caracteres.",
+      "errorMismatch": "As duas palavras-passe não coincidem.",
+      "askNewLink": "Pedir uma nova ligação",
+      "successTitle": "Palavra-passe guardada",
+      "successText": "Tem sessão iniciada. Esta palavra-passe também funciona no site."
+    }
+  },
+  "settings": {
+    "title": "Definições",
+    "changePassword": "Alterar a palavra-passe",
+    "deleteAccount": "Eliminar a minha conta",
+    "deleting": "A eliminar…",
+    "deleteHint": "Elimina definitivamente a sua conta e todos os seus dados (objetos, fotografias, coleções). Irreversível.",
+    "changePasswordTitle": "Nova palavra-passe",
+    "changePasswordMessage": "Escreva a sua nova palavra-passe (mínimo de 8 caracteres).",
+    "passwordTooShortMessage": "A palavra-passe tem de ter pelo menos 8 caracteres.",
+    "passwordUpdatedTitle": "Palavra-passe atualizada",
+    "passwordUpdatedMessage": "Já pode iniciar sessão com a nova palavra-passe.",
+    "deleteTitle": "Eliminar a minha conta?",
+    "deleteMessage": "Todos os seus dados serão eliminados definitivamente: objetos, coleções, fotografias, partilhas. Esta ação é irreversível.",
+    "deleteConfirm": "Eliminar definitivamente",
+    "deleteLastMessage": "Escreva \"ELIMINAR\" para confirmar.",
+    "deleteFailed": "Não foi possível eliminar. Tente novamente ou contacte o suporte.",
+    "newPasswordLabel": "Nova palavra-passe",
+    "savePassword": "Guardar",
+    "passwordMismatch": "As duas palavras-passe não coincidem."
+  },
+  "language": {
+    "title": "Idioma da aplicação",
+    "systemDefault": "Idioma do dispositivo"
+  },
+  "home": {
+    "search": "Pesquisar",
+    "deleteCollectionTitle": "Eliminar «{{name}}»?",
+    "filterEmpty": "Nenhuma coleção corresponde a «{{query}}»."
+  },
+  "profile": {
+    "proBilling": "Subscrição Profissional faturada diretamente. Escreva para hello@tiroir.app para qualquer alteração.",
+    "statShares": "partilhas ativas",
+    "aiThisMonth": "Análises de IA este mês",
+    "resetOn": "Repõe a {{date}}",
+    "photosUploaded": "Fotografias enviadas",
+    "upgrade": "Subscrever o Premium",
+    "emailHint": "O e-mail não pode ser alterado. Para mudar a palavra-passe, vá a Definições.",
+    "manageSubscription": "Gerir a minha subscrição",
+    "manageSubError": "Não foi possível abrir a gestão da subscrição de momento.",
+    "photoChange": "Mudar a fotografia de perfil",
+    "photoTake": "Tirar uma fotografia",
+    "photoRemove": "Remover a fotografia",
+    "photoView": "Ver a fotografia em grande",
+    "photoChangeShort": "Mudar a fotografia",
+    "premiumOnly": "Exclusivo para subscritores Premium"
+  },
+  "shares": {
+    "title": "Partilhas ativas",
+    "empty": "Nenhuma ligação partilhada",
+    "emptySubtitle": "Crie uma ligação a partir da ficha de um objeto ou de uma coleção.",
+    "deleteTitle": "Eliminar esta ligação?",
+    "deleteMessage_one": "A ligação partilhada ({{count}} objeto) deixará de estar acessível.",
+    "deleteMessage_other": "A ligação partilhada ({{count}} objetos) deixará de estar acessível.",
+    "editTitle": "Definições da partilha",
+    "editHelp": "Estes são os valores guardados para esta ligação. Qualquer alteração aplica-se de imediato.",
+    "passwordOn": "Protegida por palavra-passe",
+    "passwordHint": "Para definir uma nova palavra-passe, é preciso criar uma nova ligação."
+  },
+  "collections": {
+    "deleteTitle": "Eliminar «{{name}}»?",
+    "namePlaceholder": "Roupeiro, garagem, oficina…",
+    "photoRemove": "Remover a fotografia"
+  },
+  "search": {
+    "title": "Pesquisar",
+    "placeholder": "ex.: casaco azul, sala, Nike…",
+    "noResultsFor": "Nenhum objeto encontrado para «{{query}}».",
+    "recentSearches": "Pesquisas recentes",
+    "matchStatus": "Estado"
+  },
+  "menu": {
+    "signOut": "Terminar sessão",
+    "signOutMessage": "Voltará ao ecrã de início de sessão.",
+    "signOutWeb": "Terminar sessão? Voltará ao ecrã de início de sessão."
+  },
+  "uploading": {
+    "sendingPhotos": "A enviar as fotografias…",
+    "analyzing": "O Torix está a analisar a sua fotografia…",
+    "preparingSheet": "Estou a preparar a ficha do seu objeto"
+  },
+  "capture": {
+    "permissionLibrary": "Permita o acesso à fototeca nas definições.",
+    "permissionCamera": "Permita o acesso à câmara nas definições.",
+    "needPhotoTitle": "Adicione pelo menos uma fotografia",
+    "title": "Tire uma fotografia",
+    "heroOr": "ou escolha na sua fototeca",
+    "library": "Fototeca",
+    "preparing": "A preparar…",
+    "objectQuotaBody": "O seu Tiroir gratuito está cheio. A subscrição retira o limite e mantém tudo o que já arrumou.",
+    "objectQuotaUpgrade": "Ver as subscrições"
+  },
+  "status": {
+    "stored": "Arrumado"
+  },
+  "paywall": {
+    "unavailable": "Subscrições indisponíveis de momento.",
+    "freeTrial": "✦ 7 dias de experiência grátis",
+    "startTrial": "Começar a experiência grátis",
+    "subscribe": "Subscrever",
+    "legal": "A subscrição renova-se automaticamente. Pode cancelar a qualquer momento nas Definições do iOS. Nada é cobrado durante a experiência grátis.",
+    "welcomeMessage": "A sua subscrição está ativa.",
+    "welcomeCta": "Ótimo!",
+    "restoredTitle": "Subscrição restaurada ✓",
+    "noSubTitle": "Nenhuma subscrição encontrada",
+    "proHint": "Tudo do Premium, com mais análises de IA e retoques de fotografia todos os meses."
+  },
+  "credits": {
+    "outBody": "A quota do mês esgotou-se e não há créditos suficientes. Um pacote de créditos permite continuar de imediato."
+  },
+  "assistant": {
+    "lockedSub": "O Assistente por conversa é exclusivo para subscritores Premium.",
+    "prompt1": "Onde é que eu guardei a minha máquina fotográfica? 📸",
+    "prompt2": "O que poderia vender para fazer algum dinheiro? 💸",
+    "prompt4": "O que anda por aí sem sítio certo? 🕵️",
+    "greetingDefault": "👋 Olá! Pergunte-me algo sobre os seus objetos — por exemplo \"onde está a minha bicicleta?\" — e eu procuro no seu inventário.",
+    "greetingMissing_one": "👋 Olá! Reparei que {{count}} objeto não tem local definido. Quer que o liste, ou prefere perguntar-me algo sobre o seu inventário?",
+    "greetingMissing_other": "👋 Olá! Reparei que {{count}} objetos não têm local definido. Quer que os liste, ou prefere perguntar-me algo sobre o seu inventário?"
+  },
+  "collectionDetail": {
+    "actionShare": "Partilhar",
+    "searchPlaceholder": "Pesquisar…",
+    "deleteBulkTitle_one": "Eliminar {{count}} objeto?",
+    "deleteBulkTitle_other": "Eliminar {{count}} objetos?",
+    "deleteBulkBody": "Esta ação é irreversível. Os objetos serão eliminados definitivamente.",
+    "inviteCamera": "Tirar uma fotografia",
+    "inviteLibrary": "Da fototeca",
+    "inviteLibraryHint": "Escolha uma fotografia já tirada"
+  },
+  "iconPicker": {
+    "preview": "Pré-visualização"
+  },
+  "documents": {
+    "permissionCamera": "Permita o acesso à câmara nas definições.",
+    "permissionLibrary": "Permita o acesso à fototeca nas definições.",
+    "sourcePhoto": "Tirar uma fotografia",
+    "sourceLibrary": "Escolher na fototeca",
+    "sourceFile": "Escolher um ficheiro",
+    "typeFacture": "Fatura",
+    "deleteTitle": "Eliminar este documento?"
+  },
+  "sharePanel": {
+    "title": "Criar uma partilha",
+    "recipientPhone": "Telemóvel do destinatário",
+    "field_phone": "Telemóvel do destinatário",
+    "optPassword": "Proteger o acesso com palavra-passe",
+    "optDownload": "Permitir a transferência em CSV",
+    "passwordPlaceholder": "Palavra-passe da ligação (mín. 4 caracteres)",
+    "generate": "GERAR UMA LIGAÇÃO",
+    "successTitle": "A sua ligação foi gerada!",
+    "share": "PARTILHAR",
+    "shareName": "Nome da partilha",
+    "field_duration": "Duração da partilha",
+    "settings": "Definições",
+    "advanced": "Definições avançadas",
+    "fieldsLabel": "Informações partilhadas",
+    "filesLabel": "Ficheiros"
+  },
+  "object": {
+    "share": "Partilhar",
+    "photoNone": "Nenhuma fotografia",
+    "photoDeleteTitle": "Eliminar esta fotografia?",
+    "deleteObjectTitle": "Eliminar este objeto?",
+    "statusOptions": {
+      "stored": "Arrumado",
+      "given": "Para deitar fora"
+    },
+    "photo": {
+      "permissionGallery": "Permita o acesso à galeria nas definições.",
+      "enhancePremiumMessage": "A melhoria de fotografias com IA é exclusiva para subscritores Premium.",
+      "premiumRequiredMessage": "Esta funcionalidade é exclusiva para subscritores Premium.",
+      "enhancePremiumTitle": "Funcionalidade Premium",
+      "quotaMessage": "Atingiu o limite de retoques com IA deste mês. Volte no próximo mês.",
+      "enhanceError": "Não foi possível melhorar esta fotografia de momento.",
+      "coverError": "Não foi possível definir esta fotografia como favorita.",
+      "studioTitle": "Trabalhar esta fotografia",
+      "studioFootnote": "O resultado é adicionado à ficha; a fotografia original é mantida."
+    },
+    "value": {
+      "searching": "A pesquisar…",
+      "delete": "✕ Eliminar",
+      "quotaUpgrade": "Ver as subscrições",
+      "quotaBody": "Usou todas as estimativas de valor do mês. O plano superior oferece mais, sem esperar pela reposição."
+    },
+    "insurance": {
+      "typePlaceholder": "Seguro multirriscos habitação",
+      "labelPlaceholder": "Fidelidade, Tranquilidade…",
+      "save": "Guardar",
+      "linkEmpty": "Nenhum documento disponível. Envie um e ficará associado automaticamente.",
+      "deleteTitle": "Eliminar este seguro?"
+    },
+    "summaryDelete": "Eliminar a descrição",
+    "summaryDeleteTitle": "Eliminar a descrição?",
+    "summaryWriting": "A escrever…"
+  },
+  "objectEdit": {
+    "save": "Guardar",
+    "saveChanges": "Guardar as alterações",
+    "userNotConnected": "Utilizador sem sessão iniciada.",
+    "saveError": "Não foi possível guardar."
+  },
+  "shareView": {
+    "notFoundTitle": "Ligação não encontrada",
+    "expiredTitle": "Esta ligação expirou",
+    "notFoundSub": "Verifique o endereço ou peça uma nova ligação.",
+    "expiredSub": "Peça uma nova ligação ao proprietário.",
+    "defaultTitle": "Partilha TiROiR",
+    "sharedVia": "Partilhado via TiROiR",
+    "download": "Transferir (.PDF / .CSV)"
+  },
+  "batch": {
+    "statusUploading": "A enviar a fotografia…",
+    "statusAnalyzing": "A analisar…",
+    "entrySub": "Uma fotografia = um objeto · até {{max}}",
+    "photosOfThisObject": "Fotografias deste objeto"
+  },
+  "emojiKeyboard": {
+    "hint": "Abra o teclado de emojis do telemóvel (tecla 😀 ou 🌐) e escreva o que quiser.",
+    "placeholder": "Escreva um emoji"
+  },
+  "groups": {
+    "deleteTitle": "Desfazer «{{name}}»?",
+    "moveInto": "Em «{{name}}»"
+  },
+  "scene": {
+    "title": "Deteção de cena",
+    "subtitle": "Fotografe vários objetos de uma só vez",
+    "historyDeleteTitle": "Eliminar esta análise?",
+    "newPhoto": "Nova fotografia"
+  },
+  "torix": {
+    "analyzing": "O Torix está a analisar a sua fotografia…"
+  },
+  "preferences": {
+    "languageTitle": "Idioma da aplicação",
+    "languageAutoHint": "Segue o idioma do dispositivo ({{name}})",
+    "regionAutoHint": "Segue a região do dispositivo ({{name}})",
+    "systemSettings": "Abrir as definições do dispositivo"
+  }
+}
