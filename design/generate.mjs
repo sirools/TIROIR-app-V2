@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Génère, depuis design/tokens.json (seule source de vérité), les jetons de
 // chaque support : site web, app (iOS et Android), e-mails ; et, depuis
-// design/i18n/ (design/i18n.mjs), les traductions de l'app et du site.
+// design/i18n/ (design/i18n.mjs), les traductions de l'app et du site ;
+// et l'inventaire des composants (design/components.mjs).
 //
 //   node design/generate.mjs          écrit les fichiers
 //   node design/generate.mjs --check  échoue si l'un d'eux n'est plus à jour
@@ -11,6 +12,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { i18nOutputs, applyLanguagesToAppJson } from './i18n.mjs'
+import { componentsOutputs } from './components.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const tokens = JSON.parse(readFileSync(join(ROOT, 'design/tokens.json'), 'utf8'))
@@ -89,6 +91,9 @@ function appJson() {
 }
 OUTPUTS.push(['mobile/app.json', appJson()])
 OUTPUTS.push(...i18nOutputs(ROOT))
+// Inventaire des composants du site et de l'app, avec leurs textes dans
+// chaque langue : page « Design system » du back-office.
+OUTPUTS.push(...componentsOutputs(ROOT))
 
 const check = process.argv.includes('--check')
 let stale = 0

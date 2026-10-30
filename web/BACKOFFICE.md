@@ -76,6 +76,31 @@ adresses séparées par des virgules), qui n'ont accès à rien d'autre du
 back-office. L'adresse doit être confirmée. Garde :
 `requireMarketingPage` (`lib/adminAuth.ts`).
 
+## Page Design system (`/admin/design-system`)
+
+L'inventaire exhaustif des composants : **Web** (pages, composants et
+back-office du site Next.js) et **Natif** (écrans, briques UI et composants
+de l'app Expo, iOS et Android). Pour chacun : son fichier, qui l'utilise,
+ses sous-composants, et les textes qu'il affiche.
+
+- **Sélecteur de langue** (en haut, une pastille par langue de
+  `design/i18n/languages.json`) : tous les textes passent dans la langue
+  choisie, avec le français en regard. Un texte absent est marqué
+  « manquant » ; une langue partielle (pt-PT) signale ce qui vient de sa
+  langue mère. Une langue non proposée sur un support (danois dans l'app,
+  portugais sur le site) est signalée comme écart ISO.
+- **Filtres** : recherche (composant, fichier, clé ou texte), famille,
+  composants qui affichent des textes, textes manquants.
+- Repère « en dur » : textes écrits directement dans un composant, donc
+  non traduits. « Utilisé nulle part » : composant que rien n'importe.
+
+Source : `design/components.mjs` (lecture du code, sans dépendance),
+appelé par `node design/generate.mjs`, qui écrit
+`lib/designSystem/inventory.generated.json`. Ce fichier reste sur le
+serveur (`lib/designSystem/inventory.ts`) : la page ne reçoit que la
+langue et le support demandés (`?lang=pt-BR&support=native`). Ouverte aux
+admins (`requireAdminPage`).
+
 ## Header du back-office (navigation commune)
 
 Un seul header, sticky, sur toutes les pages admin : logo (retour à

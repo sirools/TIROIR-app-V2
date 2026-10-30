@@ -8,6 +8,16 @@ l'arrondi et l'ombre se décident ici, et nulle part ailleurs.
 liste des langues, textes système) — voir `design/i18n/README.md`. La même
 commande les génère.
 
+## Inventaire des composants (back-office)
+
+`design/components.mjs` lit le code du site et de l'app et dresse la liste
+de tous leurs composants, avec les textes de `design/i18n/` que chacun
+affiche. `node design/generate.mjs` l'écrit dans
+`web/lib/designSystem/inventory.generated.json` ; la page **Design
+system** du back-office (`/admin/design-system`) l'affiche, avec un
+sélecteur de langue. Un composant ajouté ou renommé, ou un texte modifié :
+relancer le générateur (le test `designTokens` casse sinon).
+
 ## Modifier un jeton
 
 1. Changer la valeur dans `design/tokens.json`.
