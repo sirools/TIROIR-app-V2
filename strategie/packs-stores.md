@@ -31,11 +31,12 @@ intégré ne se supprime jamais.
 - [ ] **Les nouveaux prix** (TTC, en euros) — annoncés pour le 01/11 ; à
       reporter dans le tableau ci-dessous, puis à me donner : je mets à jour d'un coup la config des
       paliers, la page Tarifs, les fiches de Torix, Stripe et cette liste.
-- [ ] **Abonnés en cours : garder leur ancien prix (recommandé)** ou les
-      faire passer au nouveau ? Une hausse appliquée aux abonnés en cours
-      demande leur accord chez Google (sinon **résiliation**) et, au-delà de
-      certains seuils, chez Apple (sinon pas de renouvellement). Les abonnés
-      historiques à 6,99 €/mois gardent ce prix (`strategie/offres.md`, point 6).
+- [x] **Abonnés en cours : ils gardent leur prix** — **décidé le 31/10/2026**.
+      Le nouveau prix ne vaut que pour les nouveaux abonnements : Apple
+      « conserver le prix actuel pour les abonnés existants », Google pas de
+      migration de prix, Stripe Business abonnements en cours non migrés.
+      Les abonnés historiques à 6,99 €/mois gardent aussi ce prix
+      (`strategie/offres.md`, point 6).
 - [ ] **Pro annuel** : oui ou non ? Et la règle « annuel = 1 mois offert »
       (décision D3 de `V4_PLAN.md`) s'applique-t-elle à Premium et à Pro ?
 - [ ] **Packs de crédits** : prix inchangés (2,99 / 6,99 / 19,99 €) ?
@@ -89,8 +90,8 @@ reconnaît encore pour les remboursements).
 1. [ ] **Premium, nouveaux prix** : Tiroir → Monétisation → Abonnements →
    groupe de Premium → `tiroir_premium_monthly` → Prix de l'abonnement →
    nouveau prix (France, puis « tous les pays » au niveau équivalent).
-   Pour une **hausse** : choisir **« conserver le prix actuel pour les
-   abonnés existants »** (sauf décision contraire à l'étape 0). Même chose
+   Choisir **« conserver le prix actuel pour les abonnés existants »**
+   (décidé le 31/10). Même chose
    pour `tiroir_premium_annual`.
 2. [ ] **Pro** : dans le **même groupe d'abonnements** que Premium, « + » →
    `tiroir_pro_monthly` (1 mois), et `tiroir_pro_annual` (1 an) si décidé.

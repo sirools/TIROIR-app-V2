@@ -473,11 +473,11 @@ Principe : **on n'enlève jamais un droit à un abonné en cours.**
    profils `plan = 'premium'` par origine (store / manuel) et par produit
    RevenueCat ; lister ceux qui ont des quotas consommés au-dessus des
    nouveaux plafonds.
-2. **Prix** : Premium passe de 6,99 € à 4,99 € — c'est une **baisse**, Apple
-   et Google permettent de l'appliquer aux abonnés en cours sans
-   consentement. Aucune hausse n'est prévue ; s'il y en avait une, les
-   abonnés garderaient l'ancien prix (règle déjà écrite dans
-   `strategie/offres.md`, point 6).
+2. **Prix** : **décidé le 31/10/2026 — les abonnés en cours gardent leur
+   prix** ; la nouvelle grille (en hausse, prix annoncés pour le 01/11) ne
+   vaut que pour les nouveaux abonnements. Aucune demande d'accord à
+   envoyer aux abonnés, donc aucune résiliation chez Google. Les abonnés
+   historiques à 6,99 € gardent ce prix (`strategie/offres.md`, point 6).
 3. **Droits** : les fonctions Premium V4 (courbe, sources) s'ajoutent ; rien
    n'est retiré. Si D2 plafonne le quota Premium sous ce qu'un abonné
    consomme, appliquer le nouveau plafond **au prochain renouvellement**
