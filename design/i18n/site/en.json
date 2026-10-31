@@ -381,6 +381,10 @@
       "back": "Back to tiroir.app"
     },
     "myAccount": {
+      "billingTitle": "AI credits and team",
+      "billingText": "Your AI credit balance and history, and credit packs. For a Business team: members and invoices.",
+      "creditsLink": "My AI credits →",
+      "teamLink": "My Business team →",
       "metaTitle": "My account — Tiroir",
       "title": "My account",
       "signedInAs": "Signed in as ",
@@ -895,5 +899,99 @@
     "serverTitle": "Server error",
     "serverText": "Something went wrong on our side. Please try again in a moment.",
     "back": "Back to home"
+  },
+  "billing": {
+    "credits": {
+      "metaTitle": "AI credits — Tiroir",
+      "title": "AI credits",
+      "intro": "Every month, {n} AI actions are free. Beyond that, credits take over — and they never expire.",
+      "balance": "Available credits",
+      "negative": "Negative balance: refunded credits had already been used.",
+      "quota": "This month’s allowance",
+      "quotaLine": "{used} / {quota} used · resets on {date}",
+      "empty": "Monthly allowance used up and no credits left: AI is paused. A pack lets you carry on right away.",
+      "buyTitle": "Buy credits",
+      "buyCta": "Buy credits",
+      "popular": "Most popular",
+      "perCredit": "{price} per credit",
+      "buy": "Buy",
+      "soon": "Coming soon",
+      "waiver": "I ask for immediate access to the credits and waive my 14-day right of withdrawal.",
+      "waiverMissing": "Tick the box above to continue.",
+      "redirecting": "Taking you to payment…",
+      "error": "Payment could not start. Please try again in a moment.",
+      "success": "Payment received: your credits will arrive in a few seconds.",
+      "cancelled": "Payment cancelled: you have not been charged.",
+      "secure": "Secure payment by Stripe. Tiroir never sees your card.",
+      "historyTitle": "History",
+      "historyEmpty": "Nothing yet.",
+      "reasons": {
+        "purchase": "Credits purchased",
+        "consume": "AI action (credits)",
+        "quota": "AI action (monthly allowance)",
+        "refund": "Credits returned (AI failed)",
+        "reversal": "Purchase refunded",
+        "welcome": "Welcome credits",
+        "gift": "Gift credits",
+        "admin": "Adjustment"
+      },
+      "viaSite": "on the website",
+      "viaApp": "in the app",
+      "refunded": "returned",
+      "team": "Your Business team"
+    },
+    "team": {
+      "metaTitle": "Team — Tiroir",
+      "title": "Business team",
+      "none": "Your account is not part of a Business team.",
+      "noneCta": "Discover Business",
+      "status": "Subscription",
+      "statuses": {
+        "active": "active",
+        "trialing": "active",
+        "past_due": "payment overdue",
+        "unpaid": "suspended",
+        "canceled": "cancelled",
+        "incomplete": "pending",
+        "incomplete_expired": "expired",
+        "none": "not started yet"
+      },
+      "seats": "{n} seat(s) · {price} per seat per month",
+      "proUntil": "Pro for every member until {date}",
+      "members": "Members",
+      "you": "you",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "member": "Member"
+      },
+      "ownPlan": "keeps their own plan",
+      "remove": "Remove",
+      "confirmRemove": "Remove this member? They lose Pro and their seat is no longer billed from next month.",
+      "addTitle": "Add a member",
+      "addHint": "They need a Tiroir account first. Each new member is one more seat, billed pro rata for the current month.",
+      "emailPlaceholder": "name@company.com",
+      "asAdmin": "Admin (can manage the team)",
+      "add": "Add",
+      "errors": {
+        "NO_ACCOUNT": "No Tiroir account with this address.",
+        "ALREADY_MEMBER": "This person is already in the team.",
+        "IN_OTHER_ORG": "This person already belongs to another team.",
+        "OWNER": "The owner cannot be removed.",
+        "default": "That didn’t work. Please try again in a moment."
+      },
+      "billingPending": "Team updated. Billing will be adjusted by Tiroir shortly.",
+      "invoices": "Invoices",
+      "invoiceStatus": {
+        "open": "due",
+        "paid": "paid",
+        "void": "void",
+        "uncollectible": "unpaid"
+      },
+      "due": "due {date}",
+      "view": "View / pay",
+      "pdf": "PDF",
+      "noInvoices": "No invoice yet."
+    }
   }
 }

@@ -108,6 +108,10 @@ const accountEs: AccountCopy = {
     back: 'Volver a tiroir.app',
   },
   myAccount: {
+    billingTitle: 'Créditos de IA y equipo',
+    billingText: 'Tu saldo de créditos de IA, su historial y los packs de créditos. Para un equipo Business: miembros y facturas.',
+    creditsLink: 'Mis créditos de IA →',
+    teamLink: 'Mi equipo Business →',
     metaTitle: 'Mi cuenta — Tiroir',
     title: 'Mi cuenta',
     signedInAs: 'Sesión iniciada con ',

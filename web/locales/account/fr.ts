@@ -113,6 +113,10 @@ const accountFr = {
     back: 'Retour sur tiroir.app',
   },
   myAccount: {
+    billingTitle: 'Crédits IA et équipe',
+    billingText: 'Ton solde de crédits IA, leur historique, et l’achat de packs. Pour une équipe Business : membres et factures.',
+    creditsLink: 'Mes crédits IA →',
+    teamLink: 'Mon équipe Business →',
     metaTitle: 'Mon compte — Tiroir',
     title: 'Mon compte',
     signedInAs: 'Connecté avec ',

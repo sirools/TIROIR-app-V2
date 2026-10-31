@@ -9,6 +9,9 @@
 // storeProducts.ts`), et le coût d'un crédit celui de `ai_credit_cost`
 // (`supabase/drafts/ai_credits_spend.sql`) : des tests le vérifient.
 
+// Le site vend ces packs et le siège Business par Stripe à partir de cette
+// grille (lib/stripeConfig.ts) ; paiement fermé tant que STRIPE_MODE et la
+// clé ne sont pas posés.
 export const OFFERS_V4 = {
   free: { aiActionsPerMonth: 20 },
   packs: [

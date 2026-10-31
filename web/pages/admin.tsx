@@ -266,8 +266,8 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
         {/* ── Trésorerie (estimation) ── */}
         <h2 style={s.sectionTitle}>Trésorerie de Tiroir — ce mois-ci</h2>
         <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
-          <strong>Estimation.</strong> Hypothèses : 1 $ = {HYPOTHESES.usdToEur} €, TVA {HYPOTHESES.tva * 100} %,
-          commission des stores {HYPOTHESES.storeCommission * 100} % sur le Premium, Vercel {HYPOTHESES.vercelUsd} $/mois
+          <strong>Estimation.</strong> Hypothèses : 1 $ = {HYPOTHESES.usdToEur} €, TVA {HYPOTHESES.storeVat * 100} % retenue par les stores et
+          commission des stores {HYPOTHESES.storeCommission * 100} % sur le Premium, pas de TVA sur le Pro (franchise en base), Vercel {HYPOTHESES.vercelUsd} $/mois
           (à ajuster), le Pro facturé en direct. L&apos;argent des stores arrive un à deux mois après la vente ; celui
           d&apos;une facture Pro, dès son règlement.
         </p>

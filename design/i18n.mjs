@@ -16,7 +16,11 @@ import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 const SECTIONS = ['share', 'account', 'about', 'legal']
-const SECTION_TYPES = { share: 'ShareCopy', account: 'AccountCopy', about: 'AboutCopy', legal: 'LegalCopy' }
+// Sections à part, servies par leur propre point d'entrée (pas dans le type
+// Copy) : générées seulement pour les langues qui les ont. billing = pages
+// Crédits et Équipe (web/locales/billing/index.ts : français, sinon anglais).
+export const OPTIONAL_SECTIONS = ['billing']
+const SECTION_TYPES = { share: 'ShareCopy', account: 'AccountCopy', about: 'AboutCopy', legal: 'LegalCopy', billing: 'BillingCopy' }
 
 export function loadI18n(root) {
   const dir = join(root, 'design/i18n')
@@ -79,7 +83,7 @@ function siteFiles(root, header) {
     const isRef = code === ref
     const head = h => [`// ${header(`site/${code}.json`)}`, ...(h ? ['//', ...commentLines(h, '')] : [])].join('\n')
 
-    for (const s of SECTIONS) {
+    for (const s of [...SECTIONS, ...OPTIONAL_SECTIONS.filter(o => copy[o])]) {
       const section = copy[s]
       const name = `${s}${varSuffix(code)}`
       const body = tsValue({ ...section, $comment: undefined }, 0)
@@ -94,7 +98,7 @@ function siteFiles(root, header) {
       ].join('\n')])
     }
 
-    const core = Object.fromEntries(Object.entries(copy).filter(([k]) => !SECTIONS.includes(k) && k !== '$comment'))
+    const core = Object.fromEntries(Object.entries(copy).filter(([k]) => !SECTIONS.includes(k) && !OPTIONAL_SECTIONS.includes(k) && k !== '$comment'))
     const body = tsValue(core, 0).replace(/^\{\n/, `{\n${SECTIONS.map(s => `  ${s},`).join('\n')}\n`)
     const v = varName(code)
     out.push([`web/locales/${code}.ts`, [

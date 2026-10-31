@@ -32,6 +32,7 @@ type Access = { isAdmin: boolean; isTorixOwner: boolean; isMarketing: boolean }
  */
 const SECTIONS: (AdminNavSection & { visible: (a: Access) => boolean })[] = [
   { key: 'accueil', label: 'Accueil', href: '/admin', visible: a => a.isAdmin },
+  { key: 'facturation', label: 'Facturation', href: '/admin/facturation', visible: a => a.isAdmin },
   { key: 'marketing', label: 'Marketing', href: '/admin/marketing', visible: a => a.isAdmin || a.isMarketing },
   { key: 'torix', label: 'Torix Lab', href: '/admin/torix-lab', tone: 'dark', visible: a => a.isAdmin && a.isTorixOwner },
 ]

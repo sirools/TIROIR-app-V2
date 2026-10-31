@@ -9,18 +9,18 @@ describe('computeTreasury', () => {
     expect(t.costs.map(c => c.label)).toContain('IA (dépense réelle du mois)')
   })
 
-  test('revenu net : TVA puis commission pour Premium, TVA seule pour Pro', () => {
+  test('revenu net : TVA des stores puis commission pour Premium, rien pour le Pro (franchise en base)', () => {
     const t = computeTreasury({ supabaseUsd: 0, aiMonthUsd: 0, premiumCount: 10, proCount: 1 })
     expect(t.premiumNetEur).toBeCloseTo(4.95, 2)
-    expect(t.proNetEur).toBeCloseTo(24.17, 2)
-    expect(t.revenueEur).toBeCloseTo(49.5 + 24.17, 1)
+    expect(t.proNetEur).toBe(29)
+    expect(t.revenueEur).toBeCloseTo(49.5 + 29, 1)
   })
 
   test('clients Pro nécessaires pour combler l’écart', () => {
     const t = computeTreasury({ supabaseUsd: 25, aiMonthUsd: 10, premiumCount: 0, proCount: 0 })
     expect(t.gapEur).toBeGreaterThan(0)
-    expect(t.proNeeded).toBe(3) // 58,19 € / 24,17 € → 3
-    expect(t.proAnnualCashEur).toBeCloseTo(241.67, 2)
+    expect(t.proNeeded).toBe(3) // 58,19 € / 29 € → 3
+    expect(t.proAnnualCashEur).toBe(290)
   })
 
   test('écart couvert : aucun client de plus', () => {

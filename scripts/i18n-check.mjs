@@ -55,17 +55,28 @@ if (list > -1) {
 
 let failed = false
 
+// Sections du site servies à part, seulement dans certaines langues
+// (design/i18n.mjs, OPTIONAL_SECTIONS) : comptées si la langue les a.
+const OPTIONAL = { site: ['billing'], app: [] }
+
 for (const kind of ['app', 'site']) {
   const langs = meta.languages.filter(l => l[kind])
-  const ref = flatten(load(kind, REFERENCE))
-  const refKeys = Object.keys(ref)
-  console.log(`── ${kind === 'app' ? 'App' : 'Site'} — référence ${REFERENCE} : ${refKeys.length} clés`)
+  const refAll = flatten(load(kind, REFERENCE))
+  console.log(`── ${kind === 'app' ? 'App' : 'Site'} — référence ${REFERENCE} : ${Object.keys(refAll).length} clés`)
+  for (const o of OPTIONAL[kind]) {
+    const has = langs.filter(l => load(kind, l.code)?.[o]).map(l => l.code)
+    console.log(`  section « ${o} » : ${has.join(', ')} (les autres langues : page en anglais)`)
+  }
   for (const lang of langs) {
     if (lang.code === REFERENCE) continue
     const data = load(kind, lang.code)
     if (!data) { console.log(`${lang.code} : FICHIER MANQUANT (design/i18n/${kind}/${lang.code}.json)`); failed = true; continue }
     const flat = flatten(data)
     const keys = Object.keys(flat)
+    // Une section optionnelle absente de la langue n'est pas un trou.
+    const absent = OPTIONAL[kind].filter(o => !data[o])
+    const ref = Object.fromEntries(Object.entries(refAll).filter(([k]) => !absent.some(o => k.startsWith(o + '.'))))
+    const refKeys = Object.keys(ref)
     const extra = keys.filter(k => !(k in ref))
     const badVars = keys.filter(k => k in ref && VARS[kind](flat[k]) !== VARS[kind](ref[k]))
     if (lang.fallback) {
