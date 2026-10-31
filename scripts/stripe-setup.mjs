@@ -5,6 +5,15 @@
 // par sa lookup_key, la même en mode test et en mode réel.
 //
 //   STRIPE_SECRET_KEY=sk_test_… node scripts/stripe-setup.mjs
+//   STRIPE_SECRET_KEY=sk_test_… node scripts/stripe-setup.mjs --apply-price-changes
+//
+// Un prix Stripe ne se modifie pas. Sans option, un montant qui a changé
+// dans la grille est seulement signalé (⚠). Avec --apply-price-changes, un
+// nouveau prix est créé sur le même produit et reprend la lookup_key
+// (transfer_lookup_key) : les nouveaux achats et les nouveaux abonnements
+// paient le nouveau montant ; les abonnements Business en cours gardent
+// l'ancien prix tant qu'on ne les migre pas (l'ancien prix est désactivé,
+// pas supprimé).
 //
 // D'abord avec la clé de TEST (préprod). La clé réelle seulement le jour
 // de l'ouverture, après validation. La clé n'est jamais écrite nulle part.
@@ -46,14 +55,29 @@ async function main() {
   const key = process.env.STRIPE_SECRET_KEY
   if (!key) throw new Error('STRIPE_SECRET_KEY manquante')
   const mode = key.includes('_live_') ? 'RÉEL' : 'test'
-  console.log(`Stripe, mode ${mode}`)
+  const applyChanges = process.argv.includes('--apply-price-changes')
+  console.log(`Stripe, mode ${mode}${applyChanges ? ' — changements de prix appliqués' : ''}`)
 
   for (const p of PRODUCTS) {
     const found = await stripe(key, 'GET', '/v1/prices', { 'lookup_keys[0]': p.lookupKey, active: true, limit: 1 })
     if (found.data[0]) {
       const price = found.data[0]
       const ok = price.unit_amount === p.amount && price.currency === 'eur'
-      console.log(`${ok ? '✓' : '⚠ montant différent :'} ${p.lookupKey} → ${price.id} (${price.unit_amount / 100} €)`)
+      if (ok || !applyChanges) {
+        console.log(`${ok ? '✓' : `⚠ montant différent (grille : ${p.amount / 100} €) :`} ${p.lookupKey} → ${price.id} (${price.unit_amount / 100} €)`)
+        continue
+      }
+      const next = await stripe(key, 'POST', '/v1/prices', {
+        product: typeof price.product === 'string' ? price.product : price.product.id,
+        currency: 'eur',
+        unit_amount: p.amount,
+        tax_behavior: 'inclusive',
+        lookup_key: p.lookupKey,
+        transfer_lookup_key: true,
+        ...(p.recurring ? { recurring: { interval: p.recurring } } : {}),
+      })
+      await stripe(key, 'POST', `/v1/prices/${price.id}`, { active: false })
+      console.log(`↻ ${p.lookupKey} : ${price.unit_amount / 100} € → ${p.amount / 100} € (${price.id} désactivé, ${next.id} actif)`)
       continue
     }
     const product = await stripe(key, 'POST', '/v1/products', { name: p.name, metadata: { lookup_key: p.lookupKey } })
