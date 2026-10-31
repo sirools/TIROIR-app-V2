@@ -129,7 +129,7 @@
       { "id": "tiroir_credits_30", "credits": 30 },
       { "id": "tiroir_credits_80", "credits": 80 }
     ],
-    "iosPayment": { "value": "store_iap", "decision": "pending", "$comment": "Achat intégré Apple, Stripe, ou les deux : V4_PLAN.md, point de vigilance Apple." }
+    "iosPayment": { "value": "store_iap", "decision": "2026-10-31", "$comment": "Décision reconfirmée le 31/10/2026 : crédits par achat intégré dans l'app (iOS et Android), Stripe sur le site seulement, sans lien de l'app vers le site." }
   },
   "creditCosts": {
     "$comment": "Coût d'une action en crédits : la vérité est ai_credit_cost (supabase/drafts/ai_credits_spend.sql).",

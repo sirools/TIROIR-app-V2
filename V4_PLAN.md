@@ -519,9 +519,9 @@ Je signale, je ne tranche pas.
 | C. Lien externe depuis l'app (États-Unis, UE) | choix du moyen de paiement | moyen, conditions par pays, frais Apple | variable |
 | D. Stripe seul dans l'app | — | **élevé : refus probable** | — |
 
-- **Constat** : la branche non fusionnée `claude/tiroir-credits-billing-9k30og`
-  consigne une **décision du 26/10/2026 : option B**. Le brief la liste
-  encore comme question ouverte : **à reconfirmer** (D8). Si B est confirmée,
+- **Décision** : option B, prise le 26/10/2026
+  (`strategie/paiements-stripe.md`) et **reconfirmée le 31/10/2026** (D8).
+  La branche de facturation Stripe est fusionnée dans cette branche. Si B est confirmée,
   la checklist ISO doit tolérer un seul écart assumé : le prix d'un pack
   peut différer entre store et site — à trancher aussi (afficher le même
   prix partout est le plus simple et le plus sûr).
@@ -636,7 +636,7 @@ marquées 🤖 le sont déjà en partie par `scripts/i18n-check.mjs` et
 | D5 | **Sélecteur de langue** | maison / réglages système / les deux | **les deux** (§ 3.4) | — (fait en réversible) |
 | D6 | Identifiants d'entitlements RevenueCat | à relever dans le tableau de bord | `premium` et `pro` | C3.2 |
 | D7 | Torix, marque publique de l'IA de Tiroir | oui / non ; contrat de licence Torix → société avant de l'afficher dans les stores | oui, **après** le contrat de licence (`strategie/torix-et-tiroir.md` § 2) | C2.5, C5, publication |
-| D8 | **Crédits sur iOS** | achat intégré / Stripe / les deux | reconfirmer l'option B du 26/10 (§ 5.5) ; et même prix partout ou non | C3.2, C4 |
+| D8 | ~~**Crédits sur iOS**~~ | ✅ **Tranché le 31/10/2026** : achat intégré dans l'app, Stripe sur le site seulement, sans lien de l'app vers le site (option B du 26/10, § 5.5) | — | — |
 | D9 | Régions d'estimation au lancement | 12 marchés listés / moins | FR, BE, CH, DE, ES, PT, BR d'abord | C1.4 |
 | D10 | Défauts de partage | emplacement et assurance décochés par défaut ; expiration par défaut (30 jours ?) | décocher ; pas d'expiration imposée mais 30 jours présélectionné | C2.3 |
 | D11 | API marchandes pour les idées d'objets | Amazon PA-API, Google Shopping, eBay Browse (neuf / occasion), Vinted et leboncoin (pas d'API publique) ; affiliation | eBay Browse (neuf + occasion, une seule API) pour commencer | C2.4 |

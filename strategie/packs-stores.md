@@ -5,7 +5,7 @@ depuis un téléphone). Préparée le 31/10/2026 pour la séance du
 lendemain. Compter une demi-journée, puis la revue d'Apple et de Google.
 
 **Qui vend quoi** (décision du 26/10/2026, `strategie/paiements-stripe.md`
-§ 1, option B — à reconfirmer en étape 0) :
+§ 1, option B — reconfirmée le 31/10/2026) :
 
 | | Dans l'app (iPhone, Android) | Sur le site |
 | --- | --- | --- |
@@ -24,15 +24,12 @@ Rien ne se crée tant que ces cases ne sont pas remplies : les prix
 d'une console ne se reprennent pas proprement, et un produit d'achat
 intégré ne se supprime jamais.
 
-- [ ] **Stripe pour les crédits : sur le site seulement (option B du 26/10)**,
-      ou aussi par un lien depuis l'app ? Le lien externe demande une
-      autorisation d'Apple par pays (États-Unis : sans autorisation ; UE,
-      Japon, Brésil : autorisation et commission ; ailleurs : interdit),
-      un développement dans l'app, et dans l'UE il exclut l'achat intégré
-      sur le même storefront. **Il ne se fait pas en une journée** : la
-      suite de cette checklist suppose l'option B.
-- [ ] **Les nouveaux prix** (TTC, en euros) — à reporter dans le tableau
-      ci-dessous, puis à me donner : je mets à jour d'un coup la config des
+- [x] **Stripe pour les crédits : sur le site seulement** — option B du
+      26/10, **reconfirmée le 31/10/2026**. Dans l'app, l'achat intégré ;
+      aucun lien externe (il demanderait une autorisation d'Apple par pays
+      et, dans l'UE, exclurait l'achat intégré).
+- [ ] **Les nouveaux prix** (TTC, en euros) — annoncés pour le 01/11 ; à
+      reporter dans le tableau ci-dessous, puis à me donner : je mets à jour d'un coup la config des
       paliers, la page Tarifs, les fiches de Torix, Stripe et cette liste.
 - [ ] **Abonnés en cours : garder leur ancien prix (recommandé)** ou les
       faire passer au nouveau ? Une hausse appliquée aux abonnés en cours
