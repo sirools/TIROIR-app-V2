@@ -58,6 +58,11 @@ store, de RevenueCat ou de Stripe touché, aucun secret ajouté.
 | Brouillon `profiles.locale` : accepte `pt-BR` et `pt-PT` (« pt_PT » → pt-PT, « pt » → pt-BR) | `supabase/drafts/profiles_locale.sql` | 14 tests sur une base Postgres jetable (`run_locale.sh`) |
 | **Traductions centralisées dans le design system** : `design/i18n/` (langues, app, site, textes système), générées par `node design/generate.mjs` comme les couleurs | `design/i18n/`, `design/i18n.mjs` ; fichiers générés dans `mobile/` et `web/` | les 25 fichiers du site régénérés donnent **exactement les mêmes textes** (valeurs comparées) ; fichiers de l'app identiques à l'octet ; `generate.mjs --check` ; `web/__tests__/i18nCentral.test.ts` |
 
+**01/11/2026 — build 4.0.0 (2.0.14) sur TestFlight**, depuis
+`claude/v4-holistique` (commit `2ef354b`), après correction de `npm ci`,
+de l'écran de démarrage (SDK 56) et des dépendances. Pas encore en revue :
+les produits d'achat intégré (prix attendus) partiront avec la version.
+
 **Troisième passage — les e-mails sur `design/i18n/`** : e-mail de partage
 et e-mail de présentation (J+3) lisent leurs textes dans
 `design/i18n/email/` ; la présentation a un gabarit HTML sans texte
