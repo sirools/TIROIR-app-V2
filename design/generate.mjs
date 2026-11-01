@@ -73,8 +73,8 @@ const OUTPUTS = [
 ]
 
 // app.json de l'app (Expo) : seules ses couleurs viennent des jetons —
-// fond de l'écran de démarrage = fond de l'app, fond de l'icône Android =
-// orange. Remplacement ciblé, pour ne pas reformater le reste du fichier.
+// fond de l'écran de démarrage (plugin expo-splash-screen) = fond de
+// l'app, fond de l'icône Android = orange. Remplacement ciblé, pour ne pas reformater le reste du fichier.
 function appJson() {
   const file = join(ROOT, 'mobile/app.json')
   let src = readFileSync(file, 'utf8')
@@ -82,10 +82,15 @@ function appJson() {
     if (!re.test(src)) throw new Error(`mobile/app.json : ${what} introuvable`)
     src = src.replace(re, `$1${value}$2`)
   }
-  set(/("splash":\s*\{[^}]*?"backgroundColor":\s*")#[0-9A-Fa-f]{6}(")/s, tokens.color['beige-2'].value, 'splash.backgroundColor')
   set(/("adaptiveIcon":\s*\{[^}]*?"backgroundColor":\s*")#[0-9A-Fa-f]{6}(")/s, tokens.color.orange.value, 'android.adaptiveIcon.backgroundColor')
+  // Écran de démarrage (SDK 56 : plugin expo-splash-screen, la clé
+  // « splash » de premier niveau n'existe plus) : fond = beige de l'app.
+  const app = JSON.parse(src)
+  const splash = app.expo.plugins.find(p => Array.isArray(p) && p[0] === 'expo-splash-screen')
+  if (!splash) throw new Error('mobile/app.json : plugin expo-splash-screen introuvable')
+  splash[1] = { ...splash[1], backgroundColor: tokens.color['beige-2'].value }
   // Langues natives et textes système : depuis design/i18n/languages.json.
-  return JSON.stringify(applyLanguagesToAppJson(JSON.parse(src), ROOT), null, 2) + '\n'
+  return JSON.stringify(applyLanguagesToAppJson(app, ROOT), null, 2) + '\n'
 }
 OUTPUTS.push(['mobile/app.json', appJson()])
 OUTPUTS.push(...i18nOutputs(ROOT))

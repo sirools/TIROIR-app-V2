@@ -7,11 +7,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "tiroir",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFF8EF"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.sirools.tiroir",
@@ -37,6 +32,15 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "enableFullScreenImage_legacy": true,
+          "resizeMode": "cover",
+          "backgroundColor": "#FFF8EF"
+        }
+      ],
       "expo-secure-store",
       [
         "expo-image-picker",
