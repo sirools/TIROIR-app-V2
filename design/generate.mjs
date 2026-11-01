@@ -83,7 +83,7 @@ function appJson() {
     src = src.replace(re, `$1${value}$2`)
   }
   set(/("adaptiveIcon":\s*\{[^}]*?"backgroundColor":\s*")#[0-9A-Fa-f]{6}(")/s, tokens.color.orange.value, 'android.adaptiveIcon.backgroundColor')
-  // Écran de démarrage (SDK 56 : plugin expo-splash-screen, la clé
+  // Écran de démarrage (SDK 56 et 57 : plugin expo-splash-screen, la clé
   // « splash » de premier niveau n'existe plus) : fond = beige de l'app.
   const app = JSON.parse(src)
   const splash = app.expo.plugins.find(p => Array.isArray(p) && p[0] === 'expo-splash-screen')

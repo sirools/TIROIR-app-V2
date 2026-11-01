@@ -90,7 +90,7 @@ Préférences, et Réglages iOS › Tiroir › Langue.
 
 | Dossier | Rôle | Remarques |
 | --- | --- | --- |
-| `mobile/` | App Expo SDK 56, React Native 0.85, expo-router | version déjà **4.0.0** dans `app.json` ; bundle iOS `com.sirools.tiroir`, Android `com.tiroir.app` |
+| `mobile/` | App Expo SDK 57, React Native 0.86, expo-router | version déjà **4.0.0** dans `app.json` ; bundle iOS `com.sirools.tiroir`, Android `com.tiroir.app` |
 | `web/` | Next.js 14, Pages Router, Vercel | vitrine `tiroir.app`, back-office `backoffice.tiroir.app`, partages `/s/<jeton>` |
 | `supabase/` | migrations (prod) et Edge Functions | 13 fonctions ; `drafts/` = SQL non appliqué |
 | `v4/` | chantier V4 isolé (trousseau, prêt, suggestions, vente) | **ni `web/` ni `mobile/` ne l'importent** (règle du `v4/README.md`) |
