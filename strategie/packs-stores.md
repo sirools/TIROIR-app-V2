@@ -37,8 +37,9 @@ intégré ne se supprime jamais.
       migration de prix, Stripe Business abonnements en cours non migrés.
       Les abonnés historiques à 6,99 €/mois gardent aussi ce prix
       (`strategie/offres.md`, point 6).
-- [ ] **Pro annuel** : oui ou non ? Et la règle « annuel = 1 mois offert »
-      (décision D3 de `V4_PLAN.md`) s'applique-t-elle à Premium et à Pro ?
+- [x] **Pro annuel : oui** — décidé le 01/11/2026 (`tiroir_pro_annual`,
+      package RevenueCat `pro_annual`). Reste à fixer son prix, et si la
+      règle « annuel = 1 mois offert » (D3) s'applique à Premium et à Pro.
 - [ ] **Packs de crédits** : prix inchangés (2,99 / 6,99 / 19,99 €) ?
 
 ## Les produits — identifiants identiques partout
@@ -48,7 +49,7 @@ intégré ne se supprime jamais.
 | `tiroir_premium_monthly` | stores | abonnement (existe) | 4,99 €/mois | ______ | palier `premium` |
 | `tiroir_premium_annual` | stores | abonnement (existe) | 39 €/an | ______ | palier `premium` |
 | `tiroir_pro_monthly` | stores | abonnement (**nouveau**) | 14,99 €/mois | ______ | palier `pro` |
-| `tiroir_pro_annual` | stores | abonnement (**nouveau, si Pro annuel**) | — | ______ | palier `pro` |
+| `tiroir_pro_annual` | stores | abonnement (**nouveau**, décidé le 01/11) | — | ______ | palier `pro` |
 | `tiroir_credits_50` | stores | consommable (**nouveau**) | 2,99 € | ______ | 50 crédits |
 | `tiroir_credits_150` | stores | consommable (**nouveau**) | 6,99 € | ______ | 150 crédits |
 | `tiroir_credits_500` | stores | consommable (**nouveau**) | 19,99 € | ______ | 500 crédits |
@@ -94,7 +95,7 @@ reconnaît encore pour les remboursements).
    (décidé le 31/10). Même chose
    pour `tiroir_premium_annual`.
 2. [ ] **Pro** : dans le **même groupe d'abonnements** que Premium, « + » →
-   `tiroir_pro_monthly` (1 mois), et `tiroir_pro_annual` (1 an) si décidé.
+   `tiroir_pro_monthly` (1 mois) et `tiroir_pro_annual` (1 an).
    Niveau du groupe : **Pro au-dessus de Premium** (montée et descente de
    gamme gérées par Apple).
 3. [ ] **Packs** : Monétisation → Achats intégrés → « + » → Consommable →
@@ -118,8 +119,8 @@ reconnaît encore pour les remboursements).
    une **hausse**, garder les abonnés existants sur leur prix (« cohorte
    de prix existante ») ; ne **pas** lancer de migration de prix, qui leur
    demanderait leur accord et résilierait ceux qui ne répondent pas.
-2. [ ] **Pro** : abonnement `tiroir_pro_monthly` (offre de base mensuelle),
-   et offre annuelle si décidée ; statut Actif.
+2. [ ] **Pro** : abonnements `tiroir_pro_monthly` (offre de base mensuelle)
+   et `tiroir_pro_annual` (offre de base annuelle) ; statut Actif.
 3. [ ] **Packs** : Produits intégrés → `tiroir_credits_50`, `_150`, `_500`,
    statut Actif.
 4. [ ] Noms et descriptions dans les 6 langues ; fiche Play en pt-BR et
@@ -127,13 +128,14 @@ reconnaît encore pour les remboursements).
 
 ## Étape 4 — RevenueCat
 
-1. [ ] **Products** : importer Pro (mensuel, annuel si décidé) et les trois
+1. [ ] **Products** : importer Pro (mensuel et annuel) et les trois
    packs, pour l'App Store et Google Play.
 2. [ ] **Entitlements** : relever leurs identifiants (le code n'en nomme
    aucun — décision D6) ; proposé : `premium` et `pro`.
 3. [ ] **Offering courante** (abonnements) : packages Premium mensuel et
-   annuel, et `pro_monthly` (+ `pro_annual`), chacun avec ses produits des
-   deux stores.
+   annuel, et `pro_monthly` + `pro_annual` (packages personnalisés, à ces
+   identifiants exacts), chacun avec ses produits des deux stores.
+   L'écran d'abonnement distingue les deux Pro par leur période.
 4. [ ] **Offering `credits`** (exactement ce nom, **pas** « current ») :
    trois packages, un par pack.
 5. [ ] Webhook vers `revenuecat-webhook` : inchangé.

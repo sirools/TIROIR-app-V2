@@ -17,6 +17,7 @@ const MOCK_PACKAGES: PurchasesPackage[] = Platform.OS === 'web' ? [
   { identifier: '$rc_monthly', packageType: 'MONTHLY', product: { identifier: 'tiroir_premium_monthly', price: 6.99, priceString: '6,99 €', introPrice: { price: 0, priceString: '0 €', periodNumberOfUnits: 7, periodUnit: 'DAY' } } } as any,
   { identifier: '$rc_annual',  packageType: 'ANNUAL',  product: { identifier: 'tiroir_premium_annual',  price: 59.99, priceString: '59,99 €', introPrice: { price: 0, priceString: '0 €', periodNumberOfUnits: 7, periodUnit: 'DAY' } } } as any,
   { identifier: 'pro_monthly', packageType: 'CUSTOM',  product: { identifier: 'tiroir_pro_monthly',     price: 14.99, priceString: '14,99 €', introPrice: null } } as any,
+  { identifier: 'pro_annual',  packageType: 'CUSTOM',  product: { identifier: 'tiroir_pro_annual',      price: 149.99, priceString: '149,99 €', introPrice: null } } as any,
 ] : []
 
 const FEATURES = [
@@ -40,7 +41,8 @@ export default function PaywallScreen() {
   const [isAnnual, setIsAnnual]   = useState(true)
   // Pro = Premium avec des quotas plus élevés (grille V4) ; proposé dès que
   // l'offre courante de RevenueCat contient un produit tiroir_pro_*.
-  const [pro, setPro]             = useState<PurchasesPackage | null>(null)
+  const [proMonthly, setProMonthly] = useState<PurchasesPackage | null>(null)
+  const [proAnnual, setProAnnual]   = useState<PurchasesPackage | null>(null)
   const [tier, setTier]           = useState<'premium' | 'pro'>('premium')
   const [loading, setLoading]     = useState(true)
   const [purchasing, setPurchasing] = useState(false)
@@ -67,7 +69,8 @@ export default function PaywallScreen() {
     if (Platform.OS === 'web') {
       setMonthly(MOCK_PACKAGES[0])
       setAnnual(MOCK_PACKAGES[1])
-      setPro(MOCK_PACKAGES[2])
+      setProMonthly(MOCK_PACKAGES[2])
+      setProAnnual(MOCK_PACKAGES[3])
       setIsAnnual(true)
       setLoading(false)
       return
@@ -85,7 +88,14 @@ export default function PaywallScreen() {
       const premiumPkgs = pkgs.filter(p => !isProProduct(p.product.identifier))
       const m = premiumPkgs.find(p => p.packageType === 'MONTHLY') ?? null
       const a = premiumPkgs.find(p => p.packageType === 'ANNUAL') ?? null
-      setPro(pkgs.find(p => isProProduct(p.product.identifier)) ?? null)
+      // Pro mensuel et Pro annuel : packages personnalisés (pro_monthly,
+      // pro_annual) — on les distingue par la période du produit, pas par
+      // leur ordre dans l'offre.
+      const proPkgs = pkgs.filter(p => isProProduct(p.product.identifier))
+      const isYearly = (p: PurchasesPackage) =>
+        p.packageType === 'ANNUAL' || p.product.subscriptionPeriod === 'P1Y' || /annual|yearly/.test(p.product.identifier)
+      setProAnnual(proPkgs.find(isYearly) ?? null)
+      setProMonthly(proPkgs.find(p => !isYearly(p)) ?? null)
       setMonthly(m)
       setAnnual(a)
       setIsAnnual(!!a)
@@ -112,19 +122,24 @@ export default function PaywallScreen() {
     }
   }, [refreshCredits])
 
-  const isPro = tier === 'pro' && !!pro
-  const selected = isPro ? pro : isAnnual ? (annual ?? monthly) : (monthly ?? annual)
+  const hasPro = !!proMonthly || !!proAnnual
+  const isPro = tier === 'pro' && hasPro
+  // Mensuel et annuel du palier choisi (Premium ou Pro).
+  const tierMonthly = isPro ? proMonthly : monthly
+  const tierAnnual = isPro ? proAnnual : annual
+  const selected = isAnnual ? (tierAnnual ?? tierMonthly) : (tierMonthly ?? tierAnnual)
+  const selectedIsAnnual = !!tierAnnual && selected === tierAnnual
 
   // Économie annuelle vs mensuel × 12
-  const savings = monthly && annual
-    ? Math.round((1 - annual.product.price / (monthly.product.price * 12)) * 100)
+  const savings = tierMonthly && tierAnnual
+    ? Math.round((1 - tierAnnual.product.price / (tierMonthly.product.price * 12)) * 100)
     : null
 
-  const monthlyEquiv = annual
-    ? (annual.product.price / 12).toFixed(2).replace('.', ',')
+  const monthlyEquiv = tierAnnual
+    ? (tierAnnual.product.price / 12).toFixed(2).replace('.', ',')
     : null
 
-  const hasBothPlans = !!monthly && !!annual
+  const hasBothPlans = !!tierMonthly && !!tierAnnual
 
   const handlePurchase = useCallback(async () => {
     if (!selected) return
@@ -193,7 +208,7 @@ export default function PaywallScreen() {
         </View>
 
         {/* Premium ou Pro (Pro : mêmes fonctions, quotas plus élevés) */}
-        {!!pro && (
+        {hasPro && (
           <View style={s.tiers} accessibilityRole="tablist">
             {(['premium', 'pro'] as const).map(key => (
               <TouchableOpacity
@@ -213,8 +228,8 @@ export default function PaywallScreen() {
         )}
         {isPro && <Text style={s.proHint}>{t('paywall.proHint')}</Text>}
 
-        {/* Toggle mensuel / annuel (Premium seulement : Pro est mensuel) */}
-        {hasBothPlans && !isPro && (
+        {/* Toggle mensuel / annuel, pour le palier choisi */}
+        {hasBothPlans && (
           <View style={s.toggleWrap}>
             <Text style={[s.toggleLabel, !isAnnual && s.toggleLabelActive]}>{t('paywall.monthly')}</Text>
             <Switch
@@ -240,12 +255,12 @@ export default function PaywallScreen() {
           <Text style={s.unavailable}>{t('paywall.unavailable')}</Text>
         ) : (
           <View style={s.priceCard}>
-            {!isPro && isAnnual && annual?.product.introPrice && (
+            {selectedIsAnnual && !!tierAnnual?.product.introPrice && (
               <View style={s.trialBadge}>
                 <Text style={s.trialText}>{t('paywall.freeTrial')}</Text>
               </View>
             )}
-            {(isPro ? !!pro?.product.introPrice : !isAnnual && !!monthly?.product.introPrice) && (
+            {!selectedIsAnnual && !!tierMonthly?.product.introPrice && (
               <View style={s.trialBadge}>
                 <Text style={s.trialText}>{t('paywall.freeTrial')}</Text>
               </View>
@@ -254,11 +269,11 @@ export default function PaywallScreen() {
             <View style={s.priceRow}>
               <Text style={s.price}>{selected.product.priceString}</Text>
               <Text style={s.pricePer}>
-                {!isPro && isAnnual && annual ? t('paywall.perYear') : t('paywall.perMonth')}
+                {selectedIsAnnual ? t('paywall.perYear') : t('paywall.perMonth')}
               </Text>
             </View>
 
-            {!isPro && isAnnual && monthlyEquiv && (
+            {selectedIsAnnual && monthlyEquiv && (
               <Text style={s.priceEquiv}>
                 {t('paywall.equiv')}<Text style={s.priceEquivBold}>{t('paywall.equivPerMonth', { price: monthlyEquiv })}</Text>
                 {savings !== null ? t('paywall.savingsVsMonthly', { percent: savings }) : ''}

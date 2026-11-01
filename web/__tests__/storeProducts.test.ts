@@ -22,6 +22,8 @@ describe('produits des stores', () => {
     expect(tierForProduct('tiroir_premium_monthly')).toBe('premium')
     expect(tierForProduct('tiroir_premium_annual:base')).toBe('premium')
     expect(tierForProduct('tiroir_pro_monthly')).toBe('pro')
+    expect(tierForProduct('tiroir_pro_annual')).toBe('pro')
+    expect(tierForProduct('tiroir_pro_annual:p1y')).toBe('pro')
     expect(tierForProduct('tiroir_credits_50')).toBeNull()
     expect(tierForProduct(undefined)).toBeNull()
   })

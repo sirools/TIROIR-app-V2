@@ -80,7 +80,7 @@
         "yearly": null,
         "yearlyRule": "one_month_free",
         "decision": "pending",
-        "$comment": "Aucun Pro annuel dans la grille du 19/10. Avec la règle du brief : 11 × 14,99 = 164,89 €."
+        "$comment": "Pro annuel décidé le 01/11/2026 (tiroir_pro_annual) ; prix à donner par Clément. Avec la règle du brief : 11 × le prix mensuel."
       },
       "quotas": {
         "aiActionsMonthly": { "value": 600, "setting": "pro_ai_quota_monthly" },
@@ -104,9 +104,9 @@
       },
       "store": {
         "entitlement": { "id": null, "decision": "pending" },
-        "products": ["tiroir_pro_monthly"],
-        "productsToCreate": ["tiroir_pro_monthly"],
-        "revenueCatPackages": ["pro_monthly"]
+        "products": ["tiroir_pro_monthly", "tiroir_pro_annual"],
+        "productsToCreate": ["tiroir_pro_monthly", "tiroir_pro_annual"],
+        "revenueCatPackages": ["pro_monthly", "pro_annual"]
       }
     },
     "business": {
