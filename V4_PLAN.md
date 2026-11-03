@@ -58,6 +58,10 @@ store, de RevenueCat ou de Stripe touché, aucun secret ajouté.
 | Brouillon `profiles.locale` : accepte `pt-BR` et `pt-PT` (« pt_PT » → pt-PT, « pt » → pt-BR) | `supabase/drafts/profiles_locale.sql` | 14 tests sur une base Postgres jetable (`run_locale.sh`) |
 | **Traductions centralisées dans le design system** : `design/i18n/` (langues, app, site, textes système), générées par `node design/generate.mjs` comme les couleurs | `design/i18n/`, `design/i18n.mjs` ; fichiers générés dans `mobile/` et `web/` | les 25 fichiers du site régénérés donnent **exactement les mêmes textes** (valeurs comparées) ; fichiers de l'app identiques à l'octet ; `generate.mjs --check` ; `web/__tests__/i18nCentral.test.ts` |
 
+**03/11/2026 — 4.1.0 pour TestFlight**, depuis `claude/v4-holistique` : zoom des
+photos et copie haute définition, réservés aux abonnés. Migration
+`20261103120000_photo_zoom_copies.sql` à appliquer avant de tester.
+
 **01/11/2026 — build 4.0.0 (2.0.14) sur TestFlight**, depuis
 `claude/v4-holistique` (commit `2ef354b`), après correction de `npm ci`,
 de l'écran de démarrage (SDK 56) et des dépendances. Pas encore en revue :
