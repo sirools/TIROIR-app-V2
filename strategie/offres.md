@@ -16,6 +16,14 @@ fiches de Torix. Elle remplace la grille du 30 septembre ci-dessous
 | **Pro** | Tout le Premium, avec des quotas plus élevés | 14,99 €/mois | App (abonnement) ; plus tard site (Stripe) |
 | **Business** | Tout le Pro par membre, rôles, facture | 39 € par siège/mois | Sur facture ; plus tard site (Stripe) |
 
+### Zoom et photos haute définition : abonnés seulement (décision du 3/11)
+
+Décision du fondateur : le zoom dans les photos et leur copie haute définition
+sont réservés à Premium, Pro et Business, pour contenir le volume stocké et le
+rentabiliser à moyen et long terme. Le compte gratuit n'a pas le zoom pour le
+moment : toutes les photos y restent en 1200 px. Sur un lien de partage, c'est
+le palier du propriétaire qui compte.
+
 ### Pro = Premium avec plus de quotas (décision du 19/10)
 
 Le palier `pro` existe déjà dans le système et fonctionne ainsi : mêmes

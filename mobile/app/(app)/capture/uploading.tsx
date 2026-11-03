@@ -10,11 +10,12 @@ import {
   CollectionPickerSheet, PickedCollection, useToast,
 } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthContext'
+import { type PhotoSource, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
 import { BUY_CREDITS_ROUTE, isCreditsRefusal } from '@/lib/buyCredits'
 
 type Phase = 'uploading' | 'analyzing' | 'error'
 
-interface PickedImage { uri: string; mimeType: string; fileName: string }
+interface PickedImage { uri: string; mimeType: string; fileName: string; source?: PhotoSource }
 
 // Étapes de la checklist (libellés résolus au rendu via i18n)
 const STEPS = [
@@ -262,10 +263,12 @@ export default function UploadingScreen() {
       .upload(storagePath, uploadData, { contentType: img.mimeType, upsert: false })
     if (storageError) throw new Error(t('uploading.uploadImageError', { n: position + 1, msg: storageError.message }))
 
+    const zoomPath = zoomPathFor(storagePath, img.source)
     const { error: dbError } = await supabase.from('ai_draft_images').insert({
-      draft_id: draftId, user_id: user!.id, storage_path: storagePath, mime_type: img.mimeType, position,
+      draft_id: draftId, user_id: user!.id, storage_path: storagePath, zoom_path: zoomPath, mime_type: img.mimeType, position,
     })
     if (dbError) throw new Error(t('uploading.saveImageError', { n: position + 1, msg: dbError.message }))
+    queueZoomCopy(img.source, zoomPath)
   }
 
   async function handleRetry() {

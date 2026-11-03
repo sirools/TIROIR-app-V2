@@ -154,6 +154,18 @@ const shareFr = {
       assurance: 'Assurance',
       autre: 'Document',
     },
+    viewer: {
+      open: 'Agrandir la photo',
+      dialog: 'Photo en grand',
+      close: 'Fermer',
+      prev: 'Photo précédente',
+      next: 'Photo suivante',
+      zoomIn: 'Zoomer',
+      zoomOut: 'Dézoomer',
+      reset: 'Revenir à la taille normale',
+      loupe: 'Loupe',
+      loupeHandle: 'Loupe, à déplacer avec la souris, le doigt ou les flèches',
+    },
   },
   sale: {
     errorGated: 'Ce partage est protégé : ouvre-le d’abord et saisis son mot de passe.',

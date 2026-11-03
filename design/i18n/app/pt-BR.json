@@ -511,6 +511,7 @@
   "object": {
     "notFound": "Objeto não encontrado.",
     "addedOn": "Adicionado em {{date}}",
+    "photoViewerClose": "Fechar a foto",
     "aiSummary": "RESUMO DO TORIX",
     "descriptionPlaceholder": "Descreva o objeto, acrescente notas úteis…",
     "descriptionAdd": "Toque para adicionar uma descrição…",

@@ -21,6 +21,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import i18n from 'i18next'
 import * as ImagePicker from 'expo-image-picker'
+import * as ImageManipulator from 'expo-image-manipulator'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as Clipboard from 'expo-clipboard'
 import * as WebBrowser from 'expo-web-browser'
@@ -31,12 +32,14 @@ import { supabase } from '@/lib/supabase'
 import { functionError } from '@/lib/functionError'
 import { isCreditsRefusal, offerCredits } from '@/lib/buyCredits'
 import { useAuth } from '@/features/auth/AuthContext'
-import { isPaidPlan } from '@/lib/plan'
+import { hasPhotoZoom, isPaidPlan } from '@/lib/plan'
+import { STANDARD_WIDTH, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
 import {
   Screen, Colors, Typography, Spacing, Radius, ActionSheet, Checkbox, useToast,
   CollectionPickerSheet, PickedCollection, TorixMark,
 } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
+import PhotoViewer from '@/components/PhotoViewer'
 import { DocumentsSection, ObjectDocument } from '@/components/DocumentsSection'
 import { InsurancesSection } from '@/components/InsurancesSection'
 import { TiroirObject, ObjectImage, Collection } from '@/types/database'
@@ -127,103 +130,6 @@ interface ImageSliderProps {
   objectId: string
   onImagesChange: (images: ObjectImage[]) => void
 }
-
-function PhotoLightbox({ images, startIndex, signedUrls, onClose }: {
-  images: ObjectImage[]
-  startIndex: number
-  signedUrls: Record<string, string>
-  onClose: () => void
-}) {
-  const [current, setCurrent] = useState(startIndex)
-  const flatRef = useRef<FlatList>(null)
-
-  useEffect(() => {
-    // Scroll to startIndex after mount
-    setTimeout(() => {
-      flatRef.current?.scrollToIndex({ index: startIndex, animated: false })
-    }, 50)
-  }, [])
-
-  return (
-    <Modal visible transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
-      <View style={lbStyles.root}>
-        <FlatList
-          ref={flatRef}
-          data={images}
-          keyExtractor={i => i.id}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          initialScrollIndex={startIndex}
-          getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
-          onMomentumScrollEnd={e => setCurrent(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH))}
-          renderItem={({ item }) => {
-            const url = signedUrls[item.storage_path]
-            return (
-              <View style={lbStyles.slide}>
-                {url
-                  ? <Image source={{ uri: url }} style={lbStyles.img} resizeMode="contain" />
-                  : <ActivityIndicator color="white" />
-                }
-              </View>
-            )
-          }}
-        />
-        {/* Dots */}
-        {images.length > 1 && (
-          <View style={lbStyles.dots}>
-            {images.map((_, i) => (
-              <View key={i} style={[lbStyles.dot, i === current && lbStyles.dotActive]} />
-            ))}
-          </View>
-        )}
-        {/* Compteur */}
-        {images.length > 1 && (
-          <Text style={lbStyles.counter}>{current + 1} / {images.length}</Text>
-        )}
-        {/* Fermer */}
-        <TouchableOpacity style={lbStyles.closeBtn} onPress={onClose} activeOpacity={0.8}>
-          <Text style={lbStyles.closeIcon}>✕</Text>
-        </TouchableOpacity>
-      </View>
-    </Modal>
-  )
-}
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window')
-
-const lbStyles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.95)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  slide: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  img: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT },
-  dots: {
-    position: 'absolute', bottom: 52, left: 0, right: 0,
-    flexDirection: 'row', justifyContent: 'center', gap: 6,
-  },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.35)' },
-  dotActive: { backgroundColor: 'white', width: 20 },
-  counter: {
-    position: 'absolute', bottom: 52, right: 20,
-    color: 'rgba(255,255,255,0.5)', fontSize: Typography.sm,
-  },
-  closeBtn: {
-    position: 'absolute', top: 54, right: 20,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  closeIcon: { color: 'white', fontSize: 16, fontWeight: '600' },
-})
 
 type ShadowKey = 'none' | 'soft' | 'diffuse' | 'strong'
 
@@ -398,19 +304,24 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
   const [settingCover, setSettingCover] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const canZoom = hasPhotoZoom(profile?.plan)
+  const closeLightbox = useCallback(() => setLightboxIndex(null), [])
   const flatRef = useRef<FlatList>(null)
 
   // Charger toutes les URLs signées
   React.useEffect(() => {
     if (!images.length) return
     const paths = images.map(i => i.storage_path)
+    // Un chemin de copie sans fichier ne reçoit pas d'URL : le plein écran
+    // retombe alors sur la photo courante.
+    if (canZoom) paths.push(...images.flatMap(i => (i.zoom_path ? [i.zoom_path] : [])))
     supabase.storage.from('object-images').createSignedUrls(paths, 3600).then(({ data }) => {
       if (!data) return
       const map: Record<string, string> = {}
       for (const s of data) { if (s.signedUrl && s.path) map[s.path] = s.signedUrl }
       setSignedUrls(map)
     })
-  }, [images.map(i => i.storage_path).join(',')])
+  }, [images.map(i => i.storage_path).join(','), canZoom])
 
   const safeIndex = Math.min(activeIndex, Math.max(0, images.length - 1))
 
@@ -434,19 +345,25 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
       if (!session) throw new Error(t('documents.notAuthenticated'))
       const userId = session.user.id
 
-      // Dériver l'extension depuis mimeType (fiable sur web et iOS)
-      const mimeType = asset.mimeType ?? 'image/jpeg'
-      const ext = mimeType.split('/')[1]?.replace('jpeg', 'jpg') ?? 'jpg'
+      // Même format que la capture : 1200 px pour tous. La haute définition,
+      // réservée aux abonnés, passe par la copie de zoom.
+      const reduced = await ImageManipulator.manipulateAsync(
+        asset.uri,
+        asset.width > STANDARD_WIDTH ? [{ resize: { width: STANDARD_WIDTH } }] : [],
+        { compress: 0.82, format: ImageManipulator.SaveFormat.JPEG },
+      )
+      const mimeType = 'image/jpeg'
       // Le Storage attend : {user_id}/{object_id}/{filename}
-      const storagePath = `${userId}/${objectId}/${Date.now()}.${ext}`
+      const storagePath = `${userId}/${objectId}/${Date.now()}.jpg`
+      const source = canZoom ? { uri: asset.uri, width: asset.width, height: asset.height } : null
+      const zoomPath = zoomPathFor(storagePath, source)
 
-      // Web : asset.file disponible directement
       // iOS/Android : lecture base64 via expo-file-system → ArrayBuffer (évite le bug Hermes blob)
-      let uploadBody: ArrayBuffer | File
-      if (Platform.OS === 'web' && (asset as any).file) {
-        uploadBody = (asset as any).file as File
+      let uploadBody: ArrayBuffer | Blob
+      if (Platform.OS === 'web') {
+        uploadBody = await (await fetch(reduced.uri)).blob()
       } else {
-        const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+        const base64 = await FileSystem.readAsStringAsync(reduced.uri, {
           encoding: FileSystem.EncodingType.Base64,
         })
         uploadBody = decode(base64)
@@ -465,6 +382,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
           object_id: objectId,
           user_id: userId,
           storage_path: storagePath,
+          zoom_path: zoomPath,
           mime_type: mimeType,
           is_cover: isFirstImage,
           position: images.length,
@@ -472,6 +390,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
         .select()
         .single()
       if (insErr) throw insErr
+      queueZoomCopy(source, zoomPath)
 
       const newImages = [...images, inserted as ObjectImage]
       onImagesChange(newImages)
@@ -493,7 +412,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
     if (!img) return
 
     // Supprimer storage + DB
-    await supabase.storage.from('object-images').remove([img.storage_path])
+    await supabase.storage.from('object-images').remove(img.zoom_path ? [img.storage_path, img.zoom_path] : [img.storage_path])
     await supabase.from('object_images').delete().eq('id', img.id)
 
     const newImages = images.filter((_, i) => i !== safeIndex)
@@ -771,11 +690,11 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
 
       {/* Lightbox plein écran */}
       {lightboxIndex !== null && (
-        <PhotoLightbox
-          images={images}
+        <PhotoViewer
+          items={images.map(i => ({ id: i.id, url: (i.zoom_path && signedUrls[i.zoom_path]) || signedUrls[i.storage_path] }))}
           startIndex={lightboxIndex}
-          signedUrls={signedUrls}
-          onClose={() => setLightboxIndex(null)}
+          zoomEnabled={canZoom}
+          onClose={closeLightbox}
         />
       )}
     </View>

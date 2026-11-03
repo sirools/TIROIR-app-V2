@@ -145,6 +145,18 @@ const shareDe: ShareCopy = {
       assurance: 'Versicherung',
       autre: 'Dokument',
     },
+    viewer: {
+      open: 'Foto vergrößern',
+      dialog: 'Vergrößertes Foto',
+      close: 'Schließen',
+      prev: 'Vorheriges Foto',
+      next: 'Nächstes Foto',
+      zoomIn: 'Vergrößern',
+      zoomOut: 'Verkleinern',
+      reset: 'Zurück zur normalen Größe',
+      loupe: 'Lupe',
+      loupeHandle: 'Lupe, mit Maus, Finger oder Pfeiltasten verschieben',
+    },
   },
   sale: {
     errorGated: 'Diese Freigabe ist geschützt: Öffne sie zuerst und gib ihr Passwort ein.',

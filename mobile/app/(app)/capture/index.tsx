@@ -12,6 +12,8 @@ import { useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
+import { hasPhotoZoom } from '@/lib/plan'
+import { type PhotoSource, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
 import { isPaidPlan, Plan } from '@/lib/plan'
 import { useFeatureFlags } from '@/features/objects/useFeatureFlags'
 import {
@@ -23,6 +25,7 @@ interface PickedImage {
   uri: string
   mimeType: string
   fileName: string
+  source?: PhotoSource
 }
 
 /**
@@ -36,7 +39,7 @@ const BATCH_MAX_PREMIUM = 50
 export default function CaptureScreen() {
   const router = useRouter()
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { showToast } = useToast()
   const { flags } = useFeatureFlags()
   /**
@@ -167,7 +170,12 @@ export default function CaptureScreen() {
       [{ resize: { width: 1200 } }],
       { compress: 0.82, format: ImageManipulator.SaveFormat.JPEG }
     )
-    return { uri: result.uri, mimeType: 'image/jpeg', fileName: `photo_${Date.now()}.jpg` }
+    return {
+      uri: result.uri,
+      mimeType: 'image/jpeg',
+      fileName: `photo_${Date.now()}.jpg`,
+      ...(hasPhotoZoom(profile?.plan) ? { source: { uri: asset.uri, width: asset.width, height: asset.height } } : {}),
+    }
   }
 
   function removeImage(index: number) {
@@ -292,14 +300,17 @@ export default function CaptureScreen() {
           .upload(storagePath, uploadData, { contentType: img.mimeType, upsert: false })
         if (storageError) throw new Error(storageError.message)
 
+        const zoomPath = zoomPathFor(storagePath, img.source)
         await supabase.from('object_images').insert({
           object_id: objectId,
           user_id: user!.id,
           storage_path: storagePath,
+          zoom_path: zoomPath,
           mime_type: img.mimeType,
           position: i,
           is_cover: i === 0,
         })
+        queueZoomCopy(img.source, zoomPath)
       }
 
       let name = dest?.name

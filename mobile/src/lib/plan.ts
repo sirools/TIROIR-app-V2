@@ -11,6 +11,14 @@ export type Plan = 'free' | 'premium' | 'pro'
 export const isPaidPlan = (plan?: string | null): boolean =>
   plan === 'premium' || plan === 'pro'
 
+/**
+ * Zoom et photos haute définition : réservés aux abonnés, pour contenir le
+ * volume stocké (décision du 3/11, strategie/offres.md). Business est nommé
+ * ici car la grille le prévoit, même si le palier n'existe pas encore en base.
+ */
+export const hasPhotoZoom = (plan?: string | null): boolean =>
+  isPaidPlan(plan) || plan === 'business'
+
 export const isProPlan = (plan?: string | null): boolean => plan === 'pro'
 
 /** Clé i18n du libellé de palier, pour le badge du profil. */

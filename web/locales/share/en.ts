@@ -145,6 +145,18 @@ const shareEn: ShareCopy = {
       assurance: 'Insurance',
       autre: 'Document',
     },
+    viewer: {
+      open: 'Enlarge photo',
+      dialog: 'Enlarged photo',
+      close: 'Close',
+      prev: 'Previous photo',
+      next: 'Next photo',
+      zoomIn: 'Zoom in',
+      zoomOut: 'Zoom out',
+      reset: 'Back to normal size',
+      loupe: 'Magnifier',
+      loupeHandle: 'Magnifier, move it with the mouse, your finger or the arrow keys',
+    },
   },
   sale: {
     errorGated: 'This share is protected: open it first and enter its password.',

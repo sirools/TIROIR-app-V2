@@ -18,6 +18,8 @@ import { firstNameOf } from '../../../../lib/suggestions'
 import { buildSaleSheet, parseOffer, type SaleInput, type SaleSheet } from '../../../../lib/saleSheet'
 import type { Locale } from '../../../../lib/localeRouting'
 import { fill, intlLocale, useCopy } from '../../../../locales'
+import PhotoZoomViewer from '../../../../components/share/PhotoZoomViewer'
+import { hasPhotoZoom, zoomPaths, zoomUrls } from '../../../../lib/photoZoom'
 
 type Props = {
   token: string
@@ -25,6 +27,8 @@ type Props = {
   title: string | null
   description: string | null
   images: string[]
+  /** Présent si le propriétaire est abonné : c'est ce qui ouvre le zoom. */
+  zoomImages?: string[] | null
   owner: string
   sheet: SaleSheet | null
   /**
@@ -82,8 +86,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   const [{ data: row }, { data: profile }, { data: imgRows }] = await Promise.all([
     admin.from('objects').select(columns).eq('id', objectId).single(),
-    admin.from('profiles').select('display_name').eq('id', link.user_id).single(),
-    admin.from('object_images').select('storage_path').eq('object_id', objectId).order('position'),
+    admin.from('profiles').select('display_name, plan, pro_expires_at').eq('id', link.user_id).single(),
+    admin.from('object_images').select('storage_path, zoom_path').eq('object_id', objectId).order('position'),
   ])
   if (!row) return empty(token, objectId, 'not_found')
 
@@ -93,16 +97,21 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     ...(row as unknown as Record<string, unknown>),
   } as unknown as SaleInput
 
+  const canZoom = hasPhotoZoom(profile?.plan, profile?.pro_expires_at)
   let images: string[] = []
+  let zoomImages: string[] | null = null
   if (imgRows?.length) {
-    const { data: signed } = await admin.storage.from('object-images').createSignedUrls(imgRows.map(r => r.storage_path), 3600)
-    images = (signed ?? []).map(s => s.signedUrl).filter(Boolean) as string[]
+    const paths = imgRows.map(r => r.storage_path)
+    const { data: signed } = await admin.storage.from('object-images')
+      .createSignedUrls(canZoom ? [...paths, ...zoomPaths(imgRows)] : paths, 3600)
+    images = zoomUrls(imgRows.map(r => ({ storage_path: r.storage_path })), signed ?? [])
+    if (canZoom) zoomImages = zoomUrls(imgRows, signed ?? [])
   }
 
   const owner = firstNameOf(profile?.display_name)
   return {
     props: {
-      token, objectId, images, owner,
+      token, objectId, images, zoomImages, owner,
       title: o.title, description: o.description,
       sheet: buildSaleSheet(o, owner),
       facts: {
@@ -114,11 +123,12 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   }
 }
 
-export default function SalePrototype({ token, objectId, title, description, images, owner, sheet, facts, error }: Props) {
+export default function SalePrototype({ token, objectId, title, description, images, zoomImages, owner, sheet, facts, error }: Props) {
   const { t: { share: t }, locale } = useCopy()
   const ts = t.sale
   const money = (n: number, currency: string) => formatMoney(locale, n, currency)
   const [active, setActive] = useState(0)
+  const [viewerOpen, setViewerOpen] = useState(false)
   const [offerOpen, setOfferOpen] = useState(false)
   const [amount, setAmount] = useState(sheet?.suggestedOffer ? String(sheet.suggestedOffer) : '')
   const [message, setMessage] = useState('')
@@ -176,8 +186,23 @@ export default function SalePrototype({ token, objectId, title, description, ima
         <section className="gallery">
           {images.length ? (
             <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="main-img" src={images[active]} alt={title} />
+              {zoomImages ? (
+                <button type="button" className="main-open" aria-label={t.object.viewer.open} onClick={() => setViewerOpen(true)}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="main-img" src={images[active]} alt={title} />
+                </button>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="main-img" src={images[active]} alt={title} />
+              )}
+              {viewerOpen && zoomImages && (
+                <PhotoZoomViewer
+                  images={zoomImages}
+                  alt={title}
+                  startIndex={active}
+                  onClose={i => { setActive(i); setViewerOpen(false) }}
+                />
+              )}
               {images.length > 1 && (
                 <div className="thumbs">
                   {images.map((src, i) => (
@@ -311,6 +336,7 @@ const styles = `
   .muted { color: var(--muted); }
   .small { font-size: 13px; line-height: 1.5; margin: 6px 0 0; }
   .gallery { margin-bottom: 16px; }
+  .main-open { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
   .main-img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: var(--radius); background: var(--surface-subtle); display: block; }
   .no-img { aspect-ratio: 4 / 3; border-radius: var(--radius); background: var(--surface-subtle); display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); }
   .thumbs { display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; }

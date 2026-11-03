@@ -511,6 +511,7 @@
   "object": {
     "notFound": "Object not found.",
     "addedOn": "Added on {{date}}",
+    "photoViewerClose": "Close photo",
     "aiSummary": "TORIX SUMMARY",
     "descriptionPlaceholder": "Describe the object, add useful notes…",
     "descriptionAdd": "Tap to add a description…",

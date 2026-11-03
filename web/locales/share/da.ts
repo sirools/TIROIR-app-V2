@@ -145,6 +145,18 @@ const shareDa: ShareCopy = {
       assurance: 'Forsikring',
       autre: 'Dokument',
     },
+    viewer: {
+      open: 'Forstør billedet',
+      dialog: 'Forstørret billede',
+      close: 'Luk',
+      prev: 'Forrige billede',
+      next: 'Næste billede',
+      zoomIn: 'Zoom ind',
+      zoomOut: 'Zoom ud',
+      reset: 'Tilbage til normal størrelse',
+      loupe: 'Lup',
+      loupeHandle: 'Lup, flyt den med musen, fingeren eller piletasterne',
+    },
   },
   sale: {
     errorGated: 'Denne deling er beskyttet: åbn den først, og indtast adgangskoden.',

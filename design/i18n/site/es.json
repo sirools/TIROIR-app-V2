@@ -143,6 +143,18 @@
         "notice": "Manual",
         "assurance": "Seguro",
         "autre": "Documento"
+      },
+      "viewer": {
+        "open": "Ampliar la foto",
+        "dialog": "Foto ampliada",
+        "close": "Cerrar",
+        "prev": "Foto anterior",
+        "next": "Foto siguiente",
+        "zoomIn": "Acercar",
+        "zoomOut": "Alejar",
+        "reset": "Volver al tamaño normal",
+        "loupe": "Lupa",
+        "loupeHandle": "Lupa, muévela con el ratón, el dedo o las flechas"
       }
     },
     "sale": {
