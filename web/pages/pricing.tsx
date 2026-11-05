@@ -6,15 +6,10 @@ import StoreButtons from '../components/StoreButtons'
 import { OFFERS_V4 } from '../lib/offers'
 import { fill, formatEur, useCopy } from '../locales'
 
-// Grille V4 (page Notion « Page Tarifs — textes V4 »). Tous les prix
-// viennent de lib/offers.ts : la page, Torix et les tests lisent la même
-// source. Textes dans web/locales (pricing), en cinq langues ; prix au
-// format de la langue.
-//
-// Le paiement n'est pas encore ouvert (Stripe en mode test) : les boutons
-// d'achat affichent « Bientôt disponible » et ne mènent nulle part. Seul le
-// gratuit renvoie vers les stores, et Business vers une adresse e-mail.
-const { free, packs, premium, pro, business } = OFFERS_V4
+// Les montants annoncés pour les prochaines formules sont indépendants des prix
+// actifs dans les stores et des montants utilisés par la facturation.
+const UPCOMING_PRICES = { premiumMonthly: 15, premiumYearly: 180, proSeatYearly: 50 }
+const { free, packs } = OFFERS_V4
 
 const PLAN_CARD: React.CSSProperties = { padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }
 const PLAN_NAME: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }
@@ -35,8 +30,7 @@ export default function Pricing() {
         <meta
           name="description"
           content={fill(t.meta.description, {
-            free: n, pack: eur(packs[0].priceTtc), premium: eur(premium.monthlyTtc),
-            pro: eur(pro.monthlyTtc), business: eur(business.seatMonthly),
+            free: n, pack: eur(packs[0].priceTtc),
           })}
         />
         {localeLinks(locale, '/pricing')}
@@ -61,6 +55,7 @@ export default function Pricing() {
         {/* ── Formules ── */}
         <section className="section" style={{ paddingTop: 48 }}>
           <div className="container">
+            <h2 className="h2" style={{ textAlign: 'center', marginBottom: 24 }}>{t.upcoming}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 20, maxWidth: 1180, margin: '0 auto', alignItems: 'stretch' }}>
 
               {/* Free */}
@@ -86,14 +81,15 @@ export default function Pricing() {
                 <div>
                   <div style={{ ...PLAN_NAME, color: 'var(--orange)' }}>Premium</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={PRICE}>{eur(premium.monthlyTtc)}</span>
+                    <span style={PRICE_UNIT}>{t.from}</span>
+                    <span style={PRICE}>{eur(UPCOMING_PRICES.premiumMonthly)}</span>
                     <span style={PRICE_UNIT}>{t.perMonth}</span>
                   </div>
-                  <div style={PRICE_SUB}>{fill(t.perYear, { price: eur(premium.yearlyTtc) })}</div>
-                  <div style={PRICE_SUB}>{t.premium.tagline}</div>
+                  <div style={PRICE_SUB}>{fill(t.perYear, { price: eur(UPCOMING_PRICES.premiumYearly) })}</div>
+                  <div style={PRICE_SUB}>{t.renewal}</div>
                 </div>
                 <ul style={LIST}>
-                  {t.premium.features.map(f => (
+                  {[t.premiumScope, ...t.premium.features].map(f => (
                     <li key={f} style={ITEM}><CheckIcon orange /> {f}</li>
                   ))}
                 </ul>
@@ -107,8 +103,9 @@ export default function Pricing() {
                 <div>
                   <div style={PLAN_NAME}>Pro</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={PRICE}>{eur(pro.monthlyTtc)}</span>
-                    <span style={PRICE_UNIT}>{t.perMonth}</span>
+                    <span style={PRICE_UNIT}>{t.approx}</span>
+                    <span style={PRICE}>{eur(UPCOMING_PRICES.proSeatYearly)}</span>
+                    <span style={PRICE_UNIT}>{t.perSeat}</span>
                   </div>
                   <div style={PRICE_SUB}>{t.pro.tagline}</div>
                 </div>
@@ -127,8 +124,7 @@ export default function Pricing() {
                 <div>
                   <div style={{ ...PLAN_NAME, color: 'rgba(255,255,255,0.7)' }}>Business</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={{ ...PRICE, color: 'white' }}>{eur(business.seatMonthly)}</span>
-                    <span style={{ ...PRICE_UNIT, color: 'rgba(255,255,255,0.7)' }}>{t.perSeat}</span>
+                    <span style={{ ...PRICE, color: 'white' }}>{t.invoice}</span>
                   </div>
                   <div style={{ ...PRICE_SUB, color: 'rgba(255,255,255,0.7)' }}>{t.business.tagline}</div>
                 </div>
@@ -153,7 +149,8 @@ export default function Pricing() {
 
             </div>
             <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted)', maxWidth: 640, margin: '24px auto 0' }}>
-              {t.note}
+              {t.note}<br />
+              {t.roadmap}
             </p>
           </div>
         </section>
