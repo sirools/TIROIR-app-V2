@@ -89,7 +89,7 @@ export interface SubscriberStore {
 
 export type SubscriptionDeps = { subscribers: SubscriberStore; stripe: StripeCall }
 
-async function readSubscription(stripe: StripeCall, id: string): Promise<unknown> {
+export async function readSubscription(stripe: StripeCall, id: string): Promise<unknown> {
   return stripe('GET', `/v1/subscriptions/${id}`, SUBSCRIPTION_EXPAND)
 }
 

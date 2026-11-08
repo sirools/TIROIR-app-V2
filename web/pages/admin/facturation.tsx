@@ -87,7 +87,7 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
 
         <h2 id="sante" style={s.h2}>Santé des paiements</h2>
         {health.ok ? (
-          <p style={s.healthOk}>✓ Rien à signaler : aucun webhook en échec, aucun paiement refusé sur 30 jours, aucun litige ouvert.</p>
+          <p style={s.healthOk}>✓ Rien à signaler : aucun webhook en échec, aucun paiement refusé sur 30 jours, aucun litige ouvert, aucune facture en retard.</p>
         ) : (
           <>
             {health.stripeUnavailable && <p style={s.healthKo}>Stripe n’a pas pu être lu : paiements refusés et litiges inconnus.</p>}
@@ -95,7 +95,33 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
               <Tile label="Webhooks en échec" value={String(health.webhooks.length)} hint="30 derniers jours" />
               <Tile label="Paiements refusés" value={String(health.failedPayments.length)} hint="30 derniers jours" />
               <Tile label="Litiges ouverts" value={String(health.openDisputes)} hint={`${health.disputes.length} sur 90 jours`} />
+              <Tile label="Factures en retard" value={String(health.overdueInvoices.length)} hint="paiement sur facture, échéance passée" />
+              {health.doubles.length > 0 && <Tile label="Abonnés deux fois" value={String(health.doubles.length)} hint="site et store en même temps" />}
             </section>
+            {health.overdueInvoices.length > 0 && (
+              <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+                <table style={s.table}>
+                  <thead><tr><th style={s.th}>Facture</th><th style={s.th}>Client</th><th style={s.thR}>Reste dû</th><th style={s.th}>Échéance</th><th style={s.thR}>Retard</th></tr></thead>
+                  <tbody>
+                    {health.overdueInvoices.slice(0, 20).map(i => (
+                      <tr key={i.id}>
+                        <td style={s.td}>{i.url ? <a href={i.url} target="_blank" rel="noreferrer">{i.number ?? i.id}</a> : (i.number ?? i.id)}</td>
+                        <td style={s.td}>{i.email ?? '—'}</td>
+                        <td style={s.tdR}>{eurosFromCents(i.amount)}</td>
+                        <td style={s.td}>{fmtDate(i.dueAt)}</td>
+                        <td style={s.tdR}>{i.daysLate} j</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {health.doubles.length > 0 && (
+              <p style={s.healthKo}>
+                {health.doubles.length} compte{health.doubles.length > 1 ? 's' : ''} abonné{health.doubles.length > 1 ? 's' : ''} à la fois sur le site et dans un store : à rembourser ou résilier d’un côté.
+                {' '}({health.doubles.map(d => `${d.userId.slice(0, 8)}… : ${d.sources.join(' + ')}`).join(' ; ')})
+              </p>
+            )}
             {health.webhooks.length > 0 && (
               <div style={{ overflowX: 'auto', marginBottom: 12 }}>
                 <table style={s.table}>

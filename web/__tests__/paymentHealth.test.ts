@@ -65,3 +65,31 @@ describe('santé des paiements', () => {
     expect(h.stripeUnavailable).toBe(true)
   })
 })
+
+describe('paiement sur facture et doubles abonnements', () => {
+  test('facture envoyée, échéance passée : en retard, la plus ancienne d’abord', () => {
+    const h = paymentHealth({
+      now, events: [], charges: [], disputes: [],
+      overdueInvoices: [
+        { id: 'in_1', status: 'open', number: 'A-1', customer_email: 'a@b.fr', amount_remaining: 6000, due_date: t('2026-11-15T00:00:00Z'), hosted_invoice_url: 'https://x' },
+        { id: 'in_2', status: 'open', number: 'A-2', amount_remaining: 60000, due_date: t('2026-11-01T00:00:00Z') },
+        { id: 'in_3', status: 'open', amount_remaining: 6000, due_date: t('2026-11-30T00:00:00Z') },
+        { id: 'in_4', status: 'paid', amount_remaining: 0, due_date: t('2026-11-01T00:00:00Z') },
+      ],
+    })
+    expect(h.overdueInvoices.map(i => [i.id, i.daysLate])).toEqual([['in_2', 19], ['in_1', 5]])
+    expect(h.ok).toBe(false)
+  })
+
+  test('abonné sur le site et dans un store : signalé', () => {
+    const h = paymentHealth({
+      now, events: [], charges: [], disputes: [],
+      liveSubscriptions: [
+        { user_id: 'u1', source: 'stripe' }, { user_id: 'u1', source: 'apple' },
+        { user_id: 'u2', source: 'stripe' }, { user_id: 'u2', source: 'stripe' },
+      ],
+    })
+    expect(h.doubles).toEqual([{ userId: 'u1', sources: ['apple', 'stripe'] }])
+    expect(h.ok).toBe(false)
+  })
+})
