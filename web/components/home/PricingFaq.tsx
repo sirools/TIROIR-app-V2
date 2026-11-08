@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { OFFERS_V4 } from '../../lib/offers'
+import { OFFERS_V4, displayVatRate, withVat } from '../../lib/offers'
 import { fill, formatEur, useCopy } from '../../locales'
 import s from './home.module.css'
 
@@ -11,8 +11,8 @@ export default function PricingFaq() {
   const { t: { home: { pricing: t, faq }, pricing: { business } }, locale } = useCopy()
   const plans = [
     { key: 'free', name: 'Free', price: formatEur(0, locale), unit: '', tag: fill(t.plans.free, { n: free.aiActionsPerMonth }) },
-    { key: 'premium', name: 'Premium', price: formatEur(premium.monthlyTtc, locale), unit: t.perMonth, tag: t.plans.premium },
-    { key: 'pro', name: 'Pro', price: formatEur(pro.monthlyTtc, locale), unit: t.perMonth, tag: t.plans.pro },
+    { key: 'premium', name: 'Premium', price: formatEur(withVat(premium.monthlyHt, displayVatRate()), locale), unit: t.perMonth, tag: t.plans.premium },
+    { key: 'pro', name: 'Pro', price: formatEur(withVat(pro.monthlyHt, displayVatRate()), locale), unit: t.perMonth, tag: t.plans.pro },
     { key: 'business', name: 'Business', price: business.quote, unit: '', tag: t.plans.business },
   ]
   return (

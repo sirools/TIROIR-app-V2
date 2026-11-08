@@ -232,6 +232,8 @@ const en: Copy = {
     perMonth: '/month',
     perYear: 'or {price} a year',
     twoMonthsFree: 'Two months free',
+    vatIncl: 'incl. VAT',
+    vatExcl: '{price} excl. VAT',
     perSeat: 'per seat/month',
     soon: 'Coming soon',
     free: {

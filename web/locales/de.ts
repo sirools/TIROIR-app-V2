@@ -233,6 +233,8 @@ const de: Copy = {
     perMonth: '/Monat',
     perYear: 'oder {price} pro Jahr',
     twoMonthsFree: 'Zwei Monate geschenkt',
+    vatIncl: 'inkl. MwSt.',
+    vatExcl: '{price} netto',
     perSeat: 'pro Platz/Monat',
     soon: 'Demnächst verfügbar',
     free: {

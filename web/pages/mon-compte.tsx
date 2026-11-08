@@ -14,9 +14,11 @@ import { supabase, serverSupabase, adminSupabase } from '../lib/supabase'
 import { providerRows, type IdentityLike, type Provider } from '../lib/identities'
 import { authErrorKey, linkErrorKey, type AccountErrorKey } from '../lib/authErrors'
 import { asLocale, localePrefix } from '../lib/localeRouting'
-import { fill, intlLocale, useCopy } from '../locales'
+import { fill, formatEur, intlLocale, useCopy } from '../locales'
 import { useBillingCopy } from '../locales/billing'
 import { tierName } from '../components/billing/OfferRecap'
+import { stripeEnv } from '../lib/stripeConfig'
+import { stripeClient } from '../lib/stripe/api'
 
 /** Palier du compte et abonnement du site (Stripe), lus côté serveur. */
 type Subscription = {
@@ -26,7 +28,10 @@ type Subscription = {
   periodEnd: string | null
   cancelAtPeriodEnd: boolean
   canManage: boolean
+  /** Factures Stripe du compte (abonnements, crédits), les plus récentes d'abord. */
+  invoices: InvoiceLine[]
 }
+type InvoiceLine = { id: string; number: string | null; date: string; total: number; currency: string; paid: boolean; url: string | null; pdf: string | null }
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -285,7 +290,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 async function readSubscription(userId: string): Promise<Subscription | null> {
   const db = adminSupabase()
   const { data, error } = await db.from('profiles')
-    .select('plan, pro_expires_at, pro_invoice_ref, plan_source, subscription_status, subscription_period_end, subscription_cancel_at_period_end, stripe_customer_id')
+    .select('plan, pro_expires_at, pro_invoice_ref, plan_source, subscription_status, subscription_period_end, subscription_cancel_at_period_end, stripe_customer_id, stripe_livemode')
     .eq('id', userId).maybeSingle()
   // Base pas encore migrée (stripe_subscriptions.sql) : carte masquée.
   if (error || !data) return null
@@ -298,6 +303,31 @@ async function readSubscription(userId: string): Promise<Subscription | null> {
     periodEnd: data.subscription_period_end,
     cancelAtPeriodEnd: !!data.subscription_cancel_at_period_end,
     canManage: !!data.stripe_customer_id,
+    invoices: await readInvoices(data.stripe_customer_id, data.stripe_livemode),
+  }
+}
+
+/** Factures du client Stripe (lues côté serveur ; rien si Stripe n'est pas configuré). */
+async function readInvoices(customerId: string | null, livemode: boolean | null): Promise<InvoiceLine[]> {
+  const env = stripeEnv()
+  if (!env || !customerId || livemode !== (env.mode === 'live')) return []
+  try {
+    const list = await stripeClient(env)<{ data: Record<string, unknown>[] }>('GET', '/v1/invoices', { customer: customerId, limit: 24 })
+    return list.data
+      .filter(i => i.status === 'paid' || i.status === 'open')
+      .map(i => ({
+        id: String(i.id),
+        number: typeof i.number === 'string' ? i.number : null,
+        date: new Date(Number(i.created) * 1000).toISOString(),
+        total: Number(i.total) / 100,
+        currency: String(i.currency ?? 'eur'),
+        paid: i.status === 'paid',
+        url: typeof i.hosted_invoice_url === 'string' ? i.hosted_invoice_url : null,
+        pdf: typeof i.invoice_pdf === 'string' ? i.invoice_pdf : null,
+      }))
+  } catch (e) {
+    console.warn('[mon-compte] factures', (e as Error).message)
+    return []
   }
 }
 
@@ -338,6 +368,24 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
         <button type="button" disabled={busy} onClick={manage} style={s.btnSecondary}>{t.manage}</button>
       )}
       {error && <p role="alert" style={s.error}>{t.portalError}</p>}
+      {sub.invoices.length > 0 && (
+        <>
+          <h3 style={{ ...s.cardTitle, fontSize: 15, marginTop: 20 }}>{t.invoicesTitle}</h3>
+          <ul style={s.rows}>
+            {sub.invoices.map(i => (
+              <li key={i.id} style={s.row}>
+                <span style={{ flex: 1 }}>
+                  <strong style={{ color: '#121212' }}>{i.number ?? '—'}</strong>
+                  <span style={s.rowState}> · {date(i.date)} · {i.paid ? t.invoicePaid : t.invoiceOpen}</span>
+                </span>
+                <span style={{ fontWeight: 700 }}>{formatEur(i.total, locale)}</span>
+                {i.url && <a href={i.url} target="_blank" rel="noreferrer" style={s.link}>↗</a>}
+                {i.pdf && <a href={i.pdf} target="_blank" rel="noreferrer" style={s.link}>{t.invoicePdf}</a>}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   )
 }

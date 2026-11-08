@@ -12,7 +12,7 @@
 // dans ce fichier, jamais côté navigateur.
 //
 // Module sans dépendance Next, testable.
-import { OFFERS_V4 } from './offers'
+import { OFFERS_V4, VAT_RATE } from './offers'
 
 /** Version d'API figée : la forme des objets reçus ne change pas sous nos pieds. */
 export const STRIPE_API_VERSION = '2024-06-20'
@@ -57,7 +57,7 @@ export type SubscriptionPlan = {
   tier: PlanTier
   period: BillingPeriod
   lookupKey: string
-  /** Centimes TTC par période. */
+  /** Centimes HT par période (la TVA s'ajoute, voir vatRate). */
   amount: number
   interval: 'month' | 'year'
   /** Variable d'environnement qui donne l'identifiant du prix (price_…). */
@@ -65,10 +65,10 @@ export type SubscriptionPlan = {
 }
 
 export const SUBSCRIPTION_PLANS: readonly SubscriptionPlan[] = [
-  { key: 'premium_monthly', tier: 'premium', period: 'monthly', lookupKey: 'tiroir_web_premium_monthly', amount: Math.round(OFFERS_V4.premium.monthlyTtc * 100), interval: 'month', priceEnv: 'STRIPE_PRICE_PREMIUM_MONTHLY' },
-  { key: 'premium_yearly', tier: 'premium', period: 'yearly', lookupKey: 'tiroir_web_premium_yearly', amount: Math.round(OFFERS_V4.premium.yearlyTtc * 100), interval: 'year', priceEnv: 'STRIPE_PRICE_PREMIUM_YEARLY' },
-  { key: 'pro_monthly', tier: 'pro', period: 'monthly', lookupKey: 'tiroir_web_pro_monthly', amount: Math.round(OFFERS_V4.pro.monthlyTtc * 100), interval: 'month', priceEnv: 'STRIPE_PRICE_PRO_MONTHLY' },
-  { key: 'pro_yearly', tier: 'pro', period: 'yearly', lookupKey: 'tiroir_web_pro_yearly', amount: Math.round(OFFERS_V4.pro.yearlyTtc * 100), interval: 'year', priceEnv: 'STRIPE_PRICE_PRO_YEARLY' },
+  { key: 'premium_monthly', tier: 'premium', period: 'monthly', lookupKey: 'tiroir_web_premium_monthly', amount: Math.round(OFFERS_V4.premium.monthlyHt * 100), interval: 'month', priceEnv: 'STRIPE_PRICE_PREMIUM_MONTHLY' },
+  { key: 'premium_yearly', tier: 'premium', period: 'yearly', lookupKey: 'tiroir_web_premium_yearly', amount: Math.round(OFFERS_V4.premium.yearlyHt * 100), interval: 'year', priceEnv: 'STRIPE_PRICE_PREMIUM_YEARLY' },
+  { key: 'pro_monthly', tier: 'pro', period: 'monthly', lookupKey: 'tiroir_web_pro_monthly', amount: Math.round(OFFERS_V4.pro.monthlyHt * 100), interval: 'month', priceEnv: 'STRIPE_PRICE_PRO_MONTHLY' },
+  { key: 'pro_yearly', tier: 'pro', period: 'yearly', lookupKey: 'tiroir_web_pro_yearly', amount: Math.round(OFFERS_V4.pro.yearlyHt * 100), interval: 'year', priceEnv: 'STRIPE_PRICE_PRO_YEARLY' },
 ]
 
 /** Identifiant de prix posé dans l'environnement pour cette offre, ou null. */
@@ -167,13 +167,54 @@ export function siteUrl(env: Env = process.env): string {
 }
 
 /**
- * Régime de TVA de Tiroir. Franchise en base, confirmée par le fondateur
- * le 26/10/2026 : aucune TVA facturée, prix TTC = HT. Seul
- * BILLING_VAT_MODE=assujetti (le jour où le seuil est dépassé) fait
- * appliquer la TVA.
+ * Régime de TVA de Tiroir. Franchise en base jusqu'au 08/11/2026 ; le
+ * fondateur a confirmé ce jour-là que l'EI est assujettie (TVA 20 %) :
+ * BILLING_VAT_MODE=assujetti dans l'environnement (test et prod), avec
+ * BILLING_VAT_NUMBER. Sans la variable, le code reste en franchise : aucune
+ * TVA ajoutée, mention art. 293 B.
  */
 export function vatMode(env: Env = process.env): 'franchise' | 'assujetti' {
   return env.BILLING_VAT_MODE?.trim() === 'assujetti' ? 'assujetti' : 'franchise'
+}
+
+/** Taux de TVA facturé : 20 % si assujetti, 0 en franchise. */
+export function vatRate(env: Env = process.env): number {
+  return vatMode(env) === 'assujetti' ? VAT_RATE : 0
+}
+
+/**
+ * Taux de TVA Stripe (Tax Rates, créés par scripts/stripe-setup.mjs) :
+ *   - STRIPE_TAX_RATE_ID : 20 % ajoutés au prix (abonnements, prix HT ;
+ *     aussi utilisé par la facturation Business) ;
+ *   - STRIPE_TAX_RATE_INCLUSIVE_ID : 20 % compris dans le prix (packs de
+ *     crédits, vendus TTC).
+ * Null en franchise : rien n'est ajouté.
+ */
+export function stripeTaxRates(env: Env = process.env): { exclusive: string | null; inclusive: string | null } {
+  if (vatMode(env) !== 'assujetti') return { exclusive: null, inclusive: null }
+  const id = (v: string | undefined) => (v?.trim().startsWith('txr_') ? v.trim() : null)
+  return { exclusive: id(env.STRIPE_TAX_RATE_ID), inclusive: id(env.STRIPE_TAX_RATE_INCLUSIVE_ID) }
+}
+
+/**
+ * Pied des factures des particuliers (abonnements, crédits) : identité de
+ * l'EI, n° de TVA ou mention de franchise. Le détail HT / TVA / TTC est
+ * sur la facture elle-même (taux de TVA Stripe).
+ */
+export function consumerInvoiceFooter(env: Env = process.env): string {
+  const lines: string[] = []
+  const issuer = [env.BILLING_LEGAL_NAME, env.BILLING_SIRET && `SIRET ${env.BILLING_SIRET}`, env.BILLING_ADDRESS]
+    .map(s => s?.trim()).filter(Boolean)
+  if (issuer.length) lines.push(issuer.join(' — '))
+  if (vatMode(env) === 'franchise') lines.push('TVA non applicable, art. 293 B du CGI.')
+  else if (env.BILLING_VAT_NUMBER?.trim()) lines.push(`N° de TVA intracommunautaire : ${env.BILLING_VAT_NUMBER.trim()}`)
+  lines.push('Prestation de services numériques.')
+  return lines.join('\n')
+}
+
+/** Centimes TTC d'un abonnement (prix HT de la grille + TVA). */
+export function amountWithVat(plan: SubscriptionPlan, rate: number): number {
+  return Math.round(plan.amount * (1 + rate))
 }
 
 /**

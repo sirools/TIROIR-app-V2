@@ -20,13 +20,34 @@ export const OFFERS_V4 = {
     { id: 'tiroir_credits_500', credits: 500, priceTtc: 19.99, popular: false },
   ],
   // Grille de lancement du 08/11/2026 (fixée jusqu'au passage à l'échelle) :
-  // annuel = 10 mois, « deux mois offerts ».
-  premium: { monthlyTtc: 15, yearlyTtc: 150 },
+  // annuel = 10 mois, « deux mois offerts ». Prix HORS TAXES : la TVA
+  // (20 %, l'EI est assujettie depuis le 08/11/2026 — BILLING_VAT_MODE)
+  // s'ajoute : Premium 18 € / 180 € TTC, Pro 60 € / 600 € TTC.
+  premium: { monthlyHt: 15, yearlyHt: 150 },
   /** Pro = Premium avec des quotas plus élevés (réglés dans le back-office). */
-  pro: { monthlyTtc: 50, yearlyTtc: 500 },
+  pro: { monthlyHt: 50, yearlyHt: 500 },
   /** Business : sur devis, facture mensuelle (pas de paiement en ligne). Base de facturation par siège. */
   business: { seatMonthly: 39 },
 } as const
+
+/** TVA française appliquée quand l'EI est assujettie (BILLING_VAT_MODE). */
+export const VAT_RATE = 0.2
+
+/** Taux affiché par les pages (inliné au build par next.config.js). */
+export function displayVatRate(): number {
+  const r = Number(process.env.DISPLAY_VAT_RATE)
+  return r === VAT_RATE ? VAT_RATE : 0
+}
+
+/** HT → TTC, arrondi au centime. */
+export function withVat(ht: number, rate: number): number {
+  return Math.round(ht * (1 + rate) * 100) / 100
+}
+
+/** TTC → HT, arrondi au centime (packs de crédits, vendus TTC). */
+export function withoutVat(ttc: number, rate: number): number {
+  return Math.round((ttc / (1 + rate)) * 100) / 100
+}
 
 /** Ce que coûte chaque action, en crédits. */
 export const CREDIT_COSTS = [

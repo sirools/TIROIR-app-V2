@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { creditsForProduct, nextPlan } from '../_shared/storeProducts.ts'
+import { creditsForProduct, nextPlan, storeSubscriptionRow } from '../_shared/storeProducts.ts'
 
 const REVENUECAT_WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET')!
 const SUPABASE_URL               = Deno.env.get('SUPABASE_URL')!
@@ -96,6 +96,17 @@ Deno.serve(async (req) => {
     }
 
     console.log(`[revenuecat-webhook] plan ${profile.plan} → ${newPlan} for ${appUserId}`)
+  }
+
+  // Journal des abonnements, toutes sources (public.subscriptions). Une
+  // erreur ici ne fait jamais échouer le webhook : le palier est déjà posé.
+  const row = appUserId ? storeSubscriptionRow(event) : null
+  if (row) {
+    const { error: subError } = await admin.rpc('upsert_store_subscription', {
+      p_user_id: appUserId, p_source: row.source, p_external_id: row.external_id, p_tier: row.tier,
+      p_period: row.period, p_status: row.status, p_period_end: row.period_end, p_cancel_at_period_end: row.cancel_at_period_end,
+    })
+    if (subError) console.warn('[revenuecat-webhook] subscriptions', subError.message)
   }
 
   // Funnel : conversion (achat initial) + renouvellements, tracés dans activity_log.

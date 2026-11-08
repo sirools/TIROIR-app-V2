@@ -113,3 +113,39 @@ export function nextPlan(
 
   return null
 }
+
+/** Ligne du journal public.subscriptions pour un événement RevenueCat, ou null. */
+export type StoreSubscriptionRow = {
+  source: 'apple' | 'google'
+  external_id: string
+  tier: StoreTier
+  period: 'monthly' | 'yearly'
+  status: 'active' | 'past_due' | 'expired'
+  period_end: string | null
+  cancel_at_period_end: boolean
+}
+
+export function storeSubscriptionRow(event: StoreEvent & {
+  store?: unknown; original_transaction_id?: unknown; transaction_id?: unknown
+}): StoreSubscriptionRow | null {
+  const source = event.store === 'APP_STORE' || event.store === 'MAC_APP_STORE' ? 'apple'
+    : event.store === 'PLAY_STORE' ? 'google' : null
+  const product = event.type === 'PRODUCT_CHANGE' ? event.new_product_id ?? event.product_id : event.product_id
+  const tier = tierForProduct(product)
+  const id = event.original_transaction_id ?? event.transaction_id
+  if (!source || !tier || (typeof id !== 'string' && typeof id !== 'number')) return null
+  const status = ACTIVE_EVENTS.has(event.type) || event.type === 'CANCELLATION' ? 'active'
+    : event.type === 'BILLING_ISSUE' ? 'past_due'
+    : event.type === 'EXPIRATION' ? 'expired' : null
+  if (!status) return null
+  const ms = typeof event.expiration_at_ms === 'number' ? event.expiration_at_ms : null
+  return {
+    source,
+    external_id: String(id),
+    tier,
+    period: /annual|yearly|year/.test(String(baseId(product))) ? 'yearly' : 'monthly',
+    status,
+    period_end: ms ? new Date(ms).toISOString() : null,
+    cancel_at_period_end: event.type === 'CANCELLATION',
+  }
+}

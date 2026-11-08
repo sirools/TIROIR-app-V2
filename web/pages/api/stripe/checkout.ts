@@ -9,9 +9,10 @@
 // case cochée sur la page /credits.
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { packByKey, siteUrl, stripeEnv } from '../../../lib/stripeConfig'
+import { consumerInvoiceFooter, packByKey, siteUrl, stripeEnv, stripeTaxRates } from '../../../lib/stripeConfig'
 import { priceIdFor, stripeClient } from '../../../lib/stripe/api'
 import { asLocale, localePrefix } from '../../../lib/localeRouting'
+import { adminSupabase } from '../../../lib/supabase'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'private, no-store')
@@ -33,15 +34,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const stripe = stripeClient(env)
+    const taxIncl = stripeTaxRates().inclusive
+    // Client Stripe du compte s'il existe (abonné) : ses factures de crédits
+    // apparaissent avec les autres dans Mon compte et le portail.
+    const { data: profile } = await adminSupabase().from('profiles')
+      .select('stripe_customer_id, stripe_livemode').eq('id', user.id).maybeSingle()
+    const customer = profile?.stripe_customer_id && profile.stripe_livemode === (env.mode === 'live') ? profile.stripe_customer_id : null
     const session = await stripe<{ url: string }>('POST', '/v1/checkout/sessions', {
       mode: 'payment',
       // Tiroir vend en son nom (EI, franchise de TVA, factures à son nom) :
       // pas de « Managed Payments » (Stripe revendeur), activé par défaut
       // sur les nouveaux comptes. Voir strategie/paiements-stripe.md § 6.
       managed_payments: { enabled: false },
-      line_items: [{ price: await priceIdFor(stripe, pack.lookupKey), quantity: 1 }],
+      // Packs vendus TTC : TVA 20 % comprise (assujetti), détaillée sur la facture.
+      line_items: [{ price: await priceIdFor(stripe, pack.lookupKey), quantity: 1, ...(taxIncl ? { tax_rates: [taxIncl] } : {}) }],
+      billing_address_collection: 'required',
+      tax_id_collection: { enabled: true },
+      // Une facture par achat, envoyée par e-mail.
+      invoice_creation: { enabled: true, invoice_data: { footer: consumerInvoiceFooter(), metadata: meta } },
       client_reference_id: user.id,
-      customer_email: user.email,
+      ...(customer ? { customer, customer_update: { address: 'auto', name: 'auto' } } : { customer_email: user.email }),
       metadata: meta,
       payment_intent_data: { metadata: meta, description: `Tiroir — ${pack.credits} crédits IA` },
       locale: locale === 'da' || locale === 'de' || locale === 'es' || locale === 'en' ? locale : 'fr',

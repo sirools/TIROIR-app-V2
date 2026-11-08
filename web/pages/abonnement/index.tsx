@@ -20,6 +20,7 @@ import { asLocale, localePrefix } from '../../lib/localeRouting'
 import { stripeEnv, subscriptionPlanFor, type BillingPeriod, type PlanTier } from '../../lib/stripeConfig'
 import { offerFromQuery, subscribePath } from '../../lib/subscribeFlow'
 import { fill, formatEur } from '../../locales'
+import { displayVatRate, withVat } from '../../lib/offers'
 import { useBillingCopy } from '../../locales/billing'
 
 type Gate = 'OK' | 'WEB' | 'OTHER' | 'CLOSED'
@@ -30,15 +31,18 @@ export default function Abonnement({ tier, period, email, gate }: Props) {
   const plan = subscriptionPlanFor(tier, period)!
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const price = formatEur(plan.amount / 100, locale)
+  const [waiver, setWaiver] = useState(false)
+  // Montant TTC débité (TVA 20 % si assujetti).
+  const price = formatEur(withVat(plan.amount / 100, displayVatRate()), locale)
 
   async function go(path: '/api/stripe/subscription' | '/api/stripe/portal') {
+    if (path === '/api/stripe/subscription' && !waiver) { setError(t.waiverMissing); return }
     setBusy(true); setError(null)
     try {
       const res = await fetch(path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier, period, locale }),
+        body: JSON.stringify({ tier, period, locale, waiver }),
       })
       const json = await res.json().catch(() => ({}))
       if (res.ok && json.url) { window.location.href = json.url; return }
@@ -63,6 +67,14 @@ export default function Abonnement({ tier, period, email, gate }: Props) {
 
             {gate === 'OK' && (
               <>
+                <label style={s.waiver}>
+                  <input type="checkbox" checked={waiver} onChange={e => { setWaiver(e.target.checked); setError(null) }} style={{ marginTop: 3, appearance: 'auto', WebkitAppearance: 'checkbox', width: 18, height: 18, flexShrink: 0, accentColor: 'var(--orange)' }} />
+                  <span>
+                    {t.waiver.split('{cgu}')[0]}
+                    <a href={`${localePrefix(locale)}/cgu`} target="_blank" rel="noreferrer" style={s.link}>{t.terms}</a>
+                    {t.waiver.split('{cgu}')[1]}
+                  </span>
+                </label>
                 <button type="button" disabled={busy} onClick={() => go('/api/stripe/subscription')} style={{ ...s.btn, opacity: busy ? 0.7 : 1 }}>
                   {busy ? t.redirecting : fill(t.pay, { price })}
                 </button>
@@ -118,4 +130,5 @@ const s: Record<string, React.CSSProperties> = {
   btn:    { marginTop: 12, width: '100%', padding: '15px 0', textAlign: 'center', display: 'block', borderRadius: 12, background: 'var(--orange)', color: 'white', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', fontFamily: 'inherit' },
   note:   { fontSize: 15, color: 'var(--ink)', background: 'white', borderRadius: 12, padding: '12px 16px', margin: '8px 0 0', lineHeight: 1.5 },
   error:  { fontSize: 14, color: 'var(--error)', margin: 0 },
+  waiver: { display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: 'var(--ink)', lineHeight: 1.5, marginTop: 8, cursor: 'pointer' },
 }

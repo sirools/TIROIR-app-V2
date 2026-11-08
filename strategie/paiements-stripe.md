@@ -11,7 +11,17 @@
    (RevenueCat, déjà codé) **et** Stripe sur le site, en parallèle, sans
    lien de l'app vers le site (option B, § 1). Aucune ligne de code
    mobile dans cette branche ; ce qu'il reste côté app est listé au § 1.
-2. ✅ **TVA — décidé le 26/10/2026** : Tiroir (EI) est en **franchise en
+2. ✅ **TVA — changé le 08/11/2026 : l'EI est assujettie, TVA 20 %.**
+   Prix des abonnements HT (Premium 15 € / 150 €, Pro 50 € / 500 €), soit
+   18 € / 180 € et 60 € / 600 € TTC ; packs de crédits inchangés en TTC,
+   TVA comprise. Réglage : `BILLING_VAT_MODE=assujetti`,
+   `BILLING_VAT_NUMBER`, taux Stripe `STRIPE_TAX_RATE_ID` (ajouté) et
+   `STRIPE_TAX_RATE_INCLUSIVE_ID` (compris), créés par
+   `scripts/stripe-setup.mjs`. La page Tarifs affiche TTC et HT ; Checkout
+   et les factures détaillent HT, TVA, TTC ; adresse de facturation
+   obligatoire, n° de TVA facultatif (pros). Export mensuel CSV des
+   factures et de la TVA : back-office › Facturation › Export TVA.
+   *Ancienne décision (26/10/2026)* : Tiroir (EI) était en **franchise en
    base**. Aucune TVA facturée ; les factures portent « TVA non
    applicable, art. 293 B du CGI » ; 39 € TTC = 39 € HT, et un pack à
    6,99 € rapporte 6,99 € (avant frais Stripe). C'est le réglage par
@@ -189,6 +199,17 @@ Réglage : `BUSINESS.proration` dans `web/lib/stripeConfig.ts`.
 | 5. Abandon : retour aux tarifs, message neutre, offre resélectionnée | `/pricing?offre=…&periode=…&paiement=annule` |
 | Gestion : « Gérer mon abonnement » (carte, changement d'offre, résiliation, factures) | `/mon-compte`, `POST /api/stripe/portal` → portail client Stripe |
 
+**Journal multi-sources** : table `subscriptions` (user_id, source
+`stripe` | `apple` | `google`, palier, période, statut, fin de période),
+écrite par le webhook Stripe et par le webhook RevenueCat
+(`upsert_store_subscription`, sans toucher au palier). Le palier lu par
+l'app reste `profiles.plan` (effective_plan) : rien ne change pour les
+abonnés des stores ni les Premium faits à la main.
+
+**Rétractation** : case obligatoire sur `/abonnement` (CGU liées, accès
+immédiat demandé, renonciation art. L221-28), horodatée dans les
+métadonnées de la session et de l'abonnement ; rappel dans Checkout.
+
 **Données** (`supabase/drafts/stripe_subscriptions.sql`, additif) : sur
 `profiles`, `stripe_customer_id`, `stripe_livemode`,
 `stripe_subscription_id`, `subscription_status`,
@@ -357,6 +378,10 @@ de l'ouverture.
 | `BILLING_LEGAL_NAME`, `BILLING_SIRET`, `BILLING_ADDRESS` | identité de l'EI | idem |
 | `BILLING_VAT_MODE` | rien (franchise par défaut) | rien ; `assujetti` seulement si le seuil est dépassé |
 | `STRIPE_TEST_CLOCK_ID` | facultatif (tests d'impayé) | jamais |
+| `BILLING_VAT_MODE` (depuis le 08/11/2026) | `assujetti` | `assujetti` |
+| `BILLING_VAT_NUMBER` | n° de TVA de l'EI | idem |
+| `STRIPE_TAX_RATE_ID`, `STRIPE_TAX_RATE_INCLUSIVE_ID` | `txr_…` de test (script) | `txr_…` réels (script) |
+| `STRIPE_PRICE_PREMIUM_MONTHLY`, `…_YEARLY`, `STRIPE_PRICE_PRO_MONTHLY`, `…_YEARLY` | `price_…` de test | `price_…` réels |
 
 Sans `STRIPE_MODE` et une clé du même mode, le paiement reste fermé
 (boutons « Bientôt disponible »), et une clé réelle posée en préprod est

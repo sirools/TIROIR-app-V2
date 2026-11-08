@@ -14,7 +14,7 @@
 // La base est derrière SubscriberStore : la route passe l'implémentation
 // Supabase, les tests une implémentation en mémoire.
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { planByPrice, type PlanTier } from '../stripeConfig'
+import { planByPrice, type BillingPeriod, type PlanTier } from '../stripeConfig'
 import type { StripeCall } from './api'
 import { fromEpoch, idOf } from './business'
 
@@ -31,6 +31,7 @@ export type IndividualSubscription = {
   /** Compte Tiroir, posé en métadonnée par /api/stripe/subscription. */
   userId: string | null
   tier: PlanTier
+  period: BillingPeriod | null
   status: string
   periodEnd: Date | null
   cancelAtPeriodEnd: boolean
@@ -45,7 +46,10 @@ export function individualSubscription(sub: unknown): IndividualSubscription | n
   const s = obj(sub)
   const item = obj((obj(s.items).data as unknown[] | undefined)?.[0])
   const price = obj(item.price)
-  const tier = planByPrice(price)?.tier ?? archivedTier(price)
+  const known = planByPrice(price)
+  const tier = known?.tier ?? archivedTier(price)
+  const interval = str(obj(price.recurring).interval)
+  const period: BillingPeriod | null = known?.period ?? (interval === 'year' ? 'yearly' : interval === 'month' ? 'monthly' : null)
   const id = str(s.id)
   if (!tier || !id) return null
   return {
@@ -53,6 +57,7 @@ export function individualSubscription(sub: unknown): IndividualSubscription | n
     customerId: idOf(s.customer),
     userId: str(obj(s.metadata).user_id),
     tier,
+    period,
     status: str(s.status) ?? 'incomplete',
     // Depuis 2025, la période vit sur l'élément d'abonnement.
     periodEnd: fromEpoch(s.current_period_end) ?? fromEpoch(item.current_period_end),
@@ -160,6 +165,7 @@ export function supabaseSubscriberStore(db: SupabaseClient): SubscriberStore {
         p_period_end: sub.periodEnd ? sub.periodEnd.toISOString() : null,
         p_cancel_at_period_end: sub.cancelAtPeriodEnd,
         p_livemode: sub.livemode,
+        p_period: sub.period,
       })
       if (error) throw new Error(`apply_stripe_subscription : ${error.message}`)
       return String(data)

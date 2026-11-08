@@ -139,6 +139,13 @@ const billingFr = {
     fromApp: '{tier}, géré dans l’app (App Store ou Google Play).',
     fromInvoice: '{tier}, sur facture.',
     portalError: 'Impossible d’ouvrir la gestion de l’abonnement. Réessayez dans un instant.',
+    waiver: 'J’accepte les {cgu} et demande l’accès immédiat à l’abonnement : je renonce à mon droit de rétractation de 14 jours (art. L221-28 du Code de la consommation). Résiliable à tout moment.',
+    terms: 'conditions générales',
+    waiverMissing: 'Cochez la case pour continuer.',
+    invoicesTitle: 'Factures',
+    invoicePdf: 'PDF',
+    invoicePaid: 'payée',
+    invoiceOpen: 'à payer',
   },
 }
 

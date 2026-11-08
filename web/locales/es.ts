@@ -233,6 +233,8 @@ const es: Copy = {
     perMonth: '/mes',
     perYear: 'o {price} al año',
     twoMonthsFree: 'Dos meses gratis',
+    vatIncl: 'IVA incl.',
+    vatExcl: '{price} sin IVA',
     perSeat: 'por usuario/mes',
     soon: 'Próximamente',
     free: {

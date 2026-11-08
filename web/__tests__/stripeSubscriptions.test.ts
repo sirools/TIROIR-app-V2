@@ -10,10 +10,10 @@ import { nextPlan } from '../../supabase/functions/_shared/storeProducts'
 describe('grille des abonnements', () => {
   test('Premium mensuel / annuel et Pro mensuel, aux prix de OFFERS_V4', () => {
     expect(SUBSCRIPTION_PLANS.map(p => [p.key, p.amount, p.interval])).toEqual([
-      ['premium_monthly', Math.round(OFFERS_V4.premium.monthlyTtc * 100), 'month'],
-      ['premium_yearly', Math.round(OFFERS_V4.premium.yearlyTtc * 100), 'year'],
-      ['pro_monthly', Math.round(OFFERS_V4.pro.monthlyTtc * 100), 'month'],
-      ['pro_yearly', Math.round(OFFERS_V4.pro.yearlyTtc * 100), 'year'],
+      ['premium_monthly', Math.round(OFFERS_V4.premium.monthlyHt * 100), 'month'],
+      ['premium_yearly', Math.round(OFFERS_V4.premium.yearlyHt * 100), 'year'],
+      ['pro_monthly', Math.round(OFFERS_V4.pro.monthlyHt * 100), 'month'],
+      ['pro_yearly', Math.round(OFFERS_V4.pro.yearlyHt * 100), 'year'],
     ])
     // Grille du 08/11/2026 : annuel = 10 mois (« deux mois offerts »).
     expect(SUBSCRIPTION_PLANS.map(p => p.amount)).toEqual([1500, 15000, 5000, 50000])

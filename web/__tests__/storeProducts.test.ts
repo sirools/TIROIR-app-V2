@@ -67,3 +67,17 @@ describe('nextPlan', () => {
     expect(nextPlan(ev('INITIAL_PURCHASE', 'tiroir_premium_monthly'), expiredInvoicedPro, TODAY)).toBe('premium')
   })
 })
+
+describe('journal des abonnements (stores)', () => {
+  test('achat, problème de paiement, résiliation, expiration', async () => {
+    const { storeSubscriptionRow } = await import('../../supabase/functions/_shared/storeProducts')
+    const base = { store: 'APP_STORE', original_transaction_id: '1000', product_id: 'tiroir_premium_annual', expiration_at_ms: 1_800_000_000_000 }
+    expect(storeSubscriptionRow({ ...base, type: 'INITIAL_PURCHASE' })).toMatchObject({ source: 'apple', tier: 'premium', period: 'yearly', status: 'active', cancel_at_period_end: false })
+    expect(storeSubscriptionRow({ ...base, type: 'BILLING_ISSUE' })?.status).toBe('past_due')
+    expect(storeSubscriptionRow({ ...base, type: 'CANCELLATION' })).toMatchObject({ status: 'active', cancel_at_period_end: true })
+    expect(storeSubscriptionRow({ ...base, type: 'EXPIRATION', store: 'PLAY_STORE', product_id: 'tiroir_pro_monthly' })).toMatchObject({ source: 'google', tier: 'pro', period: 'monthly', status: 'expired' })
+    // Pack de crédits, store inconnu : pas d'abonnement.
+    expect(storeSubscriptionRow({ ...base, type: 'NON_RENEWING_PURCHASE', product_id: 'tiroir_credits_50' })).toBeNull()
+    expect(storeSubscriptionRow({ ...base, type: 'INITIAL_PURCHASE', store: 'STRIPE' })).toBeNull()
+  })
+})

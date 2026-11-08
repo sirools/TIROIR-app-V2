@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { fill, formatEur, useCopy } from '../../locales'
 import { useBillingCopy } from '../../locales/billing'
 import type { SubscriptionPlan } from '../../lib/stripeConfig'
+import { displayVatRate, withVat } from '../../lib/offers'
 
 const NAME = { premium: 'Premium', pro: 'Pro' } as const
 
@@ -15,7 +16,10 @@ export function tierName(tier: SubscriptionPlan['tier']): string {
 export default function OfferRecap({ plan, changeHref = '/pricing#formules' }: { plan: SubscriptionPlan; changeHref?: string }) {
   const { t: { pricing }, locale } = useCopy()
   const { t: { subscribe: t } } = useBillingCopy()
-  const price = formatEur(plan.amount / 100, locale)
+  // Prix TTC (TVA 20 % si assujetti), HT en dessous.
+  const vat = displayVatRate()
+  const ht = plan.amount / 100
+  const price = formatEur(withVat(ht, vat), locale)
   const features = pricing[plan.tier].features
   return (
     <aside className="card" aria-label={t.recapTitle} style={s.card}>
@@ -23,8 +27,9 @@ export default function OfferRecap({ plan, changeHref = '/pricing#formules' }: {
       <div style={s.name}>Tiroir {NAME[plan.tier]}</div>
       <div style={s.priceRow}>
         <span style={s.price}>{price}</span>
-        <span style={s.unit}>{plan.period === 'yearly' ? t.perYearUnit : pricing.perMonth}</span>
+        <span style={s.unit}>{plan.period === 'yearly' ? t.perYearUnit : pricing.perMonth}{vat ? ` ${pricing.vatIncl}` : ''}</span>
       </div>
+      {vat > 0 && <div style={s.small}>{fill(pricing.vatExcl, { price: formatEur(ht, locale) })}</div>}
       <div style={s.small}>{fill(plan.period === 'yearly' ? t.billedYearly : t.billedMonthly, { price })}</div>
       <ul style={s.list}>
         {features.map(f => <li key={f} style={s.item}><span aria-hidden="true" style={s.check}>✓</span>{f}</li>)}

@@ -6,7 +6,7 @@ import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { localeLinks } from '../components/layout/LocaleLinks'
 import StoreButtons from '../components/StoreButtons'
-import { OFFERS_V4 } from '../lib/offers'
+import { OFFERS_V4, displayVatRate, withVat } from '../lib/offers'
 import { fill, formatEur, useCopy } from '../locales'
 import { useBillingCopy } from '../locales/billing'
 import { stripeEnv, type BillingPeriod, type PlanTier } from '../lib/stripeConfig'
@@ -43,6 +43,9 @@ export default function Pricing({ paymentOpen }: Props) {
   const { t: { pricing: t }, locale } = useCopy()
   const { t: { subscribe: ts } } = useBillingCopy()
   const eur = (n: number) => formatEur(n, locale)
+  // Prix de la grille HT ; affichés TTC (TVA 20 % si assujetti), HT en dessous.
+  const vat = displayVatRate()
+  const ttc = (ht: number) => withVat(ht, vat)
   const n = free.aiActionsPerMonth
   // Offre gardée au retour de Stripe (paiement abandonné). Lue dans
   // l'adresse du navigateur : la page est statique, router.query peut
@@ -67,8 +70,8 @@ export default function Pricing({ paymentOpen }: Props) {
         <meta
           name="description"
           content={fill(t.meta.description, {
-            free: n, pack: eur(packs[0].priceTtc), premium: eur(premium.monthlyTtc),
-            pro: eur(pro.monthlyTtc),
+            free: n, pack: eur(packs[0].priceTtc), premium: eur(ttc(premium.monthlyHt)),
+            pro: eur(ttc(pro.monthlyHt)),
           })}
         />
         {localeLinks(locale, '/pricing')}
@@ -125,10 +128,11 @@ export default function Pricing({ paymentOpen }: Props) {
                 <div>
                   <div style={{ ...PLAN_NAME, color: 'var(--orange)' }}>Premium</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={PRICE}>{eur(yearly ? premium.yearlyTtc : premium.monthlyTtc)}</span>
-                    <span style={PRICE_UNIT}>{yearly ? ts.perYearUnit : t.perMonth}</span>
+                    <span style={PRICE}>{eur(ttc(yearly ? premium.yearlyHt : premium.monthlyHt))}</span>
+                    <span style={PRICE_UNIT}>{yearly ? ts.perYearUnit : t.perMonth}{vat ? ` ${t.vatIncl}` : ''}</span>
                   </div>
-                  <YearlyLine yearly={yearly} yearlyPrice={premium.yearlyTtc} eur={eur} t={t} />
+                  {vat > 0 && <div style={PRICE_SUB}>{fill(t.vatExcl, { price: eur(yearly ? premium.yearlyHt : premium.monthlyHt) })}</div>}
+                  <YearlyLine yearly={yearly} yearlyPrice={ttc(premium.yearlyHt)} eur={eur} t={t} />
                   <div style={PRICE_SUB}>{t.premium.tagline}</div>
                 </div>
                 <ul style={LIST}>
@@ -148,10 +152,11 @@ export default function Pricing({ paymentOpen }: Props) {
                 <div>
                   <div style={PLAN_NAME}>Pro</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={PRICE}>{eur(yearly ? pro.yearlyTtc : pro.monthlyTtc)}</span>
-                    <span style={PRICE_UNIT}>{yearly ? ts.perYearUnit : t.perMonth}</span>
+                    <span style={PRICE}>{eur(ttc(yearly ? pro.yearlyHt : pro.monthlyHt))}</span>
+                    <span style={PRICE_UNIT}>{yearly ? ts.perYearUnit : t.perMonth}{vat ? ` ${t.vatIncl}` : ''}</span>
                   </div>
-                  <YearlyLine yearly={yearly} yearlyPrice={pro.yearlyTtc} eur={eur} t={t} />
+                  {vat > 0 && <div style={PRICE_SUB}>{fill(t.vatExcl, { price: eur(yearly ? pro.yearlyHt : pro.monthlyHt) })}</div>}
+                  <YearlyLine yearly={yearly} yearlyPrice={ttc(pro.yearlyHt)} eur={eur} t={t} />
                   <div style={PRICE_SUB}>{t.pro.tagline}</div>
                 </div>
                 <ul style={LIST}>
@@ -228,7 +233,9 @@ export default function Pricing({ paymentOpen }: Props) {
               {t.credits.note}
             </p>
             <div style={{ maxWidth: 320 }}>
-              <SoonButton label={t.credits.cta} soon={t.soon} primary />
+              {paymentOpen
+                ? <BuyLink href="/credits" label={t.credits.cta} primary />
+                : <SoonButton label={t.credits.cta} soon={t.soon} primary />}
             </div>
           </div>
         </section>

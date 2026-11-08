@@ -233,6 +233,8 @@ const da: Copy = {
     perMonth: '/md.',
     perYear: 'eller {price} om året',
     twoMonthsFree: 'To måneder gratis',
+    vatIncl: 'inkl. moms',
+    vatExcl: '{price} ekskl. moms',
     perSeat: 'pr. bruger/md.',
     soon: 'Kommer snart',
     free: {

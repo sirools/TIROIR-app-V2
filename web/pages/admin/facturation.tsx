@@ -94,6 +94,16 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
           </tbody>
         </table>
 
+        <h2 style={s.h2}>Export TVA</h2>
+        <p style={s.muted}>
+          Factures Stripe payées dans le mois (abonnements, crédits, Business) avec HT, TVA et TTC, pour la déclaration.
+          Les ventes des stores n’y sont pas : Apple et Google reversent eux-mêmes la TVA.
+        </p>
+        <form method="get" action="/api/admin/vat-export" style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '8px 0 24px' }}>
+          <input type="month" name="month" required defaultValue={new Date().toISOString().slice(0, 7)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.15)' }} />
+          <button type="submit" style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: 'var(--orange)', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Télécharger le CSV</button>
+        </form>
+
         <h2 style={s.h2}>Qui facture qui</h2>
         <div style={{ overflowX: 'auto' }}>
           <table style={s.table}>

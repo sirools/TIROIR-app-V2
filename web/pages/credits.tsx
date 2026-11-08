@@ -121,7 +121,7 @@ export default function Credits({ balance, quota, history, paymentOpen, inTeam }
           </div>
           {paymentOpen && (
             <label style={s.waiver}>
-              <input type="checkbox" checked={waiver} onChange={e => { setWaiver(e.target.checked); setError(null) }} style={{ marginTop: 3 }} />
+              <input type="checkbox" checked={waiver} onChange={e => { setWaiver(e.target.checked); setError(null) }} style={{ marginTop: 3, appearance: 'auto', WebkitAppearance: 'checkbox', width: 18, height: 18, flexShrink: 0, accentColor: 'var(--orange)' }} />
               <span>{t.waiver}</span>
             </label>
           )}

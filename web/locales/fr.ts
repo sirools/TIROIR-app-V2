@@ -238,6 +238,9 @@ const fr = {
     perYear: 'ou {price} par an',
     // Mention de l'annuel : 10 mois payés pour 12 (grille du 08/11/2026).
     twoMonthsFree: 'Deux mois offerts',
+    // Après un prix TTC (assujetti à la TVA) ; vatExcl : le même prix hors taxes.
+    vatIncl: 'TTC',
+    vatExcl: 'soit {price} HT',
     perSeat: 'par siège/mois',
     soon: 'Bientôt disponible',
     free: {

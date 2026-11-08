@@ -57,6 +57,16 @@ INSERT INTO r(name, ok) SELECT 'app : Premium gardé', (SELECT plan = 'premium' 
 INSERT INTO r(name, ok) SELECT 'Pro sur facture gardé', public.apply_stripe_subscription('f3000000-0000-0000-0000-000000000000', 'cus_D', 'sub_3', 'premium', 'active', now() + interval '30 days', false, false) = 'abonnement noté, Pro existant gardé';
 INSERT INTO r(name, ok) SELECT 'Pro sur facture : intact', (SELECT plan = 'pro' AND pro_invoice_ref = 'FAC-9' FROM public.profiles WHERE id = 'f3000000-0000-0000-0000-000000000000');
 
+-- Journal des abonnements
+INSERT INTO r(name, ok) SELECT 'journal : une ligne Stripe par abonnement', (SELECT count(*) FROM public.subscriptions WHERE user_id = 'f1000000-0000-0000-0000-000000000000' AND source = 'stripe') = 2;
+INSERT INTO r(name, ok) SELECT 'journal : sub_1 canceled, palier pro', (SELECT status = 'canceled' AND tier = 'pro' FROM public.subscriptions WHERE external_id = 'sub_1');
+SELECT public.upsert_store_subscription('f2000000-0000-0000-0000-000000000000', 'apple', 'tx_1', 'premium', 'monthly', 'active', now() + interval '30 days', false);
+SELECT public.upsert_store_subscription('f2000000-0000-0000-0000-000000000000', 'apple', 'tx_1', 'premium', NULL, 'expired', NULL, false);
+INSERT INTO r(name, ok) SELECT 'journal store : mis à jour, période gardée', (SELECT status = 'expired' AND period = 'monthly' AND current_period_end IS NOT NULL FROM public.subscriptions WHERE source = 'apple' AND external_id = 'tx_1');
+INSERT INTO r(name, ok) SELECT 'journal store : palier du compte inchangé', (SELECT plan = 'premium' FROM public.profiles WHERE id = 'f2000000-0000-0000-0000-000000000000');
+SELECT public.upsert_store_subscription('99999999-0000-0000-0000-000000000000', 'google', 'gpa_1', 'pro', 'monthly', 'active', NULL, false);
+INSERT INTO r(name, ok) SELECT 'journal store : compte inconnu ignoré', NOT EXISTS (SELECT 1 FROM public.subscriptions WHERE external_id = 'gpa_1');
+
 -- Palier invalide refusé
 DO $$ BEGIN
   PERFORM public.apply_stripe_subscription('f1000000-0000-0000-0000-000000000000', 'cus_A', 'sub_1', 'business', 'active', now(), false, false);
@@ -67,6 +77,7 @@ RESET ROLE;
 -- Un compte ne peut ni appeler ces fonctions ni écrire ces colonnes
 SET ROLE authenticated;
 SET request.jwt.claim.sub = 'f1000000-0000-0000-0000-000000000000';
+INSERT INTO r(name, ok) SELECT 'compte : ne lit que ses abonnements', (SELECT count(*) FROM public.subscriptions) = 2 AND (SELECT bool_and(user_id = 'f1000000-0000-0000-0000-000000000000') FROM public.subscriptions);
 DO $$ BEGIN
   PERFORM public.apply_stripe_subscription('f1000000-0000-0000-0000-000000000000', 'cus_A', 'sub_1', 'pro', 'active', now(), false, false);
   INSERT INTO r(name, ok) VALUES ('compte : pas d’abonnement en direct', false);

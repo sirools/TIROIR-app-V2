@@ -52,6 +52,56 @@ COMMENT ON COLUMN public.profiles.subscription_period_end IS
 COMMENT ON COLUMN public.profiles.plan_source IS
   'Origine du palier payant : web (Stripe) ou app (achats intégrés, RevenueCat). NULL : gratuit, ou attribué à la main / par une organisation.';
 
+-- ── 1 bis. Journal des abonnements, toutes sources ───────────────
+-- Une ligne par abonnement : Stripe (site), Apple ou Google (stores, via
+-- RevenueCat). Le palier lu par l'app reste profiles.plan (effective_plan) :
+-- ce journal dit d'où il vient, avec statut et fin de période, sans rien
+-- changer aux comptes existants (abonnés des stores, Premium faits à la
+-- main). Écrit par le serveur seul ; chaque compte lit ses lignes.
+CREATE TABLE IF NOT EXISTS public.subscriptions (
+  id                   UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id              UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  source               TEXT        NOT NULL CHECK (source IN ('stripe', 'apple', 'google')),
+  external_id          TEXT        NOT NULL,           -- sub_… ou transaction d'origine du store
+  tier                 TEXT        NOT NULL CHECK (tier IN ('premium', 'pro')),
+  period               TEXT        CHECK (period IN ('monthly', 'yearly')),
+  status               TEXT        NOT NULL,           -- active, trialing, past_due, canceled, expired…
+  current_period_end   TIMESTAMPTZ,
+  cancel_at_period_end BOOLEAN     NOT NULL DEFAULT false,
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (source, external_id)
+);
+CREATE INDEX IF NOT EXISTS subscriptions_user_idx ON public.subscriptions (user_id);
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.subscriptions FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON public.subscriptions TO authenticated;
+DROP POLICY IF EXISTS subscriptions_own_read ON public.subscriptions;
+CREATE POLICY subscriptions_own_read ON public.subscriptions FOR SELECT TO authenticated
+  USING (user_id = auth.uid());
+
+-- Abonnement d'un store (RevenueCat) : noté dans le journal. Ne touche pas
+-- au palier (le webhook RevenueCat s'en charge, comme avant).
+CREATE OR REPLACE FUNCTION public.upsert_store_subscription(
+  p_user_id UUID, p_source TEXT, p_external_id TEXT, p_tier TEXT, p_period TEXT,
+  p_status TEXT, p_period_end TIMESTAMPTZ, p_cancel_at_period_end BOOLEAN
+)
+RETURNS VOID
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+  INSERT INTO public.subscriptions (user_id, source, external_id, tier, period, status, current_period_end, cancel_at_period_end)
+  SELECT p_user_id, p_source, p_external_id, p_tier, p_period, p_status, p_period_end, COALESCE(p_cancel_at_period_end, false)
+   WHERE EXISTS (SELECT 1 FROM auth.users WHERE id = p_user_id)
+  ON CONFLICT (source, external_id) DO UPDATE SET
+    tier = EXCLUDED.tier, period = COALESCE(EXCLUDED.period, subscriptions.period), status = EXCLUDED.status,
+    current_period_end = COALESCE(EXCLUDED.current_period_end, subscriptions.current_period_end),
+    cancel_at_period_end = EXCLUDED.cancel_at_period_end, updated_at = now();
+$$;
+REVOKE EXECUTE ON FUNCTION public.upsert_store_subscription(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TIMESTAMPTZ, BOOLEAN)
+  FROM PUBLIC, anon, authenticated;
+
 -- ── 2. Le compte peut-il ouvrir un abonnement sur le site ? ──────
 -- Lu par /api/stripe/subscription (clé service) avant de créer la
 -- session Checkout. 'OK', 'WEB' (déjà abonné sur le site : portail),
@@ -127,7 +177,8 @@ CREATE OR REPLACE FUNCTION public.apply_stripe_subscription(
   p_status               TEXT,
   p_period_end           TIMESTAMPTZ,
   p_cancel_at_period_end BOOLEAN,
-  p_livemode             BOOLEAN
+  p_livemode             BOOLEAN,
+  p_period               TEXT DEFAULT NULL
 )
 RETURNS TEXT
 LANGUAGE plpgsql
@@ -142,6 +193,14 @@ BEGIN
   IF p_plan NOT IN ('premium', 'pro') THEN RAISE EXCEPTION 'Palier invalide : %', p_plan; END IF;
   SELECT * INTO p FROM public.profiles WHERE id = p_user_id FOR UPDATE;
   IF NOT FOUND THEN RETURN 'ignoré (compte inconnu)'; END IF;
+
+  -- Journal, toutes sources (y compris un ancien abonnement qui s'arrête).
+  INSERT INTO public.subscriptions (user_id, source, external_id, tier, period, status, current_period_end, cancel_at_period_end)
+  VALUES (p_user_id, 'stripe', p_subscription_id, p_plan, p_period, p_status, p_period_end, COALESCE(p_cancel_at_period_end, false))
+  ON CONFLICT (source, external_id) DO UPDATE SET
+    tier = EXCLUDED.tier, period = COALESCE(EXCLUDED.period, subscriptions.period), status = EXCLUDED.status,
+    current_period_end = EXCLUDED.current_period_end, cancel_at_period_end = EXCLUDED.cancel_at_period_end,
+    user_id = EXCLUDED.user_id, updated_at = now();
 
   -- Un ancien abonnement qui s'arrête n'écrase pas le courant.
   IF NOT v_live AND p.stripe_subscription_id IS NOT NULL AND p.stripe_subscription_id <> p_subscription_id
@@ -179,5 +238,5 @@ BEGIN
   RETURN 'abonnement ' || p_status || ', palier inchangé';
 END;
 $$;
-REVOKE EXECUTE ON FUNCTION public.apply_stripe_subscription(UUID, TEXT, TEXT, TEXT, TEXT, TIMESTAMPTZ, BOOLEAN, BOOLEAN)
+REVOKE EXECUTE ON FUNCTION public.apply_stripe_subscription(UUID, TEXT, TEXT, TEXT, TEXT, TIMESTAMPTZ, BOOLEAN, BOOLEAN, TEXT)
   FROM PUBLIC, anon, authenticated;
