@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { OFFERS_V4 } from '../lib/offers'
-import { SUBSCRIPTION_PLANS, envPriceId, planByLookupKey, planByPrice, subscriptionPlanFor } from '../lib/stripeConfig'
+import { SUBSCRIPTION_PLANS, envPriceId, missingVatConfig, planByLookupKey, planByPrice, subscriptionPlanFor } from '../lib/stripeConfig'
 import type { StripeCall } from '../lib/stripe/api'
 import { individualSubscription, type IndividualSubscription, type SubscriberStore } from '../lib/stripe/subscriptions'
 import { handleStripeEvent, type BillingStore, type StripeEvent } from '../lib/stripe/webhook'
@@ -223,5 +223,14 @@ describe('RevenueCat ne touche pas un abonné du site', () => {
   })
   test('abonnement du site terminé : les stores reprennent la main', () => {
     expect(nextPlan({ type: 'INITIAL_PURCHASE', product_id: 'tiroir_premium_monthly' }, { ...web, plan: 'free', subscription_status: 'canceled' })).toBe('premium')
+  })
+})
+
+describe('garde-fou TVA', () => {
+  test('assujetti sans taux Stripe : paiement refusé, jamais facturé HT', () => {
+    expect(missingVatConfig('exclusive', { BILLING_VAT_MODE: 'assujetti' })).toBe('STRIPE_TAX_RATE_ID')
+    expect(missingVatConfig('inclusive', { BILLING_VAT_MODE: 'assujetti', STRIPE_TAX_RATE_ID: 'txr_1' })).toBe('STRIPE_TAX_RATE_INCLUSIVE_ID')
+    expect(missingVatConfig('exclusive', { BILLING_VAT_MODE: 'assujetti', STRIPE_TAX_RATE_ID: 'txr_1' })).toBeNull()
+    expect(missingVatConfig('exclusive', {})).toBeNull()
   })
 })

@@ -9,7 +9,7 @@
 // case cochée sur la page /credits.
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { consumerInvoiceFooter, packByKey, siteUrl, stripeEnv, stripeTaxRates } from '../../../lib/stripeConfig'
+import { consumerInvoiceFooter, missingVatConfig, packByKey, siteUrl, stripeEnv, stripeTaxRates } from '../../../lib/stripeConfig'
 import { priceIdFor, stripeClient } from '../../../lib/stripe/api'
 import { asLocale, localePrefix } from '../../../lib/localeRouting'
 import { adminSupabase } from '../../../lib/supabase'
@@ -20,6 +20,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const env = stripeEnv()
   if (!env) return res.status(503).json({ error: 'PAYMENT_CLOSED' })
+  const vatMissing = missingVatConfig('inclusive')
+  if (vatMissing) {
+    console.error(`[stripe/checkout] TVA : ${vatMissing} manquante, paiement refusé`)
+    return res.status(503).json({ error: 'VAT_CONFIG' })
+  }
 
   const { data: { user } } = await createServerSupabaseClient({ req, res }).auth.getUser()
   if (!user) return res.status(401).json({ error: 'AUTH' })

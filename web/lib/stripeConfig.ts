@@ -212,6 +212,19 @@ export function consumerInvoiceFooter(env: Env = process.env): string {
   return lines.join('\n')
 }
 
+/**
+ * Assujetti mais taux de TVA Stripe absent : on refuse d'encaisser plutôt
+ * que de débiter le prix HT affiché TTC (ou une facture sans TVA). Renvoie
+ * le nom de la variable manquante, ou null si la configuration est sûre.
+ */
+export function missingVatConfig(kind: 'exclusive' | 'inclusive', env: Env = process.env): string | null {
+  if (vatMode(env) !== 'assujetti') return null
+  const rates = stripeTaxRates(env)
+  if (kind === 'exclusive' && !rates.exclusive) return 'STRIPE_TAX_RATE_ID'
+  if (kind === 'inclusive' && !rates.inclusive) return 'STRIPE_TAX_RATE_INCLUSIVE_ID'
+  return null
+}
+
 /** Centimes TTC d'un abonnement (prix HT de la grille + TVA). */
 export function amountWithVat(plan: SubscriptionPlan, rate: number): number {
   return Math.round(plan.amount * (1 + rate))

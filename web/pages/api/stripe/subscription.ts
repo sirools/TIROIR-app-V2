@@ -13,7 +13,7 @@
 //   État lu en base, pour la page de confirmation (qui attend le webhook).
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { consumerInvoiceFooter, envPriceId, siteUrl, stripeEnv, stripeTaxRates, subscriptionPlanFor, type StripeEnv } from '../../../lib/stripeConfig'
+import { consumerInvoiceFooter, envPriceId, missingVatConfig, siteUrl, stripeEnv, stripeTaxRates, subscriptionPlanFor, type StripeEnv } from '../../../lib/stripeConfig'
 import { priceIdFor, stripeClient, type StripeCall } from '../../../lib/stripe/api'
 import { adminSupabase } from '../../../lib/supabase'
 import { asLocale, localePrefix } from '../../../lib/localeRouting'
@@ -69,6 +69,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const env = stripeEnv()
   if (!env) return res.status(503).json({ error: 'PAYMENT_CLOSED' })
+  const vatMissing = missingVatConfig('exclusive')
+  if (vatMissing) {
+    console.error(`[stripe/subscription] TVA : ${vatMissing} manquante, paiement refusé`)
+    return res.status(503).json({ error: 'VAT_CONFIG' })
+  }
 
   const plan = subscriptionPlanFor(req.body?.tier, req.body?.period)
   if (!plan) return res.status(400).json({ error: 'PLAN' })
