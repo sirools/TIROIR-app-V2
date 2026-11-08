@@ -20,6 +20,17 @@ Seule source de vérité : `design/tokens.json` (le site web actuel fait
 foi). Jamais de couleur ni de police décidée ailleurs : modifier le
 fichier, puis `node design/generate.mjs`. Voir `design/README.md`.
 
+## Langues et ton du site
+
+Langues de Tiroir : **fr, en, es, de, pt**. Le site (tiroir.app) sert fr,
+en, es et de ; le portugais n'existe encore que dans l'app. Aucune autre
+langue sans décision du fondateur.
+
+Ton : **tutoiement** pour tout ce qui s'adresse au grand public (offre
+gratuite) ; **vouvoiement** pour tout ce qui concerne Premium, Pro et
+Business. Vaut pour chaque langue qui distingue les deux (tu/vous, tú/usted,
+du/Sie, tu/o senhor). Classement texte par texte : `web/locales/README.md`.
+
 ## Documents de référence à lire avant de décider
 
 - `strategie/torix-et-tiroir.md` — relation Torix / Tiroir, coûts IA,

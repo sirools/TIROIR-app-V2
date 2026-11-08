@@ -1,9 +1,12 @@
 // Textes du site en français — langue de référence : les autres fichiers
-// (en, da, de, es) suivent exactement cette structure (type `Copy`).
+// (en, de, es) suivent exactement cette structure (type `Copy`).
 // Les marqueurs {n}, {price}… sont remplacés à l'affichage.
 //
 // Positionnement : on vend un résultat, pas de l'IA. L'IA n'apparaît
 // jamais dans un titre, seulement comme explication discrète (home.why).
+//
+// Ton : tu pour le grand public (offre gratuite), vous pour Premium, Pro
+// et Business. Règle et classement : locales/README.md.
 
 import share from './share/fr'
 import account from './account/fr'
@@ -27,7 +30,7 @@ const fr = {
     newHere: 'Pas encore inscrit ?',
     openMenu: 'Ouvrir le menu',
     closeMenu: 'Fermer le menu',
-    footerTagline: 'Photographiez vos objets, Tiroir rédige la fiche. Votre inventaire, enfin tenu à jour.',
+    footerTagline: 'Photographie tes objets, Tiroir rédige la fiche. Ton inventaire, enfin tenu à jour.',
     product: 'Produit',
     project: 'Le projet',
     about: 'À propos',
@@ -43,24 +46,24 @@ const fr = {
 
   home: {
     meta: {
-      title: 'Tiroir — une photo, et vos objets sont rangés',
-      description: 'Photographiez un objet : Tiroir rédige sa fiche, le range et estime sa valeur. Pour les créatifs, les pros et tous ceux qui veulent savoir ce qu’ils possèdent.',
+      title: 'Tiroir — une photo, et tes objets sont rangés',
+      description: 'Photographie un objet : Tiroir rédige sa fiche, le range et estime sa valeur. Pour les créatifs, les pros et tous ceux qui veulent savoir ce qu’ils possèdent.',
     },
     hero: {
       badge: 'Disponible sur iOS et Android',
       // Trois accroches ; la variante active se choisit dans locales/index.ts.
       variants: [
         {
-          title: 'Une photo, et tout ce que vous possédez est rangé.',
-          sub: 'Tiroir rédige la fiche de chaque objet à votre place, catégorie, état et valeur comprises.',
+          title: 'Une photo, et tout ce que tu possèdes est rangé.',
+          sub: 'Tiroir rédige la fiche de chaque objet à ta place, catégorie, état et valeur comprises.',
         },
         {
-          title: 'Sachez enfin ce que vous avez, et ce que ça vaut.',
-          sub: 'Tiroir rédige la fiche de chaque objet à votre place, catégorie, état et valeur comprises.',
+          title: 'Sache enfin ce que tu as, et ce que ça vaut.',
+          sub: 'Tiroir rédige la fiche de chaque objet à ta place, catégorie, état et valeur comprises.',
         },
         {
-          title: 'Votre inventaire se fait tout seul.',
-          sub: 'Prenez une photo, Tiroir s’occupe du reste. Aucune compétence technique requise.',
+          title: 'Ton inventaire se fait tout seul.',
+          sub: 'Prends une photo, Tiroir s’occupe du reste. Aucune compétence technique requise.',
         },
       ],
       free: 'Gratuit pour commencer',
@@ -78,7 +81,6 @@ const fr = {
         valueLabel: 'Valeur estimée',
       },
     },
-    // Section « Une photo, c’est tout » : tutoiement, comme l’app.
     photo: {
       title: 'Une photo, c’est tout.',
       sub: 'Torix, l’IA de Tiroir, reconnaît ton objet et remplit sa fiche. Toi, tu choisis juste le tiroir.',
@@ -103,10 +105,10 @@ const fr = {
     pros: {
       eyebrow: 'Pour les créatifs et les pros',
       title: 'Moins de saisie, plus de métier.',
-      sub: 'Votre matériel, votre stock, vos collections : documentés en quelques photos, pendant que vous travaillez.',
+      sub: 'Ton matériel, ton stock, tes collections : documentés en quelques photos, pendant que tu travailles.',
       personas: [
-        { who: 'Styliste', text: 'Chaque pièce photographiée, rangée par shooting. Vous savez ce qui est sorti et ce qui est revenu.', chip: 'Prêtée · retour vendredi' },
-        { who: 'Régisseur', text: 'Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans votre poche.', chip: '42 pièces · 3 prêtées' },
+        { who: 'Styliste', text: 'Chaque pièce photographiée, rangée par shooting. Tu sais ce qui est sorti et ce qui est revenu.', chip: 'Prêtée · retour vendredi' },
+        { who: 'Régisseur', text: 'Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans ta poche.', chip: '42 pièces · 3 prêtées' },
         { who: 'Brocanteur', text: 'Un déballage entier en une session grâce au mode rafale, avec un prix de départ pour chaque pièce.', chip: 'Rafale · 60 objets' },
         { who: 'Musicien', text: 'Instruments et accessoires documentés, factures jointes : prêts pour l’assurance ou la revente.', chip: 'Valeur ≈ {price}' },
       ],
@@ -114,24 +116,24 @@ const fr = {
     everyone: {
       eyebrow: 'Et pour tout le monde',
       title: 'Pas besoin d’être pro. Ni technicien.',
-      sub: 'Si vous savez prendre une photo, vous savez utiliser Tiroir.',
+      sub: 'Si tu sais prendre une photo, tu sais utiliser Tiroir.',
       points: [
-        { title: 'Aucune compétence requise', text: 'Pas de tableau ni de formulaire vide. Vous photographiez, Tiroir remplit.' },
-        { title: 'Vos données restent à vous', text: 'Pas de publicité, rien n’est revendu ni utilisé pour entraîner des modèles. Supprimer votre compte efface tout, immédiatement.' },
-        { title: 'Partage en lecture seule', text: 'Un lien vers une collection : la personne regarde, sans compte ni application. Vous coupez le lien quand vous voulez.' },
+        { title: 'Aucune compétence requise', text: 'Pas de tableau ni de formulaire vide. Tu photographies, Tiroir remplit.' },
+        { title: 'Tes données restent à toi', text: 'Pas de publicité, rien n’est revendu ni utilisé pour entraîner des modèles. Supprimer ton compte efface tout, immédiatement.' },
+        { title: 'Partage en lecture seule', text: 'Un lien vers une collection : la personne regarde, sans compte ni application. Tu coupes le lien quand tu veux.' },
       ],
       usesTitle: 'Ça sert aussi à…',
       uses: ['Préparer un dossier d’assurance', 'Déménager sans rien perdre', 'Fixer les prix d’un vide-grenier', 'Faire le tri dans un dressing'],
-      why: 'Pourquoi ça marche : une intelligence artificielle de reconnaissance d’image décrit chaque photo. Le résultat reste une proposition — chaque champ se modifie, et vos corrections priment toujours.',
+      why: 'Pourquoi ça marche : une intelligence artificielle de reconnaissance d’image décrit chaque photo. Le résultat reste une proposition — chaque champ se modifie, et tes corrections priment toujours.',
     },
     value: {
-      eyebrow: 'La valeur de vos objets',
-      title: 'Sachez ce que ça vaut, et suivez-le.',
+      eyebrow: 'La valeur de tes objets',
+      title: 'Sache ce que ça vaut, et suis-le.',
       sub: 'Une estimation fondée sur des annonces comparables, pas un chiffre sorti d’un chapeau.',
       items: [
         { title: 'Estimer', text: 'Une fourchette de prix, et les annonces qui l’ont produite.' },
-        { title: 'Suivre', text: 'La valeur de chaque objet et de chaque collection, actualisée quand vous voulez.' },
-        { title: 'Revendre', text: 'Marquez « Vendu » avec le prix réel : l’objet reste dans votre historique.' },
+        { title: 'Suivre', text: 'La valeur de chaque objet et de chaque collection, actualisée quand tu veux.' },
+        { title: 'Revendre', text: 'Marque « Vendu » avec le prix réel : l’objet reste dans ton historique.' },
       ],
       note: 'Ce n’est pas une expertise : pour une pièce rare, c’est un ordre de grandeur.',
       demo: { comparable: 'Annonce similaire', sold: 'Vendu', trend: 'Valeur de la collection' },
@@ -154,14 +156,14 @@ const fr = {
     faq: {
       title: 'Questions fréquentes',
       items: [
-      { q: 'Faut-il s’y connaître en technologie ?', a: 'Non. Vous prenez une photo, Tiroir remplit la fiche. Tout se corrige d’un geste.' },
-      { q: 'Et si la fiche se trompe ?', a: 'Chaque champ est modifiable, et vos corrections priment toujours. La marque exacte ou le prix d’achat, c’est vous qui les connaissez.' },
-      { q: 'Mes photos sont-elles privées ?', a: 'Oui. Rien n’est public tant que vous ne partagez pas un lien, et vous pouvez le désactiver à tout moment.' },
+      { q: 'Faut-il s’y connaître en technologie ?', a: 'Non. Tu prends une photo, Tiroir remplit la fiche. Tout se corrige d’un geste.' },
+      { q: 'Et si la fiche se trompe ?', a: 'Chaque champ est modifiable, et tes corrections priment toujours. La marque exacte ou le prix d’achat, c’est toi qui les connais.' },
+      { q: 'Mes photos sont-elles privées ?', a: 'Oui. Rien n’est public tant que tu ne partages pas un lien, et tu peux le désactiver à tout moment.' },
       { q: 'L’estimation est-elle fiable ?', a: 'Elle s’appuie sur des annonces comparables : un prix de départ fiable pour un objet courant, un ordre de grandeur pour une pièce rare.' },
       ],
     },
     final: {
-      title: 'Votre premier objet, rangé en une photo.',
+      title: 'Ton premier objet, rangé en une photo.',
       sub: 'Gratuit, sans carte bancaire.',
     },
   },
@@ -172,8 +174,8 @@ const fr = {
       description: 'Tiroir est gratuit, avec {free} actions IA par mois. Crédits IA dès {pack}.',
     },
     badge: 'Tarifs',
-    title: 'Rangez tout. Sachez ce que ça vaut.',
-    sub: 'Tiroir est gratuit pour tout le monde. Payez seulement quand vous allez plus loin.',
+    title: 'Range tout. Sache ce que ça vaut.',
+    sub: 'Tiroir est gratuit pour tout le monde. Tu ne paies que si tu vas plus loin.',
     perMonth: '/mois',
     upcoming: 'Tarifs à venir',
     from: 'À partir de',
@@ -186,7 +188,7 @@ const fr = {
     roadmap: 'La collaboration et le parrainage sont à l’étude.',
     soon: 'Bientôt disponible',
     free: {
-      tagline: 'Pour cataloguer tout ce que vous possédez.',
+      tagline: 'Pour cataloguer tout ce que tu possèdes.',
       features: [
         'Objets et collections illimités',
         '{n} actions IA par mois (identification, estimation)',
@@ -227,7 +229,7 @@ const fr = {
     note: 'Prix indicatifs TTC des formules à venir. Les tarifs en vigueur dans l’app sont affichés par votre store avant l’achat.',
     credits: {
       title: 'Crédits IA',
-      sub: 'Besoin de plus ? Rechargez quand vous voulez, sans abonnement.',
+      sub: 'Besoin de plus ? Recharge quand tu veux, sans abonnement.',
       unit: '{n} crédits',
       popular: 'Le plus choisi',
       note: 'Paiement sécurisé par carte. Les crédits n’expirent pas.',
@@ -241,7 +243,7 @@ const fr = {
       { q: 'Puis-je résilier ?', a: 'À tout moment, depuis l’App Store, le Play Store ou votre compte.' },
     ],
     final: {
-      title: 'Commencez gratuitement.',
+      title: 'Commence gratuitement.',
       sub: 'Objets et collections illimités, {n} actions IA par mois. Aucune carte bancaire requise.',
     },
   },
@@ -250,7 +252,7 @@ const fr = {
     notFoundTitle: 'Page introuvable',
     notFoundText: 'La page demandée n’existe pas ou a été déplacée.',
     serverTitle: 'Erreur interne',
-    serverText: 'Un problème est survenu de notre côté. Réessayez dans un instant.',
+    serverText: 'Un problème est survenu de notre côté. Réessaie dans un instant.',
     back: 'Retour à l’accueil',
   },
 }

@@ -4,25 +4,23 @@ import { useRouter } from 'next/router'
 import { asLocale, type Locale } from '../lib/localeRouting'
 import fr, { type Copy } from './fr'
 import en from './en'
-import da from './da'
 import de from './de'
 import es from './es'
 
 /** Accroche active de la homepage : 1, 2 ou 3 (textes dans chaque langue, home.hero.variants). */
 export const HERO_VARIANT: 1 | 2 | 3 = 1
 
-export const COPIES: Record<Locale, Copy> = { fr, en, da, de, es }
+export const COPIES: Record<Locale, Copy> = { fr, en, de, es }
 
 export const LOCALE_NAMES: Record<Locale, string> = {
   fr: 'Français',
   en: 'English',
-  da: 'Dansk',
   de: 'Deutsch',
   es: 'Español',
 }
 
 /** Balise BCP 47 pour Intl (formats de prix, de dates, de nombres). */
-const INTL: Record<Locale, string> = { fr: 'fr-FR', en: 'en-IE', da: 'da-DK', de: 'de-DE', es: 'es-ES' }
+const INTL: Record<Locale, string> = { fr: 'fr-FR', en: 'en-IE', de: 'de-DE', es: 'es-ES' }
 
 /** Balise Intl d'une langue du site, pour toLocaleDateString / toLocaleString. */
 export const intlLocale = (locale: Locale) => INTL[locale]
