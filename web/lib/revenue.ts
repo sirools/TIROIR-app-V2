@@ -119,11 +119,16 @@ export function nextChristmas(now: Date): Date {
   return now.getTime() <= xmas.getTime() ? xmas : new Date(Date.UTC(y + 1, 11, 25))
 }
 
+/** Rythme des crédits : jamais calculé sur moins de 30 jours. */
+const MIN_DAYS = 30
+
 export type Projection = {
   target: string
   days: number
   /** Business : MRR actuel prolongé, au prorata des jours. */
   business: number
+  /** Abonnements (site et stores) : MRR HT actuel prolongé, au prorata des jours. */
+  subscriptions: number
   /** Crédits : moyenne journalière des 90 derniers jours, prolongée. */
   credits: number
   /** Factures émises, pas encore payées. */
@@ -140,6 +145,8 @@ export function projectRevenue(args: {
   now: Date
   target: Date
   mrr: number
+  /** MRR HT des abonnements (lib/subscriptionRevenue.ts), en centimes. */
+  subscriptionsMrr?: number
   purchases: CreditPurchaseRow[]
   invoices: InvoiceRevenueRow[]
   windowDays?: number
@@ -149,15 +156,18 @@ export function projectRevenue(args: {
   const since = args.now.getTime() - window * DAY_MS
   const recent = args.purchases.filter(p => new Date(p.paid_at).getTime() >= since)
   // Si les ventes ont commencé il y a moins de `window` jours, on divise
-  // par le nombre de jours réellement écoulés depuis la première.
+  // par le nombre de jours réellement écoulés depuis la première, mais
+  // jamais moins de MIN_DAYS : un seul jour de ventes, prolongé tel quel,
+  // promettrait des centaines d'euros sur la foi de trois achats.
   const first = recent.reduce((min, p) => Math.min(min, new Date(p.paid_at).getTime()), args.now.getTime())
-  const elapsed = Math.max(1, Math.min(window, Math.ceil((args.now.getTime() - first) / DAY_MS)))
+  const elapsed = Math.min(window, Math.max(MIN_DAYS, Math.ceil((args.now.getTime() - first) / DAY_MS)))
   const perDay = recent.reduce((s, p) => s + netCredit(p), 0) / elapsed
 
   const business = Math.round(args.mrr * days / (365.25 / 12))
+  const subscriptions = Math.round((args.subscriptionsMrr ?? 0) * days / (365.25 / 12))
   const credits = Math.round(perDay * days)
   const outstanding = args.invoices.filter(i => i.status === 'open').reduce((s, i) => s + i.amount_remaining, 0)
-  return { target: args.target.toISOString().slice(0, 10), days, business, credits, outstanding, total: business + credits + outstanding }
+  return { target: args.target.toISOString().slice(0, 10), days, business, credits, outstanding, subscriptions, total: business + subscriptions + credits + outstanding }
 }
 
 /** 123456 → « 1 234,56 € ». */

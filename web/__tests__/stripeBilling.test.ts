@@ -272,6 +272,20 @@ describe('revenus', () => {
     expect(p.total).toBe(p.business + p.credits + p.outstanding)
   })
 
+  test('projection : abonnements réels prolongés ; crédits jamais sur moins de 30 jours', () => {
+    // Trois achats ce jour-ci (12,97 €) : prolongés tels quels sur 30 jours,
+    // ils promettaient 389,10 € ; au rythme de 30 jours, 12,97 €.
+    const p = projectRevenue({
+      now, target: new Date('2026-12-01T00:00:00Z'), mrr: 0, subscriptionsMrr: 6500,
+      purchases: [purchase(now.toISOString(), 699), purchase(now.toISOString(), 299), purchase(now.toISOString(), 299)],
+      invoices: [],
+    })
+    expect(p.days).toBe(30)
+    expect(p.credits).toBe(Math.round(1297 / 30 * 30))
+    expect(p.subscriptions).toBe(Math.round(6500 * 30 / (365.25 / 12)))
+    expect(p.total).toBe(p.subscriptions + p.credits)
+  })
+
   test('qui facture qui : crédits nets et factures, le plus récent d’abord', () => {
     const lines = billingLines([purchase('2026-10-02T00:00:00Z', 699, 699)], [
       { org_name: 'Dupont', number: 'TIROIR-0002', status: 'paid', amount_due: 7800, amount_paid: 7800, amount_remaining: 0, seats: 2, created_at: '2026-10-01T00:00:00Z', due_date: null, paid_at: '2026-10-15T00:00:00Z', payment_method: 'customer_balance' },
