@@ -133,7 +133,7 @@
     "iosPayment": { "value": "store_iap", "decision": "2026-10-31", "$comment": "Décision reconfirmée le 31/10/2026 : crédits par achat intégré dans l'app (iOS et Android), Stripe sur le site seulement, sans lien de l'app vers le site." }
   },
   "creditCosts": {
-    "$comment": "Coût d'une action en crédits : la vérité est ai_credit_cost (supabase/drafts/ai_credits_spend.sql).",
+    "$comment": "Coût d'une action en crédits : la vérité est ai_credit_cost (supabase/migrations/20261108143238_ai_credits_spend.sql).",
     "analysis": 1,
     "photo": 4,
     "estimate": 8

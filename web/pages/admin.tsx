@@ -5,6 +5,8 @@ import { serverSupabase, adminSupabase } from '../lib/supabase'
 import { isTorixOwner } from '../lib/torixOwner'
 import { adminNavFor } from '../lib/adminNav'
 import { computeTreasury, HYPOTHESES, type Treasury } from '../lib/treasury'
+import { loadRevenueReport } from '../lib/revenueLoad'
+import Link from 'next/link'
 import { isRestTime } from '../components/torix/commandments'
 
 interface AppSettings {
@@ -115,8 +117,8 @@ interface Props {
   settings: AppSettings
   aiSpend: AiSpend
   emails: EmailReport
-  /** Estimation : coûts du mois, revenus des abonnements, clients Pro nécessaires. */
-  treasury: Treasury & { premiumCount: number; proCount: number }
+  /** Coûts du mois, MRR réel des abonnements, clients Pro nécessaires. */
+  treasury: Treasury & { premiumCount: number; proCount: number; invoiceProCount: number }
   /** Lien vers Torix, envoyé par le serveur au seul propriétaire : son
    *  libellé n'est même pas dans le code du back-office. */
   torixLink: { href: string; label: string } | null
@@ -266,21 +268,23 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
         {/* ── Trésorerie (estimation) ── */}
         <h2 style={s.sectionTitle}>Trésorerie de Tiroir — ce mois-ci</h2>
         <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
-          <strong>Estimation.</strong> Hypothèses : 1 $ = {HYPOTHESES.usdToEur} €, TVA {HYPOTHESES.storeVat * 100} % retenue par les stores et
-          commission des stores {HYPOTHESES.storeCommission * 100} % sur le Premium, pas de TVA sur le Pro (franchise en base), Vercel {HYPOTHESES.vercelUsd} $/mois
-          (à ajuster), le Pro facturé en direct. L&apos;argent des stores arrive un à deux mois après la vente ; celui
-          d&apos;une facture Pro, dès son règlement.
+          Revenus : le MRR hors taxes des abonnements en cours (détail par canal dans{' '}
+          <Link href="/admin/facturation">Facturation</Link>). Le site est compté avant frais Stripe ; les stores au prix de la
+          grille, commission de {HYPOTHESES.storeCommission * 100} % déduite (estimation). La TVA n&apos;est pas un revenu.
+          {treasury.invoiceProCount > 0 && <> Les {treasury.invoiceProCount} Pro sur facture ne sont pas comptés (montant hors Stripe).</>}
+          {' '}Hypothèses de coûts : 1 $ = {HYPOTHESES.usdToEur} €, Vercel {HYPOTHESES.vercelUsd} $/mois (à ajuster).
+          L&apos;argent des stores arrive un à deux mois après la vente.
         </p>
         <div style={s.grid}>
           <Kpi label="Coûts du mois" value={`${treasury.costEur.toFixed(2)} €`} />
-          <Kpi label={`Revenus nets (${treasury.premiumCount} Premium, ${treasury.proCount} Pro)`} value={`${treasury.revenueEur.toFixed(2)} €`} />
+          <Kpi label={`Revenus du mois (${treasury.premiumCount} Premium, ${treasury.proCount} Pro)`} value={`${treasury.revenueEur.toFixed(2)} €`} />
           <Kpi label="Écart à combler" value={`${treasury.gapEur.toFixed(2)} €`} highlight={treasury.gapEur > 0} />
           <Kpi label="Clients Pro mensuels pour combler" value={treasury.proNeeded} highlight={treasury.proNeeded > 0} />
           <Kpi label="Un client Pro annuel apporte" value={`${treasury.proAnnualCashEur.toFixed(2)} €`} />
         </div>
         <p style={{ fontSize: 12, color: '#5b5b5b', margin: '8px 0 24px' }}>
           Détail des coûts : {treasury.costs.map(c => `${c.label} ${c.eur.toFixed(2)} €`).join(' · ')}.
-          Premium net ≈ {treasury.premiumNetEur.toFixed(2)} € par abonné, Pro net ≈ {treasury.proNetEur.toFixed(2)} €.
+          Un Pro mensuel du site rapporte {treasury.proNetEur.toFixed(2)} € HT.
         </p>
 
         {/* ── Site web ── */}
@@ -2457,20 +2461,20 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     monthly_ai_spend_alert_usd: num('monthly_ai_spend_alert_usd', 50),
   }
 
-  // Abonnés payants, pour la trésorerie (estimation).
-  const [{ count: premiumCount }, { count: proCount }] = await Promise.all([
-    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('plan', 'premium'),
-    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('plan', 'pro'),
-  ])
+  // Abonnés et MRR réels, par canal (lib/subscriptionRevenue.ts).
+  const revenue = await loadRevenueReport(admin)
+  const mrrOf = (pred: (c: string) => boolean) =>
+    revenue.channels.filter(l => pred(l.channel)).reduce((n, l) => n + (l.mrrHt ?? 0), 0) / 100
   const treasury = {
     ...computeTreasury({
       supabaseUsd: settings.supabase_plan_monthly_usd,
       aiMonthUsd: aiSpend.total.mois_usd,
-      premiumCount: premiumCount ?? 0,
-      proCount: proCount ?? 0,
+      siteMrrHtEur: mrrOf(c => c === 'site'),
+      storeMrrHtEur: mrrOf(c => c === 'ios' || c === 'android' || c === 'store'),
     }),
-    premiumCount: premiumCount ?? 0,
-    proCount: proCount ?? 0,
+    premiumCount: revenue.subscribers.premium,
+    proCount: revenue.subscribers.pro,
+    invoiceProCount: revenue.channels.find(l => l.channel === 'invoice')?.pro ?? 0,
   }
 
   return {

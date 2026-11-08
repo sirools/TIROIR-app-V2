@@ -1,5 +1,7 @@
-// Back-office › Facturation : ce que Stripe encaisse (crédits du site,
-// factures Business), le MRR Business, une projection à date, et la
+// Back-office › Facturation : les abonnements réels par canal (site, iOS,
+// Play Store, Pro sur facture : lib/subscriptionRevenue.ts), ce que Stripe
+// encaisse (crédits du site, factures Business), le MRR Business, une
+// projection à date, et la
 // gestion des clients Business (création, démarrage de l'abonnement,
 // resynchronisation des sièges).
 //
@@ -19,6 +21,8 @@ import {
   billingLines, businessMrr, eurosFromCents, monthlyCollected, nextChristmas, projectRevenue,
   type BillingLine, type CreditPurchaseRow, type InvoiceRevenueRow, type Projection,
 } from '../../lib/revenue'
+import type { RevenueReport } from '../../lib/subscriptionRevenue'
+import { loadRevenueReport } from '../../lib/revenueLoad'
 
 type OrgLine = {
   id: string; name: string; billing_email: string; subscription_status: string | null
@@ -33,11 +37,12 @@ type Props = {
   lines: BillingLine[]
   orgs: OrgLine[]
   thisMonth: number
+  revenue: RevenueReport
 }
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 
-export default function Facturation({ stripeMode, mrr, months, projection, lines, orgs, thisMonth }: Props) {
+export default function Facturation({ stripeMode, mrr, months, projection, lines, orgs, thisMonth, revenue }: Props) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
@@ -67,9 +72,44 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
         <h1 style={s.h1}>Facturation</h1>
         <p style={s.muted}>
           Stripe : <strong>{stripeMode === 'live' ? 'mode réel' : stripeMode === 'test' ? 'mode test' : 'non configuré'}</strong>.
-          Montants TTC, bruts (avant frais Stripe). Les achats faits dans l’app (stores) ne sont pas ici.
+          Abonnements : MRR hors taxes, tous canaux (site et stores). Business et encaissements : montants TTC
+          encaissés par Stripe, avant frais ; les achats faits dans l’app n’y sont pas.
         </p>
 
+        <h2 style={s.h2}>Abonnements</h2>
+        <section style={s.tiles}>
+          <Tile label="MRR abonnements (HT)" value={eurosFromCents(revenue.mrrHt)}
+            hint={revenue.mrrHtEstimated > 0 ? `dont ${eurosFromCents(revenue.mrrHtEstimated)} estimés (stores)` : undefined} />
+          <Tile label="Abonnés payants" value={String(revenue.subscribers.total)}
+            hint={`${revenue.subscribers.premium} Premium · ${revenue.subscribers.pro} Pro`} />
+          <Tile label="Résiliations" value={String(revenue.churn.ended30d)}
+            hint={`terminées sur 30 j · ${revenue.churn.scheduled} programmée${revenue.churn.scheduled > 1 ? 's' : ''}`} />
+          <Tile label={`Crédits vendus (${revenue.credits.month})`} value={eurosFromCents(revenue.credits.site.ttc + revenue.credits.app.ttc)}
+            hint={`site ${revenue.credits.site.count} achat${revenue.credits.site.count > 1 ? 's' : ''} · ${eurosFromCents(revenue.credits.site.ttc)} — app ${revenue.credits.app.count} · ≈ ${eurosFromCents(revenue.credits.app.ttc)} (TTC)`} />
+        </section>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={s.table}>
+            <thead><tr><th style={s.th}>Canal</th><th style={s.thR}>Premium</th><th style={s.thR}>Pro</th><th style={s.thR}>MRR HT</th></tr></thead>
+            <tbody>
+              {revenue.channels.length === 0 && <tr><td style={s.td} colSpan={4}>Aucun abonné payant.</td></tr>}
+              {revenue.channels.map(c => (
+                <tr key={c.channel}>
+                  <td style={s.td}>{c.label}</td>
+                  <td style={s.tdR}>{c.premium}</td>
+                  <td style={s.tdR}>{c.pro}</td>
+                  <td style={s.tdR}>{c.mrrHt === null ? 'hors Stripe' : `${c.estimated ? '≈ ' : ''}${eurosFromCents(c.mrrHt)}`}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p style={s.muted}>
+          MRR hors taxes à la grille du site (annuel ramené au mois). Stores : estimation avant commission d’Apple / Google ;
+          le magasin exact n’est connu que pour les abonnements enregistrés depuis le 08/11/2026.
+          Les crédits de l’app sont estimés au prix des packs.
+        </p>
+
+        <h2 style={s.h2}>Business et encaissements</h2>
         <section style={s.tiles}>
           <Tile label="MRR Business" value={eurosFromCents(mrr)} />
           <Tile label={`Projection d’ici le ${fmtDate(projection.target)}`} value={eurosFromCents(projection.total)}
@@ -212,11 +252,13 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
   const asked = typeof ctx.query.jusqua === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ctx.query.jusqua) ? new Date(`${ctx.query.jusqua}T00:00:00Z`) : null
   const mrr = businessMrr(orgRows)
   const months = monthlyCollected(creditRows, invoiceRows)
+  const revenue = await loadRevenueReport(db, now)
 
   return {
     props: {
       adminNav: adminNavFor(guard.user, guard.isAdmin),
       stripeMode: stripeEnv()?.mode ?? null,
+      revenue,
       mrr,
       months,
       thisMonth: months.find(m => m.month === now.toISOString().slice(0, 7))?.total ?? 0,
