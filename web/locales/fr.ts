@@ -141,7 +141,7 @@ const fr = {
     pricing: {
       eyebrow: 'Tarifs',
       title: 'Gratuit pour commencer.',
-      sub: 'Passez à la formule supérieure quand vous en avez besoin.',
+      sub: 'Passe à la formule supérieure quand tu en as besoin.',
       perMonth: '/mois',
       perSeat: 'par siège/mois',
       plans: {

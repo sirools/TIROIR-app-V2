@@ -133,7 +133,7 @@ const es: Copy = {
     pricing: {
       eyebrow: 'Precios',
       title: 'Gratis para empezar.',
-      sub: 'Cambie de plan cuando lo necesite.',
+      sub: 'Cambia de plan cuando lo necesites.',
       perMonth: '/mes',
       perSeat: 'por usuario/mes',
       plans: {

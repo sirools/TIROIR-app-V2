@@ -132,7 +132,7 @@ const de: Copy = {
     pricing: {
       eyebrow: 'Preise',
       title: 'Kostenlos starten.',
-      sub: 'Wechseln Sie in einen höheren Tarif, wenn Sie ihn brauchen.',
+      sub: 'Wechsle in einen höheren Tarif, wenn du ihn brauchst.',
       perMonth: '/Monat',
       perSeat: 'pro Platz/Monat',
       plans: {

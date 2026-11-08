@@ -29,8 +29,8 @@ payante (Premium, Pro, Business) ? Oui → vous. Non → tu.
 | --- | --- |
 | `layout` (en-tête, pied de page) | tu |
 | `home` : meta, hero, photo, pros, everyone, value, faq, final | tu |
-| `home.pricing` : titre, `plans.free` | tu |
-| `home.pricing` : `sub` (passer à la formule supérieure), `plans.premium`, `plans.pro`, `plans.business` | vous |
+| `home.pricing` : titre, `sub` (passer à la formule supérieure), `plans.free` | tu |
+| `home.pricing` : `plans.premium`, `plans.pro`, `plans.business` | vous |
 | `pricing` : meta, titre, sous-titre, `free`, `credits` (sans abonnement), `final` | tu |
 | `pricing` : `premium`, `pro`, `business`, `note` (prix des formules), FAQ « Puis-je résilier ? » | vous |
 | `pricing` : les autres questions de la FAQ (actions IA, quota, partenaires) | tu |
@@ -40,8 +40,14 @@ payante (Premium, Pro, Business) ? Oui → vous. Non → tu.
 | `about` | tu |
 | Pages juridiques (`components/legal/`) | vous, documents contractuels qui couvrent aussi les formules payantes |
 
-La section « Pour les créatifs et les pros » (`home.pros`) parle de
-métiers, pas de la formule Pro : elle reste en tu.
+Cas tranchés par le fondateur (2026-11-08) :
+
+- « Pour les créatifs et les pros » (`home.pros`) parle de métiers, pas
+  de la formule Pro : tu.
+- `home.pricing.sub` (« Passe à la formule supérieure… ») : tu, pour que
+  la section Tarifs de la landing garde un seul ton.
+- La page À propos : tu.
+- Les pages juridiques : vous.
 
 ## Modifier un texte
 
