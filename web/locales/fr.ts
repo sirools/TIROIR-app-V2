@@ -78,17 +78,27 @@ const fr = {
         valueLabel: 'Valeur estimée',
       },
     },
-    how: {
-      eyebrow: 'Comment ça marche',
-      title: 'Trois gestes, aucun réglage.',
+    // Section « Une photo, c’est tout » : tutoiement, comme l’app.
+    photo: {
+      title: 'Une photo, c’est tout.',
+      sub: 'Torix, l’IA de Tiroir, reconnaît ton objet et remplit sa fiche. Toi, tu choisis juste le tiroir.',
       steps: [
-        { title: 'Photographiez', text: 'Un objet, une photo. Ou cent d’un coup, en mode rafale.' },
-        { title: 'La fiche s’écrit', text: 'Nom, catégorie, matière, état : tout est rempli. Vous corrigez si besoin.' },
-        { title: 'C’est rangé', text: 'Collections, recherche, statut : vous retrouvez tout, à tout moment.' },
+        { title: 'Tu prends la photo', text: 'Un objet, une photo. Aucun formulaire à remplir.' },
+        { title: 'Torix remplit la fiche', text: 'Nom, catégorie, état : tout s’écrit tout seul. Tu corriges si tu veux.' },
+        { title: 'C’est rangé', text: 'Tu choisis le tiroir pendant que Torix travaille. Ensuite, tu retrouves tout en un instant.' },
       ],
-      fiche: { name: 'Veste en jean', rows: [['Catégorie', 'Vêtements'], ['Matière', 'Denim'], ['État', 'Bon']] },
-      collections: ['Dressing', 'À vendre', 'Studio'],
-      search: 'veste bleue',
+      // L’estimation est un geste de plus dans l’app (« Estimer avec Torix ») : la fiche ne la promet pas.
+      fiche: { name: 'Veste en jean', rows: [['Catégorie', 'Vêtements'], ['État', 'Bon']], estimate: 'Valeur', estimateCta: '✦ Estimer' },
+      drawer: 'Dressing',
+      stored: 'Rangée',
+      video: {
+        label: 'Vidéo de démonstration : la photo d’un objet devient une fiche complète, rangée dans un tiroir.',
+        badge: '10 secondes',
+        play: 'Lire la vidéo',
+        pause: 'Mettre la vidéo en pause',
+      },
+      reassure: 'Gratuit, sans carte bancaire. {n} actions IA par mois incluses.',
+      cta: 'Essayer gratuitement',
     },
     pros: {
       eyebrow: 'Pour les créatifs et les pros',
