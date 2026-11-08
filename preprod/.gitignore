@@ -9,3 +9,5 @@ src/
 .github-token
 # Réglages de la sauvegarde chiffrée (accès à la base de prod)
 sauvegarde/.sauvegarde.env
+tiroir/.env.preprod.db
+tiroir/.env.vercel-preview
