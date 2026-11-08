@@ -18,10 +18,17 @@ export type WebhookIssue = { id: string; type: string; at: string; problem: stri
 export type FailedPayment = { id: string; at: string; amount: number; currency: string; email: string | null; reason: string }
 export type Dispute = { id: string; at: string; amount: number; currency: string; reason: string; status: string; open: boolean; dueBy: string | null }
 
+export type OverdueInvoice = { id: string; number: string | null; email: string | null; amount: number; dueAt: string; daysLate: number; url: string | null }
+/** Compte abonné à la fois sur le site et dans un store (il paie deux fois). */
+export type DoubleSubscription = { userId: string; sources: string[] }
+
 export type PaymentHealth = {
   webhooks: WebhookIssue[]
   failedPayments: FailedPayment[]
   disputes: Dispute[]
+  /** Factures envoyées (paiement sur facture) dont l'échéance est passée. */
+  overdueInvoices: OverdueInvoice[]
+  doubles: DoubleSubscription[]
   /** Litiges qui attendent une réponse (ou en cours d'examen). */
   openDisputes: number
   /** Stripe n'a pas pu être lu (clé absente ou erreur) : listes partielles. */
@@ -50,6 +57,9 @@ export function paymentHealth(args: {
   events: StripeEventRow[]
   charges: unknown[]
   disputes: unknown[]
+  overdueInvoices?: unknown[]
+  /** Abonnements vivants du journal (public.subscriptions). */
+  liveSubscriptions?: { user_id: string; source: string }[]
   stripeUnavailable?: boolean
   now?: Date
 }): PaymentHealth {
@@ -92,14 +102,39 @@ export function paymentHealth(args: {
     }
   }).sort((a, b) => Number(b.open) - Number(a.open) || b.at.localeCompare(a.at))
 
+  const overdueInvoices: OverdueInvoice[] = (args.overdueInvoices ?? []).map(obj)
+    .filter(i => i.status === 'open' && num(i.due_date) > 0 && num(i.due_date) * 1000 < now.getTime())
+    .map(i => ({
+      id: String(i.id),
+      number: str(i.number),
+      email: str(i.customer_email),
+      amount: num(i.amount_remaining),
+      dueAt: iso(i.due_date),
+      daysLate: Math.floor((now.getTime() - num(i.due_date) * 1000) / 86400_000),
+      url: str(i.hosted_invoice_url),
+    }))
+    .sort((a, b) => b.daysLate - a.daysLate)
+
+  const sourcesByUser = new Map<string, Set<string>>()
+  for (const s of args.liveSubscriptions ?? []) {
+    const set = sourcesByUser.get(s.user_id) ?? new Set<string>()
+    set.add(s.source)
+    sourcesByUser.set(s.user_id, set)
+  }
+  const doubles = [...sourcesByUser.entries()].filter(([, set]) => set.size > 1)
+    .map(([userId, set]) => ({ userId, sources: [...set].sort() }))
+
   const openDisputes = disputes.filter(d => d.open).length
   return {
     webhooks,
     failedPayments,
     disputes,
+    overdueInvoices,
+    doubles,
     openDisputes,
     stripeUnavailable: !!args.stripeUnavailable,
-    ok: webhooks.length === 0 && failedPayments.length === 0 && openDisputes === 0 && !args.stripeUnavailable,
+    ok: webhooks.length === 0 && failedPayments.length === 0 && openDisputes === 0 && overdueInvoices.length === 0
+      && doubles.length === 0 && !args.stripeUnavailable,
   }
 }
 

@@ -15,24 +15,35 @@ export async function loadPaymentHealth(db: SupabaseClient, now = new Date()): P
     .order('received_at', { ascending: false })
     .limit(200)
 
+  const { data: live } = await db.from('subscriptions').select('user_id, source').in('status', ['active', 'trialing', 'past_due']).limit(10000)
+
   let charges: unknown[] = []
   let disputes: unknown[] = []
+  let overdue: unknown[] = []
   let stripeUnavailable = false
   const env = stripeEnv()
   if (!env) stripeUnavailable = true
   else {
     const stripe = stripeClient(env)
     try {
-      const [c, d] = await Promise.all([
+      const [c, d, o] = await Promise.all([
         stripe<{ data: unknown[] }>('GET', '/v1/charges', { limit: 100, created: { gte: Math.floor(since30d.getTime() / 1000) } }),
         stripe<{ data: unknown[] }>('GET', '/v1/disputes', { limit: 100, created: { gte: Math.floor(now.getTime() / 1000) - 90 * 86400 } }),
+        // Factures envoyées, encore dues, échéance passée.
+        stripe<{ data: unknown[] }>('GET', '/v1/invoices', {
+          limit: 100, status: 'open', collection_method: 'send_invoice', due_date: { lt: Math.floor(now.getTime() / 1000) },
+        }),
       ])
       charges = c.data
       disputes = d.data
+      overdue = o.data
     } catch (e) {
       console.error('[payment-health]', (e as Error).message)
       stripeUnavailable = true
     }
   }
-  return paymentHealth({ events: (events ?? []) as StripeEventRow[], charges, disputes, stripeUnavailable, now })
+  return paymentHealth({
+    events: (events ?? []) as StripeEventRow[], charges, disputes, overdueInvoices: overdue,
+    liveSubscriptions: (live ?? []) as { user_id: string; source: string }[], stripeUnavailable, now,
+  })
 }

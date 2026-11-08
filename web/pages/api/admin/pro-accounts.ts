@@ -51,9 +51,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (error) return res.status(500).json({ error: error.message })
 
-    const rows = (data ?? []) as { total_count: number }[]
+    const rows = (data ?? []) as { id: string; total_count: number }[]
+    // Abonnement Stripe de chaque compte : la page propose de facturer par
+    // Stripe un Pro qui n'en a pas encore.
+    const ids = rows.map(r => r.id)
+    const { data: billing } = ids.length
+      ? await admin.from('profiles').select('id, plan_source, stripe_subscription_id, subscription_status').in('id', ids)
+      : { data: [] }
+    const byId = new Map(((billing ?? []) as { id: string }[]).map(b => [b.id, b]))
     return res.status(200).json({
-      accounts: rows,
+      accounts: rows.map(r => ({ ...r, ...byId.get(r.id) })),
       total: rows.length > 0 ? Number(rows[0].total_count) : 0,
       page,
       pageSize: PAGE_SIZE,
