@@ -16,7 +16,7 @@ import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { serverSupabase } from '../lib/supabase'
 import { asLocale, localePrefix } from '../lib/localeRouting'
-import { CREDIT_PACKS, stripeEnv } from '../lib/stripeConfig'
+import { CREDIT_PACKS, creditsSaleOpen } from '../lib/stripeConfig'
 import { OFFERS_V4 } from '../lib/offers'
 import { fill, formatEur, intlLocale } from '../locales'
 import { useBillingCopy } from '../locales/billing'
@@ -191,7 +191,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
       balance: typeof credits.data === 'number' ? credits.data : 0,
       quota: q ? { used: q.used, quota: q.quota, resetAt: q.reset_at } : null,
       history: rows,
-      paymentOpen: stripeEnv() !== null,
+      paymentOpen: creditsSaleOpen(),
       inTeam: !!team.data,
     },
   }

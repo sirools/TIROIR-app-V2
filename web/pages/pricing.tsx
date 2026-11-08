@@ -9,7 +9,7 @@ import StoreButtons from '../components/StoreButtons'
 import { OFFERS_V4, displayVatRate, withVat } from '../lib/offers'
 import { fill, formatEur, useCopy } from '../locales'
 import { useBillingCopy } from '../locales/billing'
-import { stripeEnv, type BillingPeriod, type PlanTier } from '../lib/stripeConfig'
+import { creditsSaleOpen, stripeEnv, type BillingPeriod, type PlanTier } from '../lib/stripeConfig'
 import { offerFromQuery, subscribePath } from '../lib/subscribeFlow'
 
 // Grille V4 (page Notion « Page Tarifs — textes V4 »). Tous les prix
@@ -34,12 +34,12 @@ const PRICE_SUB: React.CSSProperties = { fontSize: 14, color: 'var(--muted)', ma
 const LIST: React.CSSProperties = { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }
 const ITEM: React.CSSProperties = { display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 15, color: 'var(--ink)', lineHeight: 1.35 }
 
-type Props = { paymentOpen: boolean }
+type Props = { paymentOpen: boolean; creditsOpen: boolean }
 
 /** Business : sur devis, pas de paiement en ligne. */
 const BUSINESS_CONTACT = 'mailto:clement.ougier@gmail.com?subject=Tiroir%20Business'
 
-export default function Pricing({ paymentOpen }: Props) {
+export default function Pricing({ paymentOpen, creditsOpen }: Props) {
   const { t: { pricing: t }, locale } = useCopy()
   const { t: { subscribe: ts } } = useBillingCopy()
   const eur = (n: number) => formatEur(n, locale)
@@ -233,7 +233,7 @@ export default function Pricing({ paymentOpen }: Props) {
               {t.credits.note}
             </p>
             <div style={{ maxWidth: 320 }}>
-              {paymentOpen
+              {creditsOpen
                 ? <BuyLink href="/credits" label={t.credits.cta} primary />
                 : <SoonButton label={t.credits.cta} soon={t.soon} primary />}
             </div>
@@ -278,7 +278,7 @@ export default function Pricing({ paymentOpen }: Props) {
 
 // Lu au build : paiement ouvert si Stripe est configuré sur le serveur.
 export const getStaticProps: GetStaticProps<Props> = async () => ({
-  props: { paymentOpen: stripeEnv() !== null },
+  props: { paymentOpen: stripeEnv() !== null, creditsOpen: creditsSaleOpen() },
 })
 
 /** Sous le prix : l'autre période, ou « deux mois offerts » sur l'annuel. */
