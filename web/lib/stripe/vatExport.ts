@@ -97,3 +97,31 @@ export function vatCsv(rows: VatRow[]): string {
   // BOM : Excel lit l'UTF-8 (accents) sans réglage.
   return '﻿' + lines.join('\r\n') + '\r\n'
 }
+
+/** Les `count` derniers mois, du plus récent au plus ancien (« 2026-11 », « 2026-10 »…). */
+export function lastMonths(now: Date, count: number): string[] {
+  const out: string[] = []
+  for (let i = 0; i < count; i++) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1))
+    out.push(d.toISOString().slice(0, 7))
+  }
+  return out
+}
+
+export type VatMonth = { month: string; invoices: number; ht: number; vat: number; ttc: number }
+
+/** TVA collectée par mois de paiement (euros, arrondis au centime). */
+export function vatByMonth(invoices: unknown[], months: string[]): VatMonth[] {
+  const r2 = (n: number) => Math.round(n * 100) / 100
+  return months.map(month => {
+    const range = monthRange(month)
+    const rows = range ? vatRows(invoices, range) : []
+    return {
+      month,
+      invoices: rows.length,
+      ht: r2(rows.reduce((s, r) => s + r.ht, 0)),
+      vat: r2(rows.reduce((s, r) => s + r.vat, 0)),
+      ttc: r2(rows.reduce((s, r) => s + r.ttc, 0)),
+    }
+  })
+}

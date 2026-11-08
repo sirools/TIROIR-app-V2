@@ -26,6 +26,9 @@ import type { RevenueReport } from '../../lib/subscriptionRevenue'
 import { loadRevenueReport } from '../../lib/revenueLoad'
 import { disputeStatusLabel, type PaymentHealth } from '../../lib/stripe/health'
 import { loadPaymentHealth } from '../../lib/stripe/healthLoad'
+import { lastMonths, monthRange, vatByMonth, type VatMonth } from '../../lib/stripe/vatExport'
+import { fetchPaidInvoices } from '../../lib/stripe/vatLoad'
+import { stripeClient } from '../../lib/stripe/api'
 
 type OrgLine = {
   id: string; name: string; billing_email: string; subscription_status: string | null
@@ -42,11 +45,13 @@ type Props = {
   thisMonth: number
   revenue: RevenueReport
   health: PaymentHealth
+  /** TVA collectée des 6 derniers mois (null : Stripe illisible ou non configuré). */
+  vat: VatMonth[] | null
 }
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 
-export default function Facturation({ stripeMode, mrr, months, projection, lines, orgs, thisMonth, revenue, health }: Props) {
+export default function Facturation({ stripeMode, mrr, months, projection, lines, orgs, thisMonth, revenue, health, vat }: Props) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
@@ -189,11 +194,33 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
           </tbody>
         </table>
 
-        <h2 style={s.h2}>Export TVA</h2>
+        <h2 style={s.h2}>TVA collectée</h2>
         <p style={s.muted}>
-          Factures Stripe payées dans le mois (abonnements, crédits, Business) avec HT, TVA et TTC, pour la déclaration.
+          Factures Stripe payées dans le mois (abonnements, crédits, Business) : la TVA est due à l’encaissement.
           Les ventes des stores n’y sont pas : Apple et Google reversent eux-mêmes la TVA.
         </p>
+        {vat === null ? (
+          <p style={s.healthKo}>Stripe n’a pas pu être lu : la TVA du mois n’est pas affichée (l’export reste possible).</p>
+        ) : (
+          <div style={{ overflowX: 'auto', margin: '8px 0 12px' }}>
+            <table style={s.table}>
+              <thead><tr><th style={s.th}>Mois</th><th style={s.thR}>Factures</th><th style={s.thR}>HT</th><th style={s.thR}>TVA</th><th style={s.thR}>TTC</th><th style={s.th}>Export</th></tr></thead>
+              <tbody>
+                {vat.map(m => (
+                  <tr key={m.month}>
+                    <td style={s.td}>{m.month}</td>
+                    <td style={s.tdR}>{m.invoices}</td>
+                    <td style={s.tdR}>{eurosFromCents(Math.round(m.ht * 100))}</td>
+                    <td style={{ ...s.tdR, fontWeight: 700 }}>{eurosFromCents(Math.round(m.vat * 100))}</td>
+                    <td style={s.tdR}>{eurosFromCents(Math.round(m.ttc * 100))}</td>
+                    <td style={s.td}>{m.invoices > 0 ? <a href={`/api/admin/vat-export?month=${m.month}`}>CSV</a> : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p style={s.muted}>Autre mois :</p>
         <form method="get" action="/api/admin/vat-export" style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '8px 0 24px' }}>
           <input type="month" name="month" required defaultValue={new Date().toISOString().slice(0, 7)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.15)' }} />
           <button type="submit" style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: 'var(--orange)', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Télécharger le CSV</button>
@@ -278,6 +305,21 @@ function Tile({ label, value, hint }: { label: string; value: string; hint?: str
   )
 }
 
+/** TVA collectée des 6 derniers mois, lue chez Stripe ; null si Stripe est illisible. */
+async function loadVat(now: Date): Promise<VatMonth[] | null> {
+  const env = stripeEnv()
+  if (!env) return null
+  const months = lastMonths(now, 6)
+  const from = monthRange(months[months.length - 1])!.start
+  const to = monthRange(months[0])!.end
+  try {
+    return vatByMonth(await fetchPaidInvoices(stripeClient(env), from, to, 20), months)
+  } catch (e) {
+    console.error('[facturation] TVA', (e as Error).message)
+    return null
+  }
+}
+
 export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
   const guard = await requireAdminPage(ctx)
   if (!guard.ok) return guard.result
@@ -307,7 +349,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
   const asked = typeof ctx.query.jusqua === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ctx.query.jusqua) ? new Date(`${ctx.query.jusqua}T00:00:00Z`) : null
   const mrr = businessMrr(orgRows)
   const months = monthlyCollected(creditRows, invoiceRows)
-  const [revenue, health] = await Promise.all([loadRevenueReport(db, now), loadPaymentHealth(db, now)])
+  const [revenue, health, vat] = await Promise.all([loadRevenueReport(db, now), loadPaymentHealth(db, now), loadVat(now)])
 
   return {
     props: {
@@ -315,6 +357,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
       stripeMode: stripeEnv()?.mode ?? null,
       revenue,
       health,
+      vat,
       mrr,
       months,
       thisMonth: months.find(m => m.month === now.toISOString().slice(0, 7))?.total ?? 0,
