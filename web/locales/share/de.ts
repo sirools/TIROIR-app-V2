@@ -1,3 +1,4 @@
+// Généré par design/generate.mjs depuis design/i18n/site/de.json — ne pas modifier à la main.
 import type { ShareCopy } from './fr'
 
 const shareDe: ShareCopy = {
@@ -25,13 +26,26 @@ const shareDe: ShareCopy = {
     close: 'Schließen',
   },
   status: {
-    owned: 'In Besitz', stored: 'Eingelagert', loaned: 'Verliehen',
-    sold: 'Verkauft', given: 'Verschenkt', lost: 'Verloren',
+    owned: 'In Besitz',
+    stored: 'Eingelagert',
+    loaned: 'Verliehen',
+    sold: 'Verkauft',
+    given: 'Verschenkt',
+    lost: 'Verloren',
   },
   attrs: {
-    brand: 'Marke', model: 'Modell', category: 'Kategorie', serial_number: 'Seriennr.',
-    color: 'Farbe', material: 'Material', dimensions: 'Maße', voltage: 'Spannung',
-    condition: 'Zustand', size: 'Größe', weight: 'Gewicht', year: 'Jahr',
+    brand: 'Marke',
+    model: 'Modell',
+    category: 'Kategorie',
+    serial_number: 'Seriennr.',
+    color: 'Farbe',
+    material: 'Material',
+    dimensions: 'Maße',
+    voltage: 'Spannung',
+    condition: 'Zustand',
+    size: 'Größe',
+    weight: 'Gewicht',
+    year: 'Jahr',
   },
   password: {
     title: 'Geschützte Freigabe',
@@ -103,13 +117,18 @@ const shareDe: ShareCopy = {
     valueDetail: 'Wert im Detail',
     aiEstimate: 'KI-Schätzung',
     confidence: {
-      low: 'Geringe Sicherheit', medium: 'Mittlere Sicherheit', high: 'Hohe Sicherheit',
+      low: 'Geringe Sicherheit',
+      medium: 'Mittlere Sicherheit',
+      high: 'Hohe Sicherheit',
     },
     range: 'Spanne: {min} – {max}',
     insuranceOne: 'Versicherung',
     insuranceOther: 'Versicherungen',
     insuranceContract: 'Versicherungsvertrag',
-    billing: { monthly: '/Monat', yearly: '/Jahr' },
+    billing: {
+      monthly: '/Monat',
+      yearly: '/Jahr',
+    },
     coverageTag: 'Deckung {amount}',
     dueTag: 'Fällig {date}',
     insurer: 'Versicherer',
@@ -121,7 +140,22 @@ const shareDe: ShareCopy = {
     insured: 'Versichert',
     documents: 'Dokumente',
     docTypes: {
-      facture: 'Rechnung', notice: 'Anleitung', assurance: 'Versicherung', autre: 'Dokument',
+      facture: 'Rechnung',
+      notice: 'Anleitung',
+      assurance: 'Versicherung',
+      autre: 'Dokument',
+    },
+    viewer: {
+      open: 'Foto vergrößern',
+      dialog: 'Vergrößertes Foto',
+      close: 'Schließen',
+      prev: 'Vorheriges Foto',
+      next: 'Nächstes Foto',
+      zoomIn: 'Vergrößern',
+      zoomOut: 'Verkleinern',
+      reset: 'Zurück zur normalen Größe',
+      loupe: 'Lupe',
+      loupeHandle: 'Lupe, mit Maus, Finger oder Pfeiltasten verschieben',
     },
   },
   sale: {
@@ -244,8 +278,12 @@ const shareDe: ShareCopy = {
     memories: 'Erinnerungen',
     noMemories: 'Keine Erinnerungen verknüpft.',
     status: {
-      to_keep: 'An seinem Platz', to_store: 'Wegzuräumen', for_sale: 'Zu verkaufen',
-      to_repare: 'Zu reparieren', loaned: 'Verliehen', lost: 'Verloren',
+      to_keep: 'An seinem Platz',
+      to_store: 'Wegzuräumen',
+      for_sale: 'Zu verkaufen',
+      to_repare: 'Zu reparieren',
+      loaned: 'Verliehen',
+      lost: 'Verloren',
     },
   },
 }

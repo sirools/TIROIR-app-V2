@@ -4,7 +4,7 @@
 // ses photos, son titre, ses caractéristiques.
 //
 // POST /functions/v1/describe-object
-//   { object_id: string, locale?: 'fr' | 'en' | 'es' | 'de' }
+//   { object_id: string, locale?: 'fr' | 'en' | 'es' | 'de' | 'pt-BR' | 'pt-PT' }
 //
 // Deux règles portent tout le reste :
 //
@@ -42,6 +42,8 @@ const LANGUAGES: Record<string, string> = {
   en: 'anglais',
   es: 'espagnol',
   de: 'allemand',
+  'pt-BR': 'portugais du Brésil',
+  'pt-PT': 'portugais européen',
 }
 
 function systemPrompt(language: string): string {
@@ -96,7 +98,8 @@ Deno.serve(async (req: Request) => {
     const objectId = body?.object_id
     if (typeof objectId !== 'string') return err(400, 'MISSING_PARAMS', 'object_id requis')
 
-    const language = LANGUAGES[String(body?.locale ?? '').slice(0, 2)] ?? LANGUAGES.fr
+    const rawLocale = String(body?.locale ?? '')
+    const language = LANGUAGES[rawLocale] ?? LANGUAGES[rawLocale.slice(0, 2)] ?? LANGUAGES.fr
 
     // ── L'objet doit être à nous ─────────────────────────────────────
     const { data: obj, error: objError } = await admin

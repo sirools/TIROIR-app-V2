@@ -20,6 +20,15 @@ Seule source de vérité : `design/tokens.json` (le site web actuel fait
 foi). Jamais de couleur ni de police décidée ailleurs : modifier le
 fichier, puis `node design/generate.mjs`. Voir `design/README.md`.
 
+Traductions : seule source `design/i18n/` (textes de l'app, du site et
+des e-mails, liste des langues). Jamais de texte modifié dans
+`mobile/src/i18n/locales`, `web/locales`, `_shared/emailCopy.generated.ts`,
+`_shared/emailPresentation.ts` ni `marketing/emails/presentation.html`
+(générés) : modifier `design/i18n/` (ou le gabarit
+`marketing/emails/gabarits/`), puis
+`node design/generate.mjs` et `node scripts/i18n-check.mjs`. Voir
+`design/i18n/README.md`.
+
 ## Contact Business
 
 Toutes les démarches Business et Pro (devis, souscription, facturation)
@@ -38,7 +47,8 @@ Ton : **tutoiement** pour tout ce qui s'adresse au grand public (offre
 gratuite) ; **vouvoiement** pour tout ce qui concerne Premium, Pro et
 Business. Vaut pour chaque langue qui distingue les deux (tu/vous, tú/usted,
 du/Sie ; en portugais du Brésil, « você » partout, registre formel sur les
-offres payantes). Classement texte par texte : `web/locales/README.md`.
+offres payantes). Classement texte par texte : `web/locales/README.md` (les
+textes eux-mêmes vivent dans `design/i18n/`).
 
 ## Documents de référence à lire avant de décider
 

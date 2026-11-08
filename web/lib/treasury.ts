@@ -3,11 +3,17 @@
 // combler l'écart. Affiché dans le back-office. Toutes les hypothèses sont
 // ici, nommées, et affichées à côté des chiffres : c'est une ESTIMATION.
 //
+// TVA : Tiroir (EI) est en franchise en base (confirmé le 26/10/2026) : une
+// vente directe (Pro sur facture, site) ne porte pas de TVA. Les stores, eux,
+// vendent en leur nom et retiennent la TVA du pays de l'acheteur avant de
+// reverser : elle reste déduite du Premium, quel que soit le régime de Tiroir.
+//
 // Module sans dépendance, testable.
 
 export const HYPOTHESES = {
   usdToEur: 0.92,
-  tva: 0.2,
+  storeVat: 0.2, // TVA retenue par Apple / Google sur les ventes de l'app
+  directVat: 0, // franchise en base : pas de TVA sur les ventes directes
   storeCommission: 0.15, // programme petites entreprises d'Apple / Google
   premiumPriceTtc: 6.99,
   proPriceTtc: 29,
@@ -49,13 +55,13 @@ export function computeTreasury(input: TreasuryInput, h = HYPOTHESES): Treasury 
   ]
   const costEur = round2(costs.reduce((s, c) => s + c.eur, 0))
 
-  const premiumNetEur = round2((h.premiumPriceTtc / (1 + h.tva)) * (1 - h.storeCommission))
-  const proNetEur = round2(h.proPriceTtc / (1 + h.tva))
+  const premiumNetEur = round2((h.premiumPriceTtc / (1 + h.storeVat)) * (1 - h.storeCommission))
+  const proNetEur = round2(h.proPriceTtc / (1 + h.directVat))
   const revenueEur = round2(safe(input.premiumCount) * premiumNetEur + safe(input.proCount) * proNetEur)
 
   const gapEur = round2(Math.max(0, costEur - revenueEur))
   const proNeeded = gapEur > 0 ? Math.ceil(gapEur / proNetEur) : 0
-  const proAnnualCashEur = round2(h.proAnnualPriceTtc / (1 + h.tva))
+  const proAnnualCashEur = round2(h.proAnnualPriceTtc / (1 + h.directVat))
 
   return { costs, costEur, revenueEur, gapEur, premiumNetEur, proNetEur, proNeeded, proAnnualCashEur }
 }

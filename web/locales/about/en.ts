@@ -1,10 +1,10 @@
+// Généré par design/generate.mjs depuis design/i18n/site/en.json — ne pas modifier à la main.
 import type { AboutCopy } from './fr'
 
 const aboutEn: AboutCopy = {
   meta: {
     title: 'About — Tiroir',
-    description:
-      'Who is behind Tiroir: Clément Ougier, solo founder. The project, what I’m looking for (advice, partners, testers) and how to reach me.',
+    description: 'Who is behind Tiroir: Clément Ougier, solo founder. The project, what I’m looking for (advice, partners, testers) and how to reach me.',
   },
   agendaCta: 'Book a slot',
   agendaCtaMail: 'Email me to set up a time',
@@ -28,8 +28,7 @@ const aboutEn: AboutCopy = {
   },
   looking: {
     title: 'What I’m looking for',
-    intro:
-      'I’m not looking to raise money (yet). I’m looking for people: to advise me, push back on me, open a door for me, or simply share an experience I don’t have.',
+    intro: 'I’m not looking to raise money (yet). I’m looking for people: to advise me, push back on me, open a door for me, or simply share an experience I don’t have.',
     items: [
       {
         title: 'Advice, not orders',

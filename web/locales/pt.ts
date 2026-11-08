@@ -1,8 +1,8 @@
-// Textes du site en portugais du Brésil (pt-BR). Seule la homepage est
-// traduite (lib/localeRouting.ts, LOCALE_PATHS) : les autres sections
-// reprennent l'anglais, servi à leur place. Ton : voir ./README.md.
-import en from './en'
+// Généré par design/generate.mjs depuis design/i18n/site/pt-BR.json — ne pas modifier à la main.
+//
+// Textes du site en portugais du Brésil (pt-BR), servis sous /pt. Langue partielle du site (« siteFallback » dans languages.json) : seules layout, home et errors sont traduites, chaque clé de premier niveau en entier ; le reste vient de l'anglais. Seule la homepage est ouverte (web/lib/localeRouting.ts, LOCALE_PATHS). « Você » partout, registre formel sur les offres payantes (web/locales/README.md).
 import type { Copy } from './fr'
+import en from './en'
 
 const pt: Copy = {
   ...en,
@@ -31,7 +31,6 @@ const pt: Copy = {
     contact: 'Contato',
     language: 'Idioma',
   },
-
   home: {
     meta: {
       title: 'Tiroir — uma foto, e suas coisas estão organizadas',
@@ -72,11 +71,28 @@ const pt: Copy = {
       title: 'Uma foto. Só isso.',
       sub: 'O Torix, a IA do Tiroir, reconhece seu objeto e preenche a ficha. Você só escolhe a gaveta.',
       steps: [
-        { title: 'Você tira a foto', text: 'Um objeto, uma foto. Nenhum formulário para preencher.' },
-        { title: 'O Torix preenche a ficha', text: 'Nome, categoria, estado: tudo se escreve sozinho. Você corrige se quiser.' },
-        { title: 'Está guardado', text: 'Você escolhe a gaveta enquanto o Torix trabalha. Depois, encontra tudo num instante.' },
+        {
+          title: 'Você tira a foto',
+          text: 'Um objeto, uma foto. Nenhum formulário para preencher.',
+        },
+        {
+          title: 'O Torix preenche a ficha',
+          text: 'Nome, categoria, estado: tudo se escreve sozinho. Você corrige se quiser.',
+        },
+        {
+          title: 'Está guardado',
+          text: 'Você escolhe a gaveta enquanto o Torix trabalha. Depois, encontra tudo num instante.',
+        },
       ],
-      fiche: { name: 'Jaqueta jeans', rows: [['Categoria', 'Roupas'], ['Estado', 'Bom']], estimate: 'Valor', estimateCta: '✦ Estimar' },
+      fiche: {
+        name: 'Jaqueta jeans',
+        rows: [
+          ['Categoria', 'Roupas'],
+          ['Estado', 'Bom'],
+        ],
+        estimate: 'Valor',
+        estimateCta: '✦ Estimar',
+      },
       drawer: 'Guarda-roupa',
       stored: 'Guardada',
       video: {
@@ -94,9 +110,19 @@ const pt: Copy = {
       sub: 'Câmeras, lentes, peças de figurino: saiba o que você tem, onde está e quanto vale.',
       soon: 'Em breve',
       points: [
-        { title: 'Encontre tudo', text: 'Cada peça é fotografada e organizada por coleção. Encontre-a em poucos segundos antes de uma gravação.' },
-        { title: 'Conheça o valor', text: 'O Torix estimará cada peça automaticamente, e um gráfico acompanhará o valor ao longo do tempo.', soon: true },
-        { title: 'Compartilhe com segurança', text: 'Envie uma lista somente para visualização a um assistente ou a uma locadora, sem expor mais nada.' },
+        {
+          title: 'Encontre tudo',
+          text: 'Cada peça é fotografada e organizada por coleção. Encontre-a em poucos segundos antes de uma gravação.',
+        },
+        {
+          title: 'Conheça o valor',
+          text: 'O Torix estimará cada peça automaticamente, e um gráfico acompanhará o valor ao longo do tempo.',
+          soon: true,
+        },
+        {
+          title: 'Compartilhe com segurança',
+          text: 'Envie uma lista somente para visualização a um assistente ou a uma locadora, sem expor mais nada.',
+        },
       ],
       card: {
         label: 'Prévia: a ficha de uma câmera fotográfica, com a estimativa e o gráfico do valor em doze meses.',
@@ -117,10 +143,22 @@ const pt: Copy = {
       title: 'Seu inventário, um ativo sob controle.',
       sub: 'Você poderá estimar, documentar e comprovar o valor de todo o seu acervo.',
       points: [
-        { title: 'IA incluída', text: 'Os créditos de IA estarão incluídos no seu plano, sem recargas a prever. O Torix estimará cada objeto automaticamente.' },
-        { title: 'Estimativa em lote', text: 'Você estimará todo um acervo em uma única operação.' },
-        { title: 'Fontes detalhadas', text: 'Você consultará o detalhamento das fontes de cada estimativa, para comprová-la.' },
-        { title: 'Exportação para seguro', text: 'Você gerará uma exportação pronta para enviar à sua seguradora.' },
+        {
+          title: 'IA incluída',
+          text: 'Os créditos de IA estarão incluídos no seu plano, sem recargas a prever. O Torix estimará cada objeto automaticamente.',
+        },
+        {
+          title: 'Estimativa em lote',
+          text: 'Você estimará todo um acervo em uma única operação.',
+        },
+        {
+          title: 'Fontes detalhadas',
+          text: 'Você consultará o detalhamento das fontes de cada estimativa, para comprová-la.',
+        },
+        {
+          title: 'Exportação para seguro',
+          text: 'Você gerará uma exportação pronta para enviar à sua seguradora.',
+        },
       ],
       ctaPro: 'Conhecer o plano Pro',
       ctaNote: 'Plano em breve: preços e detalhes na página Preços.',
@@ -135,7 +173,12 @@ const pt: Copy = {
         tag: 'Dados fictícios',
         subtitle: 'Acervo de equipamentos · estimado em lote',
         cols: ['Objeto', 'Categoria', 'Valor'],
-        rows: [['Câmera de cinema', 'Imagem'], ['Lente 35 mm', 'Óptica'], ['Tripé de vídeo', 'Maquinaria'], ['Monitor de campo', 'Imagem']],
+        rows: [
+          ['Câmera de cinema', 'Imagem'],
+          ['Lente 35 mm', 'Óptica'],
+          ['Tripé de vídeo', 'Maquinaria'],
+          ['Monitor de campo', 'Imagem'],
+        ],
         total: 'Total estimado',
       },
     },
@@ -144,12 +187,26 @@ const pt: Copy = {
       title: 'Não precisa ser profissional. Nem entender de tecnologia.',
       sub: 'Se você sabe tirar uma foto, sabe usar o Tiroir.',
       points: [
-        { title: 'Nenhuma habilidade necessária', text: 'Nada de planilha nem de formulário em branco. Você fotografa, o Tiroir preenche.' },
-        { title: 'Seus dados são seus', text: 'Sem anúncios, nada é revendido nem usado para treinar modelos. Excluir sua conta apaga tudo, na hora.' },
-        { title: 'Compartilhamento só para visualização', text: 'Um link para uma coleção: a pessoa vê, sem conta e sem app. Você desativa o link quando quiser.' },
+        {
+          title: 'Nenhuma habilidade necessária',
+          text: 'Nada de planilha nem de formulário em branco. Você fotografa, o Tiroir preenche.',
+        },
+        {
+          title: 'Seus dados são seus',
+          text: 'Sem anúncios, nada é revendido nem usado para treinar modelos. Excluir sua conta apaga tudo, na hora.',
+        },
+        {
+          title: 'Compartilhamento só para visualização',
+          text: 'Um link para uma coleção: a pessoa vê, sem conta e sem app. Você desativa o link quando quiser.',
+        },
       ],
       usesTitle: 'Também serve para…',
-      uses: ['Montar a documentação do seguro', 'Fazer a mudança sem perder nada', 'Definir os preços de um bazar de garagem', 'Organizar o guarda-roupa'],
+      uses: [
+        'Montar a documentação do seguro',
+        'Fazer a mudança sem perder nada',
+        'Definir os preços de um bazar de garagem',
+        'Organizar o guarda-roupa',
+      ],
       why: 'Por que funciona: uma inteligência artificial de reconhecimento de imagem descreve cada foto. O resultado é só uma sugestão — cada campo pode ser editado, e suas correções sempre prevalecem.',
     },
     value: {
@@ -157,12 +214,25 @@ const pt: Copy = {
       title: 'Saiba quanto vale, e acompanhe.',
       sub: 'Uma estimativa baseada em anúncios parecidos, não um número tirado da cartola.',
       items: [
-        { title: 'Estimar', text: 'Uma faixa de preço, e os anúncios que chegaram a ela.' },
-        { title: 'Acompanhar', text: 'O valor de cada objeto e de cada coleção, atualizado quando você quiser.' },
-        { title: 'Revender', text: 'Marque como “Vendido” com o preço real: o objeto continua no seu histórico.' },
+        {
+          title: 'Estimar',
+          text: 'Uma faixa de preço, e os anúncios que chegaram a ela.',
+        },
+        {
+          title: 'Acompanhar',
+          text: 'O valor de cada objeto e de cada coleção, atualizado quando você quiser.',
+        },
+        {
+          title: 'Revender',
+          text: 'Marque como “Vendido” com o preço real: o objeto continua no seu histórico.',
+        },
       ],
       note: 'Não é uma avaliação profissional: para uma peça rara, é uma ordem de grandeza.',
-      demo: { comparable: 'Anúncio parecido', sold: 'Vendido', trend: 'Valor da coleção' },
+      demo: {
+        comparable: 'Anúncio parecido',
+        sold: 'Vendido',
+        trend: 'Valor da coleção',
+      },
     },
     pricing: {
       eyebrow: 'Preços',
@@ -182,10 +252,22 @@ const pt: Copy = {
     faq: {
       title: 'Perguntas frequentes',
       items: [
-        { q: 'Preciso entender de tecnologia?', a: 'Não. Você tira uma foto, o Tiroir preenche a ficha. Tudo se corrige com um toque.' },
-        { q: 'E se a ficha errar?', a: 'Cada campo pode ser editado, e suas correções sempre prevalecem. A marca exata ou o preço de compra, quem sabe é você.' },
-        { q: 'Minhas fotos são privadas?', a: 'Sim. Nada fica público enquanto você não compartilhar um link, e você pode desativá-lo a qualquer momento.' },
-        { q: 'A estimativa é confiável?', a: 'Ela se baseia em anúncios parecidos: um preço de partida confiável para um objeto comum, uma ordem de grandeza para uma peça rara.' },
+        {
+          q: 'Preciso entender de tecnologia?',
+          a: 'Não. Você tira uma foto, o Tiroir preenche a ficha. Tudo se corrige com um toque.',
+        },
+        {
+          q: 'E se a ficha errar?',
+          a: 'Cada campo pode ser editado, e suas correções sempre prevalecem. A marca exata ou o preço de compra, quem sabe é você.',
+        },
+        {
+          q: 'Minhas fotos são privadas?',
+          a: 'Sim. Nada fica público enquanto você não compartilhar um link, e você pode desativá-lo a qualquer momento.',
+        },
+        {
+          q: 'A estimativa é confiável?',
+          a: 'Ela se baseia em anúncios parecidos: um preço de partida confiável para um objeto comum, uma ordem de grandeza para uma peça rara.',
+        },
       ],
     },
     final: {
@@ -193,7 +275,6 @@ const pt: Copy = {
       sub: 'Grátis, sem cartão de crédito.',
     },
   },
-
   errors: {
     notFoundTitle: 'Página não encontrada',
     notFoundText: 'A página que você procura não existe ou foi movida.',

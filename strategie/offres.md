@@ -12,9 +12,17 @@ fiches de Torix. Elle remplace la grille du 30 septembre ci-dessous
 | --- | --- | --- | --- |
 | **Free** | Objets et collections illimités, 20 unités IA par mois | 0 € | — |
 | **Packs de crédits** | 50 · 150 · 500 crédits, sans expiration | 2,99 € · 6,99 € · 19,99 € | App (achat intégré) |
-| **Premium** | Estimation, courbe de valeur, liens protégés… | 4,99 €/mois ou 39 €/an | App (abonnement) |
-| **Pro** | Tout le Premium, avec des quotas plus élevés | 14,99 €/mois | App (abonnement) ; plus tard site (Stripe) |
+| **Premium** | Estimation, courbe de valeur, liens protégés… | 15 €/mois ou 150 €/an (grille de lancement du 08/11/2026 ; avant : 4,99 € / 39 €) | App (abonnement) ; site (Stripe) |
+| **Pro** | Tout le Premium, avec des quotas plus élevés | 50 €/mois ou 500 €/an (grille du 08/11/2026 ; avant : 14,99 €/mois) | App (abonnement) ; site (Stripe) |
 | **Business** | Tout le Pro par membre, rôles, facture | 39 € par siège/mois | Sur facture ; plus tard site (Stripe) |
+
+### Zoom et photos haute définition : abonnés seulement (décision du 3/11)
+
+Décision du fondateur : le zoom dans les photos et leur copie haute définition
+sont réservés à Premium, Pro et Business, pour contenir le volume stocké et le
+rentabiliser à moyen et long terme. Le compte gratuit n'a pas le zoom pour le
+moment : toutes les photos y restent en 1200 px. Sur un lien de partage, c'est
+le palier du propriétaire qui compte.
 
 ### Pro = Premium avec plus de quotas (décision du 19/10)
 
@@ -39,12 +47,14 @@ d'IA, 1 retouche ≈ 3,9 centimes — `strategie/torix-et-tiroir.md` § 3) :
 | | Net par mois* | Coût IA au pire | Marge au pire |
 | --- | --- | --- | --- |
 | Pro 14,99 € (store) | ≈ 10,62 € | ≈ 9,90 € | ≈ + 0,70 € |
-| Pro 14,99 € (Stripe, site) | ≈ 12,00 € | ≈ 9,90 € | ≈ + 2,10 € |
+| Pro 14,99 € (Stripe, site) | ≈ 14,52 € | ≈ 9,90 € | ≈ + 4,60 € |
 | Premium 4,99 €/mois (store) | ≈ 3,53 € | ≈ 3,45 € | ≈ 0 € |
 | Premium 39 €/an (store) | ≈ 2,30 €/mois | ≈ 3,45 € | **≈ − 1,15 €** |
 
-\* Après TVA (20 %) et commission des stores (15 %) ; Stripe ≈ 1,5 % +
-0,25 €. L'usage réel est très inférieur au pire cas (§ 4 de
+\* Store : après la TVA (20 %) que retiennent Apple et Google, puis leur
+commission (15 %). Site (Stripe) : **pas de TVA**, Tiroir étant en
+franchise en base (confirmé le 26/10/2026), seulement les frais Stripe
+(≈ 1,5 % + 0,25 €). L'usage réel est très inférieur au pire cas (§ 4 de
 `torix-et-tiroir.md` : ~1,50 $/mois pour un payant), mais **l'annuel
 Premium perd de l'argent sur un gros consommateur** : à surveiller, ou
 réduire les retouches photo Premium (50 → 30 ramènerait le pire cas à
@@ -71,10 +81,21 @@ multiplient, le levier est le quota de retouches photo (100), pas le prix.
    crédits (PR #72), puis Pro dès qu'il est en vente dans l'app.
 4. **Plus tard** : paiement sur le site par Stripe (Pro, Business), une
    fois le mode réel de Stripe activé.
+   Décision du 26/10/2026 : crédits vendus **dans l'app par l'achat
+   intégré et sur le site par Stripe, en parallèle**, même solde, sans
+   lien de l'app vers le site.
+   ✅ Code prêt en mode test (26/10/2026) pour les **crédits sur le site**
+   et la **facturation Business** par siège : `strategie/paiements-stripe.md`
+   (stratégie mobile à trancher, actions Stripe, plan de tests en préprod).
 
 ---
 
 # Historique — grille du 29/30 septembre 2026 (remplacée le 19/10)
+
+> Calculs de l'époque : la TVA (20 %) y est déduite de toutes les ventes.
+> Depuis le 26/10/2026 (franchise en base confirmée), elle ne l'est plus que
+> sur les ventes des stores, qui la retiennent eux-mêmes ; les ventes
+> directes (site, Pro et Business sur facture) n'en portent pas.
 
 Décision du fondateur : quatre façons d'utiliser Tiroir, selon l'usage
 de l'IA. Grille révisée le **30 septembre 2026** : prix alignés sur le

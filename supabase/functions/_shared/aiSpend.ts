@@ -96,8 +96,11 @@ export async function refundAi(
   else await clients.user.rpc('refund_value_estimate_quota')
 }
 
+/** Codes de refus d'une dépense IA, renvoyés tels quels à l'app. */
+export type RefusalCode = 'PREMIUM_REQUIRED' | 'QUOTA_EXCEEDED'
+
 /** Réponse de refus : statut HTTP, code et message. */
-export function refusal(spend: AiSpend | null): { status: number; code: string; message: string } {
+export function refusal(spend: AiSpend | null): { status: number; code: RefusalCode; message: string } {
   if (spend?.reason === 'NOT_PREMIUM') {
     return {
       status: 403,

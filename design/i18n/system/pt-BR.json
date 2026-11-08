@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "O Tiroir usa a câmera para fotografar seus objetos.",
+    "NSPhotoLibraryUsageDescription": "O Tiroir acessa sua fototeca para adicionar fotos aos seus objetos."
+  }
+}

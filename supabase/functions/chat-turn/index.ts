@@ -85,7 +85,7 @@ function validateBody(raw: unknown): ChatTurnRequest {
 
   // Langue active de l'app. Whitelist stricte : toute valeur inconnue
   // (ou absente) retombe sur la langue par défaut serveur.
-  const SUPPORTED_LOCALES: readonly AiLocale[] = ['fr', 'en', 'es', 'de']
+  const SUPPORTED_LOCALES: readonly AiLocale[] = ['fr', 'en', 'es', 'de', 'pt-BR', 'pt-PT']
   const locale: AiLocale =
     typeof obj.locale === 'string' &&
     SUPPORTED_LOCALES.includes(obj.locale as AiLocale)

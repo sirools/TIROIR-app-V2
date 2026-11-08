@@ -36,6 +36,7 @@ describe('design/tokens.json, seule source de vérité', () => {
     ])
     const files = [
       ...readdirSync(path.join(ROOT, 'marketing/emails')).filter(f => f.endsWith('.html')).map(f => `marketing/emails/${f}`),
+      ...readdirSync(path.join(ROOT, 'marketing/emails/gabarits')).filter(f => f.endsWith('.html')).map(f => `marketing/emails/gabarits/${f}`),
       'supabase/functions/_shared/emailPresentation.ts',
       'supabase/functions/create-share-link/index.ts',
     ]

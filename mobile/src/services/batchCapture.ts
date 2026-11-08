@@ -4,6 +4,7 @@ import * as ImageManipulator from 'expo-image-manipulator'
 import type * as ImagePicker from 'expo-image-picker'
 import { supabase } from '@/lib/supabase'
 import { assistantService } from '@/services/assistant'
+import { type PhotoSource, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
 import type { DraftProposedData } from '@/types/database'
 
 // ================================================================
@@ -20,6 +21,7 @@ export interface BatchImage {
   uri: string
   mimeType: string
   fileName: string
+  source?: PhotoSource
 }
 
 export type BatchItemStatus =
@@ -60,6 +62,7 @@ const STAGGER_MS = 300
  */
 export async function compressImages(
   assets: ImagePicker.ImagePickerAsset[],
+  withZoomCopy = false,
 ): Promise<BatchImage[]> {
   return Promise.all(
     assets.map(async asset => {
@@ -72,6 +75,7 @@ export async function compressImages(
         uri: result.uri,
         mimeType: 'image/jpeg',
         fileName: `photo_${Date.now()}.jpg`,
+        ...(withZoomCopy ? { source: { uri: asset.uri, width: asset.width, height: asset.height } } : {}),
       }
     }),
   )
@@ -186,14 +190,17 @@ async function uploadImage(
     })
   if (storageError) throw new Error(storageError.message)
 
+  const zoomPath = zoomPathFor(storagePath, item.image.source)
   const { error: dbError } = await supabase.from('ai_draft_images').insert({
     draft_id: item.draftId,
     user_id: userId,
     storage_path: storagePath,
+    zoom_path: zoomPath,
     mime_type: item.image.mimeType,
     position: 0,
   })
   if (dbError) throw new Error(dbError.message)
+  queueZoomCopy(item.image.source, zoomPath)
 }
 
 export type BatchProgressHandler = (

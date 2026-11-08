@@ -7,6 +7,9 @@ import { authHref, safeNext } from '../lib/authFlow'
 import { authErrorFromUrl, authErrorKey, suggestsLogin, type AccountErrorKey, type AuthErrorKey } from '../lib/authErrors'
 import { localePrefix } from '../lib/localeRouting'
 import { useCopy } from '../locales'
+import { useBillingCopy } from '../locales/billing'
+import OfferRecap from '../components/billing/OfferRecap'
+import { offerFromNext } from '../lib/subscribeFlow'
 import { firstTouch } from '../components/SiteVisitTracker'
 
 export default function Inscription() {
@@ -21,6 +24,9 @@ export default function Inscription() {
   const [loading, setLoading]   = useState(false)
   // Venu d'un partage (?next=/s/…) : on l'y ramène, sans détour par l'accueil.
   const next = typeof router.query.next === 'string' ? safeNext(router.query.next) : null
+  // Venu du tunnel d'abonnement : l'offre choisie reste affichée à côté.
+  const offer = offerFromNext(next)
+  const { t: { subscribe: ts } } = useBillingCopy()
   const [sentTo, setSentTo]     = useState<string | null>(null)
 
   // Erreurs d'un retour OAuth raté (?error_description=…)
@@ -47,8 +53,12 @@ export default function Inscription() {
       password,
       // Source du premier passage (campagne, réseau…) : chiffres agrégés de
       // la page Marketing du back-office.
-      // Le lien de l'e-mail ramène dans la langue de l'inscription.
-      options: { emailRedirectTo: `${window.location.origin}${prefix}${confirm}`, data: { acq: firstTouch() ?? { source: 'direct' } } },
+      // Le lien de l'e-mail ramène dans la langue de l'inscription, qui
+      // devient celle du compte (lib/accountLocale.ts).
+      options: {
+        emailRedirectTo: `${window.location.origin}${prefix}${confirm}`,
+        data: { acq: firstTouch() ?? { source: 'direct' }, locale },
+      },
     })
     if (error) {
       setHint(authErrorKey(error))
@@ -94,7 +104,7 @@ export default function Inscription() {
             <strong style={s.logoText}>Tiroir</strong>
           </div>
           <h1 style={s.title}>{t.signup.title}</h1>
-          <p style={s.subtitle}>{t.signup.subtitle}</p>
+          <p style={s.subtitle}>{offer ? ts.accountFirst : t.signup.subtitle}</p>
 
           <button type="button" style={s.googleBtn} onClick={() => handleOAuth('google')}>
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -177,13 +187,14 @@ export default function Inscription() {
             <a href={`${prefix}/cgu`} style={s.cguLink}>{t.common.termsLink}</a>{t.common.termsAfter}
           </p>
         </div>
+        {offer && <OfferRecap plan={offer.plan} changeHref={`${prefix}/pricing#formules`} />}
       </main>
     </>
   )
 }
 
 const s: Record<string, React.CSSProperties> = {
-  root:        { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FFF4E6', padding: 24 },
+  root:        { minHeight: '100vh', display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'center', justifyContent: 'center', background: '#FFF4E6', padding: 24 },
   card:        { width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, padding: '40px 32px', boxShadow: '0 6px 24px rgba(0,0,0,0.08)' },
   logo:        { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 },
   logoText:    { fontSize: 20, fontWeight: 800, color: '#121212' },

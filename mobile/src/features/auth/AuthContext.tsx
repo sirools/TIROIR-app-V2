@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { Profile } from '@/types/database'
+import { rememberAccountLocale } from './accountLocale'
 
 interface AuthContextValue {
   session: Session | null
@@ -24,14 +25,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
-      if (session?.user) loadProfile(session.user.id)
+      if (session?.user) {
+        loadProfile(session.user.id)
+        void rememberAccountLocale(session.user).catch(() => undefined)
+      }
       else setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setSession(session)
         if (session?.user) loadProfile(session.user.id)
+        if (event === 'SIGNED_IN' && session?.user) void rememberAccountLocale(session.user).catch(() => undefined)
         else {
           setProfile(null)
           setLoading(false)

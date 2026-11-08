@@ -1,19 +1,19 @@
 import Link from 'next/link'
-import { OFFERS_V4 } from '../../lib/offers'
+import { OFFERS_V4, displayVatRate, withVat } from '../../lib/offers'
 import { fill, formatEur, useCopy } from '../../locales'
 import s from './home.module.css'
 
 // Prix : lib/offers.ts, seule source (la page Tarifs lit la même).
-const { free, premium, pro, business } = OFFERS_V4
+const { free, premium, pro } = OFFERS_V4
 
 /** Tarifs en résumé (détail sur /pricing) puis FAQ courte. */
 export default function PricingFaq() {
-  const { t: { home: { pricing: t, faq } }, locale } = useCopy()
+  const { t: { home: { pricing: t, faq }, pricing: { business } }, locale } = useCopy()
   const plans = [
     { key: 'free', name: 'Free', price: formatEur(0, locale), unit: '', tag: fill(t.plans.free, { n: free.aiActionsPerMonth }) },
-    { key: 'premium', name: 'Premium', price: formatEur(premium.monthlyTtc, locale), unit: t.perMonth, tag: t.plans.premium },
-    { key: 'pro', name: 'Pro', price: formatEur(pro.monthlyTtc, locale), unit: t.perMonth, tag: t.plans.pro },
-    { key: 'business', name: 'Business', price: formatEur(business.seatMonthly, locale), unit: t.perSeat, tag: t.plans.business },
+    { key: 'premium', name: 'Premium', price: formatEur(withVat(premium.monthlyHt, displayVatRate()), locale), unit: t.perMonth, tag: t.plans.premium },
+    { key: 'pro', name: 'Pro', price: formatEur(withVat(pro.monthlyHt, displayVatRate()), locale), unit: t.perMonth, tag: t.plans.pro },
+    { key: 'business', name: 'Business', price: business.quote, unit: '', tag: t.plans.business },
   ]
   return (
     <section className={s.section} aria-labelledby="pricing-title">

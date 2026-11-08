@@ -1,3 +1,4 @@
+// Généré par design/generate.mjs depuis design/i18n/site/en.json — ne pas modifier à la main.
 import type { ShareCopy } from './fr'
 
 const shareEn: ShareCopy = {
@@ -25,13 +26,26 @@ const shareEn: ShareCopy = {
     close: 'Close',
   },
   status: {
-    owned: 'Owned', stored: 'In storage', loaned: 'Lent',
-    sold: 'Sold', given: 'Given away', lost: 'Lost',
+    owned: 'Owned',
+    stored: 'In storage',
+    loaned: 'Lent',
+    sold: 'Sold',
+    given: 'Given away',
+    lost: 'Lost',
   },
   attrs: {
-    brand: 'Brand', model: 'Model', category: 'Category', serial_number: 'Serial no.',
-    color: 'Colour', material: 'Material', dimensions: 'Dimensions', voltage: 'Voltage',
-    condition: 'Condition', size: 'Size', weight: 'Weight', year: 'Year',
+    brand: 'Brand',
+    model: 'Model',
+    category: 'Category',
+    serial_number: 'Serial no.',
+    color: 'Colour',
+    material: 'Material',
+    dimensions: 'Dimensions',
+    voltage: 'Voltage',
+    condition: 'Condition',
+    size: 'Size',
+    weight: 'Weight',
+    year: 'Year',
   },
   password: {
     title: 'Protected share',
@@ -103,13 +117,18 @@ const shareEn: ShareCopy = {
     valueDetail: 'Value breakdown',
     aiEstimate: 'AI estimate',
     confidence: {
-      low: 'Low confidence', medium: 'Medium confidence', high: 'High confidence',
+      low: 'Low confidence',
+      medium: 'Medium confidence',
+      high: 'High confidence',
     },
     range: 'Range: {min} – {max}',
     insuranceOne: 'Insurance',
     insuranceOther: 'Insurance policies',
     insuranceContract: 'Insurance policy',
-    billing: { monthly: '/month', yearly: '/year' },
+    billing: {
+      monthly: '/month',
+      yearly: '/year',
+    },
     coverageTag: 'Cover {amount}',
     dueTag: 'Renewal {date}',
     insurer: 'Insurer',
@@ -121,7 +140,22 @@ const shareEn: ShareCopy = {
     insured: 'Insured',
     documents: 'Documents',
     docTypes: {
-      facture: 'Invoice', notice: 'Manual', assurance: 'Insurance', autre: 'Document',
+      facture: 'Invoice',
+      notice: 'Manual',
+      assurance: 'Insurance',
+      autre: 'Document',
+    },
+    viewer: {
+      open: 'Enlarge photo',
+      dialog: 'Enlarged photo',
+      close: 'Close',
+      prev: 'Previous photo',
+      next: 'Next photo',
+      zoomIn: 'Zoom in',
+      zoomOut: 'Zoom out',
+      reset: 'Back to normal size',
+      loupe: 'Magnifier',
+      loupeHandle: 'Magnifier, move it with the mouse, your finger or the arrow keys',
     },
   },
   sale: {
@@ -244,8 +278,12 @@ const shareEn: ShareCopy = {
     memories: 'Memories',
     noMemories: 'No memories attached.',
     status: {
-      to_keep: 'In place', to_store: 'To put away', for_sale: 'For sale',
-      to_repare: 'To repair', loaned: 'Lent', lost: 'Lost',
+      to_keep: 'In place',
+      to_store: 'To put away',
+      for_sale: 'For sale',
+      to_repare: 'To repair',
+      loaned: 'Lent',
+      lost: 'Lost',
     },
   },
 }

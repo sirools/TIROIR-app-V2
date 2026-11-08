@@ -145,6 +145,8 @@ export interface ObjectImage {
   object_id: string
   user_id: string
   storage_path: string
+  /** Copie haute définition pour le zoom ; le fichier peut manquer. */
+  zoom_path?: string | null
   mime_type: string
   size_bytes: number | null
   position: number
@@ -185,6 +187,8 @@ export interface AiDraftImage {
   draft_id: string
   user_id: string
   storage_path: string
+  /** Copie haute définition pour le zoom ; le fichier peut manquer. */
+  zoom_path?: string | null
   mime_type: string
   size_bytes: number | null
   position: number

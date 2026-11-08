@@ -1,0 +1,16 @@
+{
+  "share": {
+    "greeting": "Hi {name},",
+    "greetingAnonymous": "Hi,",
+    "objects_one": "1 item",
+    "objects_other": "{n} items",
+    "body": "{sender} has just shared a list of {objects}{title} with you on Tiroir.",
+    "quote": " “{title}”",
+    "button": "VIEW THE SHARED ITEMS",
+    "password": "🔒 This link is protected by a password, which you should have received separately.",
+    "fallback": "If the button doesn’t work, copy this link into your browser:",
+    "footer": "Tiroir — an inventory of your things, made simple.",
+    "subject": "{sender} shared some items with you on Tiroir",
+    "anonymousSender": "A Tiroir user"
+  }
+}

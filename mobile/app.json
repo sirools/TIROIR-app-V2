@@ -2,22 +2,16 @@
   "expo": {
     "name": "Tiroir",
     "slug": "tiroir-v2",
-    "version": "4.0.0",
+    "version": "4.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "tiroir",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFF8EF"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.sirools.tiroir",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "CFBundleLocalizations": ["fr", "en", "es", "de"]
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -38,6 +32,15 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "enableFullScreenImage_legacy": true,
+          "resizeMode": "cover",
+          "backgroundColor": "#FFF8EF"
+        }
+      ],
       "expo-secure-store",
       [
         "expo-image-picker",
@@ -50,7 +53,30 @@
       "@react-native-community/datetimepicker",
       "expo-web-browser",
       "expo-apple-authentication",
-      "expo-localization"
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": [
+              "fr",
+              "en",
+              "es",
+              "de",
+              "pt-BR",
+              "pt-PT"
+            ],
+            "android": [
+              "fr",
+              "en",
+              "es",
+              "de",
+              "pt-BR",
+              "pt-PT"
+            ]
+          }
+        }
+      ],
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true
@@ -61,6 +87,14 @@
         "projectId": "aa3c951d-bb0e-4398-8e90-3142a4f0d844"
       }
     },
-    "owner": "sirools"
+    "owner": "sirools",
+    "locales": {
+      "fr": "./locales/fr.json",
+      "en": "./locales/en.json",
+      "es": "./locales/es.json",
+      "de": "./locales/de.json",
+      "pt-BR": "./locales/pt-BR.json",
+      "pt-PT": "./locales/pt-PT.json"
+    }
   }
 }

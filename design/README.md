@@ -4,6 +4,10 @@
 (2026-09-29) : le site web actuel fait foi. Les couleurs, la police,
 l'arrondi et l'ombre se décident ici, et nulle part ailleurs.
 
+**Traductions : seule source `design/i18n/`** (textes de l'app et du site,
+liste des langues, textes système) — voir `design/i18n/README.md`. La même
+commande les génère.
+
 ## Modifier un jeton
 
 1. Changer la valeur dans `design/tokens.json`.
@@ -19,6 +23,7 @@ l'arrondi et l'ombre se décident ici, et nulle part ailleurs.
 | Site web | `web/styles/tokens.generated.css` (variables CSS) | ✅ fil 1 — importé par `web/pages/_app.tsx` |
 | App iOS et Android (une seule app Expo) | `mobile/src/components/ui/brandTokens.generated.ts` | ✅ fil 2 — lu par `mobile/src/components/ui/tokens.ts` |
 | App — `mobile/app.json` (écran de démarrage, icône Android) | couleurs réécrites en place par le générateur | ✅ — fond de démarrage = `beige-2`, fond d'icône Android = `orange` |
+| Traductions (app, site, langues natives de l'app) | `mobile/src/i18n/locales/*.json`, `mobile/src/i18n/*.generated.ts`, `mobile/locales/*.json`, `web/locales/**/*.ts`, `*/languages.generated.ts` | ✅ — depuis `design/i18n/` |
 | E-mails | gabarits `marketing/emails/*.html` (→ `emailPresentation.ts`) et `create-share-link` | ✅ fil 3 — couleurs vérifiées contre `tokens.json` par le test |
 
 ## La suite, fil par fil

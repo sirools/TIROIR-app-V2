@@ -17,23 +17,24 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { HTML_PRESENTATION } from '../_shared/emailPresentation.ts'
+import { PRESENTATION_TEXTS } from '../_shared/emailCopy.generated.ts'
 
 const CAMPAGNE = 'presentation'
 const EXPEDITEUR = 'Clément de Tiroir <clement@tiroir.app>'
-const SUJET = 'On ne s’est jamais vraiment présentés'
+// Textes : design/i18n/email/ (seule source). Le message part en français :
+// la langue de chaque compte (profiles.locale) n'est pas encore en base.
+const TEXTES = PRESENTATION_TEXTS.fr!
+const SUJET = TEXTES.subject
 const SITE = 'https://www.tiroir.app'
 const COUVERTURE = `${SITE}/emails/couverture-presentation.jpg`
 
 /**
  * La première phrase affirme un fait datable : elle change selon la
- * raison de l'envoi. Une formulation unique obligerait à mentir dans un
- * des deux cas — sur la phrase même où l'on demande qu'on nous fasse
- * confiance.
+ * raison de l'envoi (j3, backfill). Une formulation unique obligerait à
+ * mentir dans un des deux cas — sur la phrase même où l'on demande qu'on
+ * nous fasse confiance.
  */
-const OUVERTURE: Record<string, string> = {
-  j3: 'Vous avez créé un compte Tiroir il y a trois jours.',
-  backfill: 'Vous avez créé un compte Tiroir — il y a un moment déjà.',
-}
+const OUVERTURE: Record<string, string> = TEXTES.opening
 
 interface Destinataire {
   user_id: string
@@ -61,27 +62,10 @@ function rendre(gabarit: string, valeurs: Record<string, string>): string {
 
 /** Version texte, exigée par les filtres anti-spam autant que par les lecteurs. */
 function versionTexte(ouverture: string, desinscription: string, adresse: string): string {
-  return [
-    'ON NE S’EST JAMAIS VRAIMENT PRÉSENTÉS',
-    '',
-    `${ouverture} C’est le premier message que je vous envoie, et il n’y en aura pas trente : je voulais simplement vous dire à quoi sert cette application.`,
-    '',
-    'Vous possédez des centaines d’objets. Vous n’en avez la liste nulle part. Ce n’est pas gênant au quotidien — ça le devient le jour d’un cambriolage, d’un dégât des eaux, d’un déménagement, d’une succession.',
-    '',
-    'Tiroir fabrique cette liste à votre place. Vous photographiez un objet, l’application le reconnaît et rédige sa fiche : titre, description, caractéristiques, valeur estimée. Rien à saisir au clavier. Si la photo montre toute une étagère, Tiroir crée une fiche par objet qu’il y reconnaît.',
-    '',
-    `Commencer : ${SITE}`,
-    '',
-    'Tiroir est développé par une seule personne, et je lis tout ce qui arrive dans cette boîte. Répondez à ce message si quelque chose ne va pas.',
-    '',
-    'Clément, fondateur de Tiroir',
-    '',
-    '—',
-    'Vous recevez ce message parce que vous avez créé un compte sur tiroir.app.',
-    'Au plus un message par mois.',
-    adresse,
-    `Me désinscrire : ${desinscription}`,
-  ].join('\n')
+  const valeurs: Record<string, string> = { ouverture, desinscription, adresse, site: SITE }
+  return TEXTES.text.lines
+    .map(l => l.replace(/\{(\w+)\}/g, (m, k: string) => valeurs[k] ?? m))
+    .join('\n')
 }
 
 async function envoyer(params: {

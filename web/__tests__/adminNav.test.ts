@@ -26,11 +26,11 @@ const keys = (u: typeof owner, isAdmin: boolean) => {
 
 describe('sections du header admin', () => {
   test('le propriétaire de Torix voit tout', () => {
-    expect(keys(owner, true)).toEqual(['accueil', 'marketing', 'torix'])
+    expect(keys(owner, true)).toEqual(['accueil', 'facturation', 'marketing', 'torix'])
   })
 
   test('un autre admin ne voit pas Torix Lab', () => {
-    expect(keys(colleague, true)).toEqual(['accueil', 'marketing'])
+    expect(keys(colleague, true)).toEqual(['accueil', 'facturation', 'marketing'])
   })
 
   test('MARKETING_EMAILS sans être admin : Marketing seulement', () => {
@@ -107,7 +107,7 @@ describe('un seul header', () => {
     expect(web('pages/_app.tsx')).toContain('<AdminLayout nav={pageProps.adminNav}>')
   })
 
-  test.each(['pages/admin.tsx', 'pages/admin/marketing.tsx', 'pages/admin/torix-lab.tsx'])(
+  test.each(['pages/admin.tsx', 'pages/admin/facturation.tsx', 'pages/admin/marketing.tsx', 'pages/admin/torix-lab.tsx'])(
     '%s renvoie adminNav et n’a pas de header à elle',
     file => {
       const src = web(file)

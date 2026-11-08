@@ -134,7 +134,7 @@
     "title": "Mein Profil",
     "premium": "Premium",
     "pro": "Professional",
-    "proBilling": "Professional-Abo wird direkt in Rechnung gestellt. Für Änderungen schreib uns an hello@tiroir.app.",
+    "proBilling": "Professional-Abo wird direkt in Rechnung gestellt. Für Änderungen schreib uns an clement.ougier@gmail.com (Betreff „Tiroir Business“).",
     "free": "Kostenlose Version",
     "statsTitle": "Statistiken",
     "statObjects": "Objekte",
@@ -194,7 +194,7 @@
   },
   "onboarding": {
     "tagline": "Finde alles,\nwas du besitzt.",
-    "subtitle": "Fotografiere deine Objekte, die KI erstellt die Einträge automatisch. Finde alles in Sekunden.",
+    "subtitle": "Fotografiere deine Objekte, Torix erstellt die Einträge automatisch. Finde alles in Sekunden.",
     "point1": "Foto → automatischer Objekteintrag",
     "point2": "Nach Sammlungen organisieren",
     "point3": "Finde es per Suche in natürlicher Sprache",
@@ -245,7 +245,7 @@
   },
   "uploading": {
     "sendingPhotos": "Fotos werden hochgeladen…",
-    "analyzing": "Wird analysiert…",
+    "analyzing": "Torix analysiert dein Foto…",
     "progress_one": "{{percent}} % — {{done}} / {{total}} Foto",
     "progress_other": "{{percent}} % — {{done}} / {{total}} Fotos",
     "preparingSheet": "Ich bereite deinen Objekteintrag vor",
@@ -280,7 +280,7 @@
     "createError": "Erstellung nicht möglich",
     "genericError": "Ein Fehler ist aufgetreten",
     "title": "Mach ein Foto",
-    "subtitle": "Die KI analysiert bis zu 5 Fotos, um den Eintrag zu erstellen",
+    "subtitle": "Torix analysiert bis zu 5 Fotos, um den Eintrag zu erstellen",
     "quotaUnlimited": "Unbegrenzte KI-Analysen",
     "quotaExhausted": "KI-Kontingent aufgebraucht · {{used}}/{{limit}} diesen Monat",
     "quotaRemaining_one": "{{count}} KI-Analyse übrig diesen Monat",
@@ -350,7 +350,16 @@
     "noSubMessage": "Kein früherer Kauf zum Wiederherstellen.",
     "restoreError": "Wiederherstellung nicht möglich.",
     "terms": "Nutzungsbedingungen",
-    "privacy": "Datenschutzerklärung"
+    "privacy": "Datenschutzerklärung",
+    "tierPremium": "Premium",
+    "tierPro": "Pro",
+    "proHint": "Alles aus Premium, mit mehr KI-Analysen und Fotobearbeitungen pro Monat.",
+    "welcomeProTitle": "Willkommen bei Tiroir Pro! 🎉"
+  },
+  "credits": {
+    "outTitle": "Keine KI-Credits mehr",
+    "outBody": "Das Monatskontingent ist aufgebraucht und es sind nicht genug Credits übrig. Mit einem Credit-Paket geht es sofort weiter.",
+    "buy": "Credits kaufen"
   },
   "assistant": {
     "title": "Assistent",
@@ -419,7 +428,7 @@
     "fieldCondition": "Zustand",
     "sizeLabel": "Größe: {{value}}",
     "inviteTitle": "„{{name}}“ wartet auf den ersten Gegenstand",
-    "inviteBody": "Fotografiere ihn, die KI füllt die Karte aus. Er landet direkt in dieser Sammlung.",
+    "inviteBody": "Fotografiere ihn, Torix füllt die Karte aus. Er landet direkt in dieser Sammlung.",
     "inviteCamera": "Foto aufnehmen",
     "inviteCameraHint": "Ein Gegenstand, sofort",
     "inviteLibrary": "Aus der Galerie",
@@ -502,7 +511,8 @@
   "object": {
     "notFound": "Objekt nicht gefunden.",
     "addedOn": "Hinzugefügt am {{date}}",
-    "aiSummary": "KI-ZUSAMMENFASSUNG",
+    "photoViewerClose": "Foto schließen",
+    "aiSummary": "TORIX-ZUSAMMENFASSUNG",
     "descriptionPlaceholder": "Beschreibe das Objekt, füge nützliche Notizen hinzu…",
     "descriptionAdd": "Tippen, um eine Beschreibung hinzuzufügen…",
     "showMore": "Mehr anzeigen ↓",
@@ -572,7 +582,7 @@
       "background": "Hintergrund",
       "shadow": "Schlagschatten",
       "enhanceTitle": "Qualität verbessern",
-      "enhanceSub": "Die KI überarbeitet Licht, Schärfe und Bildausschnitt und wählt selbst einen passenden Hintergrund.",
+      "enhanceSub": "Torix überarbeitet Licht, Schärfe und Bildausschnitt und wählt selbst einen passenden Hintergrund.",
       "enhanceCta": "Verbessern",
       "studioFootnote": "Das Ergebnis kommt zum Eintrag hinzu, das Originalfoto bleibt erhalten.",
       "shadows": {
@@ -595,11 +605,11 @@
     "value": {
       "sectionTitle": "Wertentwicklung",
       "estimation": "Geschätzter Wert",
-      "vsAi": "vs KI",
+      "vsAi": "vs Torix",
       "vsPurchase": "vs Kauf",
       "enter": "Eingeben…",
       "marketValue": "Marktwert",
-      "marketHint": "KI-Schätzung anhand von Webpreisen",
+      "marketHint": "Torix-Schätzung anhand von Webpreisen",
       "purchasePrice": "Kaufpreis",
       "detail": "Wertdetails",
       "detailHint": "Schätzung, Kauf, Marktwert",
@@ -607,12 +617,12 @@
       "deposit": "Kaution",
       "depositHint": "Bei Verleih verlangte Kaution",
       "searching": "Suche läuft…",
-      "aiHint": "KI: {{value}} {{sym}}",
+      "aiHint": "Torix: {{value}} {{sym}}",
       "range": "Spanne: {{min}} – {{max}} {{sym}}",
       "edit": "✎ Bearbeiten",
       "refresh": "↻ Aktualisieren",
       "delete": "✕ Löschen",
-      "estimateAi": "✦ Mit KI schätzen",
+      "estimateAi": "✦ Mit Torix schätzen",
       "confidenceLow": "Niedrige Zuverlässigkeit",
       "confidenceMedium": "Mittlere Zuverlässigkeit",
       "confidenceHigh": "Hohe Zuverlässigkeit",
@@ -702,8 +712,8 @@
       "add": "Ebene hinzufügen",
       "full": "Maximal {{max}} Ebenen"
     },
-    "illustration": "KI-Illustration",
-    "summaryGenerate": "KI-Beschreibung erzeugen",
+    "illustration": "Torix-Illustration",
+    "summaryGenerate": "Beschreibung mit Torix erzeugen",
     "summaryRegenerate": "Beschreibung neu erzeugen",
     "summaryCopy": "Beschreibung kopieren",
     "summaryEdit": "Beschreibung bearbeiten",
@@ -834,14 +844,14 @@
   },
   "collectionPicker": {
     "title": "Wohin mit diesem Gegenstand?",
-    "helperSingle": "Wähle aus, während die KI den Eintrag vorbereitet — das kostet keine Zeit.",
+    "helperSingle": "Wähle aus, während Torix den Eintrag vorbereitet — das kostet keine Zeit.",
     "helperManual": "Du kannst die Sammlung jederzeit ändern.",
     "none": "Ohne Sammlung",
     "noneHint": "Später einsortieren"
   },
   "scene": {
     "entryTitle": "Ein Foto, mehrere Gegenstände?",
-    "entrySub": "Die KI erkennt und zählt sie auf einem einzigen Foto",
+    "entrySub": "Torix erkennt und zählt sie auf einem einzigen Foto",
     "title": "Szenenerkennung",
     "subtitle": "Mehrere Gegenstände auf einmal fotografieren",
     "analyse": "Szene analysieren",
@@ -876,6 +886,23 @@
     "thumbGenerate": "Erzeugen",
     "thumbRedo": "Neu",
     "thumbNoCrop": "Für dieses Objekt ist kein Ausschnitt verfügbar.",
-    "illustration": "KI-Illustration"
+    "illustration": "Torix-Illustration"
+  },
+  "torix": {
+    "name": "Torix",
+    "estimation": "Torix-Schätzung",
+    "analyzing": "Torix analysiert dein Foto…"
+  },
+  "preferences": {
+    "section": "EINSTELLUNGEN",
+    "language": "Sprache",
+    "region": "Region",
+    "auto": "Automatisch",
+    "languageTitle": "App-Sprache",
+    "languageAutoHint": "Folgt der Gerätesprache ({{name}})",
+    "regionTitle": "Region",
+    "regionAutoHint": "Folgt der Geräteregion ({{name}})",
+    "regionHelp": "Die Region dient zur Wertschätzung deiner Objekte: Währung und lokale Angebote. Die Sprache bleibt unverändert.",
+    "systemSettings": "Geräteeinstellungen öffnen"
   }
 }

@@ -1,6 +1,7 @@
+// Généré par design/generate.mjs depuis design/i18n/site/es.json — ne pas modifier à la main.
+//
 // Textos del sitio en español (España). Misma estructura que fr.ts.
-// Tono: tú para el público general, usted para Premium, Pro y Business
-// (ver web/locales/README.md). A revisar por un hablante nativo.
+// A revisar por un hablante nativo.
 import type { Copy } from './fr'
 import share from './share/es'
 import account from './account/es'
@@ -37,7 +38,6 @@ const es: Copy = {
     contact: 'Contacto',
     language: 'Idioma',
   },
-
   home: {
     meta: {
       title: 'Tiroir — una foto y tus cosas quedan ordenadas',
@@ -78,11 +78,28 @@ const es: Copy = {
       title: 'Una foto y listo.',
       sub: 'Torix, la IA de Tiroir, reconoce tu objeto y rellena su ficha. Tú solo eliges el cajón.',
       steps: [
-        { title: 'Haces la foto', text: 'Un objeto, una foto. Sin formularios que rellenar.' },
-        { title: 'Torix rellena la ficha', text: 'Nombre, categoría, estado: todo se escribe solo. Corrígelo si quieres.' },
-        { title: 'Ya está guardado', text: 'Eliges el cajón mientras Torix trabaja. Luego lo encuentras todo al instante.' },
+        {
+          title: 'Haces la foto',
+          text: 'Un objeto, una foto. Sin formularios que rellenar.',
+        },
+        {
+          title: 'Torix rellena la ficha',
+          text: 'Nombre, categoría, estado: todo se escribe solo. Corrígelo si quieres.',
+        },
+        {
+          title: 'Ya está guardado',
+          text: 'Eliges el cajón mientras Torix trabaja. Luego lo encuentras todo al instante.',
+        },
       ],
-      fiche: { name: 'Chaqueta vaquera', rows: [['Categoría', 'Ropa'], ['Estado', 'Bueno']], estimate: 'Valor', estimateCta: '✦ Estimar' },
+      fiche: {
+        name: 'Chaqueta vaquera',
+        rows: [
+          ['Categoría', 'Ropa'],
+          ['Estado', 'Bueno'],
+        ],
+        estimate: 'Valor',
+        estimateCta: '✦ Estimar',
+      },
       drawer: 'Armario',
       stored: 'Guardada',
       video: {
@@ -100,9 +117,19 @@ const es: Copy = {
       sub: 'Cámaras, objetivos, prendas de vestuario: sepa qué tiene, dónde está y cuánto vale.',
       soon: 'Próximamente',
       points: [
-        { title: 'Encontrarlo todo', text: 'Cada pieza está fotografiada y ordenada por colección. Encuéntrela en unos segundos antes de un rodaje.' },
-        { title: 'Conocer su valor', text: 'Torix estimará automáticamente cada pieza, y una curva seguirá su valor a lo largo del tiempo.', soon: true },
-        { title: 'Compartir con seguridad', text: 'Envíe una lista de solo lectura a un asistente o a una empresa de alquiler, sin exponer nada más.' },
+        {
+          title: 'Encontrarlo todo',
+          text: 'Cada pieza está fotografiada y ordenada por colección. Encuéntrela en unos segundos antes de un rodaje.',
+        },
+        {
+          title: 'Conocer su valor',
+          text: 'Torix estimará automáticamente cada pieza, y una curva seguirá su valor a lo largo del tiempo.',
+          soon: true,
+        },
+        {
+          title: 'Compartir con seguridad',
+          text: 'Envíe una lista de solo lectura a un asistente o a una empresa de alquiler, sin exponer nada más.',
+        },
       ],
       card: {
         label: 'Vista previa: la ficha de una cámara de fotos, con su estimación y la curva de su valor durante doce meses.',
@@ -123,10 +150,22 @@ const es: Copy = {
       title: 'Su inventario, un activo bajo control.',
       sub: 'Podrá estimar, documentar y justificar el valor de todo su equipamiento.',
       points: [
-        { title: 'IA incluida', text: 'Los créditos de IA estarán incluidos en su plan, sin recargas que prever. Torix estimará automáticamente cada objeto.' },
-        { title: 'Estimación por lotes', text: 'Estimará un equipamiento completo en una sola operación.' },
-        { title: 'Fuentes detalladas', text: 'Consultará el detalle de las fuentes de cada estimación, para justificarla.' },
-        { title: 'Exportación para el seguro', text: 'Generará una exportación lista para enviar a su aseguradora.' },
+        {
+          title: 'IA incluida',
+          text: 'Los créditos de IA estarán incluidos en su plan, sin recargas que prever. Torix estimará automáticamente cada objeto.',
+        },
+        {
+          title: 'Estimación por lotes',
+          text: 'Estimará un equipamiento completo en una sola operación.',
+        },
+        {
+          title: 'Fuentes detalladas',
+          text: 'Consultará el detalle de las fuentes de cada estimación, para justificarla.',
+        },
+        {
+          title: 'Exportación para el seguro',
+          text: 'Generará una exportación lista para enviar a su aseguradora.',
+        },
       ],
       ctaPro: 'Descubrir el plan Pro',
       ctaNote: 'Plan próximo: precios y detalles en la página de Precios.',
@@ -141,7 +180,12 @@ const es: Copy = {
         tag: 'Datos ficticios',
         subtitle: 'Equipamiento · estimado por lotes',
         cols: ['Objeto', 'Categoría', 'Valor'],
-        rows: [['Cámara de cine', 'Imagen'], ['Objetivo de 35 mm', 'Óptica'], ['Trípode de vídeo', 'Maquinaria'], ['Monitor de campo', 'Imagen']],
+        rows: [
+          ['Cámara de cine', 'Imagen'],
+          ['Objetivo de 35 mm', 'Óptica'],
+          ['Trípode de vídeo', 'Maquinaria'],
+          ['Monitor de campo', 'Imagen'],
+        ],
         total: 'Total estimado',
       },
     },
@@ -150,12 +194,26 @@ const es: Copy = {
       title: 'No hace falta ser profesional. Ni experto en tecnología.',
       sub: 'Si sabes hacer una foto, sabes usar Tiroir.',
       points: [
-        { title: 'Sin conocimientos previos', text: 'Ni hojas de cálculo ni formularios en blanco. Tú haces la foto, Tiroir lo rellena.' },
-        { title: 'Tus datos son tuyos', text: 'Sin publicidad, nada se revende ni se usa para entrenar modelos. Si borras tu cuenta, se borra todo, al instante.' },
-        { title: 'Compartir solo para ver', text: 'Un enlace a una colección: la otra persona la ve sin cuenta ni app. Desactivas el enlace cuando quieras.' },
+        {
+          title: 'Sin conocimientos previos',
+          text: 'Ni hojas de cálculo ni formularios en blanco. Tú haces la foto, Tiroir lo rellena.',
+        },
+        {
+          title: 'Tus datos son tuyos',
+          text: 'Sin publicidad, nada se revende ni se usa para entrenar modelos. Si borras tu cuenta, se borra todo, al instante.',
+        },
+        {
+          title: 'Compartir solo para ver',
+          text: 'Un enlace a una colección: la otra persona la ve sin cuenta ni app. Desactivas el enlace cuando quieras.',
+        },
       ],
       usesTitle: 'También sirve para…',
-      uses: ['Preparar un expediente para el seguro', 'Mudarte sin perder nada', 'Poner precio a un mercadillo', 'Ordenar el armario'],
+      uses: [
+        'Preparar un expediente para el seguro',
+        'Mudarte sin perder nada',
+        'Poner precio a un mercadillo',
+        'Ordenar el armario',
+      ],
       why: 'Por qué funciona: una inteligencia artificial de reconocimiento de imágenes describe cada foto. El resultado es solo una propuesta: todos los campos se pueden editar y tus correcciones siempre mandan.',
     },
     value: {
@@ -163,12 +221,25 @@ const es: Copy = {
       title: 'Sabe lo que vale, y síguelo.',
       sub: 'Una estimación basada en anuncios comparables, no una cifra sacada de la manga.',
       items: [
-        { title: 'Estimar', text: 'Una horquilla de precios y los anuncios en los que se basa.' },
-        { title: 'Seguir', text: 'El valor de cada objeto y de cada colección, actualizado cuando quieras.' },
-        { title: 'Revender', text: 'Márcalo como «Vendido» con el precio real: el objeto se queda en tu historial.' },
+        {
+          title: 'Estimar',
+          text: 'Una horquilla de precios y los anuncios en los que se basa.',
+        },
+        {
+          title: 'Seguir',
+          text: 'El valor de cada objeto y de cada colección, actualizado cuando quieras.',
+        },
+        {
+          title: 'Revender',
+          text: 'Márcalo como «Vendido» con el precio real: el objeto se queda en tu historial.',
+        },
       ],
       note: 'No es una tasación: para una pieza rara, es un orden de magnitud.',
-      demo: { comparable: 'Anuncio similar', sold: 'Vendido', trend: 'Valor de la colección' },
+      demo: {
+        comparable: 'Anuncio similar',
+        sold: 'Vendido',
+        trend: 'Valor de la colección',
+      },
     },
     pricing: {
       eyebrow: 'Precios',
@@ -188,10 +259,22 @@ const es: Copy = {
     faq: {
       title: 'Preguntas frecuentes',
       items: [
-      { q: '¿Hace falta saber de tecnología?', a: 'No. Haces una foto y Tiroir rellena la ficha. Todo se corrige con un toque.' },
-      { q: '¿Y si la ficha se equivoca?', a: 'Todos los campos se pueden editar y tus correcciones siempre mandan. La marca exacta o el precio de compra solo los sabes tú.' },
-      { q: '¿Mis fotos son privadas?', a: 'Sí. Nada es público mientras no compartas un enlace, y puedes desactivarlo en cualquier momento.' },
-      { q: '¿Es fiable la estimación?', a: 'Se basa en anuncios comparables: un precio de salida fiable para un objeto corriente, un orden de magnitud para una pieza rara.' },
+        {
+          q: '¿Hace falta saber de tecnología?',
+          a: 'No. Haces una foto y Tiroir rellena la ficha. Todo se corrige con un toque.',
+        },
+        {
+          q: '¿Y si la ficha se equivoca?',
+          a: 'Todos los campos se pueden editar y tus correcciones siempre mandan. La marca exacta o el precio de compra solo los sabes tú.',
+        },
+        {
+          q: '¿Mis fotos son privadas?',
+          a: 'Sí. Nada es público mientras no compartas un enlace, y puedes desactivarlo en cualquier momento.',
+        },
+        {
+          q: '¿Es fiable la estimación?',
+          a: 'Se basa en anuncios comparables: un precio de salida fiable para un objeto corriente, un orden de magnitud para una pieza rara.',
+        },
       ],
     },
     final: {
@@ -199,25 +282,17 @@ const es: Copy = {
       sub: 'Gratis, sin tarjeta.',
     },
   },
-
   pricing: {
     meta: {
       title: 'Precios — Tiroir',
-      description: 'Tiroir es gratis, con {free} acciones de IA al mes. Créditos de IA desde {pack}.',
+      description: 'Tiroir es gratis, con {free} acciones de IA al mes. Créditos de IA desde {pack}, Premium a {premium} al mes, Pro a {pro} al mes, Business bajo presupuesto.',
     },
     badge: 'Precios',
     title: 'Ordénalo todo. Sabe lo que vale.',
     sub: 'Tiroir es gratis para todos. Paga solo cuando quieras ir más allá.',
     perMonth: '/mes',
-    upcoming: 'Próximos planes',
-    from: 'Desde',
     perYear: 'o {price} al año',
-    renewal: 'Se cobra y se renueva cada mes o cada año, según el plan elegido.',
-    premiumScope: 'Una sola cuenta, seis cajones',
-    approx: 'Aprox.',
-    perSeat: 'por usuario al año',
-    invoice: 'Por factura',
-    roadmap: 'Se están estudiando la colaboración y las recomendaciones.',
+    perSeat: 'por usuario/mes',
     soon: 'Próximamente',
     free: {
       tagline: 'Para catalogar todo lo que tienes.',
@@ -228,6 +303,7 @@ const es: Copy = {
         'Créditos de IA extra, cuando quieras',
       ],
       start: 'Empieza gratis',
+      afterQuota: 'Cuota mensual de IA, luego compra de créditos',
     },
     premium: {
       tagline: 'Para seguir el valor de su colección.',
@@ -257,8 +333,10 @@ const es: Copy = {
         'Facturación mensual, transferencia o domiciliación',
       ],
       cta: 'Contáctenos',
+      quote: 'Bajo presupuesto',
+      billing: 'Factura mensual',
     },
-    note: 'Precios orientativos de los próximos planes con impuestos incluidos. Su tienda de aplicaciones muestra los precios vigentes antes de la compra.',
+    note: 'IVA incluido. Business se paga con factura.',
     credits: {
       title: 'Créditos de IA',
       sub: '¿Necesitas más? Recarga cuando quieras, sin suscripción.',
@@ -269,17 +347,31 @@ const es: Copy = {
     },
     faqTitle: 'Preguntas frecuentes',
     faq: [
-      { q: '¿Qué es una acción de IA?', a: 'Una identificación o una estimación de un objeto.' },
-      { q: '¿Qué pasa cuando se agota mi cuota?', a: 'Tiroir sigue funcionando; solo las acciones de IA necesitan créditos.' },
-      { q: '¿Influyen los socios en las estimaciones?', a: 'No. Nuestros socios nunca influyen en las estimaciones: las ofertas comerciales están separadas de la estimación de valor.' },
-      { q: '¿Puedo cancelar?', a: 'Cuando quiera, desde el App Store, el Play Store o su cuenta.' },
+      {
+        q: '¿Qué es una acción de IA?',
+        a: 'Una identificación o una estimación de un objeto.',
+      },
+      {
+        q: '¿Qué pasa cuando se agota mi cuota?',
+        a: 'Tiroir sigue funcionando; solo las acciones de IA necesitan créditos.',
+      },
+      {
+        q: '¿Influyen los socios en las estimaciones?',
+        a: 'No. Nuestros socios nunca influyen en las estimaciones: las ofertas comerciales están separadas de la estimación de valor.',
+      },
+      {
+        q: '¿Puedo cancelar?',
+        a: 'Cuando quiera, desde el App Store, el Play Store o su cuenta.',
+      },
     ],
     final: {
       title: 'Empieza gratis.',
       sub: 'Objetos y colecciones ilimitados, {n} acciones de IA al mes. Sin tarjeta.',
     },
+    twoMonthsFree: 'Dos meses gratis',
+    vatIncl: 'IVA incl.',
+    vatExcl: '{price} sin IVA',
   },
-
   errors: {
     notFoundTitle: 'Página no encontrada',
     notFoundText: 'La página que buscas no existe o se ha movido.',
