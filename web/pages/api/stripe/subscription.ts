@@ -113,7 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       subscription_data: { metadata: { kind: 'individual', user_id: user.id, plan: plan.key, waiver_at: waiverAt } },
       // Pas de payment_method_types : Stripe propose carte, Apple Pay,
       // Google Pay… selon les moyens activés dans le tableau de bord.
-      locale: locale === 'da' || locale === 'de' || locale === 'es' || locale === 'en' ? locale : 'fr',
+      locale: locale === 'de' || locale === 'es' || locale === 'en' ? locale : 'fr',
       success_url: `${base}${success}`,
       cancel_url: `${base}${cancel}`,
       custom_text: {

@@ -60,8 +60,8 @@
     "list": {
       "backToMyShares": "← Volver a mis enlaces compartidos",
       "notFoundTitle": "Enlace no encontrado",
-      "expiredSub": "Pida un nuevo enlace al propietario.",
-      "notFoundSub": "Compruebe la dirección o pida un nuevo enlace.",
+      "expiredSub": "Pide un nuevo enlace al propietario.",
+      "notFoundSub": "Comprueba la dirección o pide un nuevo enlace.",
       "sharedVia": "Compartido con TiROiR · {count}",
       "objectsOne": "{n} objeto",
       "objectsOther": "{n} objetos",
@@ -96,14 +96,14 @@
       "deselectAll": "Deseleccionar todo",
       "selectedOne": "{n} objeto seleccionado",
       "selectedOther": "{n} objetos seleccionados",
-      "ctaTitle": "Cree su propio inventario",
+      "ctaTitle": "Crea tu propio inventario",
       "ctaSub": "TiROiR — fotografía, cataloga, encuentra."
     },
     "object": {
       "notFound": "Objeto no encontrado",
       "salePreview": "Ver como anuncio de venta (prototipo) →",
       "salePrice": "Precio de venta",
-      "yourEstimate": "Su estimación",
+      "yourEstimate": "Tu estimación",
       "estimatedMarketValue": "Valor de mercado estimado",
       "lotTotal": "Total del lote: {amount}",
       "ownerEstimate": "Estimación del propietario",
@@ -311,9 +311,9 @@
     },
     "signup": {
       "metaTitle": "Crear una cuenta — Tiroir",
-      "metaDescription": "Cree su cuenta de Tiroir gratis y catalogue sus objetos.",
+      "metaDescription": "Crea tu cuenta de Tiroir gratis y cataloga tus objetos.",
       "title": "Crear una cuenta",
-      "subtitle": "Gratis, sin tarjeta bancaria. Empiece a catalogar sus objetos en unos segundos.",
+      "subtitle": "Gratis, sin tarjeta bancaria. Empieza a catalogar tus objetos en unos segundos.",
       "passwordHint": "Al menos 6 caracteres.",
       "logMeIn": "Iniciar sesión →",
       "sentBefore": "Casi listo: abre el correo enviado a ",
@@ -327,7 +327,7 @@
       "metaTitle": "Contraseña olvidada — Tiroir",
       "sentTitle": "Correo enviado",
       "sentBefore": "Si existe una cuenta para ",
-      "sentAfter": ", acabamos de enviarle un enlace para restablecer la contraseña. Es válido durante una hora y solo sirve una vez.",
+      "sentAfter": ", acabamos de enviarte un enlace para restablecer la contraseña. Es válido durante una hora y solo sirve una vez.",
       "notReceived": "¿No te ha llegado nada? Revisa la carpeta de spam. Si te registraste con Google, tu cuenta no tiene contraseña: usa el botón «Continuar con Google» en la página de inicio de sesión.",
       "backToLogin": "Volver al inicio de sesión",
       "title": "Contraseña olvidada",
@@ -385,18 +385,14 @@
     "unsubscribe": {
       "metaTitle": "Baja de la lista — Tiroir",
       "okTitle": "Hecho.",
-      "okText": "Ya no recibirá más correos de Tiroir.",
-      "okDetail": "Su cuenta y sus objetos no se ven afectados: solo se detienen los envíos. Los mensajes relacionados con su cuenta (restablecimiento de contraseña, enlaces compartidos recibidos) seguirán llegando.",
+      "okText": "Ya no recibirás más correos de Tiroir.",
+      "okDetail": "Tu cuenta y tus objetos no se ven afectados: solo se detienen los envíos. Los mensajes relacionados con tu cuenta (restablecimiento de contraseña, enlaces compartidos recibidos) seguirán llegando.",
       "unknownTitle": "Se ha dado de baja correctamente",
       "unknownText": "Puede que este enlace ya se haya usado o que esté incompleto.",
-      "unknownDetail": "En cualquier caso, no le enviaremos nada más. Si aun así le llegara algún mensaje, respóndalo: alguien lo leerá.",
+      "unknownDetail": "En cualquier caso, no te enviaremos nada más. Si aun así te llegara algún mensaje, respóndelo: alguien lo leerá.",
       "back": "Volver a tiroir.app"
     },
     "myAccount": {
-      "billingTitle": "Créditos de IA y equipo",
-      "billingText": "Tu saldo de créditos de IA, su historial y los packs de créditos. Para un equipo Business: miembros y facturas.",
-      "creditsLink": "Mis créditos de IA →",
-      "teamLink": "Mi equipo Business →",
       "metaTitle": "Mi cuenta — Tiroir",
       "title": "Mi cuenta",
       "signedInAs": "Sesión iniciada con ",
@@ -431,7 +427,11 @@
       "sendLink": "Enviarme un enlace",
       "footnoteBefore": "Para cambiar tu nombre visible, ve a ",
       "footnoteLink": "Mi perfil",
-      "footnoteAfter": "."
+      "footnoteAfter": ".",
+      "billingTitle": "Créditos de IA y equipo",
+      "billingText": "Tu saldo de créditos de IA, su historial y los packs de créditos. Para un equipo Business: miembros y facturas.",
+      "creditsLink": "Mis créditos de IA →",
+      "teamLink": "Mi equipo Business →"
     },
     "profile": {
       "metaTitle": "Mi perfil — Tiroir",
@@ -659,21 +659,21 @@
         "valueLabel": "Valor estimado"
       }
     },
-    "how": {
-      "eyebrow": "Cómo funciona",
-      "title": "Tres gestos, nada que configurar.",
+    "photo": {
+      "title": "Una foto y listo.",
+      "sub": "Torix, la IA de Tiroir, reconoce tu objeto y rellena su ficha. Tú solo eliges el cajón.",
       "steps": [
         {
-          "title": "Haz la foto",
-          "text": "Un objeto, una foto. O cien de golpe, en modo ráfaga."
+          "title": "Haces la foto",
+          "text": "Un objeto, una foto. Sin formularios que rellenar."
         },
         {
-          "title": "La ficha se escribe sola",
-          "text": "Nombre, categoría, material, estado: todo relleno. Corrige si hace falta."
+          "title": "Torix rellena la ficha",
+          "text": "Nombre, categoría, estado: todo se escribe solo. Corrígelo si quieres."
         },
         {
-          "title": "Todo ordenado",
-          "text": "Colecciones, búsqueda, estado: lo encuentras todo, cuando quieras."
+          "title": "Ya está guardado",
+          "text": "Eliges el cajón mientras Torix trabaja. Luego lo encuentras todo al instante."
         }
       ],
       "fiche": {
@@ -684,21 +684,23 @@
             "Ropa"
           ],
           [
-            "Material",
-            "Denim"
-          ],
-          [
             "Estado",
             "Bueno"
           ]
-        ]
+        ],
+        "estimate": "Valor",
+        "estimateCta": "✦ Estimar"
       },
-      "collections": [
-        "Armario",
-        "Para vender",
-        "Estudio"
-      ],
-      "search": "chaqueta azul"
+      "drawer": "Armario",
+      "stored": "Guardada",
+      "video": {
+        "label": "Vídeo de demostración: la foto de un objeto se convierte en una ficha completa, guardada en un cajón.",
+        "badge": "10 segundos",
+        "play": "Reproducir el vídeo",
+        "pause": "Pausar el vídeo"
+      },
+      "reassure": "Gratis, sin tarjeta. {n} acciones de IA al mes incluidas.",
+      "cta": "Pruébalo gratis"
     },
     "pros": {
       "eyebrow": "Para creativos y profesionales",
@@ -787,7 +789,7 @@
       "perSeat": "por usuario/mes",
       "plans": {
         "free": "Objetos y colecciones ilimitados, {n} análisis al mes.",
-        "premium": "Para seguir el valor de tu colección.",
+        "premium": "Para seguir el valor de su colección.",
         "pro": "Para quienes viven de sus objetos.",
         "business": "Para gestionar un stock en equipo."
       },
@@ -830,9 +832,6 @@
     "sub": "Tiroir es gratis para todos. Paga solo cuando quieras ir más allá.",
     "perMonth": "/mes",
     "perYear": "o {price} al año",
-    "twoMonthsFree": "Dos meses gratis",
-    "vatIncl": "IVA incl.",
-    "vatExcl": "{price} sin IVA",
     "perSeat": "por usuario/mes",
     "soon": "Próximamente",
     "free": {
@@ -847,15 +846,14 @@
       "afterQuota": "Cuota mensual de IA, luego compra de créditos"
     },
     "premium": {
-      "tagline": "Para seguir el valor de tu colección.",
+      "tagline": "Para seguir el valor de su colección.",
       "features": [
         "Estimación automática con cuota mensual",
         "Curva de evolución del valor y botón Actualizar",
         "Fuentes resumidas en una línea",
-        "Sugerencias de objetos de tus allegados",
         "Enlaces compartidos protegidos con contraseña"
       ],
-      "cta": "Pasar a Premium"
+      "cta": "Pase a Premium"
     },
     "pro": {
       "tagline": "Para quienes viven de sus objetos.",
@@ -865,7 +863,7 @@
         "Detalle de fuentes y comparación de mercado",
         "Exportación para el seguro"
       ],
-      "cta": "Pasar a Pro"
+      "cta": "Pase a Pro"
     },
     "business": {
       "tagline": "Para gestionar un stock en equipo.",
@@ -874,7 +872,7 @@
         "Roles y varias cuentas",
         "Facturación mensual, transferencia o domiciliación"
       ],
-      "cta": "Contáctanos",
+      "cta": "Contáctenos",
       "quote": "Bajo presupuesto",
       "billing": "Factura mensual"
     },
@@ -903,13 +901,16 @@
       },
       {
         "q": "¿Puedo cancelar?",
-        "a": "Cuando quieras, desde el App Store, el Play Store o tu cuenta."
+        "a": "Cuando quiera, desde el App Store, el Play Store o su cuenta."
       }
     ],
     "final": {
       "title": "Empieza gratis.",
       "sub": "Objetos y colecciones ilimitados, {n} acciones de IA al mes. Sin tarjeta."
-    }
+    },
+    "twoMonthsFree": "Dos meses gratis",
+    "vatIncl": "IVA incl.",
+    "vatExcl": "{price} sin IVA"
   },
   "errors": {
     "notFoundTitle": "Página no encontrada",

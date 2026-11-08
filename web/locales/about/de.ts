@@ -4,25 +4,25 @@ import type { AboutCopy } from './fr'
 const aboutDe: AboutCopy = {
   meta: {
     title: 'Über uns — Tiroir',
-    description: 'Wer hinter Tiroir steckt: Clément Ougier, Solo-Gründer. Das Projekt, was ich suche (Rat, Mitgründer, Tester) und wie Sie mich erreichen.',
+    description: 'Wer hinter Tiroir steckt: Clément Ougier, Solo-Gründer. Das Projekt, was ich suche (Rat, Mitgründer, Tester) und wie du mich erreichst.',
   },
   agendaCta: 'Termin buchen',
-  agendaCtaMail: 'Schreiben Sie mir für einen Termin',
+  agendaCtaMail: 'Schreib mir für einen Termin',
   heroSubject: 'Über Tiroir sprechen',
   agendaSubject: 'Ein Termin, um über Tiroir zu sprechen',
   hero: {
     badge: 'Über uns',
     title: 'Hallo, ich bin Clément.',
-    p1: 'Ich bin Product Designer, und Tiroir ist mein Projekt — allein konzipiert, gestaltet und entwickelt. Die Idee ist einfach: Sie fotografieren einen Gegenstand, die KI schreibt den Eintrag, und Ihr Inventar hält sich endlich von selbst aktuell.',
+    p1: 'Ich bin Product Designer, und Tiroir ist mein Projekt — allein konzipiert, gestaltet und entwickelt. Die Idee ist einfach: Du fotografierst einen Gegenstand, die KI schreibt den Eintrag, und dein Inventar hält sich endlich von selbst aktuell.',
     p2: 'Ich baue öffentlich, ich irre mich öffentlich, und ich lerne viel schneller, wenn ich mit Menschen spreche, als wenn ich vor meinem Bildschirm sitze. Genau darum geht es auf dieser Seite.',
-    linkedin: 'Folgen Sie mir auf LinkedIn',
+    linkedin: 'Folge mir auf LinkedIn',
   },
   role: 'Senior Product Designer & Builder, Erfinder von Tiroir',
   why: {
     title: 'Warum Tiroir',
     paragraphs: [
       'Jeder besitzt Hunderte von Dingen, und niemand weiß wirklich, was er hat. Wir kaufen nach, was wir schon hatten, verschleudern, was etwas wert war, und finden die Rechnung nicht, wenn wir sie bräuchten. Ein Inventar ist für alle nützlich — und mühsam genug, dass es niemand macht.',
-      'Tiroir nimmt Ihnen den mühsamen Teil ab. Ein Foto, und der Eintrag steht: Kategorie, Material, Zustand, geschätzter Wert. Der Rest — Sammlungen, Teilen per Link, Überblick darüber, was verkauft oder verstaut ist — sorgt nur dafür, dass das Inventar über den Tag hinaus lebt, an dem Sie es angelegt haben.',
+      'Tiroir nimmt dir den mühsamen Teil ab. Ein Foto, und der Eintrag steht: Kategorie, Material, Zustand, geschätzter Wert. Der Rest — Sammlungen, Teilen per Link, Überblick darüber, was verkauft oder verstaut ist — sorgt nur dafür, dass das Inventar über den Tag hinaus lebt, an dem du es angelegt hast.',
       'Die App gibt es im App Store und bei Google Play. Sie wird jede Woche besser, dank des Feedbacks derer, die sie wirklich nutzen.',
     ],
   },
@@ -36,7 +36,7 @@ const aboutDe: AboutCopy = {
       },
       {
         title: 'Menschen, die sich in der Praxis auskennen',
-        body: 'Secondhand, Vintage-Läden, Trödler, Versicherung, Umzug, Nachlass: Wenn Sie in einer dieser Welten zu Hause sind, ist Ihr Blick mehr wert als zehn Marktstudien.',
+        body: 'Secondhand, Vintage-Läden, Trödler, Versicherung, Umzug, Nachlass: Wenn du in einer dieser Welten zu Hause bist, ist dein Blick mehr wert als zehn Marktstudien.',
       },
       {
         title: 'Vielleicht ein Mitgründer oder eine Mitgründerin',
@@ -50,11 +50,11 @@ const aboutDe: AboutCopy = {
   },
   agenda: {
     title: 'Mein Kalender ist offen',
-    body: '30 Minuten per Video, ohne feste Agenda. Ob Sie einen Rat, eine Frage, Kritik oder einfach Neugier auf das Projekt mitbringen: Buchen Sie einen Termin, er gehört Ihnen.',
-    mail: 'oder schreiben Sie mir an {email}',
+    body: '30 Minuten per Video, ohne feste Agenda. Ob du einen Rat, eine Frage, Kritik oder einfach Neugier auf das Projekt mitbringst: Buche einen Termin, er gehört dir.',
+    mail: 'oder schreib mir an {email}',
   },
   contact: {
-    title: 'Wo Sie mich finden',
+    title: 'Wo du mich findest',
     linkedin: 'Das Logbuch des Projekts, Woche für Woche.',
     blog: 'cofondateurauchomage.fr — hinter den Kulissen, ungefiltert (auf Französisch).',
     emailLabel: 'E-Mail',

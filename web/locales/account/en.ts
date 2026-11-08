@@ -108,10 +108,6 @@ const accountEn: AccountCopy = {
     back: 'Back to tiroir.app',
   },
   myAccount: {
-    billingTitle: 'AI credits and team',
-    billingText: 'Your AI credit balance and history, and credit packs. For a Business team: members and invoices.',
-    creditsLink: 'My AI credits →',
-    teamLink: 'My Business team →',
     metaTitle: 'My account — Tiroir',
     title: 'My account',
     signedInAs: 'Signed in as ',
@@ -147,6 +143,10 @@ const accountEn: AccountCopy = {
     footnoteBefore: 'To change your display name, go to ',
     footnoteLink: 'My profile',
     footnoteAfter: '.',
+    billingTitle: 'AI credits and team',
+    billingText: 'Your AI credit balance and history, and credit packs. For a Business team: members and invoices.',
+    creditsLink: 'My AI credits →',
+    teamLink: 'My Business team →',
   },
   profile: {
     metaTitle: 'My profile — Tiroir',

@@ -393,10 +393,6 @@
       "back": "Back to tiroir.app"
     },
     "myAccount": {
-      "billingTitle": "AI credits and team",
-      "billingText": "Your AI credit balance and history, and credit packs. For a Business team: members and invoices.",
-      "creditsLink": "My AI credits →",
-      "teamLink": "My Business team →",
       "metaTitle": "My account — Tiroir",
       "title": "My account",
       "signedInAs": "Signed in as ",
@@ -431,7 +427,11 @@
       "sendLink": "Send me a link",
       "footnoteBefore": "To change your display name, go to ",
       "footnoteLink": "My profile",
-      "footnoteAfter": "."
+      "footnoteAfter": ".",
+      "billingTitle": "AI credits and team",
+      "billingText": "Your AI credit balance and history, and credit packs. For a Business team: members and invoices.",
+      "creditsLink": "My AI credits →",
+      "teamLink": "My Business team →"
     },
     "profile": {
       "metaTitle": "My profile — Tiroir",
@@ -659,21 +659,21 @@
         "valueLabel": "Estimated value"
       }
     },
-    "how": {
-      "eyebrow": "How it works",
-      "title": "Three steps. Nothing to set up.",
+    "photo": {
+      "title": "One photo. That’s it.",
+      "sub": "Torix, Tiroir’s AI, recognises your item and fills in its entry. All you do is pick the drawer.",
       "steps": [
         {
-          "title": "Snap it",
-          "text": "One item, one photo. Or a hundred at once in burst mode."
+          "title": "You take the photo",
+          "text": "One item, one photo. No form to fill in."
         },
         {
-          "title": "The entry writes itself",
-          "text": "Name, category, material, condition: all filled in. Tweak it if you like."
+          "title": "Torix fills in the entry",
+          "text": "Name, category, condition: it all writes itself. Edit it if you like."
         },
         {
-          "title": "It’s sorted",
-          "text": "Collections, search, status: find anything, any time."
+          "title": "It’s put away",
+          "text": "Pick the drawer while Torix works. Then find anything in a second."
         }
       ],
       "fiche": {
@@ -684,21 +684,23 @@
             "Clothing"
           ],
           [
-            "Material",
-            "Denim"
-          ],
-          [
             "Condition",
             "Good"
           ]
-        ]
+        ],
+        "estimate": "Value",
+        "estimateCta": "✦ Estimate"
       },
-      "collections": [
-        "Wardrobe",
-        "To sell",
-        "Studio"
-      ],
-      "search": "blue jacket"
+      "drawer": "Wardrobe",
+      "stored": "Stored",
+      "video": {
+        "label": "Demo video: a photo of an item becomes a complete entry, put away in a drawer.",
+        "badge": "10 seconds",
+        "play": "Play the video",
+        "pause": "Pause the video"
+      },
+      "reassure": "Free, no credit card. {n} AI actions a month included.",
+      "cta": "Try it free"
     },
     "pros": {
       "eyebrow": "For creatives and pros",
@@ -829,10 +831,7 @@
     "title": "Sort everything. Know what it’s worth.",
     "sub": "Tiroir is free for everyone. Only pay when you want to go further.",
     "perMonth": "/month",
-    "perYear": "or {price} a year",
-    "twoMonthsFree": "Two months free",
-    "vatIncl": "incl. VAT",
-    "vatExcl": "{price} excl. VAT",
+    "perYear": "or {price} per year",
     "perSeat": "per seat/month",
     "soon": "Coming soon",
     "free": {
@@ -852,7 +851,6 @@
         "Automatic estimates with a monthly quota",
         "Value tracking chart and Refresh button",
         "Sources summed up in one line",
-        "Item suggestions from friends and family",
         "Password-protected share links"
       ],
       "cta": "Go Premium"
@@ -909,7 +907,10 @@
     "final": {
       "title": "Start for free.",
       "sub": "Unlimited items and collections, {n} AI actions a month. No card required."
-    }
+    },
+    "twoMonthsFree": "Two months free",
+    "vatIncl": "incl. VAT",
+    "vatExcl": "{price} excl. VAT"
   },
   "errors": {
     "notFoundTitle": "Page not found",

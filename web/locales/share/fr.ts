@@ -1,12 +1,13 @@
 // Généré par design/generate.mjs depuis design/i18n/site/fr.json — ne pas modifier à la main.
 //
-// Textes share en français — référence de structure pour en, da, de, es
+// Textes share en français — référence de structure pour en, de, es
 // (type ShareCopy). Importé par ../fr.ts sous la clé « share ».
 //
 // Pages de partage (/s/<jeton>, sa fiche objet, l'aperçu de vente) et
 // anciennes pages /share/… ; les marqueurs {n}, {date}… sont remplacés à
-// l'affichage (fill). Le tutoiement et le vouvoiement suivent ceux de
-// chaque texte d'origine.
+// l'affichage (fill). Tutoiement partout : ces pages s'adressent au grand
+// public (règle de ton : web/locales/README.md). « Vous convenez » (sale.step3)
+// est un pluriel : l'acheteur et le propriétaire.
 const shareFr = {
   meta: {
     // Titre d'un partage sans nom.
@@ -70,8 +71,8 @@ const shareFr = {
   list: {
     backToMyShares: '← Retour à mes partages',
     notFoundTitle: 'Lien introuvable',
-    expiredSub: 'Demandez un nouveau lien au propriétaire.',
-    notFoundSub: 'Vérifiez l\'adresse ou demandez un nouveau lien.',
+    expiredSub: 'Demande un nouveau lien au propriétaire.',
+    notFoundSub: 'Vérifie l\'adresse ou demande un nouveau lien.',
     sharedVia: 'Partagé via TiROiR · {count}',
     objectsOne: '{n} objet',
     objectsOther: '{n} objets',
@@ -106,14 +107,14 @@ const shareFr = {
     deselectAll: 'Tout désélectionner',
     selectedOne: '{n} objet sélectionné',
     selectedOther: '{n} objets sélectionnés',
-    ctaTitle: 'Créez votre inventaire personnel',
-    ctaSub: 'TiROiR — photographiez, cataloguez, retrouvez.',
+    ctaTitle: 'Crée ton inventaire personnel',
+    ctaSub: 'TiROiR — photographie, catalogue, retrouve.',
   },
   object: {
     notFound: 'Objet introuvable',
     salePreview: 'Voir en vente (prototype) →',
     salePrice: 'Prix de vente',
-    yourEstimate: 'Votre estimation',
+    yourEstimate: 'Ton estimation',
     estimatedMarketValue: 'Valeur marchande estimée',
     lotTotal: 'Total du lot : {amount}',
     ownerEstimate: 'Estimation du propriétaire',

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { LOCALES, isRecipientPage, isTranslated, localeUrl, recipientLocale, untranslatedRedirect } from '../lib/localeRouting'
+import { LOCALES, isRecipientPage, isTranslated, localeUrl, recipientLocale, retiredLocaleRedirect, untranslatedRedirect } from '../lib/localeRouting'
 
 describe('langues du site', () => {
   test('next.config déclare les mêmes langues que lib/localeRouting', () => {
@@ -17,8 +17,20 @@ describe('langues du site', () => {
     expect(cfg).not.toMatch(/locale: false/)
   })
 
-  test('danois, allemand, espagnol : pages traduites servies, le reste en anglais', () => {
-    for (const l of ['da', 'de', 'es']) {
+  test('langues de Tiroir : fr, en, de, es sur le site (pt pas encore), pas de danois', () => {
+    expect([...LOCALES].sort()).toEqual(['de', 'en', 'es', 'fr'])
+  })
+
+  test('anciennes adresses danoises : vers l’anglais', () => {
+    expect(retiredLocaleRedirect('/da')).toBe('/en')
+    expect(retiredLocaleRedirect('/da/pricing')).toBe('/en/pricing')
+    expect(retiredLocaleRedirect('/da/s/abc123')).toBe('/en/s/abc123')
+    expect(retiredLocaleRedirect('/dashboard')).toBeNull()
+    expect(retiredLocaleRedirect('/pricing')).toBeNull()
+  })
+
+  test('allemand, espagnol : pages traduites servies, le reste en anglais', () => {
+    for (const l of ['de', 'es']) {
       expect(untranslatedRedirect(l, '/')).toBeNull()
       expect(untranslatedRedirect(l, '/pricing')).toBeNull()
       expect(untranslatedRedirect(l, '/about')).toBeNull()
@@ -51,7 +63,7 @@ describe('langues du site', () => {
     expect(recipientLocale('fr-FR,fr;q=0.9,en;q=0.8')).toBeNull()
     expect(recipientLocale('it-IT,it;q=0.9,es;q=0.5')).toBe('es')
     expect(recipientLocale('ja')).toBeNull()
-    expect(recipientLocale('en;q=0.4,da;q=0.9')).toBe('da')
+    expect(recipientLocale('en;q=0.4,da;q=0.9')).toBe('en')
     expect(recipientLocale(null)).toBeNull()
     expect(isRecipientPage('/s/abc/123')).toBe(true)
     expect(isRecipientPage('/pricing')).toBe(false)

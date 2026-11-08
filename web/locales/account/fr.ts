@@ -1,6 +1,6 @@
 // Généré par design/generate.mjs depuis design/i18n/site/fr.json — ne pas modifier à la main.
 //
-// Textes account en français — référence de structure pour en, da, de, es
+// Textes account en français — référence de structure pour en, de, es
 // (type AccountCopy). Importé par ../fr.ts sous la clé « account ».
 // Pages de compte : connexion, inscription, mot de passe, confirmation,
 // bienvenue, merci, désinscription, mon compte, profil, mes partages.
@@ -31,9 +31,9 @@ const accountFr = {
   },
   signup: {
     metaTitle: 'Créer un compte — Tiroir',
-    metaDescription: 'Créez votre compte Tiroir gratuitement et cataloguez vos objets.',
+    metaDescription: 'Crée ton compte Tiroir gratuitement et catalogue tes objets.',
     title: 'Créer un compte',
-    subtitle: 'Gratuit, sans carte bancaire. Commencez à cataloguer vos objets en quelques secondes.',
+    subtitle: 'Gratuit, sans carte bancaire. Commence à cataloguer tes objets en quelques secondes.',
     passwordHint: 'Au moins 6 caractères.',
     logMeIn: 'Me connecter →',
     sentBefore: 'Presque fini : ouvre l’e-mail envoyé à ',
@@ -105,18 +105,14 @@ const accountFr = {
   unsubscribe: {
     metaTitle: 'Désinscription — Tiroir',
     okTitle: 'C’est fait.',
-    okText: 'Vous ne recevrez plus d’e-mails de Tiroir.',
-    okDetail: 'Votre compte et vos objets ne sont pas touchés : seuls les envois s’arrêtent. Les messages liés à votre compte — réinitialisation de mot de passe, partage reçu — continuent d’arriver.',
-    unknownTitle: 'Vous êtes bien désinscrit·e',
+    okText: 'Tu ne recevras plus d’e-mails de Tiroir.',
+    okDetail: 'Ton compte et tes objets ne sont pas touchés : seuls les envois s’arrêtent. Les messages liés à ton compte — réinitialisation de mot de passe, partage reçu — continuent d’arriver.',
+    unknownTitle: 'Tu es bien désinscrit·e',
     unknownText: 'Ce lien a peut-être déjà été utilisé, ou il est incomplet.',
-    unknownDetail: 'Dans tous les cas, plus rien ne partira de notre côté. Si un message vous parvenait malgré tout, répondez-y : quelqu’un le lira.',
+    unknownDetail: 'Dans tous les cas, plus rien ne partira de notre côté. Si un message te parvenait malgré tout, réponds-y : quelqu’un le lira.',
     back: 'Retour sur tiroir.app',
   },
   myAccount: {
-    billingTitle: 'Crédits IA et équipe',
-    billingText: 'Ton solde de crédits IA, leur historique, et l’achat de packs. Pour une équipe Business : membres et factures.',
-    creditsLink: 'Mes crédits IA →',
-    teamLink: 'Mon équipe Business →',
     metaTitle: 'Mon compte — Tiroir',
     title: 'Mon compte',
     signedInAs: 'Connecté avec ',
@@ -152,6 +148,10 @@ const accountFr = {
     footnoteBefore: 'Pour modifier ton nom d’affichage, rends-toi sur ',
     footnoteLink: 'Mon profil',
     footnoteAfter: '.',
+    billingTitle: 'Crédits IA et équipe',
+    billingText: 'Ton solde de crédits IA, leur historique, et l’achat de packs. Pour une équipe Business : membres et factures.',
+    creditsLink: 'Mes crédits IA →',
+    teamLink: 'Mon équipe Business →',
   },
   profile: {
     metaTitle: 'Mon profil — Tiroir',

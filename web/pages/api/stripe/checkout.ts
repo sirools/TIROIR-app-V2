@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ...(customer ? { customer, customer_update: { address: 'auto', name: 'auto' } } : { customer_email: user.email }),
       metadata: meta,
       payment_intent_data: { metadata: meta, description: `Tiroir — ${pack.credits} crédits IA` },
-      locale: locale === 'da' || locale === 'de' || locale === 'es' || locale === 'en' ? locale : 'fr',
+      locale: locale === 'de' || locale === 'es' || locale === 'en' ? locale : 'fr',
       success_url: `${back}?achat=ok`,
       cancel_url: `${back}?achat=annule`,
       custom_text: {

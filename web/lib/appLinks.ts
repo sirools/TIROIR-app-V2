@@ -9,7 +9,7 @@ export const playStoreUrl = (isEn?: boolean) =>
   `${PLAY_STORE_URL}${isEn ? '&hl=en' : '&hl=fr'}`
 
 // Par langue du site : la fiche du store du pays correspondant.
-const APP_STORE_COUNTRY = { fr: 'fr', en: 'us', da: 'dk', de: 'de', es: 'es' } as const
+const APP_STORE_COUNTRY = { fr: 'fr', en: 'us', de: 'de', es: 'es' } as const
 type SiteLocale = keyof typeof APP_STORE_COUNTRY
 
 export const appStoreUrlFor = (locale: SiteLocale) =>

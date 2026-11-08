@@ -1,6 +1,6 @@
 // Généré par design/generate.mjs depuis design/i18n/site/fr.json — ne pas modifier à la main.
 //
-// Textes about en français — référence de structure pour en, da, de, es
+// Textes about en français — référence de structure pour en, de, es
 // (type AboutCopy). Importé par ../fr.ts sous la clé « about ».
 const aboutFr = {
   meta: {
@@ -16,7 +16,7 @@ const aboutFr = {
   hero: {
     badge: 'À propos',
     title: 'Bonjour, moi c’est Clément.',
-    p1: 'Je suis product designer, et Tiroir est mon projet — conçu, dessiné et développé en solo. L’idée est simple : vous photographiez un objet, l’IA rédige sa fiche, et votre inventaire se tient enfin tout seul.',
+    p1: 'Je suis product designer, et Tiroir est mon projet — conçu, dessiné et développé en solo. L’idée est simple : tu photographies un objet, l’IA rédige sa fiche, et ton inventaire se tient enfin tout seul.',
     p2: 'Je construis en public, je me trompe en public, et j’apprends beaucoup plus vite quand je parle à des gens qu’en restant devant mon écran. C’est tout l’objet de cette page.',
     linkedin: 'Me suivre sur LinkedIn',
   },
@@ -40,7 +40,7 @@ const aboutFr = {
       },
       {
         title: 'Des personnes qui connaissent le terrain',
-        body: 'Seconde main, friperies, brocanteurs, assurance, déménagement, succession : si vous vivez un de ces mondes au quotidien, votre regard vaut dix études de marché.',
+        body: 'Seconde main, friperies, brocanteurs, assurance, déménagement, succession : si tu vis un de ces mondes au quotidien, ton regard vaut dix études de marché.',
       },
       {
         title: 'Peut-être un ou une associée',
@@ -54,7 +54,7 @@ const aboutFr = {
   },
   agenda: {
     title: 'Mon agenda est ouvert',
-    body: '30 minutes, en visio, sans ordre du jour imposé. Que vous ayez un conseil, une question, une critique ou juste de la curiosité pour le projet : prenez un créneau, il est pour vous.',
+    body: '30 minutes, en visio, sans ordre du jour imposé. Que tu aies un conseil, une question, une critique ou juste de la curiosité pour le projet : prends un créneau, il est pour toi.',
     mail: 'ou m’écrire à {email}',
   },
   contact: {

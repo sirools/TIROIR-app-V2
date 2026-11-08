@@ -28,7 +28,7 @@ const fr = {
     newHere: 'Pas encore inscrit ?',
     openMenu: 'Ouvrir le menu',
     closeMenu: 'Fermer le menu',
-    footerTagline: 'Photographiez vos objets, Tiroir rédige la fiche. Votre inventaire, enfin tenu à jour.',
+    footerTagline: 'Photographie tes objets, Tiroir rédige la fiche. Ton inventaire, enfin tenu à jour.',
     product: 'Produit',
     project: 'Le projet',
     about: 'À propos',
@@ -43,24 +43,24 @@ const fr = {
   },
   home: {
     meta: {
-      title: 'Tiroir — une photo, et vos objets sont rangés',
-      description: 'Photographiez un objet : Tiroir rédige sa fiche, le range et estime sa valeur. Pour les créatifs, les pros et tous ceux qui veulent savoir ce qu’ils possèdent.',
+      title: 'Tiroir — une photo, et tes objets sont rangés',
+      description: 'Photographie un objet : Tiroir rédige sa fiche, le range et estime sa valeur. Pour les créatifs, les pros et tous ceux qui veulent savoir ce qu’ils possèdent.',
     },
     hero: {
       badge: 'Disponible sur iOS et Android',
       // Trois accroches ; la variante active se choisit dans locales/index.ts.
       variants: [
         {
-          title: 'Une photo, et tout ce que vous possédez est rangé.',
-          sub: 'Tiroir rédige la fiche de chaque objet à votre place, catégorie, état et valeur comprises.',
+          title: 'Une photo, et tout ce que tu possèdes est rangé.',
+          sub: 'Tiroir rédige la fiche de chaque objet à ta place, catégorie, état et valeur comprises.',
         },
         {
-          title: 'Sachez enfin ce que vous avez, et ce que ça vaut.',
-          sub: 'Tiroir rédige la fiche de chaque objet à votre place, catégorie, état et valeur comprises.',
+          title: 'Sache enfin ce que tu as, et ce que ça vaut.',
+          sub: 'Tiroir rédige la fiche de chaque objet à ta place, catégorie, état et valeur comprises.',
         },
         {
-          title: 'Votre inventaire se fait tout seul.',
-          sub: 'Prenez une photo, Tiroir s’occupe du reste. Aucune compétence technique requise.',
+          title: 'Ton inventaire se fait tout seul.',
+          sub: 'Prends une photo, Tiroir s’occupe du reste. Aucune compétence technique requise.',
         },
       ],
       free: 'Gratuit pour commencer',
@@ -78,47 +78,56 @@ const fr = {
         valueLabel: 'Valeur estimée',
       },
     },
-    how: {
-      eyebrow: 'Comment ça marche',
-      title: 'Trois gestes, aucun réglage.',
+    photo: {
+      title: 'Une photo, c’est tout.',
+      sub: 'Torix, l’IA de Tiroir, reconnaît ton objet et remplit sa fiche. Toi, tu choisis juste le tiroir.',
       steps: [
         {
-          title: 'Photographiez',
-          text: 'Un objet, une photo. Ou cent d’un coup, en mode rafale.',
+          title: 'Tu prends la photo',
+          text: 'Un objet, une photo. Aucun formulaire à remplir.',
         },
         {
-          title: 'La fiche s’écrit',
-          text: 'Nom, catégorie, matière, état : tout est rempli. Vous corrigez si besoin.',
+          title: 'Torix remplit la fiche',
+          text: 'Nom, catégorie, état : tout s’écrit tout seul. Tu corriges si tu veux.',
         },
         {
           title: 'C’est rangé',
-          text: 'Collections, recherche, statut : vous retrouvez tout, à tout moment.',
+          text: 'Tu choisis le tiroir pendant que Torix travaille. Ensuite, tu retrouves tout en un instant.',
         },
       ],
       fiche: {
         name: 'Veste en jean',
         rows: [
           ['Catégorie', 'Vêtements'],
-          ['Matière', 'Denim'],
           ['État', 'Bon'],
         ],
+        estimate: 'Valeur',
+        estimateCta: '✦ Estimer',
       },
-      collections: ['Dressing', 'À vendre', 'Studio'],
-      search: 'veste bleue',
+      drawer: 'Dressing',
+      stored: 'Rangée',
+      video: {
+        label: 'Vidéo de démonstration : la photo d’un objet devient une fiche complète, rangée dans un tiroir.',
+        badge: '10 secondes',
+        play: 'Lire la vidéo',
+        pause: 'Mettre la vidéo en pause',
+      },
+      reassure: 'Gratuit, sans carte bancaire. {n} actions IA par mois incluses.',
+      cta: 'Essayer gratuitement',
     },
     pros: {
       eyebrow: 'Pour les créatifs et les pros',
       title: 'Moins de saisie, plus de métier.',
-      sub: 'Votre matériel, votre stock, vos collections : documentés en quelques photos, pendant que vous travaillez.',
+      sub: 'Ton matériel, ton stock, tes collections : documentés en quelques photos, pendant que tu travailles.',
       personas: [
         {
           who: 'Styliste',
-          text: 'Chaque pièce photographiée, rangée par shooting. Vous savez ce qui est sorti et ce qui est revenu.',
+          text: 'Chaque pièce photographiée, rangée par shooting. Tu sais ce qui est sorti et ce qui est revenu.',
           chip: 'Prêtée · retour vendredi',
         },
         {
           who: 'Régisseur',
-          text: 'Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans votre poche.',
+          text: 'Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans ta poche.',
           chip: '42 pièces · 3 prêtées',
         },
         {
@@ -136,19 +145,19 @@ const fr = {
     everyone: {
       eyebrow: 'Et pour tout le monde',
       title: 'Pas besoin d’être pro. Ni technicien.',
-      sub: 'Si vous savez prendre une photo, vous savez utiliser Tiroir.',
+      sub: 'Si tu sais prendre une photo, tu sais utiliser Tiroir.',
       points: [
         {
           title: 'Aucune compétence requise',
-          text: 'Pas de tableau ni de formulaire vide. Vous photographiez, Tiroir remplit.',
+          text: 'Pas de tableau ni de formulaire vide. Tu photographies, Tiroir remplit.',
         },
         {
-          title: 'Vos données restent à vous',
-          text: 'Pas de publicité, rien n’est revendu ni utilisé pour entraîner des modèles. Supprimer votre compte efface tout, immédiatement.',
+          title: 'Tes données restent à toi',
+          text: 'Pas de publicité, rien n’est revendu ni utilisé pour entraîner des modèles. Supprimer ton compte efface tout, immédiatement.',
         },
         {
           title: 'Partage en lecture seule',
-          text: 'Un lien vers une collection : la personne regarde, sans compte ni application. Vous coupez le lien quand vous voulez.',
+          text: 'Un lien vers une collection : la personne regarde, sans compte ni application. Tu coupes le lien quand tu veux.',
         },
       ],
       usesTitle: 'Ça sert aussi à…',
@@ -158,11 +167,11 @@ const fr = {
         'Fixer les prix d’un vide-grenier',
         'Faire le tri dans un dressing',
       ],
-      why: 'Pourquoi ça marche : une intelligence artificielle de reconnaissance d’image décrit chaque photo. Le résultat reste une proposition — chaque champ se modifie, et vos corrections priment toujours.',
+      why: 'Pourquoi ça marche : une intelligence artificielle de reconnaissance d’image décrit chaque photo. Le résultat reste une proposition — chaque champ se modifie, et tes corrections priment toujours.',
     },
     value: {
-      eyebrow: 'La valeur de vos objets',
-      title: 'Sachez ce que ça vaut, et suivez-le.',
+      eyebrow: 'La valeur de tes objets',
+      title: 'Sache ce que ça vaut, et suis-le.',
       sub: 'Une estimation fondée sur des annonces comparables, pas un chiffre sorti d’un chapeau.',
       items: [
         {
@@ -171,11 +180,11 @@ const fr = {
         },
         {
           title: 'Suivre',
-          text: 'La valeur de chaque objet et de chaque collection, actualisée quand vous voulez.',
+          text: 'La valeur de chaque objet et de chaque collection, actualisée quand tu veux.',
         },
         {
           title: 'Revendre',
-          text: 'Marquez « Vendu » avec le prix réel : l’objet reste dans votre historique.',
+          text: 'Marque « Vendu » avec le prix réel : l’objet reste dans ton historique.',
         },
       ],
       note: 'Ce n’est pas une expertise : pour une pièce rare, c’est un ordre de grandeur.',
@@ -188,7 +197,7 @@ const fr = {
     pricing: {
       eyebrow: 'Tarifs',
       title: 'Gratuit pour commencer.',
-      sub: 'Passez à la formule supérieure quand vous en avez besoin.',
+      sub: 'Passe à la formule supérieure quand tu en as besoin.',
       perMonth: '/mois',
       perSeat: 'par siège/mois',
       plans: {
@@ -205,15 +214,15 @@ const fr = {
       items: [
         {
           q: 'Faut-il s’y connaître en technologie ?',
-          a: 'Non. Vous prenez une photo, Tiroir remplit la fiche. Tout se corrige d’un geste.',
+          a: 'Non. Tu prends une photo, Tiroir remplit la fiche. Tout se corrige d’un geste.',
         },
         {
           q: 'Et si la fiche se trompe ?',
-          a: 'Chaque champ est modifiable, et vos corrections priment toujours. La marque exacte ou le prix d’achat, c’est vous qui les connaissez.',
+          a: 'Chaque champ est modifiable, et tes corrections priment toujours. La marque exacte ou le prix d’achat, c’est toi qui les connais.',
         },
         {
           q: 'Mes photos sont-elles privées ?',
-          a: 'Oui. Rien n’est public tant que vous ne partagez pas un lien, et vous pouvez le désactiver à tout moment.',
+          a: 'Oui. Rien n’est public tant que tu ne partages pas un lien, et tu peux le désactiver à tout moment.',
         },
         {
           q: 'L’estimation est-elle fiable ?',
@@ -222,7 +231,7 @@ const fr = {
       ],
     },
     final: {
-      title: 'Votre premier objet, rangé en une photo.',
+      title: 'Ton premier objet, rangé en une photo.',
       sub: 'Gratuit, sans carte bancaire.',
     },
   },
@@ -232,15 +241,10 @@ const fr = {
       description: 'Tiroir est gratuit, avec {free} actions IA par mois. Crédits IA dès {pack}, Premium à {premium} par mois, Pro à {pro} par mois, Business sur devis.',
     },
     badge: 'Tarifs',
-    title: 'Rangez tout. Sachez ce que ça vaut.',
-    sub: 'Tiroir est gratuit pour tout le monde. Payez seulement quand vous allez plus loin.',
+    title: 'Range tout. Sache ce que ça vaut.',
+    sub: 'Tiroir est gratuit pour tout le monde. Tu ne paies que si tu vas plus loin.',
     perMonth: '/mois',
     perYear: 'ou {price} par an',
-    // Mention de l'annuel : 10 mois payés pour 12 (grille du 08/11/2026).
-    twoMonthsFree: 'Deux mois offerts',
-    // Après un prix TTC (assujetti à la TVA) ; vatExcl : le même prix hors taxes.
-    vatIncl: 'TTC',
-    vatExcl: 'soit {price} HT',
     perSeat: 'par siège/mois',
     soon: 'Bientôt disponible',
     free: {
@@ -260,7 +264,6 @@ const fr = {
         'Estimation automatique avec quota mensuel',
         'Courbe de suivi de valeur et bouton Actualiser',
         'Sources résumées en une ligne',
-        'Suggestions d’objets par vos proches',
         'Liens de partage protégés par mot de passe',
       ],
       cta: 'Passer Premium',
@@ -289,7 +292,7 @@ const fr = {
     note: 'Prix TTC. Business se règle sur facture.',
     credits: {
       title: 'Crédits IA',
-      sub: 'Besoin de plus ? Rechargez quand vous voulez, sans abonnement.',
+      sub: 'Besoin de plus ? Recharge quand tu veux, sans abonnement.',
       unit: '{n} crédits',
       popular: 'Le plus choisi',
       note: 'Paiement sécurisé par carte. Les crédits n’expirent pas.',
@@ -315,15 +318,20 @@ const fr = {
       },
     ],
     final: {
-      title: 'Commencez gratuitement.',
+      title: 'Commence gratuitement.',
       sub: 'Objets et collections illimités, {n} actions IA par mois. Aucune carte bancaire requise.',
     },
+    // Mention de l'annuel : 10 mois payés pour 12 (grille du 08/11/2026).
+    twoMonthsFree: 'Deux mois offerts',
+    // Après un prix TTC (assujetti à la TVA) ; vatExcl : le même prix hors taxes.
+    vatIncl: 'TTC',
+    vatExcl: 'soit {price} HT',
   },
   errors: {
     notFoundTitle: 'Page introuvable',
     notFoundText: 'La page demandée n’existe pas ou a été déplacée.',
     serverTitle: 'Erreur interne',
-    serverText: 'Un problème est survenu de notre côté. Réessayez dans un instant.',
+    serverText: 'Un problème est survenu de notre côté. Réessaie dans un instant.',
     back: 'Retour à l’accueil',
   },
 }
