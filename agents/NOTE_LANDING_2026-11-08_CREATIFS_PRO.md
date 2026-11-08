@@ -52,10 +52,9 @@ photo, c'est tout » et **remplacent « Pour les créatifs et les pros »**
    général), support@ (comptes) et privacy@ (données personnelles) ne
    changent pas.
 
-   **Reste dans l'app** : le texte `proBilling` (« Abonnement Professionnel
-   facturé en direct. Écrivez-nous à hello@tiroir.app… ») cite encore
-   hello@. Il vit sur la branche V4 (`design/i18n/app/*.json`) et ne
-   changera qu'avec une nouvelle version de l'app.
+   **Dans l'app** : le texte `proBilling` renvoie aussi à cette adresse,
+   avec l'objet « Tiroir Business » (commit f7a7527, six langues). Visible
+   à la prochaine version de l'app.
 2. **Visuel de la section créatifs** : une fiche avec la photo
    `public/screens/chain/appareil-photo.png` (un appareil argentique, sans
    marque visible), une estimation fictive (420 – 510 €) et une courbe
@@ -68,7 +67,9 @@ photo, c'est tout » et **remplacent « Pour les créatifs et les pros »**
    - es et de : nouvelles sections traduites par un agent.
    - pt-BR : toute la landing traduite par un agent ; une relecture native
      est indispensable avant de mettre l'adresse en avant.
-5. **Quand les offres sortiront** : retirer les badges, repasser les verbes
+5. **Quand les offres sortiront** (main a reçu Stripe Checkout : les
+   boutons de la page Tarifs s'activent dès que Stripe est configuré sur
+   le serveur, `paymentOpen`) : retirer les badges, repasser les verbes
    au présent et remettre « Passer au Premium » et « Passer au Pro », dans
    les cinq langues.
 
@@ -81,3 +82,12 @@ photo, c'est tout » et **remplacent « Pour les créatifs et les pros »**
   de `OFFERS_V4` (Premium 4,99 €/mois), alors que la page Tarifs affiche
   ses propres prix « à venir » (Premium dès 15 €/mois). Les deux se
   contredisent.
+
+## Fusion avec main (2026-11-08)
+
+main génère maintenant `web/locales` depuis `design/i18n/`. Les textes de
+ces sections vivent donc dans `design/i18n/site/<langue>.json`
+(`home.creatives`, `home.pro`). Le portugais du site est
+`design/i18n/site/pt-BR.json` : langue de site partielle
+(`"siteFallback": "en"`), servie sous `/pt` (`"siteCode": "pt"`), gérée
+par `design/i18n.mjs`, `scripts/i18n-check.mjs` et `i18nCentral.test.ts`.
