@@ -7,6 +7,7 @@ import { adminNavFor } from '../lib/adminNav'
 import { computeTreasury, HYPOTHESES, type Treasury } from '../lib/treasury'
 import { loadRevenueReport } from '../lib/revenueLoad'
 import Link from 'next/link'
+import { loadPaymentHealth } from '../lib/stripe/healthLoad'
 import { isRestTime } from '../components/torix/commandments'
 
 interface AppSettings {
@@ -122,6 +123,8 @@ interface Props {
   /** Lien vers Torix, envoyé par le serveur au seul propriétaire : son
    *  libellé n'est même pas dans le code du back-office. */
   torixLink: { href: string; label: string } | null
+  /** Santé des paiements, en résumé (détail dans Facturation). */
+  payments: { ok: boolean; webhooks: number; failed: number; openDisputes: number; stripeUnavailable: boolean }
 }
 
 // Bouton d'accès à Torix : noir et blanc, bien visible (demande du fondateur).
@@ -132,7 +135,7 @@ const TORIX_BUTTON: React.CSSProperties = {
   fontWeight: 700,
 }
 
-export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixLink, treasury }: Props) {
+export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixLink, treasury, payments }: Props) {
   const conversionPct = kpis.totalAccounts > 0
     ? ((kpis.accountsWithObjects / kpis.totalAccounts) * 100).toFixed(1)
     : '0'
@@ -264,6 +267,18 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
 
         {tab === 'dashboard' && (<>
         <SystemStatus showTorix={torixLink !== null} />
+        <p style={{ fontSize: 13, margin: '-8px 0 20px', color: payments.ok ? '#5b5b5b' : '#C0392B', fontWeight: payments.ok ? 400 : 700 }}>
+          {payments.ok
+            ? '✓ Paiements : aucun webhook en échec, aucun paiement refusé, aucun litige ouvert.'
+            : <>⚠ Paiements :{' '}
+                {[
+                  payments.stripeUnavailable && 'Stripe illisible',
+                  payments.webhooks > 0 && `${payments.webhooks} webhook${payments.webhooks > 1 ? 's' : ''} en échec`,
+                  payments.failed > 0 && `${payments.failed} paiement${payments.failed > 1 ? 's' : ''} refusé${payments.failed > 1 ? 's' : ''} (30 j)`,
+                  payments.openDisputes > 0 && `${payments.openDisputes} litige${payments.openDisputes > 1 ? 's' : ''} ouvert${payments.openDisputes > 1 ? 's' : ''}`,
+                ].filter(Boolean).join(' · ')}
+                {' — '}<Link href="/admin/facturation#sante">voir le détail</Link></>}
+        </p>
 
         {/* ── Trésorerie (estimation) ── */}
         <h2 style={s.sectionTitle}>Trésorerie de Tiroir — ce mois-ci</h2>
@@ -2462,7 +2477,14 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   }
 
   // Abonnés et MRR réels, par canal (lib/subscriptionRevenue.ts).
-  const revenue = await loadRevenueReport(admin)
+  const [revenue, health] = await Promise.all([loadRevenueReport(admin), loadPaymentHealth(admin)])
+  const payments = {
+    ok: health.ok,
+    webhooks: health.webhooks.length,
+    failed: health.failedPayments.length,
+    openDisputes: health.openDisputes,
+    stripeUnavailable: health.stripeUnavailable,
+  }
   const mrrOf = (pred: (c: string) => boolean) =>
     revenue.channels.filter(l => pred(l.channel)).reduce((n, l) => n + (l.mrrHt ?? 0), 0) / 100
   const treasury = {
@@ -2480,6 +2502,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   return {
     props: {
       treasury,
+      payments,
       torixLink: isTorixOwner(session.user) ? { href: '/admin/torix-lab', label: 'Torix Lab' } : null,
       // Lu par le header du back-office (_app.tsx), pas par la page.
       adminNav: adminNavFor(session.user, true),
