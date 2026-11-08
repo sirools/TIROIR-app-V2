@@ -8,6 +8,9 @@ import { computeTreasury, HYPOTHESES, type Treasury } from '../lib/treasury'
 import { loadRevenueReport } from '../lib/revenueLoad'
 import Link from 'next/link'
 import { loadPaymentHealth } from '../lib/stripe/healthLoad'
+import { AI_COST_ALERT_SHARE, creditPriceHtEur, type AiEconomics } from '../lib/aiEconomics'
+import { loadAiEconomics } from '../lib/aiEconomicsLoad'
+import { VAT_RATE } from '../lib/offers'
 import { isRestTime } from '../components/torix/commandments'
 
 interface AppSettings {
@@ -125,6 +128,8 @@ interface Props {
   torixLink: { href: string; label: string } | null
   /** Santé des paiements, en résumé (détail dans Facturation). */
   payments: { ok: boolean; webhooks: number; failed: number; openDisputes: number; stripeUnavailable: boolean }
+  /** Coût IA : gratuits contre payants, par action, part du chiffre d'affaires. */
+  aiEco: AiEconomics
 }
 
 // Bouton d'accès à Torix : noir et blanc, bien visible (demande du fondateur).
@@ -135,7 +140,7 @@ const TORIX_BUTTON: React.CSSProperties = {
   fontWeight: 700,
 }
 
-export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixLink, treasury, payments }: Props) {
+export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixLink, treasury, payments, aiEco }: Props) {
   const conversionPct = kpis.totalAccounts > 0
     ? ((kpis.accountsWithObjects / kpis.totalAccounts) * 100).toFixed(1)
     : '0'
@@ -429,6 +434,62 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
         </div>
 
         <SpendSparkline days={aiSpend.par_jour} />
+
+        <h3 style={s.subSectionTitle}>L&apos;IA face au chiffre d&apos;affaires (ce mois-ci)</h3>
+        <p style={{ ...s.tableIntro, color: aiEco.alert ? '#C0392B' : undefined, fontWeight: aiEco.alert ? 700 : undefined }}>
+          {aiEco.share === null
+            ? (aiEco.totalCostEur > 0
+              ? `⚠ ${aiEco.totalCostEur.toFixed(2)} € d’IA ce mois-ci, sans chiffre d’affaires en face.`
+              : 'Ni coût IA ni chiffre d’affaires ce mois-ci.')
+            : `${aiEco.alert ? '⚠ ' : ''}L’IA coûte ${aiEco.totalCostEur.toFixed(2)} €, soit ${(aiEco.share * 100).toFixed(1)} % du chiffre d’affaires HT du mois (${aiEco.revenueHtEur.toFixed(2)} € : abonnements et crédits). Alerte au-delà de ${AI_COST_ALERT_SHARE * 100} %.`}
+        </p>
+
+        <h3 style={s.subSectionTitle}>Gratuits contre payants (ce mois-ci)</h3>
+        <p style={s.tableIntro}>
+          Qui consomme l&apos;IA, selon le palier actuel du compte. Un gratuit qui paie en crédits reste compté parmi les gratuits.
+        </p>
+        <SpendTable
+          columns={[
+            { label: 'Palier', width: 3 },
+            { label: 'Comptes', width: 1 },
+            { label: 'Appels', width: 1 },
+            { label: 'Par compte', width: 1.4 },
+            { label: 'Total', width: 1.3 },
+          ]}
+          rows={aiEco.segments.map(g => ({
+            key: g.segment,
+            label: g.label,
+            cells: [fmtInt(g.users), fmtInt(g.calls), fmtEurFine(g.costPerUserEur), fmtEurFine(g.costEur)],
+            share: aiEco.totalCostEur > 0 ? (g.costEur / aiEco.totalCostEur) * 100 : 0,
+          }))}
+        />
+
+        <h3 style={s.subSectionTitle}>Coût et marge par action (ce mois-ci)</h3>
+        <p style={s.tableIntro}>
+          Prix d&apos;une action : son coût en crédits, au prix HT d&apos;un crédit du plus gros pack ({fmtEurFine(creditPriceHtEur())}), le moins cher pour le client.
+        </p>
+        <SpendTable
+          columns={[
+            { label: 'Action', width: 3 },
+            { label: 'Appels', width: 1 },
+            { label: 'Coût moyen', width: 1.3 },
+            { label: 'Crédits', width: 1 },
+            { label: 'Prix', width: 1.2 },
+            { label: 'Marge', width: 1.2 },
+          ]}
+          rows={aiEco.actions.map(a => ({
+            key: a.feature,
+            label: a.label,
+            cells: [
+              fmtInt(a.calls),
+              fmtEurFine(a.avgCostEur),
+              a.credits === null ? '—' : String(a.credits),
+              a.priceEur === null ? '—' : fmtEurFine(a.priceEur),
+              a.marginEur === null ? '—' : `${a.marginEur < 0 ? '⚠ ' : ''}${fmtEurFine(a.marginEur)}`,
+            ],
+            share: aiEco.totalCostEur > 0 ? ((a.avgCostEur * a.calls) / aiEco.totalCostEur) * 100 : 0,
+          }))}
+        />
 
         <h3 style={s.subSectionTitle}>Ce qui coûte le plus (30 jours)</h3>
         <p style={s.tableIntro}>
@@ -2164,6 +2225,16 @@ function fmtUsdFine(n: number) {
 function fmtInt(n: number) {
   return Math.round(n).toLocaleString('fr-FR')
 }
+/** Petits montants en euros : centimes visibles (0,0021 € → « 0,21 c »). */
+function fmtEurFine(n: number) {
+  if (!isFinite(n)) return '—'
+  if (n === 0) return '0 €'
+  const sign = n < 0 ? '−' : ''
+  const a = Math.abs(n)
+  if (a < 0.01) return `${sign}${(a * 100).toFixed(2).replace('.', ',')} c`
+  if (a < 1) return `${sign}${a.toFixed(3).replace('.', ',')} €`
+  return `${sign}${a.toFixed(2).replace('.', ',')} €`
+}
 function fmtMoney(n: number) {
   return `${n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
 }
@@ -2478,6 +2549,9 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   // Abonnés et MRR réels, par canal (lib/subscriptionRevenue.ts).
   const [revenue, health] = await Promise.all([loadRevenueReport(admin), loadPaymentHealth(admin)])
+  // Chiffre d'affaires HT du mois : MRR des abonnements + crédits vendus (TTC → HT).
+  const revenueHtEur = revenue.mrrHt / 100 + (revenue.credits.site.ttc + revenue.credits.app.ttc) / 100 / (1 + VAT_RATE)
+  const aiEco = await loadAiEconomics(admin, { usdToEur: HYPOTHESES.usdToEur, revenueHtEur })
   const payments = {
     ok: health.ok,
     webhooks: health.webhooks.length,
@@ -2503,6 +2577,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     props: {
       treasury,
       payments,
+      aiEco,
       torixLink: isTorixOwner(session.user) ? { href: '/admin/torix-lab', label: 'Torix Lab' } : null,
       // Lu par le header du back-office (_app.tsx), pas par la page.
       adminNav: adminNavFor(session.user, true),
