@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import type { GetStaticProps } from 'next'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
@@ -42,19 +41,23 @@ const YEARLY_SAVING = Math.round((1 - premium.yearlyTtc / (premium.monthlyTtc * 
 export default function Pricing({ paymentOpen }: Props) {
   const { t: { pricing: t }, locale } = useCopy()
   const { t: { subscribe: ts } } = useBillingCopy()
-  const router = useRouter()
   const eur = (n: number) => formatEur(n, locale)
   const n = free.aiActionsPerMonth
-  // Offre gardée au retour de Stripe (paiement abandonné).
+  // Offre gardée au retour de Stripe (paiement abandonné). Lue dans
+  // l'adresse du navigateur : la page est statique, router.query peut
+  // rester vide.
   const [period, setPeriod] = useState<BillingPeriod>('monthly')
   const [chosen, setChosen] = useState<PlanTier | null>(null)
-  const cancelled = router.query.paiement === 'annule'
+  const [cancelled, setCancelled] = useState(false)
   useEffect(() => {
-    if (!router.isReady) return
-    const offer = offerFromQuery(router.query)
+    const query = Object.fromEntries(new URLSearchParams(window.location.search))
+    const offer = offerFromQuery(query)
     if (offer) { setChosen(offer.tier); if (offer.tier === 'premium') setPeriod(offer.period) }
-    if (router.query.paiement === 'annule') document.getElementById('formules')?.scrollIntoView()
-  }, [router.isReady, router.query])
+    if (query.paiement === 'annule') {
+      setCancelled(true)
+      requestAnimationFrame(() => document.getElementById('formules')?.scrollIntoView())
+    }
+  }, [])
   const yearly = period === 'yearly'
   return (
     <>

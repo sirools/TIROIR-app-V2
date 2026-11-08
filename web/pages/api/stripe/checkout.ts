@@ -35,6 +35,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const stripe = stripeClient(env)
     const session = await stripe<{ url: string }>('POST', '/v1/checkout/sessions', {
       mode: 'payment',
+      // Tiroir vend en son nom (EI, franchise de TVA, factures à son nom) :
+      // pas de « Managed Payments » (Stripe revendeur), activé par défaut
+      // sur les nouveaux comptes. Voir strategie/paiements-stripe.md § 6.
+      managed_payments: { enabled: false },
       line_items: [{ price: await priceIdFor(stripe, pack.lookupKey), quantity: 1 }],
       client_reference_id: user.id,
       customer_email: user.email,

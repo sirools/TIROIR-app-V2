@@ -111,11 +111,11 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
 }
 
 const s: Record<string, React.CSSProperties> = {
-  layout: { display: 'flex', flexWrap: 'wrap-reverse', gap: 32, alignItems: 'flex-start', justifyContent: 'center', maxWidth: 880 },
+  layout: { display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'flex-start', justifyContent: 'center', maxWidth: 880 },
   main:   { flex: '1 1 320px', minWidth: 0, maxWidth: 440, display: 'flex', flexDirection: 'column', gap: 12 },
   muted:  { fontSize: 14, color: 'var(--muted)', lineHeight: 1.5, margin: 0 },
   link:   { color: 'var(--orange)', fontWeight: 600, textDecoration: 'none' },
-  btn:    { marginTop: 12, width: '100%', padding: '15px 0', borderRadius: 12, background: 'var(--orange)', color: 'white', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', fontFamily: 'inherit' },
+  btn:    { marginTop: 12, width: '100%', padding: '15px 0', textAlign: 'center', display: 'block', borderRadius: 12, background: 'var(--orange)', color: 'white', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', fontFamily: 'inherit' },
   note:   { fontSize: 15, color: 'var(--ink)', background: 'white', borderRadius: 12, padding: '12px 16px', margin: '8px 0 0', lineHeight: 1.5 },
   error:  { fontSize: 14, color: 'var(--error)', margin: 0 },
 }

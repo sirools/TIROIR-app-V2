@@ -324,10 +324,18 @@ de l'ouverture.
     activés ; après la dernière tentative : **annuler l'abonnement** (le
     webhook repasse alors le compte en gratuit). Pendant les relances, le
     compte reste payant (`past_due`).
-12. **Apple Pay / Google Pay** : rien à vérifier côté domaine avec
+12. **Managed Payments** (Settings › Managed payments) : activé par
+    défaut sur les comptes récents, il fait de Stripe le revendeur
+    (et exige un code fiscal par produit). Tiroir vend en son nom, en
+    franchise de TVA : le code le désactive à chaque session
+    (`managed_payments[enabled]=false`). Le désactiver aussi par défaut
+    dans le tableau de bord, par cohérence. Nom public du compte (Public
+    details) : « Tiroir », sinon Checkout et le portail affichent le nom
+    du compte (« environnement de test Clément Ougier » en test).
+13. **Apple Pay / Google Pay** : rien à vérifier côté domaine avec
     Checkout hébergé ; seulement s'assurer qu'ils sont actifs dans
     Payment methods (point 4).
-13. **Préprod, impayé simulé** : Billing → Test clocks → nouvelle horloge
+14. **Préprod, impayé simulé** : Billing → Test clocks → nouvelle horloge
     → son id dans `STRIPE_TEST_CLOCK_ID` (voir § 8, B6).
 
 ## 7. Variables d'environnement
