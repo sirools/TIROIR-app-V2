@@ -36,10 +36,12 @@ photo, c'est tout » et **remplacent « Pour les créatifs et les pros »**
 
 ## À fournir ou à valider
 
-1. **Contact Business** : `mailto:hello@tiroir.app?subject=Tiroir Business`,
-   la même adresse que la page Tarifs (`BUSINESS_CONTACT` dans
-   `ProBusiness.tsx`). À confirmer, ou à remplacer par un formulaire ou un
-   lien d'agenda.
+1. **Contact Business** : validé le 2026-11-08. Le bouton « Nous contacter »
+   ouvre un e-mail à clement.ougier@gmail.com avec l'objet « Tiroir
+   Business » (`BUSINESS_CONTACT` dans `ProBusiness.tsx`). La section
+   n'affiche ni l'adresse e-mail ni d'adresse postale. La page Tarifs garde
+   son propre lien vers hello@tiroir.app : à aligner si ce doit être la
+   même adresse partout.
 2. **Visuel de la section créatifs** : une fiche avec la photo
    `public/screens/chain/appareil-photo.png` (un appareil argentique, sans
    marque visible), une estimation fictive (420 – 510 €) et une courbe

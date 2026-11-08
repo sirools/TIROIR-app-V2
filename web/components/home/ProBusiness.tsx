@@ -5,8 +5,12 @@ import s from './home.module.css'
 
 const ICONS = [Calculator, Layers, ListChecks, FileCheck2]
 
-/** Contact Business : la même adresse que la page Tarifs (à valider). */
-export const BUSINESS_CONTACT = 'mailto:hello@tiroir.app?subject=Tiroir%20Business'
+/**
+ * Contact Business, validé par le fondateur (2026-11-08) : un e-mail
+ * avec l'objet « Tiroir Business ». Seul le bouton s'affiche : ni
+ * l'adresse e-mail ni d'adresse postale dans la section.
+ */
+export const BUSINESS_CONTACT = 'mailto:clement.ougier@gmail.com?subject=Tiroir%20Business'
 
 /** Lignes fictives de l'aperçu d'export (valeurs en euros). */
 const ROWS = [4200, 1150, 680, 890]
