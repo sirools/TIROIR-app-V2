@@ -74,7 +74,7 @@
     "filterEmpty": "Nenhuma coleção corresponde a «{{query}}»."
   },
   "profile": {
-    "proBilling": "Subscrição Profissional faturada diretamente. Escreva para hello@tiroir.app para qualquer alteração.",
+    "proBilling": "Subscrição Profissional faturada diretamente. Escreva para clement.ougier@gmail.com (assunto «Tiroir Business») para qualquer alteração.",
     "statShares": "partilhas ativas",
     "aiThisMonth": "Análises de IA este mês",
     "resetOn": "Repõe a {{date}}",
