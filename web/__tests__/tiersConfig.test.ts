@@ -51,7 +51,7 @@ describe('config/tiers.json', () => {
   })
 
   test('le coût des actions est celui que le serveur débite', () => {
-    const sql = readFileSync(path.join(root, 'supabase/drafts/ai_credits_spend.sql'), 'utf8')
+    const sql = readFileSync(path.join(root, 'supabase/migrations/20261108143238_ai_credits_spend.sql'), 'utf8')
     const cost = (kind: string) => Number(sql.match(new RegExp(`WHEN '${kind}' THEN (\\d+)`))?.[1])
     expect(tiers.creditCosts.photo).toBe(cost('photo'))
     expect(tiers.creditCosts.estimate).toBe(cost('estimate'))

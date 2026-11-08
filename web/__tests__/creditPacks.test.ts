@@ -38,7 +38,7 @@ describe('grille affichée (lib/offers.ts)', () => {
 
   test('le coût d’un crédit est celui que le serveur débite', async () => {
     const { CREDIT_COSTS } = await import('../lib/offers')
-    const sql = readFileSync(path.join(root, 'supabase/drafts/ai_credits_spend.sql'), 'utf8')
+    const sql = readFileSync(path.join(root, 'supabase/migrations/20261108143238_ai_credits_spend.sql'), 'utf8')
     const cost = (kind: string) => Number(sql.match(new RegExp(`WHEN '${kind}' THEN (\\d+)`))?.[1])
     expect(CREDIT_COSTS.map(c => c.credits)).toEqual([1, cost('photo'), cost('estimate')])
     expect(sql).toMatch(/WHEN 'analysis' THEN p_units/)

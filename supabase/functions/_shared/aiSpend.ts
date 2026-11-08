@@ -1,6 +1,6 @@
 // Toute dépense IA passe par ici : le quota du mois d'abord, puis les
 // crédits achetés (strategie/offres.md ; SQL : spend_ai et refund_ai_spend
-// dans supabase/drafts/ai_credits_spend.sql).
+// dans supabase/migrations/20261108143238_ai_credits_spend.sql).
 //
 // Dépenser se fait avec le client de l'utilisateur (auth.uid()). Rendre une
 // dépense se fait avec le client SERVICE : le compte ne peut plus se
