@@ -53,17 +53,19 @@ Deno.serve(async (req: Request) => {
     // Récupérer récursivement tous les fichiers sous user.id/
     const { data: allObjects } = await adminClient
       .from('object_images')
-      .select('storage_path')
+      .select('storage_path, zoom_path')
       .eq('user_id', user.id)
 
     const { data: draftImages } = await adminClient
       .from('ai_draft_images')
-      .select('storage_path')
+      .select('storage_path, zoom_path')
       .eq('user_id', user.id)
 
     const paths = [
-      ...(allObjects ?? []).map((r: { storage_path: string }) => r.storage_path),
-      ...(draftImages ?? []).map((r: { storage_path: string }) => r.storage_path),
+      ...[...(allObjects ?? []), ...(draftImages ?? [])].flatMap(
+        (r: { storage_path: string; zoom_path: string | null }) =>
+          r.zoom_path ? [r.storage_path, r.zoom_path] : [r.storage_path],
+      ),
     ]
 
     // Photos de profil : toutes celles du dossier, pas seulement la

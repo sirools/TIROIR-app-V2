@@ -2,14 +2,16 @@ import { supabase } from '@/lib/supabase'
 import { DraftProposedData } from '@/types/database'
 import { AssistantService } from './types'
 import i18n, { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, type AppLanguage } from '@/i18n'
+import { FunctionError } from '@/lib/functionError'
 
 /**
  * Langue active de l'app à transmettre à l'IA pour qu'elle rédige la fiche
  * dans la bonne langue. i18n.language peut être une variante régionale
  * (ex: 'en-US') : on ne garde que le code base et on retombe sur la langue
- * par défaut si non supporté.
+ * par défaut si non supporté. Le portugais garde sa variante (pt-BR, pt-PT).
  */
 function currentAiLocale(): AppLanguage {
+  if ((SUPPORTED_LANGUAGES as readonly string[]).includes(i18n.language)) return i18n.language as AppLanguage
   const base = i18n.language?.split('-')[0]?.toLowerCase()
   return (SUPPORTED_LANGUAGES as readonly string[]).includes(base ?? '')
     ? (base as AppLanguage)
@@ -27,6 +29,8 @@ interface ChatTurnResponse {
   proposed_data?: DraftProposedData
   assistant_message?: string
   error?: string
+  /** Motif d'un refus (QUOTA_EXCEEDED…), à côté du message. */
+  code?: string
 }
 
 export class SupabaseAssistantService implements AssistantService {
@@ -103,7 +107,10 @@ export class SupabaseAssistantService implements AssistantService {
     // 4. Vérifier le statut HTTP et le champ ok
     if (!response.ok || !payload.ok) {
       const message = payload.error ?? response.statusText
-      throw new Error(`Analyse IA échouée : ${message}`)
+      // Quota et crédits épuisés : le message du serveur se suffit, et le
+      // code permet à l'écran de proposer un pack (lib/buyCredits.ts).
+      if (payload.code === 'QUOTA_EXCEEDED') throw new FunctionError(message, payload.code)
+      throw new FunctionError(`Analyse IA échouée : ${message}`, payload.code ?? null)
     }
 
     // 5. Vérifier que proposed_data est présent

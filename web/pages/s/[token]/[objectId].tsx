@@ -3,9 +3,12 @@ import type { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useState } from 'react'
+import { ZoomIn } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 import HeaderTiroirWeb from '../../../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../../../components/layout/FooterTiroirWeb'
+import PhotoZoomViewer from '../../../components/share/PhotoZoomViewer'
+import { hasPhotoZoom, zoomPaths, zoomUrls } from '../../../lib/photoZoom'
 import { hasSignedCookie } from '../../../lib/shareCookieSignature'
 import { serverSupabase } from '../../../lib/supabase'
 import { isLot, lotTotal } from '../../../lib/quantity'
@@ -94,6 +97,8 @@ interface Props {
   token: string
   object: ObjectDetail | null
   images: string[]
+  /** Présent si le propriétaire est abonné : c'est ce qui ouvre le zoom. */
+  zoomImages?: string[] | null
   documents: DocMeta[]
   insurances: Insurance[]
   fields?: ShareFields
@@ -207,15 +212,25 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   const { data: imgRows } = await supabase
     .from('object_images')
-    .select('storage_path')
+    .select('storage_path, zoom_path')
     .eq('object_id', objectId)
     .order('position')
 
+  const { data: owner } = await supabase
+    .from('profiles')
+    .select('plan, pro_expires_at')
+    .eq('id', link.user_id)
+    .single()
+  const canZoom = hasPhotoZoom(owner?.plan, owner?.pro_expires_at)
+
   let images: string[] = []
+  let zoomImages: string[] | null = null
   if (imgRows && imgRows.length) {
     const paths = imgRows.map(r => r.storage_path)
-    const { data: signed } = await supabase.storage.from('object-images').createSignedUrls(paths, 3600)
-    images = (signed ?? []).map(s => s.signedUrl).filter(Boolean) as string[]
+    const { data: signed } = await supabase.storage.from('object-images')
+      .createSignedUrls(canZoom ? [...paths, ...zoomPaths(imgRows)] : paths, 3600)
+    images = zoomUrls(imgRows.map(r => ({ storage_path: r.storage_path })), signed ?? [])
+    if (canZoom) zoomImages = zoomUrls(imgRows, signed ?? [])
   }
 
   let documents: DocMeta[] = []
@@ -278,15 +293,16 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     isOwner = false
   }
 
-  return { props: { token, object, images, documents, insurances, fields, isOwner } }
+  return { props: { token, object, images, zoomImages, documents, insurances, fields, isOwner } }
 }
 
-export default function SharedObjectDetailPage({ token, object, images, documents, insurances, fields = ALL_FIELDS, error, gated, isOwner = false }: Props) {
+export default function SharedObjectDetailPage({ token, object, images, zoomImages, documents, insurances, fields = ALL_FIELDS, error, gated, isOwner = false }: Props) {
   const { t: { share: t }, locale } = useCopy()
   const to = t.object
   const money = (amount: number, rawCurrency: string | null | undefined) => formatMoney(locale, amount, rawCurrency)
   const formatDate = (iso: string | null | undefined) => formatLongDate(locale, iso)
   const [activeImg, setActiveImg] = useState(0)
+  const [viewerOpen, setViewerOpen] = useState(false)
   // Brief V4 : le détail de la valeur se replie, et s'ouvre dans le flux.
   const [valueOpen, setValueOpen] = useState(false)
   const pageTitle = gated
@@ -429,12 +445,20 @@ export default function SharedObjectDetailPage({ token, object, images, document
           {/* ── Bento : Galerie + Infos ── */}
           <div className="hero-card">
             <div className="hero-gallery">
-              <div className="gallery-main">
-                {images.length > 0
-                  ? <img src={images[activeImg]} alt={object.title} className="gallery-img" />
-                  : <div className="gallery-placeholder">📦</div>
-                }
-              </div>
+              {images.length > 0 && !zoomImages && (
+                <div className="gallery-main">
+                  <img src={images[activeImg]} alt={object.title} className="gallery-img" />
+                </div>
+              )}
+              {images.length > 0 && zoomImages
+                ? (
+                  <button type="button" className="gallery-main gallery-open" aria-label={to.viewer.open} onClick={() => setViewerOpen(true)}>
+                    <img src={images[activeImg]} alt={object.title} className="gallery-img" />
+                    <span className="gallery-zoom-hint" aria-hidden="true"><ZoomIn size={16} /></span>
+                  </button>
+                )
+                : images.length === 0 && <div className="gallery-main"><div className="gallery-placeholder">📦</div></div>
+              }
               {images.length > 1 && (
                 <div className="gallery-thumbs">
                   {images.map((src, i) => (
@@ -447,6 +471,14 @@ export default function SharedObjectDetailPage({ token, object, images, document
                     </button>
                   ))}
                 </div>
+              )}
+              {viewerOpen && zoomImages && (
+                <PhotoZoomViewer
+                  images={zoomImages}
+                  alt={object.title}
+                  startIndex={activeImg}
+                  onClose={i => { setActiveImg(i); setViewerOpen(false) }}
+                />
               )}
             </div>
 
@@ -734,6 +766,13 @@ const styles = `
     background: var(--border-light); display: grid; place-items: center;
   }
   .gallery-img { width: 100%; height: 100%; object-fit: cover; }
+  .gallery-open { position: relative; padding: 0; border: 0; cursor: zoom-in; }
+  .gallery-zoom-hint {
+    position: absolute; right: 10px; bottom: 10px; width: 32px; height: 32px;
+    display: grid; place-items: center; border-radius: 50%; color: var(--white);
+    background: color-mix(in srgb, var(--ink) 55%, transparent);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  }
   .gallery-placeholder { font-size: 64px; }
   .gallery-thumbs { display: flex; gap: 8px; overflow-x: auto; }
   .thumb {

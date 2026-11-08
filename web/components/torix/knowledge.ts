@@ -136,12 +136,13 @@ export const TOPICS: Topic[] = [
     id: 'quotas',
     keywords: ['quota', 'limite', 'gratuit', 'premium', 'forfait', 'abonnement', 'combien d analyses', 'offre'],
     register: 'fait',
-    source: 'web/lib/offers.ts · strategie/offres.md · Notion « Page Tarifs — textes V4 » · app_settings',
+    source: 'web/lib/offers.ts · strategie/offres.md · strategie/paiements-stripe.md · Notion « Page Tarifs — textes V4 » · app_settings',
     answer:
-      'Page Tarifs du site : grille V4, paiement pas encore ouvert (boutons « Bientôt disponible », Stripe en mode test) — Free (20 actions IA par mois), crédits (50 à 2,99 €, 150 à 6,99 €, 500 à 19,99 €), Premium (4,99 €/mois ou 39 €/an), Pro (14,99 €/mois), Business (39 € par siège/mois, sur facture).\n' +
-      'Dans l’app, toujours la grille du 30/09/2026 : Gratuit (20 objets avec l’IA offerts), packs de crédits (30 crédits à 4,99 €, 80 à 9,99 €, sans expiration), Premium (49,99 €/mois, illimité en usage raisonnable), Pro (à partir de 1 700 € HT/mois avec 20 000 crédits inclus, puis 0,05 € HT le crédit).\n' +
-      'Les abonnés actuels gardent 6,99 €/mois. Tant que la bascule n’est pas faite, les quotas mensuels en vigueur se règlent dans le back-office, onglet Quotas.\n' +
-      'Les analyses sont pondérées par leur coût : une scène Sonnet (Premium) pèse 4 unités, une scène Opus (Pro) 13.',
+      'Grille V4 du 19/10/2026, abonnements remplacés par la grille de lancement du 08/11/2026 (fixée jusqu’au passage à l’échelle) : Free (20 actions IA par mois, puis achat de crédits), crédits (50 à 2,99 €, 150 à 6,99 €, 500 à 19,99 €, sans expiration), Premium (15 €/mois ou 150 €/an HT, soit 18 € / 180 € TTC), Pro (50 €/mois ou 500 €/an HT, soit 60 € / 600 € TTC), l’annuel à « deux mois offerts » ; TVA 20 % depuis le 08/11/2026 (EI assujettie, BILLING_VAT_MODE), comprise dans les packs de crédits, Business sur devis (facture mensuelle, base de 39 € par siège/mois, pas de paiement en ligne). Stripe (mode test) porte la nouvelle grille ; les prix des stores restent à aligner.\n' +
+      'Pro = Premium avec des quotas plus élevés. Premium, Pro et crédits s’achètent dans l’app (Pro à partir de la version qui le propose) ; sur le site, paiement pas encore ouvert (Stripe en mode test). Un Pro sur facture, posé dans le back-office, n’est jamais modifié par les stores.\n' +
+      'Quotas mensuels décidés le 19/10 : Free 20 unités IA, Premium 150 unités et 50 retouches photo, Pro 600 unités et 100 retouches. Ils se règlent dans le back-office, onglet Quotas (la valeur en base fait foi).\n' +
+      'Les analyses sont pondérées par leur coût : une scène Sonnet (Premium) pèse 4 unités, une scène Opus (Pro) 13.\n' +
+      'Paiement sur le site par Stripe, prêt en mode test seulement (pas encore en prod) : packs de crédits sur la page Crédits, crédités par le webhook dans le même journal que l’app ; abonnements Premium et Pro (mensuel, annuel ; identifiants de prix dans STRIPE_PRICE_*) par le tunnel Tarifs → compte → Stripe Checkout, activés par le webhook seul (profiles.plan_source = web ; RevenueCat ne touche pas un abonné du site), gérés dans le portail client Stripe ; Business facturé par siège, sur facture à 30 jours (virement ou SEPA), Pro pour les membres sans toucher aux Premium.',
   },
   {
     id: 'commandements',

@@ -1,3 +1,5 @@
+// Généré par design/generate.mjs depuis design/i18n/site/de.json — ne pas modifier à la main.
+//
 // Texte der Website auf Deutsch. Gleiche Struktur wie fr.ts.
 // Von einer Muttersprachlerin / einem Muttersprachler gegenlesen lassen.
 import type { Copy } from './fr'
@@ -36,7 +38,6 @@ const de: Copy = {
     contact: 'Kontakt',
     language: 'Sprache',
   },
-
   home: {
     meta: {
       title: 'Tiroir — ein Foto, und alles ist erfasst',
@@ -77,11 +78,28 @@ const de: Copy = {
       title: 'Ein Foto. Das war’s.',
       sub: 'Torix, die KI von Tiroir, erkennt deinen Gegenstand und füllt seinen Eintrag aus. Du wählst nur die Schublade.',
       steps: [
-        { title: 'Du machst das Foto', text: 'Ein Gegenstand, ein Foto. Kein Formular.' },
-        { title: 'Torix füllt den Eintrag aus', text: 'Name, Kategorie, Zustand: Alles schreibt sich von selbst. Korrigiere, wenn du willst.' },
-        { title: 'Schon eingeräumt', text: 'Du wählst die Schublade, während Torix arbeitet. Danach findest du alles sofort.' },
+        {
+          title: 'Du machst das Foto',
+          text: 'Ein Gegenstand, ein Foto. Kein Formular.',
+        },
+        {
+          title: 'Torix füllt den Eintrag aus',
+          text: 'Name, Kategorie, Zustand: Alles schreibt sich von selbst. Korrigiere, wenn du willst.',
+        },
+        {
+          title: 'Schon eingeräumt',
+          text: 'Du wählst die Schublade, während Torix arbeitet. Danach findest du alles sofort.',
+        },
       ],
-      fiche: { name: 'Jeansjacke', rows: [['Kategorie', 'Kleidung'], ['Zustand', 'Gut']], estimate: 'Wert', estimateCta: '✦ Schätzen' },
+      fiche: {
+        name: 'Jeansjacke',
+        rows: [
+          ['Kategorie', 'Kleidung'],
+          ['Zustand', 'Gut'],
+        ],
+        estimate: 'Wert',
+        estimateCta: '✦ Schätzen',
+      },
       drawer: 'Garderobe',
       stored: 'Eingeräumt',
       video: {
@@ -98,10 +116,26 @@ const de: Copy = {
       title: 'Weniger Tipparbeit, mehr Zeit für deinen Job.',
       sub: 'Deine Ausrüstung, dein Lager, deine Sammlungen: mit ein paar Fotos dokumentiert, während du arbeitest.',
       personas: [
-        { who: 'Stylistin', text: 'Jedes Teil fotografiert und nach Shooting sortiert. Du weißt, was rausging und was zurückkam.', chip: 'Verliehen · zurück am Freitag' },
-        { who: 'Aufnahmeleiter', text: 'Die Technik vor dem Dreh erfasst, nach der Rückgabe geprüft. Der ganze Bestand passt in deine Hosentasche.', chip: '42 Teile · 3 verliehen' },
-        { who: 'Trödelhändler', text: 'Ein ganzer Stand in einer Sitzung erfasst, dank Serienmodus – mit Startpreis für jedes Stück.', chip: 'Serie · 60 Objekte' },
-        { who: 'Musiker', text: 'Instrumente und Zubehör dokumentiert, Rechnungen angehängt: bereit für Versicherung oder Verkauf.', chip: 'Wert ≈ {price}' },
+        {
+          who: 'Stylistin',
+          text: 'Jedes Teil fotografiert und nach Shooting sortiert. Du weißt, was rausging und was zurückkam.',
+          chip: 'Verliehen · zurück am Freitag',
+        },
+        {
+          who: 'Aufnahmeleiter',
+          text: 'Die Technik vor dem Dreh erfasst, nach der Rückgabe geprüft. Der ganze Bestand passt in deine Hosentasche.',
+          chip: '42 Teile · 3 verliehen',
+        },
+        {
+          who: 'Trödelhändler',
+          text: 'Ein ganzer Stand in einer Sitzung erfasst, dank Serienmodus – mit Startpreis für jedes Stück.',
+          chip: 'Serie · 60 Objekte',
+        },
+        {
+          who: 'Musiker',
+          text: 'Instrumente und Zubehör dokumentiert, Rechnungen angehängt: bereit für Versicherung oder Verkauf.',
+          chip: 'Wert ≈ {price}',
+        },
       ],
     },
     everyone: {
@@ -109,12 +143,26 @@ const de: Copy = {
       title: 'Kein Profi nötig. Kein Technikfreak auch nicht.',
       sub: 'Wer ein Foto machen kann, kann Tiroir nutzen.',
       points: [
-        { title: 'Keine Vorkenntnisse nötig', text: 'Keine Tabellen, keine leeren Formulare. Du fotografierst, Tiroir füllt aus.' },
-        { title: 'Deine Daten gehören dir', text: 'Keine Werbung, kein Weiterverkauf, kein Training von Modellen. Wer sein Konto löscht, löscht alles – sofort.' },
-        { title: 'Teilen nur zum Ansehen', text: 'Ein Link zu einer Sammlung: Andere sehen sie ohne Konto und ohne App. Du deaktivierst den Link, wann du willst.' },
+        {
+          title: 'Keine Vorkenntnisse nötig',
+          text: 'Keine Tabellen, keine leeren Formulare. Du fotografierst, Tiroir füllt aus.',
+        },
+        {
+          title: 'Deine Daten gehören dir',
+          text: 'Keine Werbung, kein Weiterverkauf, kein Training von Modellen. Wer sein Konto löscht, löscht alles – sofort.',
+        },
+        {
+          title: 'Teilen nur zum Ansehen',
+          text: 'Ein Link zu einer Sammlung: Andere sehen sie ohne Konto und ohne App. Du deaktivierst den Link, wann du willst.',
+        },
       ],
       usesTitle: 'Auch praktisch, um…',
-      uses: ['Unterlagen für die Hausratversicherung vorzubereiten', 'Umzuziehen, ohne etwas zu verlieren', 'Preise für den Flohmarkt festzulegen', 'Den Kleiderschrank auszumisten'],
+      uses: [
+        'Unterlagen für die Hausratversicherung vorzubereiten',
+        'Umzuziehen, ohne etwas zu verlieren',
+        'Preise für den Flohmarkt festzulegen',
+        'Den Kleiderschrank auszumisten',
+      ],
       why: 'Warum das funktioniert: Eine KI zur Bilderkennung beschreibt jedes Foto. Das Ergebnis bleibt ein Vorschlag – jedes Feld lässt sich ändern, und deine Korrekturen haben immer Vorrang.',
     },
     value: {
@@ -122,12 +170,25 @@ const de: Copy = {
       title: 'Wissen, was es wert ist – und dranbleiben.',
       sub: 'Eine Schätzung auf Basis vergleichbarer Angebote, keine Zahl aus dem Hut.',
       items: [
-        { title: 'Schätzen', text: 'Eine Preisspanne – und die Angebote, aus denen sie stammt.' },
-        { title: 'Verfolgen', text: 'Der Wert jedes Gegenstands und jeder Sammlung, aktualisiert, wann du willst.' },
-        { title: 'Verkaufen', text: 'Als „Verkauft“ markieren, mit dem echten Preis: Der Gegenstand bleibt in deinem Verlauf.' },
+        {
+          title: 'Schätzen',
+          text: 'Eine Preisspanne – und die Angebote, aus denen sie stammt.',
+        },
+        {
+          title: 'Verfolgen',
+          text: 'Der Wert jedes Gegenstands und jeder Sammlung, aktualisiert, wann du willst.',
+        },
+        {
+          title: 'Verkaufen',
+          text: 'Als „Verkauft“ markieren, mit dem echten Preis: Der Gegenstand bleibt in deinem Verlauf.',
+        },
       ],
       note: 'Kein Gutachten: Bei seltenen Stücken ist es eine Größenordnung.',
-      demo: { comparable: 'Vergleichbares Angebot', sold: 'Verkauft', trend: 'Wert der Sammlung' },
+      demo: {
+        comparable: 'Vergleichbares Angebot',
+        sold: 'Verkauft',
+        trend: 'Wert der Sammlung',
+      },
     },
     pricing: {
       eyebrow: 'Preise',
@@ -147,10 +208,22 @@ const de: Copy = {
     faq: {
       title: 'Häufige Fragen',
       items: [
-      { q: 'Muss ich mich mit Technik auskennen?', a: 'Nein. Du machst ein Foto, Tiroir füllt den Eintrag aus. Alles lässt sich mit einem Tippen ändern.' },
-      { q: 'Und wenn der Eintrag falsch ist?', a: 'Jedes Feld ist bearbeitbar, und deine Korrekturen haben immer Vorrang. Die genaue Marke oder den Kaufpreis kennst nur du.' },
-      { q: 'Sind meine Fotos privat?', a: 'Ja. Nichts ist öffentlich, solange du keinen Link teilst – und den kannst du jederzeit deaktivieren.' },
-      { q: 'Wie zuverlässig ist die Schätzung?', a: 'Sie basiert auf vergleichbaren Angeboten: ein verlässlicher Startpreis für gängige Dinge, eine Größenordnung für seltene Stücke.' },
+        {
+          q: 'Muss ich mich mit Technik auskennen?',
+          a: 'Nein. Du machst ein Foto, Tiroir füllt den Eintrag aus. Alles lässt sich mit einem Tippen ändern.',
+        },
+        {
+          q: 'Und wenn der Eintrag falsch ist?',
+          a: 'Jedes Feld ist bearbeitbar, und deine Korrekturen haben immer Vorrang. Die genaue Marke oder den Kaufpreis kennst nur du.',
+        },
+        {
+          q: 'Sind meine Fotos privat?',
+          a: 'Ja. Nichts ist öffentlich, solange du keinen Link teilst – und den kannst du jederzeit deaktivieren.',
+        },
+        {
+          q: 'Wie zuverlässig ist die Schätzung?',
+          a: 'Sie basiert auf vergleichbaren Angeboten: ein verlässlicher Startpreis für gängige Dinge, eine Größenordnung für seltene Stücke.',
+        },
       ],
     },
     final: {
@@ -158,25 +231,17 @@ const de: Copy = {
       sub: 'Kostenlos, ohne Kreditkarte.',
     },
   },
-
   pricing: {
     meta: {
       title: 'Preise — Tiroir',
-      description: 'Tiroir ist kostenlos, mit {free} KI-Aktionen pro Monat. KI-Credits ab {pack}.',
+      description: 'Tiroir ist kostenlos, mit {free} KI-Aktionen pro Monat. KI-Credits ab {pack}, Premium für {premium} pro Monat, Pro für {pro} pro Monat, Business auf Anfrage.',
     },
     badge: 'Preise',
     title: 'Alles erfasst. Wissen, was es wert ist.',
     sub: 'Tiroir ist für alle kostenlos. Du zahlst nur, wenn du mehr willst.',
     perMonth: '/Monat',
-    upcoming: 'Geplante Tarife',
-    from: 'Ab',
     perYear: 'oder {price} pro Jahr',
-    renewal: 'Je nach gewähltem Tarif erfolgt die Abrechnung und Verlängerung monatlich oder jährlich.',
-    premiumScope: 'Ein Konto, sechs Schubladen',
-    approx: 'Ca.',
-    perSeat: 'pro Platz und Jahr',
-    invoice: 'Auf Rechnung',
-    roadmap: 'Zusammenarbeit und Empfehlungen werden geprüft.',
+    perSeat: 'pro Platz/Monat',
     soon: 'Demnächst verfügbar',
     free: {
       tagline: 'Um alles zu erfassen, was du besitzt.',
@@ -187,6 +252,7 @@ const de: Copy = {
         'Zusätzliche KI-Credits bei Bedarf',
       ],
       start: 'Kostenlos starten',
+      afterQuota: 'Monatliches KI-Kontingent, danach Credits kaufen',
     },
     premium: {
       tagline: 'Um den Wert Ihrer Sammlung im Blick zu behalten.',
@@ -216,8 +282,10 @@ const de: Copy = {
         'Monatliche Rechnung, Überweisung oder Lastschrift',
       ],
       cta: 'Kontakt aufnehmen',
+      quote: 'Auf Anfrage',
+      billing: 'Monatliche Rechnung',
     },
-    note: 'Unverbindliche Preise für geplante Tarife inkl. MwSt. Die aktuellen In-App-Preise zeigt Ihr App-Store vor dem Kauf.',
+    note: 'Preise inkl. MwSt. Business wird per Rechnung bezahlt.',
     credits: {
       title: 'KI-Credits',
       sub: 'Mehr nötig? Lade jederzeit auf, ohne Abo.',
@@ -228,17 +296,31 @@ const de: Copy = {
     },
     faqTitle: 'Häufige Fragen',
     faq: [
-      { q: 'Was ist eine KI-Aktion?', a: 'Die Erkennung oder Schätzung eines Gegenstands.' },
-      { q: 'Was passiert, wenn mein Kontingent aufgebraucht ist?', a: 'Tiroir bleibt nutzbar; nur KI-Aktionen benötigen Credits.' },
-      { q: 'Werden die Schätzungen von Partnern beeinflusst?', a: 'Nein. Die Schätzungen werden nie von unseren Partnern beeinflusst: Kaufangebote sind von der Wertschätzung getrennt.' },
-      { q: 'Kann ich kündigen?', a: 'Jederzeit, im App Store, im Play Store oder in Ihrem Konto.' },
+      {
+        q: 'Was ist eine KI-Aktion?',
+        a: 'Die Erkennung oder Schätzung eines Gegenstands.',
+      },
+      {
+        q: 'Was passiert, wenn mein Kontingent aufgebraucht ist?',
+        a: 'Tiroir bleibt nutzbar; nur KI-Aktionen benötigen Credits.',
+      },
+      {
+        q: 'Werden die Schätzungen von Partnern beeinflusst?',
+        a: 'Nein. Die Schätzungen werden nie von unseren Partnern beeinflusst: Kaufangebote sind von der Wertschätzung getrennt.',
+      },
+      {
+        q: 'Kann ich kündigen?',
+        a: 'Jederzeit, im App Store, im Play Store oder in Ihrem Konto.',
+      },
     ],
     final: {
       title: 'Kostenlos starten.',
       sub: 'Unbegrenzt viele Gegenstände und Sammlungen, {n} KI-Aktionen pro Monat. Keine Kreditkarte nötig.',
     },
+    twoMonthsFree: 'Zwei Monate geschenkt',
+    vatIncl: 'inkl. MwSt.',
+    vatExcl: '{price} netto',
   },
-
   errors: {
     notFoundTitle: 'Seite nicht gefunden',
     notFoundText: 'Die gesuchte Seite existiert nicht oder wurde verschoben.',

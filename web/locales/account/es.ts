@@ -1,3 +1,4 @@
+// Généré par design/generate.mjs depuis design/i18n/site/es.json — ne pas modifier à la main.
 import type { AccountCopy } from './fr'
 
 const accountEs: AccountCopy = {
@@ -13,7 +14,6 @@ const accountEs: AccountCopy = {
     termsAfter: '.',
     backToSite: '← Volver a la web',
   },
-
   login: {
     choiceTitle: '¿Adónde quieres ir?',
     title: 'Iniciar sesión',
@@ -24,7 +24,6 @@ const accountEs: AccountCopy = {
     noAccount: '¿Aún no tienes cuenta?',
     createAccount: 'Crear una cuenta',
   },
-
   signup: {
     metaTitle: 'Crear una cuenta — Tiroir',
     metaDescription: 'Crea tu cuenta de Tiroir gratis y cataloga tus objetos.',
@@ -39,7 +38,6 @@ const accountEs: AccountCopy = {
     haveAccount: '¿Ya tienes cuenta?',
     login: 'Iniciar sesión',
   },
-
   forgot: {
     metaTitle: 'Contraseña olvidada — Tiroir',
     sentTitle: 'Correo enviado',
@@ -52,7 +50,6 @@ const accountEs: AccountCopy = {
     sending: 'Enviando…',
     send: 'Enviar el enlace',
   },
-
   reset: {
     metaTitle: 'Nueva contraseña — Tiroir',
     title: 'Nueva contraseña',
@@ -70,7 +67,6 @@ const accountEs: AccountCopy = {
     doneText: 'Has iniciado sesión. Esta contraseña también funciona en la aplicación móvil.',
     continue: 'Continuar',
   },
-
   confirm: {
     metaTitle: 'Correo confirmado — Tiroir',
     metaTitleError: 'Enlace no válido — Tiroir',
@@ -85,7 +81,6 @@ const accountEs: AccountCopy = {
     appStore: 'Descargar en el App Store',
     googlePlay: 'Descargar en Google Play',
   },
-
   welcome: {
     metaTitle: 'Bienvenida — Tiroir',
     title: 'Te damos la bienvenida a Tiroir 🎉',
@@ -94,7 +89,6 @@ const accountEs: AccountCopy = {
     pendingAfter: ': haz clic en el enlace para activarla. Después, descarga la app para empezar a catalogar tus objetos:',
     ready: '¡Tu cuenta está lista! Descarga la app e inicia sesión con esta cuenta para empezar a catalogar tus objetos:',
   },
-
   thanks: {
     metaTitle: 'Gracias — Tiroir',
     badge: 'Inscripción confirmada',
@@ -103,7 +97,6 @@ const accountEs: AccountCopy = {
     features: 'Ver las funciones',
     home: 'Volver al inicio',
   },
-
   unsubscribe: {
     metaTitle: 'Baja de la lista — Tiroir',
     okTitle: 'Hecho.',
@@ -114,7 +107,6 @@ const accountEs: AccountCopy = {
     unknownDetail: 'En cualquier caso, no te enviaremos nada más. Si aun así te llegara algún mensaje, respóndelo: alguien lo leerá.',
     back: 'Volver a tiroir.app',
   },
-
   myAccount: {
     metaTitle: 'Mi cuenta — Tiroir',
     title: 'Mi cuenta',
@@ -151,8 +143,11 @@ const accountEs: AccountCopy = {
     footnoteBefore: 'Para cambiar tu nombre visible, ve a ',
     footnoteLink: 'Mi perfil',
     footnoteAfter: '.',
+    billingTitle: 'Créditos de IA y equipo',
+    billingText: 'Tu saldo de créditos de IA, su historial y los packs de créditos. Para un equipo Business: miembros y facturas.',
+    creditsLink: 'Mis créditos de IA →',
+    teamLink: 'Mi equipo Business →',
   },
-
   profile: {
     metaTitle: 'Mi perfil — Tiroir',
     title: 'Mi perfil',
@@ -181,7 +176,6 @@ const accountEs: AccountCopy = {
     photo: 'Foto de perfil',
     close: 'Cerrar',
   },
-
   myShares: {
     metaTitle: 'Mis enlaces compartidos — TiROiR',
     title: 'Mis enlaces compartidos',
@@ -212,7 +206,6 @@ const accountEs: AccountCopy = {
     passwordRequired: 'Indica una contraseña (mínimo 4 caracteres) para hacerlo privado.',
     saveError: 'No se han podido guardar los cambios. Inténtalo de nuevo.',
   },
-
   errors: {
     invalidCredentials: 'Correo o contraseña incorrectos. ¿Aún no tienes cuenta de Tiroir? Se crea en un minuto.',
     emailNotConfirmed: 'Tu dirección aún no está confirmada: abre el correo de Tiroir, toca el enlace y vuelve aquí.',

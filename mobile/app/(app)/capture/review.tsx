@@ -9,6 +9,7 @@ import { X, Trash2, RotateCw, Plus } from 'lucide-react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
+import { hasPhotoZoom } from '@/lib/plan'
 import { Screen, Colors, Typography, Spacing, Radius, CollectionPickerSheet } from '@/components/ui'
 import {
   beginBatch, extendBatch, runBatch, retryItem, confirmBatch,
@@ -41,7 +42,7 @@ export default function BatchReviewScreen() {
   }>()
   const batchMax = Number(batchMaxParam ?? 10)
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const router = useRouter()
 
   const [phase, setPhase] = useState<Phase>('preparing')
@@ -206,7 +207,7 @@ export default function BatchReviewScreen() {
 
     try {
       setPhase('running')
-      const picked = await compressImages(result.assets)
+      const picked = await compressImages(result.assets, hasPhotoZoom(profile?.plan))
       const added = await extendBatch(batchId, picked)
       if (isStale()) return
 

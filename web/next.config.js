@@ -7,6 +7,12 @@ const supaHost = SUPABASE_URL.replace(/^https?:\/\//, '').split('/')[0] // ex: w
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Taux de TVA affiché par les pages (tarifs, tunnel, accueil), calculé au
+  // build depuis BILLING_VAT_MODE : le même réglage que celui qui fait
+  // ajouter la TVA au Checkout (lib/stripeConfig.ts, vatRate).
+  env: {
+    DISPLAY_VAT_RATE: process.env.BILLING_VAT_MODE?.trim() === 'assujetti' ? '0.2' : '0',
+  },
   typescript: { ignoreBuildErrors: true },
   // Le lint reste dispo via `npm run lint` mais ne bloque pas le build de prod
   // (règles cosmétiques type react/no-unescaped-entities sur du texte FR).

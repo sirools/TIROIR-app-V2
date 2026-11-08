@@ -10,15 +10,32 @@ import { useEffect, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
-import { supabase, serverSupabase } from '../lib/supabase'
+import { supabase, serverSupabase, adminSupabase } from '../lib/supabase'
 import { providerRows, type IdentityLike, type Provider } from '../lib/identities'
 import { authErrorKey, linkErrorKey, type AccountErrorKey } from '../lib/authErrors'
 import { asLocale, localePrefix } from '../lib/localeRouting'
-import { fill, useCopy } from '../locales'
+import { fill, formatEur, intlLocale, useCopy } from '../locales'
+import { useBillingCopy } from '../locales/billing'
+import { tierName } from '../components/billing/OfferRecap'
+import { stripeEnv } from '../lib/stripeConfig'
+import { stripeClient } from '../lib/stripe/api'
+
+/** Palier du compte et abonnement du site (Stripe), lus côté serveur. */
+type Subscription = {
+  plan: 'free' | 'premium' | 'pro'
+  source: 'web' | 'app' | 'invoice' | null
+  status: string | null
+  periodEnd: string | null
+  cancelAtPeriodEnd: boolean
+  canManage: boolean
+  /** Factures Stripe du compte (abonnements, crédits), les plus récentes d'abord. */
+  invoices: InvoiceLine[]
+}
+type InvoiceLine = { id: string; number: string | null; date: string; total: number; currency: string; paid: boolean; url: string | null; pdf: string | null }
 
 const MIN_PASSWORD_LENGTH = 8
 
-export default function MonCompte() {
+export default function MonCompte({ subscription }: { subscription: Subscription | null }) {
   const { t: { account: t }, locale } = useCopy()
   // Préfixe de langue des liens <a> et des retours Supabase (« » en français).
   const prefix = localePrefix(locale)
@@ -136,6 +153,8 @@ export default function MonCompte() {
             {oauthOnly && t.myAccount.noPassword}
           </p>
 
+          {subscription && <SubscriptionCard sub={subscription} />}
+
           {/* ── Moyens de connexion ── */}
           <div className="card" style={s.card}>
             <h2 style={s.cardTitle}>{t.myAccount.methodsTitle}</h2>
@@ -175,6 +194,16 @@ export default function MonCompte() {
           </div>
 
           {/* ── Mot de passe ── */}
+          {/* ── Crédits IA et équipe Business (pages /credits et /equipe) ── */}
+          <div className="card" style={s.card}>
+            <h2 style={s.cardTitle}>{t.myAccount.billingTitle}</h2>
+            <p style={s.cardText}>{t.myAccount.billingText}</p>
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+              <a href={`${prefix}/credits`} style={s.link}>{t.myAccount.creditsLink}</a>
+              <a href={`${prefix}/equipe`} style={s.link}>{t.myAccount.teamLink}</a>
+            </div>
+          </div>
+
           <div id="mot-de-passe" className="card" style={s.card}>
             <h2 style={s.cardTitle}>
               {oauthOnly ? t.myAccount.setPasswordTitle : t.myAccount.changePasswordTitle}
@@ -255,7 +284,110 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     // Destination absolue : Next n'y ajoute pas la langue, on la garde.
     return { redirect: { destination: `${localePrefix(asLocale(ctx.locale))}/login`, permanent: false } }
   }
-  return { props: {} }
+  return { props: { subscription: await readSubscription(session.user.id) } }
+}
+
+async function readSubscription(userId: string): Promise<Subscription | null> {
+  const db = adminSupabase()
+  const { data, error } = await db.from('profiles')
+    .select('plan, pro_expires_at, pro_invoice_ref, plan_source, subscription_status, subscription_period_end, subscription_cancel_at_period_end, stripe_customer_id, stripe_livemode')
+    .eq('id', userId).maybeSingle()
+  // Base pas encore migrée (stripe_subscriptions.sql) : carte masquée.
+  if (error || !data) return null
+  const expired = data.plan === 'pro' && data.pro_expires_at && data.pro_expires_at < new Date().toISOString().slice(0, 10)
+  const plan = (expired ? 'free' : data.plan) as Subscription['plan']
+  return {
+    plan,
+    source: plan === 'free' ? null : data.plan_source === 'web' ? 'web' : data.pro_invoice_ref ? 'invoice' : 'app',
+    status: data.subscription_status,
+    periodEnd: data.subscription_period_end,
+    cancelAtPeriodEnd: !!data.subscription_cancel_at_period_end,
+    canManage: !!data.stripe_customer_id,
+    invoices: await readInvoices(data.stripe_customer_id, data.stripe_livemode),
+  }
+}
+
+/** Factures du client Stripe (lues côté serveur ; rien si Stripe n'est pas configuré). */
+async function readInvoices(customerId: string | null, livemode: boolean | null): Promise<InvoiceLine[]> {
+  const env = stripeEnv()
+  if (!env || !customerId || livemode !== (env.mode === 'live')) return []
+  try {
+    const list = await stripeClient(env)<{ data: Record<string, unknown>[] }>('GET', '/v1/invoices', { customer: customerId, limit: 24 })
+    return list.data
+      .filter(i => i.status === 'paid' || i.status === 'open')
+      .map(i => ({
+        id: String(i.id),
+        number: typeof i.number === 'string' ? i.number : null,
+        date: new Date(Number(i.created) * 1000).toISOString(),
+        total: Number(i.total) / 100,
+        currency: String(i.currency ?? 'eur'),
+        paid: i.status === 'paid',
+        url: typeof i.hosted_invoice_url === 'string' ? i.hosted_invoice_url : null,
+        pdf: typeof i.invoice_pdf === 'string' ? i.invoice_pdf : null,
+      }))
+  } catch (e) {
+    console.warn('[mon-compte] factures', (e as Error).message)
+    return []
+  }
+}
+
+function SubscriptionCard({ sub }: { sub: Subscription }) {
+  const { t: { subscribe: t }, locale } = useBillingCopy()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(false)
+  const date = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' }) : '—')
+  const tier = sub.plan === 'free' ? '' : tierName(sub.plan)
+
+  async function manage() {
+    setBusy(true); setError(false)
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locale }) })
+      const json = await res.json().catch(() => ({}))
+      if (res.ok && json.url) { window.location.href = json.url; return }
+    } catch { /* message ci-dessous */ }
+    setError(true); setBusy(false)
+  }
+
+  return (
+    <div className="card" style={s.card}>
+      <h2 style={s.cardTitle}>{t.accountTitle}</h2>
+      {sub.plan === 'free' && (
+        <p style={s.cardText}>{t.planFree} <a href={`${localePrefix(locale)}/pricing#formules`} style={s.link}>{t.seeOffers} →</a></p>
+      )}
+      {sub.source === 'app' && <p style={s.cardText}>{fill(t.fromApp, { tier })}</p>}
+      {sub.source === 'invoice' && <p style={s.cardText}>{fill(t.fromInvoice, { tier })}</p>}
+      {sub.source === 'web' && (
+        <>
+          <p style={{ ...s.cardText, marginBottom: 4 }}><strong style={{ color: '#121212' }}>{fill(t.planActive, { tier })}</strong></p>
+          {sub.status === 'past_due'
+            ? <p style={s.error}>{t.pastDue}</p>
+            : <p style={s.cardText}>{fill(sub.cancelAtPeriodEnd ? t.endsOn : t.renewsOn, { date: date(sub.periodEnd) })}</p>}
+        </>
+      )}
+      {sub.canManage && (sub.source === 'web' || sub.plan === 'free') && (
+        <button type="button" disabled={busy} onClick={manage} style={s.btnSecondary}>{t.manage}</button>
+      )}
+      {error && <p role="alert" style={s.error}>{t.portalError}</p>}
+      {sub.invoices.length > 0 && (
+        <>
+          <h3 style={{ ...s.cardTitle, fontSize: 15, marginTop: 20 }}>{t.invoicesTitle}</h3>
+          <ul style={s.rows}>
+            {sub.invoices.map(i => (
+              <li key={i.id} style={s.row}>
+                <span style={{ flex: 1 }}>
+                  <strong style={{ color: '#121212' }}>{i.number ?? '—'}</strong>
+                  <span style={s.rowState}> · {date(i.date)} · {i.paid ? t.invoicePaid : t.invoiceOpen}</span>
+                </span>
+                <span style={{ fontWeight: 700 }}>{formatEur(i.total, locale)}</span>
+                {i.url && <a href={i.url} target="_blank" rel="noreferrer" style={s.link}>↗</a>}
+                {i.pdf && <a href={i.pdf} target="_blank" rel="noreferrer" style={s.link}>{t.invoicePdf}</a>}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  )
 }
 
 const s: Record<string, React.CSSProperties> = {

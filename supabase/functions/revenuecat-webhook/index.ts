@@ -1,33 +1,14 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { endsAccess } from '../_shared/subscriptionEnd.ts'
+import { creditsForProduct, nextPlan, storeSubscriptionRow } from '../_shared/storeProducts.ts'
 
 const REVENUECAT_WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET')!
 const SUPABASE_URL               = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-// Packs de crédits IA (produits consommables) — mêmes identifiants que
-// mobile/src/lib/creditPacks.ts. Un achat arrive en NON_RENEWING_PURCHASE ;
-// il crédite le compte et ne touche JAMAIS au plan d'abonnement.
-const CREDIT_PACKS: Record<string, number> = {
-  tiroir_credits_30: 30,
-  tiroir_credits_80: 80,
-}
-function creditsForProduct(productId: unknown): number | null {
-  if (typeof productId !== 'string') return null
-  return CREDIT_PACKS[productId.split(':')[0]] ?? null
-}
-
-// Events RevenueCat qui signifient que l'utilisateur a un abonnement actif
-const ACTIVE_EVENTS = new Set([
-  'INITIAL_PURCHASE',
-  'RENEWAL',
-  'UNCANCELLATION',
-  'PRODUCT_CHANGE',
-  'TRANSFER',
-])
-
-// Fin de l'accès payant : _shared/subscriptionEnd.ts (une résiliation
-// laisse l'accès jusqu'au bout de la période payée).
+// Produits des stores (packs de crédits, abonnements Premium et Pro) et
+// règle du palier : _shared/storeProducts.ts, testé côté site. Un pack
+// arrive en NON_RENEWING_PURCHASE ; il crédite le compte et ne touche
+// JAMAIS au plan d'abonnement.
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -82,30 +63,50 @@ Deno.serve(async (req) => {
     return new Response('OK', { status: 200 })
   }
 
-  let newPlan: 'free' | 'premium' | null = null
-
-  if (ACTIVE_EVENTS.has(eventType)) {
-    newPlan = 'premium'
-  } else if (endsAccess(event)) {
-    newPlan = 'free'
+  // ── Abonnement : Premium ou Pro selon le produit (grille V4) ──
+  const { data: profile, error: readError } = await admin
+    .from('profiles')
+    .select('plan, pro_since, pro_expires_at, plan_source, subscription_status')
+    .eq('id', appUserId)
+    .maybeSingle()
+  if (readError) {
+    console.error(`[revenuecat-webhook] Failed to read profile:`, readError.message)
+    return new Response('Internal error', { status: 500 })
   }
 
-  if (newPlan) {
-    // Le palier Professionnel est vendu en direct sur facture : RevenueCat
-    // n'en sait rien. Sans ce garde-fou, un EXPIRATION ou un TRANSFER
-    // rétrograderait un client Pro en gratuit.
+  const newPlan = profile ? nextPlan(event, profile) : null
+
+  if (profile && newPlan) {
+    // Un Pro venu des stores n'a ni date d'entrée ni date de fin : celles-ci
+    // sont réservées au Pro sur facture, géré dans le back-office.
+    // plan_source : le palier payant vient des stores (un abonné du site
+    // n'arrive jamais ici, voir nextPlan).
+    const patch: Record<string, unknown> = { plan: newPlan, plan_source: newPlan === 'free' ? null : 'app' }
+    if (newPlan === 'pro') Object.assign(patch, { pro_since: null, pro_expires_at: null })
+
     const { error } = await admin
       .from('profiles')
-      .update({ plan: newPlan })
+      .update(patch)
       .eq('id', appUserId)
-      .neq('plan', 'pro')
+      .eq('plan', profile.plan) // rien si le palier a changé entre-temps
 
     if (error) {
       console.error(`[revenuecat-webhook] Failed to update plan:`, error.message)
       return new Response('Internal error', { status: 500 })
     }
 
-    console.log(`[revenuecat-webhook] plan → ${newPlan} for ${appUserId} (comptes Pro exclus)`)
+    console.log(`[revenuecat-webhook] plan ${profile.plan} → ${newPlan} for ${appUserId}`)
+  }
+
+  // Journal des abonnements, toutes sources (public.subscriptions). Une
+  // erreur ici ne fait jamais échouer le webhook : le palier est déjà posé.
+  const row = appUserId ? storeSubscriptionRow(event) : null
+  if (row) {
+    const { error: subError } = await admin.rpc('upsert_store_subscription', {
+      p_user_id: appUserId, p_source: row.source, p_external_id: row.external_id, p_tier: row.tier,
+      p_period: row.period, p_status: row.status, p_period_end: row.period_end, p_cancel_at_period_end: row.cancel_at_period_end,
+    })
+    if (subError) console.warn('[revenuecat-webhook] subscriptions', subError.message)
   }
 
   // Funnel : conversion (achat initial) + renouvellements, tracés dans activity_log.

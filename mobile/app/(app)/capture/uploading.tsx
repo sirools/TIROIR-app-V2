@@ -10,10 +10,12 @@ import {
   CollectionPickerSheet, PickedCollection, useToast,
 } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthContext'
+import { type PhotoSource, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
+import { BUY_CREDITS_ROUTE, isCreditsRefusal } from '@/lib/buyCredits'
 
 type Phase = 'uploading' | 'analyzing' | 'error'
 
-interface PickedImage { uri: string; mimeType: string; fileName: string }
+interface PickedImage { uri: string; mimeType: string; fileName: string; source?: PhotoSource }
 
 // Étapes de la checklist (libellés résolus au rendu via i18n)
 const STEPS = [
@@ -44,6 +46,8 @@ export default function UploadingScreen() {
   })
   const [confidence, setConfidence] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  // Refus « quota atteint, crédits insuffisants » : l'écran propose un pack.
+  const [outOfCredits, setOutOfCredits] = useState(false)
   const [images, setImages] = useState<PickedImage[]>([])
   const [uploadedCount, setUploadedCount] = useState(0)
   const [showManualNav, setShowManualNav] = useState(false)
@@ -91,6 +95,7 @@ export default function UploadingScreen() {
     setStepStatuses({ upload: 'active', identify: 'pending', attrs: 'pending', sheet: 'pending' })
     setConfidence(0)
     setError(null)
+    setOutOfCredits(false)
     setImages([])
     setUploadedCount(0)
     setShowManualNav(false)
@@ -159,6 +164,7 @@ export default function UploadingScreen() {
     } catch (err) {
       console.error('[Upload]', err)
       setError(err instanceof Error ? err.message : t('uploading.genericError'))
+      setOutOfCredits(isCreditsRefusal(err))
       setPhase('error')
     }
   }
@@ -184,6 +190,7 @@ export default function UploadingScreen() {
     } catch (err) {
       console.error('[Reanalyze]', err)
       setError(err instanceof Error ? err.message : t('uploading.genericError'))
+      setOutOfCredits(isCreditsRefusal(err))
       setPhase('error')
     }
   }
@@ -256,10 +263,12 @@ export default function UploadingScreen() {
       .upload(storagePath, uploadData, { contentType: img.mimeType, upsert: false })
     if (storageError) throw new Error(t('uploading.uploadImageError', { n: position + 1, msg: storageError.message }))
 
+    const zoomPath = zoomPathFor(storagePath, img.source)
     const { error: dbError } = await supabase.from('ai_draft_images').insert({
-      draft_id: draftId, user_id: user!.id, storage_path: storagePath, mime_type: img.mimeType, position,
+      draft_id: draftId, user_id: user!.id, storage_path: storagePath, zoom_path: zoomPath, mime_type: img.mimeType, position,
     })
     if (dbError) throw new Error(t('uploading.saveImageError', { n: position + 1, msg: dbError.message }))
+    queueZoomCopy(img.source, zoomPath)
   }
 
   async function handleRetry() {
@@ -267,6 +276,7 @@ export default function UploadingScreen() {
     setUploadProgress(0)
     setUploadedCount(0)
     setError(null)
+    setOutOfCredits(false)
     setStepStatuses({ upload: 'active', identify: 'pending', attrs: 'pending', sheet: 'pending' })
     processedDraftId.current = null
     await supabase.rpc('reject_draft', { p_draft_id: draftId })
@@ -280,7 +290,10 @@ export default function UploadingScreen() {
           <Text style={styles.errorIcon}>⚠️</Text>
           <Text style={styles.errorTitle}>{t('uploading.errorTitle')}</Text>
           <Text style={styles.errorText}>{error}</Text>
-          <Button label={t('uploading.retry')} onPress={handleRetry} style={styles.retryBtn} />
+          {outOfCredits && (
+            <Button label={t('credits.buy')} onPress={() => router.push(BUY_CREDITS_ROUTE)} style={styles.retryBtn} />
+          )}
+          <Button label={t('uploading.retry')} onPress={handleRetry} style={styles.retryBtn} variant={outOfCredits ? 'secondary' : 'primary'} />
         </View>
       </Screen>
     )

@@ -1,54 +1,60 @@
-// La grille des formules, telle que décidée par le fondateur le 30/09/2026
-// (`strategie/offres.md`). Seule source des prix affichés par la page
-// Tarifs et cités par Torix : ne jamais les réécrire ailleurs.
+// La grille des formules — grille V4 du 19/10/2026, prix des abonnements
+// remplacés par la grille de lancement du 08/11/2026 (`strategie/offres.md`). Seule source des
+// prix affichés par le site et cités par Torix : ne jamais les réécrire
+// ailleurs. Les mêmes prix sont déclarés dans les stores et dans Stripe
+// (`strategie/packs-stores.md`).
 //
 // Les packs doivent rester ceux que l'app vend et que le webhook crédite
-// (`mobile/src/lib/creditPacks.ts`), et le coût d'un crédit celui de
-// `ai_credit_cost` (`supabase/drafts/ai_credits_spend.sql`) : des tests le
-// vérifient.
+// (`mobile/src/lib/creditPacks.ts`, `supabase/functions/_shared/
+// storeProducts.ts`), et le coût d'un crédit celui de `ai_credit_cost`
+// (`supabase/drafts/ai_credits_spend.sql`) : des tests le vérifient.
 
-export const OFFERS = {
-  free: { aiObjects: 20 },
-  packs: [
-    { id: 'tiroir_credits_30', credits: 30, priceTtc: 4.99 },
-    { id: 'tiroir_credits_80', credits: 80, priceTtc: 9.99 },
-  ],
-  premium: { monthlyTtc: 49.99 },
-  /** Licence Pro : socle mensuel HT avec des crédits inclus, puis au crédit. */
-  pro: { baseHt: 1700, includedCredits: 20000, extraCreditHt: 0.05 },
-  /** Ce que coûte chaque action, en crédits. */
-  creditCosts: [
-    { label: 'Fiche d’objet (photo analysée par l’IA)', credits: 1 },
-    { label: 'Amélioration de photo', credits: 4 },
-    { label: 'Estimation de valeur (recherche d’annonces)', credits: 8 },
-  ],
-  /** Prix que gardent les abonnés actuels tant qu'ils restent abonnés. */
-  legacyPremiumTtc: 6.99,
-} as const
-
-// Grille V4, affichée par la page Tarifs du site (textes de la page Notion
-// « Page Tarifs — textes V4 », octobre 2026). Le paiement n'est pas encore
-// ouvert : Stripe reste en mode test, et l'app vend toujours la grille
-// OFFERS ci-dessus. Les identifiants des packs ne sont pas encore ceux de
-// l'app : ne pas les relier au webhook avant la bascule.
+// Le site vend ces packs et le siège Business par Stripe à partir de cette
+// grille (lib/stripeConfig.ts) ; paiement fermé tant que STRIPE_MODE et la
+// clé ne sont pas posés.
 export const OFFERS_V4 = {
   free: { aiActionsPerMonth: 20 },
   packs: [
-    { credits: 50, priceTtc: 2.99, popular: false },
-    { credits: 150, priceTtc: 6.99, popular: true },
-    { credits: 500, priceTtc: 19.99, popular: false },
+    { id: 'tiroir_credits_50', credits: 50, priceTtc: 2.99, popular: false },
+    { id: 'tiroir_credits_150', credits: 150, priceTtc: 6.99, popular: true },
+    { id: 'tiroir_credits_500', credits: 500, priceTtc: 19.99, popular: false },
   ],
-  premium: { monthlyTtc: 4.99, yearlyTtc: 39 },
-  pro: { monthlyTtc: 14.99 },
+  // Grille de lancement du 08/11/2026 (fixée jusqu'au passage à l'échelle) :
+  // annuel = 10 mois, « deux mois offerts ». Prix HORS TAXES : la TVA
+  // (20 %, l'EI est assujettie depuis le 08/11/2026 — BILLING_VAT_MODE)
+  // s'ajoute : Premium 18 € / 180 € TTC, Pro 60 € / 600 € TTC.
+  premium: { monthlyHt: 15, yearlyHt: 150 },
+  /** Pro = Premium avec des quotas plus élevés (réglés dans le back-office). */
+  pro: { monthlyHt: 50, yearlyHt: 500 },
+  /** Business : sur devis, facture mensuelle (pas de paiement en ligne). Base de facturation par siège. */
   business: { seatMonthly: 39 },
 } as const
 
-/** Montant mensuel HT d'une licence Pro pour une consommation donnée. */
-export function proMonthlyHt(credits: number): number {
-  const { baseHt, includedCredits, extraCreditHt } = OFFERS.pro
-  const extra = Math.max(0, Math.round(Number.isFinite(credits) ? credits : 0) - includedCredits)
-  return Math.round((baseHt + extra * extraCreditHt) * 100) / 100
+/** TVA française appliquée quand l'EI est assujettie (BILLING_VAT_MODE). */
+export const VAT_RATE = 0.2
+
+/** Taux affiché par les pages (inliné au build par next.config.js). */
+export function displayVatRate(): number {
+  const r = Number(process.env.DISPLAY_VAT_RATE)
+  return r === VAT_RATE ? VAT_RATE : 0
 }
+
+/** HT → TTC, arrondi au centime. */
+export function withVat(ht: number, rate: number): number {
+  return Math.round(ht * (1 + rate) * 100) / 100
+}
+
+/** TTC → HT, arrondi au centime (packs de crédits, vendus TTC). */
+export function withoutVat(ttc: number, rate: number): number {
+  return Math.round((ttc / (1 + rate)) * 100) / 100
+}
+
+/** Ce que coûte chaque action, en crédits. */
+export const CREDIT_COSTS = [
+  { label: 'Fiche d’objet (photo analysée par l’IA)', credits: 1 },
+  { label: 'Amélioration de photo', credits: 4 },
+  { label: 'Estimation de valeur (recherche d’annonces)', credits: 8 },
+] as const
 
 /** 4.99 → « 4,99 € », 1700 → « 1 700 € ». Espaces insécables évités pour les tests. */
 export function euros(n: number): string {

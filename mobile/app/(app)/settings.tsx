@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, ActivityIndicator, Linking,
@@ -6,11 +6,19 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, ChevronRight, Lock, FileText, Shield, Trash2, Check } from 'lucide-react-native'
+import { ArrowLeft, ChevronRight, Lock, FileText, Shield, Trash2, Languages, Globe } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
-import { setAppLanguage, SUPPORTED_LANGUAGES, LANGUAGE_LABELS, type AppLanguage } from '@/i18n'
-import { Screen, Button, Input, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import {
+  setAppLanguage, getLanguagePreference, deviceLanguage,
+  SUPPORTED_LANGUAGES, LANGUAGE_LABELS, type LanguagePreference,
+} from '@/i18n'
+import {
+  getRegionPreference, setRegionPreference, deviceRegion, regionLabel,
+  SUPPORTED_REGIONS, type RegionPreference,
+} from '@/i18n/region'
+import { Screen, Button, Input, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { saveAccountLocale } from '@/features/auth/accountLocale'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -24,7 +32,32 @@ export default function SettingsScreen() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
-  const currentLang = i18n.language as AppLanguage
+  // Préférences : « auto » suit l'appareil ; la région ne change pas la langue.
+  const [languagePref, setLanguagePref] = useState<LanguagePreference>('auto')
+  const [regionPref, setRegionPref] = useState<RegionPreference>('auto')
+  const [languageSheet, setLanguageSheet] = useState(false)
+  const [regionSheet, setRegionSheet] = useState(false)
+
+  useEffect(() => {
+    getLanguagePreference().then(setLanguagePref)
+    getRegionPreference().then(setRegionPref)
+  }, [])
+
+  async function chooseLanguage(pref: LanguagePreference) {
+    setLanguagePref(pref)
+    await setAppLanguage(pref)
+    // La langue suit le compte (e-mails, site) : « Automatique » y inscrit
+    // la langue résolue de l'appareil.
+    void saveAccountLocale(pref === 'auto' ? deviceLanguage() : pref).catch(() => undefined)
+  }
+
+  async function chooseRegion(pref: RegionPreference) {
+    setRegionPref(pref)
+    await setRegionPreference(pref)
+  }
+
+  const languageValue = languagePref === 'auto' ? t('preferences.auto') : LANGUAGE_LABELS[languagePref]
+  const regionValue = regionPref === 'auto' ? t('preferences.auto') : regionLabel(regionPref, i18n.language)
 
   // ── Changer le mot de passe ──────────────────────────────────────────────
 
@@ -122,6 +155,25 @@ export default function SettingsScreen() {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
+        {/* Section Préférences — en tête, avant Compte */}
+        <Text style={styles.sectionLabel}>{t('preferences.section')}</Text>
+        <View style={styles.group}>
+          <SettingsRow
+            icon={<Languages size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
+            label={t('preferences.language')}
+            value={languageValue}
+            onPress={() => setLanguageSheet(true)}
+          />
+          <View style={styles.separator} />
+          <SettingsRow
+            icon={<Globe size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
+            label={t('preferences.region')}
+            value={regionValue}
+            onPress={() => setRegionSheet(true)}
+          />
+        </View>
+        <Text style={styles.deleteHint}>{t('preferences.regionHelp')}</Text>
+
         {/* Section Compte */}
         <Text style={styles.sectionLabel}>{t('settings.sectionAccount')}</Text>
         <View style={styles.group}>
@@ -130,28 +182,6 @@ export default function SettingsScreen() {
             label={t('settings.changePassword')}
             onPress={() => setPasswordModalVisible(true)}
           />
-        </View>
-
-        {/* Section Langue */}
-        <Text style={styles.sectionLabel}>{t('settings.sectionLanguage')}</Text>
-        <View style={styles.group}>
-          {SUPPORTED_LANGUAGES.map((lang, index) => (
-            <React.Fragment key={lang}>
-              {index > 0 && <View style={styles.separator} />}
-              <TouchableOpacity
-                style={styles.row}
-                onPress={() => setAppLanguage(lang)}
-                activeOpacity={0.7}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: currentLang === lang }}
-              >
-                <Text style={styles.rowLabel}>{LANGUAGE_LABELS[lang]}</Text>
-                {currentLang === lang && (
-                  <Check size={18} color={Colors.accent} strokeWidth={2} />
-                )}
-              </TouchableOpacity>
-            </React.Fragment>
-          ))}
         </View>
 
         {/* Section Légal */}
@@ -194,6 +224,44 @@ export default function SettingsScreen() {
         </Text>
 
       </ScrollView>
+
+      {/* Langue : « Automatique » d'abord, puis chaque langue écrite dans sa langue */}
+      <ActionSheet
+        visible={languageSheet}
+        onClose={() => setLanguageSheet(false)}
+        options={[
+          {
+            label: `${t('preferences.auto')} · ${LANGUAGE_LABELS[deviceLanguage()]}`,
+            selected: languagePref === 'auto',
+            onPress: () => chooseLanguage('auto'),
+          },
+          ...SUPPORTED_LANGUAGES.map(lang => ({
+            label: LANGUAGE_LABELS[lang],
+            selected: languagePref === lang,
+            onPress: () => chooseLanguage(lang),
+          })),
+          { label: t('common.cancel'), cancel: true, onPress: () => {} },
+        ]}
+      />
+
+      {/* Région d'estimation (devise, annonces locales) */}
+      <ActionSheet
+        visible={regionSheet}
+        onClose={() => setRegionSheet(false)}
+        options={[
+          {
+            label: `${t('preferences.auto')} · ${regionLabel(deviceRegion(), i18n.language)}`,
+            selected: regionPref === 'auto',
+            onPress: () => chooseRegion('auto'),
+          },
+          ...SUPPORTED_REGIONS.map(region => ({
+            label: regionLabel(region, i18n.language),
+            selected: regionPref === region,
+            onPress: () => chooseRegion(region),
+          })),
+          { label: t('common.cancel'), cancel: true, onPress: () => {} },
+        ]}
+      />
 
       {/* Changement de mot de passe — modale plutôt qu'Alert.prompt (iOS only) */}
       <Modal
@@ -256,11 +324,12 @@ export default function SettingsScreen() {
 
 // ── Composant ligne ──────────────────────────────────────────────────────────
 
-function SettingsRow({ icon, label, onPress }: { icon: React.ReactNode; label: string; onPress: () => void }) {
+function SettingsRow({ icon, label, value, onPress }: { icon: React.ReactNode; label: string; value?: string; onPress: () => void }) {
   return (
     <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.rowIcon}>{icon}</View>
       <Text style={styles.rowLabel}>{label}</Text>
+      {value ? <Text style={styles.rowValue} numberOfLines={1}>{value}</Text> : null}
       <ChevronRight size={16} color={Colors.textTertiary} strokeWidth={1.5} />
     </TouchableOpacity>
   )
@@ -316,6 +385,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   rowIcon: { width: 24, alignItems: 'center' },
+  rowValue: {
+    flexShrink: 1,
+    fontSize: Typography.sm,
+    color: Colors.textTertiary,
+  },
   rowLabel: {
     flex: 1,
     fontSize: Typography.base,

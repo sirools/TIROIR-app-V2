@@ -1,13 +1,11 @@
+// Généré par design/generate.mjs depuis design/i18n/site/fr.json — ne pas modifier à la main.
+//
 // Textes du site en français — langue de référence : les autres fichiers
-// (en, de, es) suivent exactement cette structure (type `Copy`).
+// (en, da, de, es) suivent exactement cette structure (type `Copy`).
 // Les marqueurs {n}, {price}… sont remplacés à l'affichage.
 //
 // Positionnement : on vend un résultat, pas de l'IA. L'IA n'apparaît
 // jamais dans un titre, seulement comme explication discrète (home.why).
-//
-// Ton : tu pour le grand public (offre gratuite), vous pour Premium, Pro
-// et Business. Règle et classement : locales/README.md.
-
 import share from './share/fr'
 import account from './account/fr'
 import about from './about/fr'
@@ -43,7 +41,6 @@ const fr = {
     contact: 'Contact',
     language: 'Langue',
   },
-
   home: {
     meta: {
       title: 'Tiroir — une photo, et tes objets sont rangés',
@@ -85,12 +82,28 @@ const fr = {
       title: 'Une photo, c’est tout.',
       sub: 'Torix, l’IA de Tiroir, reconnaît ton objet et remplit sa fiche. Toi, tu choisis juste le tiroir.',
       steps: [
-        { title: 'Tu prends la photo', text: 'Un objet, une photo. Aucun formulaire à remplir.' },
-        { title: 'Torix remplit la fiche', text: 'Nom, catégorie, état : tout s’écrit tout seul. Tu corriges si tu veux.' },
-        { title: 'C’est rangé', text: 'Tu choisis le tiroir pendant que Torix travaille. Ensuite, tu retrouves tout en un instant.' },
+        {
+          title: 'Tu prends la photo',
+          text: 'Un objet, une photo. Aucun formulaire à remplir.',
+        },
+        {
+          title: 'Torix remplit la fiche',
+          text: 'Nom, catégorie, état : tout s’écrit tout seul. Tu corriges si tu veux.',
+        },
+        {
+          title: 'C’est rangé',
+          text: 'Tu choisis le tiroir pendant que Torix travaille. Ensuite, tu retrouves tout en un instant.',
+        },
       ],
-      // L’estimation est un geste de plus dans l’app (« Estimer avec Torix ») : la fiche ne la promet pas.
-      fiche: { name: 'Veste en jean', rows: [['Catégorie', 'Vêtements'], ['État', 'Bon']], estimate: 'Valeur', estimateCta: '✦ Estimer' },
+      fiche: {
+        name: 'Veste en jean',
+        rows: [
+          ['Catégorie', 'Vêtements'],
+          ['État', 'Bon'],
+        ],
+        estimate: 'Valeur',
+        estimateCta: '✦ Estimer',
+      },
       drawer: 'Dressing',
       stored: 'Rangée',
       video: {
@@ -107,10 +120,26 @@ const fr = {
       title: 'Moins de saisie, plus de métier.',
       sub: 'Ton matériel, ton stock, tes collections : documentés en quelques photos, pendant que tu travailles.',
       personas: [
-        { who: 'Styliste', text: 'Chaque pièce photographiée, rangée par shooting. Tu sais ce qui est sorti et ce qui est revenu.', chip: 'Prêtée · retour vendredi' },
-        { who: 'Régisseur', text: 'Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans ta poche.', chip: '42 pièces · 3 prêtées' },
-        { who: 'Brocanteur', text: 'Un déballage entier en une session grâce au mode rafale, avec un prix de départ pour chaque pièce.', chip: 'Rafale · 60 objets' },
-        { who: 'Musicien', text: 'Instruments et accessoires documentés, factures jointes : prêts pour l’assurance ou la revente.', chip: 'Valeur ≈ {price}' },
+        {
+          who: 'Styliste',
+          text: 'Chaque pièce photographiée, rangée par shooting. Tu sais ce qui est sorti et ce qui est revenu.',
+          chip: 'Prêtée · retour vendredi',
+        },
+        {
+          who: 'Régisseur',
+          text: 'Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans ta poche.',
+          chip: '42 pièces · 3 prêtées',
+        },
+        {
+          who: 'Brocanteur',
+          text: 'Un déballage entier en une session grâce au mode rafale, avec un prix de départ pour chaque pièce.',
+          chip: 'Rafale · 60 objets',
+        },
+        {
+          who: 'Musicien',
+          text: 'Instruments et accessoires documentés, factures jointes : prêts pour l’assurance ou la revente.',
+          chip: 'Valeur ≈ {price}',
+        },
       ],
     },
     everyone: {
@@ -118,12 +147,26 @@ const fr = {
       title: 'Pas besoin d’être pro. Ni technicien.',
       sub: 'Si tu sais prendre une photo, tu sais utiliser Tiroir.',
       points: [
-        { title: 'Aucune compétence requise', text: 'Pas de tableau ni de formulaire vide. Tu photographies, Tiroir remplit.' },
-        { title: 'Tes données restent à toi', text: 'Pas de publicité, rien n’est revendu ni utilisé pour entraîner des modèles. Supprimer ton compte efface tout, immédiatement.' },
-        { title: 'Partage en lecture seule', text: 'Un lien vers une collection : la personne regarde, sans compte ni application. Tu coupes le lien quand tu veux.' },
+        {
+          title: 'Aucune compétence requise',
+          text: 'Pas de tableau ni de formulaire vide. Tu photographies, Tiroir remplit.',
+        },
+        {
+          title: 'Tes données restent à toi',
+          text: 'Pas de publicité, rien n’est revendu ni utilisé pour entraîner des modèles. Supprimer ton compte efface tout, immédiatement.',
+        },
+        {
+          title: 'Partage en lecture seule',
+          text: 'Un lien vers une collection : la personne regarde, sans compte ni application. Tu coupes le lien quand tu veux.',
+        },
       ],
       usesTitle: 'Ça sert aussi à…',
-      uses: ['Préparer un dossier d’assurance', 'Déménager sans rien perdre', 'Fixer les prix d’un vide-grenier', 'Faire le tri dans un dressing'],
+      uses: [
+        'Préparer un dossier d’assurance',
+        'Déménager sans rien perdre',
+        'Fixer les prix d’un vide-grenier',
+        'Faire le tri dans un dressing',
+      ],
       why: 'Pourquoi ça marche : une intelligence artificielle de reconnaissance d’image décrit chaque photo. Le résultat reste une proposition — chaque champ se modifie, et tes corrections priment toujours.',
     },
     value: {
@@ -131,12 +174,25 @@ const fr = {
       title: 'Sache ce que ça vaut, et suis-le.',
       sub: 'Une estimation fondée sur des annonces comparables, pas un chiffre sorti d’un chapeau.',
       items: [
-        { title: 'Estimer', text: 'Une fourchette de prix, et les annonces qui l’ont produite.' },
-        { title: 'Suivre', text: 'La valeur de chaque objet et de chaque collection, actualisée quand tu veux.' },
-        { title: 'Revendre', text: 'Marque « Vendu » avec le prix réel : l’objet reste dans ton historique.' },
+        {
+          title: 'Estimer',
+          text: 'Une fourchette de prix, et les annonces qui l’ont produite.',
+        },
+        {
+          title: 'Suivre',
+          text: 'La valeur de chaque objet et de chaque collection, actualisée quand tu veux.',
+        },
+        {
+          title: 'Revendre',
+          text: 'Marque « Vendu » avec le prix réel : l’objet reste dans ton historique.',
+        },
       ],
       note: 'Ce n’est pas une expertise : pour une pièce rare, c’est un ordre de grandeur.',
-      demo: { comparable: 'Annonce similaire', sold: 'Vendu', trend: 'Valeur de la collection' },
+      demo: {
+        comparable: 'Annonce similaire',
+        sold: 'Vendu',
+        trend: 'Valeur de la collection',
+      },
     },
     pricing: {
       eyebrow: 'Tarifs',
@@ -156,10 +212,22 @@ const fr = {
     faq: {
       title: 'Questions fréquentes',
       items: [
-      { q: 'Faut-il s’y connaître en technologie ?', a: 'Non. Tu prends une photo, Tiroir remplit la fiche. Tout se corrige d’un geste.' },
-      { q: 'Et si la fiche se trompe ?', a: 'Chaque champ est modifiable, et tes corrections priment toujours. La marque exacte ou le prix d’achat, c’est toi qui les connais.' },
-      { q: 'Mes photos sont-elles privées ?', a: 'Oui. Rien n’est public tant que tu ne partages pas un lien, et tu peux le désactiver à tout moment.' },
-      { q: 'L’estimation est-elle fiable ?', a: 'Elle s’appuie sur des annonces comparables : un prix de départ fiable pour un objet courant, un ordre de grandeur pour une pièce rare.' },
+        {
+          q: 'Faut-il s’y connaître en technologie ?',
+          a: 'Non. Tu prends une photo, Tiroir remplit la fiche. Tout se corrige d’un geste.',
+        },
+        {
+          q: 'Et si la fiche se trompe ?',
+          a: 'Chaque champ est modifiable, et tes corrections priment toujours. La marque exacte ou le prix d’achat, c’est toi qui les connais.',
+        },
+        {
+          q: 'Mes photos sont-elles privées ?',
+          a: 'Oui. Rien n’est public tant que tu ne partages pas un lien, et tu peux le désactiver à tout moment.',
+        },
+        {
+          q: 'L’estimation est-elle fiable ?',
+          a: 'Elle s’appuie sur des annonces comparables : un prix de départ fiable pour un objet courant, un ordre de grandeur pour une pièce rare.',
+        },
       ],
     },
     final: {
@@ -167,25 +235,17 @@ const fr = {
       sub: 'Gratuit, sans carte bancaire.',
     },
   },
-
   pricing: {
     meta: {
       title: 'Tarifs — Tiroir',
-      description: 'Tiroir est gratuit, avec {free} actions IA par mois. Crédits IA dès {pack}.',
+      description: 'Tiroir est gratuit, avec {free} actions IA par mois. Crédits IA dès {pack}, Premium à {premium} par mois, Pro à {pro} par mois, Business sur devis.',
     },
     badge: 'Tarifs',
     title: 'Range tout. Sache ce que ça vaut.',
     sub: 'Tiroir est gratuit pour tout le monde. Tu ne paies que si tu vas plus loin.',
     perMonth: '/mois',
-    upcoming: 'Tarifs à venir',
-    from: 'À partir de',
     perYear: 'ou {price} par an',
-    renewal: 'Facturé et renouvelé chaque mois ou chaque année, selon la formule choisie.',
-    premiumScope: 'Un seul compte, six tiroirs',
-    approx: 'Environ',
-    perSeat: 'par siège et par an',
-    invoice: 'Sur facture',
-    roadmap: 'La collaboration et le parrainage sont à l’étude.',
+    perSeat: 'par siège/mois',
     soon: 'Bientôt disponible',
     free: {
       tagline: 'Pour cataloguer tout ce que tu possèdes.',
@@ -196,6 +256,7 @@ const fr = {
         'Crédits IA en plus, à la demande',
       ],
       start: 'Commencer gratuitement',
+      afterQuota: 'Quota IA mensuel, puis achat de crédits',
     },
     premium: {
       tagline: 'Pour suivre la valeur de votre collection.',
@@ -225,8 +286,10 @@ const fr = {
         'Facturation mensuelle, virement ou prélèvement',
       ],
       cta: 'Nous contacter',
+      quote: 'Sur devis',
+      billing: 'Facture mensuelle',
     },
-    note: 'Prix indicatifs TTC des formules à venir. Les tarifs en vigueur dans l’app sont affichés par votre store avant l’achat.',
+    note: 'Prix TTC. Business se règle sur facture.',
     credits: {
       title: 'Crédits IA',
       sub: 'Besoin de plus ? Recharge quand tu veux, sans abonnement.',
@@ -237,17 +300,33 @@ const fr = {
     },
     faqTitle: 'Questions fréquentes',
     faq: [
-      { q: 'Qu’est-ce qu’une action IA ?', a: 'Une identification ou une estimation d’objet.' },
-      { q: 'Que se passe-t-il quand mon quota est épuisé ?', a: 'Tiroir reste utilisable ; seules les actions IA demandent des crédits.' },
-      { q: 'Les estimations sont-elles influencées par des partenaires ?', a: 'Non. Les estimations ne sont jamais influencées par nos partenaires : les offres marchandes sont séparées de l’estimation de valeur.' },
-      { q: 'Puis-je résilier ?', a: 'À tout moment, depuis l’App Store, le Play Store ou votre compte.' },
+      {
+        q: 'Qu’est-ce qu’une action IA ?',
+        a: 'Une identification ou une estimation d’objet.',
+      },
+      {
+        q: 'Que se passe-t-il quand mon quota est épuisé ?',
+        a: 'Tiroir reste utilisable ; seules les actions IA demandent des crédits.',
+      },
+      {
+        q: 'Les estimations sont-elles influencées par des partenaires ?',
+        a: 'Non. Les estimations ne sont jamais influencées par nos partenaires : les offres marchandes sont séparées de l’estimation de valeur.',
+      },
+      {
+        q: 'Puis-je résilier ?',
+        a: 'À tout moment, depuis l’App Store, le Play Store ou votre compte.',
+      },
     ],
     final: {
       title: 'Commence gratuitement.',
       sub: 'Objets et collections illimités, {n} actions IA par mois. Aucune carte bancaire requise.',
     },
+    // Mention de l'annuel : 10 mois payés pour 12 (grille du 08/11/2026).
+    twoMonthsFree: 'Deux mois offerts',
+    // Après un prix TTC (assujetti à la TVA) ; vatExcl : le même prix hors taxes.
+    vatIncl: 'TTC',
+    vatExcl: 'soit {price} HT',
   },
-
   errors: {
     notFoundTitle: 'Page introuvable',
     notFoundText: 'La page demandée n’existe pas ou a été déplacée.',

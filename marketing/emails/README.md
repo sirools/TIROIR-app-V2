@@ -153,6 +153,36 @@ les fournisseurs de messagerie s'en servent comme signal de spam.
 `investisseurs.html` est un e-mail **relationnel**, pas commercial : la
 désinscription y reste, mais sans le vocabulaire marketing.
 
+## Textes et gabarits : `presentation.html` est généré
+
+Les textes de l'e-mail de **présentation** (J+3, envoyé par la fonction
+`send-lifecycle-emails`) et de l'e-mail de **partage** (`create-share-link`)
+vivent dans `design/i18n/email/<langue>.json`, avec les autres
+traductions de Tiroir. La mise en page de la présentation, sans texte,
+est `gabarits/presentation.html` : chaque `[[clé]]` y est remplacé par le
+texte de la langue (`[[lang]]` par son code).
+
+Pour modifier la présentation :
+
+1. le texte → `design/i18n/email/fr.json` (`presentation.html.*` pour le
+   HTML, `presentation.text.lines` pour la version texte, `subject`,
+   `opening`) ; la mise en page → `gabarits/presentation.html` ;
+2. `node design/generate.mjs` réécrit `presentation.html` (l'aperçu en
+   français, qui s'ouvre toujours seul dans un navigateur) et
+   `supabase/functions/_shared/emailPresentation.ts` (ce qui part, sans
+   les commentaires) ;
+3. ne jamais modifier ces deux fichiers à la main : le test
+   `designTokens.test.ts` (`generate.mjs --check`) casse.
+
+Une langue de plus pour la présentation = un bloc `presentation` dans
+`design/i18n/email/<langue>.json` ; elle sort dans
+`HTML_PRESENTATION_BY_LANG`. La fonction n'envoie encore que le français :
+la langue de chaque compte (`profiles.locale`) attend son brouillon SQL.
+
+Les quatre autres gabarits (`investisseurs`, `utilisateurs`,
+`collectionneurs`, `vendeurs`) restent ici tels quels : ils sont collés à
+la main dans un routeur, en français, et ne passent par aucun code.
+
 ## Avant chaque envoi
 
 1. **Tester le rendu réel** (Litmus, Email on Acid, ou simplement

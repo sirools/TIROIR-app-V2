@@ -1,0 +1,141 @@
+{
+  "$comment": [
+    "BROUILLON V4 — source unique des paliers (droits, quotas, libellés, prix, produits des stores).",
+    "Lu par le site et par l'app une fois branché (V4_PLAN.md, chantier 3) ; aujourd'hui, seul le test web/__tests__/tiersConfig.test.ts le lit, pour vérifier qu'il dit la même chose que web/lib/offers.ts (OFFERS_V4) et strategie/packs-stores.md.",
+    "Quotas : la valeur appliquée reste celle de app_settings (réglable dans le back-office, onglet Quotas). Ce fichier donne le nom de la colonne et la valeur décidée le 19/10/2026 (strategie/offres.md), qui sert de repli.",
+    "Prix : TTC en euros, grille figée le 19/10/2026. Rien ici n'est envoyé aux stores ni à Stripe : Clément crée et publie les produits.",
+    "decision: \"pending\" = question ouverte, à trancher par Clément (V4_PLAN.md, décisions)."
+  ],
+  "version": "2026-10-27-draft",
+  "existingSubscribers": { "value": "keep_price", "decision": "2026-10-31", "$comment": "Un changement de prix ne vaut que pour les nouveaux abonnements (stores et Stripe) : les abonnés en cours gardent leur prix." },
+  "currency": "EUR",
+  "tiers": {
+    "free": {
+      "order": 0,
+      "label": { "fr": "Free", "en": "Free", "es": "Free", "de": "Free", "pt-BR": "Free", "pt-PT": "Free" },
+      "payment": "none",
+      "price": { "monthly": 0 },
+      "quotas": {
+        "aiActionsMonthly": { "value": 20, "setting": "free_ai_quota_monthly" },
+        "objectsMax": { "value": null, "setting": "free_objects_max", "decision": "pending", "$comment": "Grille V4 : objets illimités ; la base garde un plafond réglable (FALLBACK du site : 100)." },
+        "photosPerObject": { "value": 3, "setting": "free_photos_per_object" }
+      },
+      "afterQuota": "offer_credits",
+      "features": {
+        "$comment": "protectedLinks : ouvert à tous aujourd'hui (code) ; la grille du 19/10 le range dans Premium. Décision D13 — la sécurité par défaut plaide pour le laisser à tous.",
+        "estimation": "credits",
+        "valueCurve": false,
+        "estimationRefresh": false,
+        "sourcesSummary": false,
+        "sourcesDetail": false,
+        "insuranceExport": false,
+        "batchEstimation": false,
+        "protectedLinks": true,
+        "collectionSuggestions": true,
+        "wishlistMerchants": true
+      }
+    },
+    "premium": {
+      "order": 1,
+      "label": { "fr": "Premium", "en": "Premium", "es": "Premium", "de": "Premium", "pt-BR": "Premium", "pt-PT": "Premium" },
+      "payment": "store_subscription",
+      "price": {
+        "monthly": 15,
+        "yearly": 150,
+        "yearlyRule": "two_months_free",
+        "decision": "2026-11-08",
+        "$comment": "Grille de lancement du 08/11/2026, fixée jusqu'au passage à l'échelle : annuel = 10 × le mensuel (« deux mois offerts »)."
+      },
+      "quotas": {
+        "aiActionsMonthly": { "value": 150, "setting": "premium_ai_quota_monthly", "decision": "pending", "$comment": "Plafonné (150) ou illimité : question ouverte." },
+        "photoEnhancesMonthly": { "value": 50, "setting": "premium_photo_enhance_quota_monthly" },
+        "valueEstimatesMonthly": { "value": 20, "setting": "premium_value_estimate_monthly" }
+      },
+      "afterQuota": "offer_pro",
+      "features": {
+        "estimation": "automatic",
+        "quotaCounter": true,
+        "valueCurve": true,
+        "estimationRefresh": true,
+        "sourcesSummary": true,
+        "sourcesDetail": false,
+        "insuranceExport": false,
+        "batchEstimation": false,
+        "protectedLinks": true,
+        "collectionSuggestions": true,
+        "wishlistMerchants": true
+      },
+      "store": {
+        "entitlement": { "id": null, "decision": "pending", "$comment": "Le code ne nomme aucun entitlement : le webhook lit product_id, l'app lit entitlements.active sans filtre. Relever l'identifiant dans RevenueCat." },
+        "products": ["tiroir_premium_monthly", "tiroir_premium_annual"],
+        "revenueCatPackages": ["$rc_monthly", "$rc_annual"]
+      }
+    },
+    "pro": {
+      "order": 2,
+      "label": { "fr": "Pro", "en": "Pro", "es": "Pro", "de": "Pro", "pt-BR": "Pro", "pt-PT": "Pro" },
+      "payment": "store_subscription",
+      "price": {
+        "monthly": 50,
+        "yearly": 500,
+        "yearlyRule": "two_months_free",
+        "decision": "2026-11-08",
+        "$comment": "Grille de lancement du 08/11/2026, fixée jusqu'au passage à l'échelle : annuel = 10 × le mensuel (« deux mois offerts »)."
+      },
+      "quotas": {
+        "aiActionsMonthly": { "value": 600, "setting": "pro_ai_quota_monthly" },
+        "photoEnhancesMonthly": { "value": 100, "setting": "pro_photo_enhance_quota_monthly" },
+        "valueEstimatesMonthly": { "value": 60, "setting": "pro_value_estimate_monthly" }
+      },
+      "afterQuota": "contact",
+      "creditTopUp": false,
+      "features": {
+        "estimation": "automatic",
+        "quotaCounter": true,
+        "valueCurve": true,
+        "estimationRefresh": true,
+        "sourcesSummary": true,
+        "sourcesDetail": true,
+        "insuranceExport": true,
+        "batchEstimation": true,
+        "protectedLinks": true,
+        "collectionSuggestions": true,
+        "wishlistMerchants": true
+      },
+      "store": {
+        "entitlement": { "id": null, "decision": "pending" },
+        "products": ["tiroir_pro_monthly", "tiroir_pro_annual"],
+        "productsToCreate": ["tiroir_pro_monthly", "tiroir_pro_annual"],
+        "revenueCatPackages": ["pro_monthly", "pro_annual"]
+      }
+    },
+    "business": {
+      "order": 3,
+      "label": { "fr": "Business", "en": "Business", "es": "Business", "de": "Business", "pt-BR": "Business", "pt-PT": "Business" },
+      "payment": "invoice_monthly",
+      "price": { "seatMonthly": 39 },
+      "inherits": "pro",
+      "features": { "teamSeats": true, "roles": true, "invoice": true }
+    }
+  },
+  "creditPacks": {
+    "$comment": "Consommables des stores (offering RevenueCat « credits ») et, sur le site, Stripe. Les crédits n'expirent pas.",
+    "offering": "credits",
+    "packs": [
+      { "id": "tiroir_credits_50", "credits": 50, "price": 2.99, "popular": false },
+      { "id": "tiroir_credits_150", "credits": 150, "price": 6.99, "popular": true },
+      { "id": "tiroir_credits_500", "credits": 500, "price": 19.99, "popular": false }
+    ],
+    "retired": [
+      { "id": "tiroir_credits_30", "credits": 30 },
+      { "id": "tiroir_credits_80", "credits": 80 }
+    ],
+    "iosPayment": { "value": "store_iap", "decision": "2026-10-31", "$comment": "Décision reconfirmée le 31/10/2026 : crédits par achat intégré dans l'app (iOS et Android), Stripe sur le site seulement, sans lien de l'app vers le site." }
+  },
+  "creditCosts": {
+    "$comment": "Coût d'une action en crédits : la vérité est ai_credit_cost (supabase/drafts/ai_credits_spend.sql).",
+    "analysis": 1,
+    "photo": 4,
+    "estimate": 8
+  }
+}

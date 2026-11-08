@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Génère, depuis design/tokens.json (seule source de vérité), les jetons de
-// chaque support : site web, app (iOS et Android), e-mails.
+// chaque support : site web, app (iOS et Android), e-mails ; et, depuis
+// design/i18n/ (design/i18n.mjs), les traductions de l'app et du site.
 //
 //   node design/generate.mjs          écrit les fichiers
 //   node design/generate.mjs --check  échoue si l'un d'eux n'est plus à jour
@@ -9,6 +10,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { i18nOutputs, applyLanguagesToAppJson } from './i18n.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const tokens = JSON.parse(readFileSync(join(ROOT, 'design/tokens.json'), 'utf8'))
@@ -71,8 +73,8 @@ const OUTPUTS = [
 ]
 
 // app.json de l'app (Expo) : seules ses couleurs viennent des jetons —
-// fond de l'écran de démarrage = fond de l'app, fond de l'icône Android =
-// orange. Remplacement ciblé, pour ne pas reformater le reste du fichier.
+// fond de l'écran de démarrage (plugin expo-splash-screen) = fond de
+// l'app, fond de l'icône Android = orange. Remplacement ciblé, pour ne pas reformater le reste du fichier.
 function appJson() {
   const file = join(ROOT, 'mobile/app.json')
   let src = readFileSync(file, 'utf8')
@@ -80,11 +82,18 @@ function appJson() {
     if (!re.test(src)) throw new Error(`mobile/app.json : ${what} introuvable`)
     src = src.replace(re, `$1${value}$2`)
   }
-  set(/("splash":\s*\{[^}]*?"backgroundColor":\s*")#[0-9A-Fa-f]{6}(")/s, tokens.color['beige-2'].value, 'splash.backgroundColor')
   set(/("adaptiveIcon":\s*\{[^}]*?"backgroundColor":\s*")#[0-9A-Fa-f]{6}(")/s, tokens.color.orange.value, 'android.adaptiveIcon.backgroundColor')
-  return src
+  // Écran de démarrage (SDK 56 : plugin expo-splash-screen, la clé
+  // « splash » de premier niveau n'existe plus) : fond = beige de l'app.
+  const app = JSON.parse(src)
+  const splash = app.expo.plugins.find(p => Array.isArray(p) && p[0] === 'expo-splash-screen')
+  if (!splash) throw new Error('mobile/app.json : plugin expo-splash-screen introuvable')
+  splash[1] = { ...splash[1], backgroundColor: tokens.color['beige-2'].value }
+  // Langues natives et textes système : depuis design/i18n/languages.json.
+  return JSON.stringify(applyLanguagesToAppJson(app, ROOT), null, 2) + '\n'
 }
 OUTPUTS.push(['mobile/app.json', appJson()])
+OUTPUTS.push(...i18nOutputs(ROOT))
 
 const check = process.argv.includes('--check')
 let stale = 0
@@ -101,4 +110,4 @@ for (const [rel, content] of OUTPUTS) {
   }
 }
 if (check && stale) process.exit(1)
-if (check) console.log('✓ Jetons à jour sur le site, l’app et les e-mails.')
+if (check) console.log('✓ Jetons et traductions à jour sur le site, l’app et les e-mails.')

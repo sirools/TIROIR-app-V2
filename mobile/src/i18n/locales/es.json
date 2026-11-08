@@ -134,7 +134,7 @@
     "title": "Mi perfil",
     "premium": "Premium",
     "pro": "Profesional",
-    "proBilling": "Plan Profesional facturado directamente. Escríbenos a hello@tiroir.app para cualquier cambio.",
+    "proBilling": "Plan Profesional facturado directamente. Escríbenos a clement.ougier@gmail.com (asunto «Tiroir Business») para cualquier cambio.",
     "free": "Versión gratuita",
     "statsTitle": "Estadísticas",
     "statObjects": "objetos",
@@ -194,7 +194,7 @@
   },
   "onboarding": {
     "tagline": "Encuentra todo\nlo que tienes.",
-    "subtitle": "Fotografía tus objetos y la IA crea las fichas automáticamente. Encuentra cualquier cosa en segundos.",
+    "subtitle": "Fotografía tus objetos y Torix crea las fichas automáticamente. Encuentra cualquier cosa en segundos.",
     "point1": "Foto → ficha de objeto automática",
     "point2": "Organiza por colecciones",
     "point3": "Encuéntralo buscando en lenguaje natural",
@@ -245,7 +245,7 @@
   },
   "uploading": {
     "sendingPhotos": "Subiendo fotos…",
-    "analyzing": "Analizando…",
+    "analyzing": "Torix analiza tu foto…",
     "progress_one": "{{percent}} % — {{done}} / {{total}} foto",
     "progress_other": "{{percent}} % — {{done}} / {{total}} fotos",
     "preparingSheet": "Preparando la ficha de tu objeto",
@@ -280,7 +280,7 @@
     "createError": "No se pudo crear",
     "genericError": "Se produjo un error",
     "title": "Haz una foto",
-    "subtitle": "La IA analiza hasta 5 fotos para crear la ficha",
+    "subtitle": "Torix analiza hasta 5 fotos para crear la ficha",
     "quotaUnlimited": "Análisis de IA ilimitados",
     "quotaExhausted": "Cuota de IA agotada · {{used}}/{{limit}} este mes",
     "quotaRemaining_one": "{{count}} análisis de IA restante este mes",
@@ -350,7 +350,16 @@
     "noSubMessage": "No hay ninguna compra anterior que restaurar.",
     "restoreError": "No se pudo restaurar.",
     "terms": "Condiciones de uso",
-    "privacy": "Política de privacidad"
+    "privacy": "Política de privacidad",
+    "tierPremium": "Premium",
+    "tierPro": "Pro",
+    "proHint": "Todo Premium, con más análisis de IA y retoques de fotos cada mes.",
+    "welcomeProTitle": "¡Bienvenido a Tiroir Pro! 🎉"
+  },
+  "credits": {
+    "outTitle": "Sin créditos de IA",
+    "outBody": "Has agotado la cuota del mes y no quedan créditos suficientes. Un pack de créditos te permite seguir ahora mismo.",
+    "buy": "Comprar créditos"
   },
   "assistant": {
     "title": "Asistente",
@@ -419,7 +428,7 @@
     "fieldCondition": "Estado",
     "sizeLabel": "Talla: {{value}}",
     "inviteTitle": "«{{name}}» espera su primer objeto",
-    "inviteBody": "Hazle una foto y la IA rellena la ficha. Irá directamente a esta colección.",
+    "inviteBody": "Hazle una foto y Torix rellena la ficha. Irá directamente a esta colección.",
     "inviteCamera": "Hacer una foto",
     "inviteCameraHint": "Un objeto, ahora mismo",
     "inviteLibrary": "Desde la galería",
@@ -502,7 +511,8 @@
   "object": {
     "notFound": "Objeto no encontrado.",
     "addedOn": "Añadido el {{date}}",
-    "aiSummary": "RESUMEN IA",
+    "photoViewerClose": "Cerrar la foto",
+    "aiSummary": "RESUMEN TORIX",
     "descriptionPlaceholder": "Describe el objeto, añade notas útiles…",
     "descriptionAdd": "Toca para añadir una descripción…",
     "showMore": "Ver más ↓",
@@ -572,7 +582,7 @@
       "background": "Fondo",
       "shadow": "Sombra",
       "enhanceTitle": "Mejorar la calidad",
-      "enhanceSub": "La IA retoca la luz, la nitidez y el encuadre, y elige ella misma un fondo a juego.",
+      "enhanceSub": "Torix retoca la luz, la nitidez y el encuadre, y elige él mismo un fondo a juego.",
       "enhanceCta": "Mejorar",
       "studioFootnote": "El resultado se añade a la ficha; la foto original se conserva.",
       "shadows": {
@@ -595,11 +605,11 @@
     "value": {
       "sectionTitle": "Rendimiento",
       "estimation": "Valor estimado",
-      "vsAi": "vs IA",
+      "vsAi": "vs Torix",
       "vsPurchase": "vs compra",
       "enter": "Introducir…",
       "marketValue": "Valor de mercado",
-      "marketHint": "Estimación IA según precios web",
+      "marketHint": "Estimación Torix según precios web",
       "purchasePrice": "Precio de compra",
       "detail": "Detalle del valor",
       "detailHint": "Estimación, compra, valor de mercado",
@@ -607,12 +617,12 @@
       "deposit": "Fianza",
       "depositHint": "Garantía solicitada en caso de préstamo",
       "searching": "Buscando…",
-      "aiHint": "IA: {{value}} {{sym}}",
+      "aiHint": "Torix: {{value}} {{sym}}",
       "range": "Rango: {{min}} – {{max}} {{sym}}",
       "edit": "✎ Editar",
       "refresh": "↻ Actualizar",
       "delete": "✕ Eliminar",
-      "estimateAi": "✦ Estimar con IA",
+      "estimateAi": "✦ Estimar con Torix",
       "confidenceLow": "Confianza baja",
       "confidenceMedium": "Confianza media",
       "confidenceHigh": "Confianza alta",
@@ -702,8 +712,8 @@
       "add": "Añadir un nivel",
       "full": "Máximo {{max}} niveles"
     },
-    "illustration": "Ilustración IA",
-    "summaryGenerate": "Generar una descripción con IA",
+    "illustration": "Ilustración Torix",
+    "summaryGenerate": "Generar una descripción con Torix",
     "summaryRegenerate": "Regenerar la descripción",
     "summaryCopy": "Copiar la descripción",
     "summaryEdit": "Editar la descripción",
@@ -834,14 +844,14 @@
   },
   "collectionPicker": {
     "title": "¿Dónde guardar este objeto?",
-    "helperSingle": "Elige mientras la IA prepara la ficha: no alarga nada.",
+    "helperSingle": "Elige mientras Torix prepara la ficha: no alarga nada.",
     "helperManual": "Podrás cambiar de colección en cualquier momento.",
     "none": "Sin colección",
     "noneHint": "Ordenar más tarde"
   },
   "scene": {
     "entryTitle": "¿Una foto, varios objetos?",
-    "entrySub": "La IA los identifica y los cuenta en una sola foto",
+    "entrySub": "Torix los identifica y los cuenta en una sola foto",
     "title": "Detección de escena",
     "subtitle": "Fotografía varios objetos a la vez",
     "analyse": "Analizar la escena",
@@ -876,6 +886,23 @@
     "thumbGenerate": "Generar",
     "thumbRedo": "Rehacer",
     "thumbNoCrop": "No hay recorte disponible para este objeto.",
-    "illustration": "Ilustración IA"
+    "illustration": "Ilustración Torix"
+  },
+  "torix": {
+    "name": "Torix",
+    "estimation": "Estimación Torix",
+    "analyzing": "Torix analiza tu foto…"
+  },
+  "preferences": {
+    "section": "PREFERENCIAS",
+    "language": "Idioma",
+    "region": "Región",
+    "auto": "Automático",
+    "languageTitle": "Idioma de la app",
+    "languageAutoHint": "Sigue el idioma del dispositivo ({{name}})",
+    "regionTitle": "Región",
+    "regionAutoHint": "Sigue la región del dispositivo ({{name}})",
+    "regionHelp": "La región sirve para estimar el valor de tus objetos: moneda y anuncios locales. No cambia el idioma.",
+    "systemSettings": "Abrir los ajustes del dispositivo"
   }
 }
