@@ -82,5 +82,11 @@
         "Me désinscrire : {desinscription}"
       ]
     }
+  },
+  "checkout": {
+    "$comment": "Case obligatoire du Checkout Stripe (abonnements et packs de crédits) : renoncement au droit de rétractation, art. L221-28. Phrase à la première personne (ni tu ni vous). {cgu} = adresse des CGU. invoiceNote : mention en pied des factures et reçus envoyés par e-mail. Changer ce texte : changer aussi CONSENT_TEXT_VERSION (web/lib/checkoutConsent.ts).",
+    "consentSubscription": "Je demande l’accès immédiat à mon abonnement et je reconnais perdre mon droit de rétractation de 14 jours (art. L221-28 du Code de la consommation). J’accepte les [conditions générales]({cgu}).",
+    "consentCredits": "Je demande l’accès immédiat à mes crédits et je reconnais perdre mon droit de rétractation de 14 jours (art. L221-28 du Code de la consommation). J’accepte les [conditions générales]({cgu}).",
+    "invoiceNote": "Accès immédiat demandé par le client : renonciation au droit de rétractation (art. L221-28 du Code de la consommation)."
   }
 }

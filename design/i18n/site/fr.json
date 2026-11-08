@@ -958,8 +958,6 @@
       "perCredit": "{price} le crédit",
       "buy": "Acheter",
       "soon": "Bientôt disponible",
-      "waiver": "Je demande l’accès immédiat aux crédits et je renonce à mon droit de rétractation de 14 jours (art. L221-28 du Code de la consommation).",
-      "waiverMissing": "Coche la case ci-dessus pour continuer.",
       "redirecting": "Redirection vers le paiement…",
       "error": "Le paiement n’a pas pu démarrer. Réessaie dans un instant.",
       "success": "Paiement reçu : tes crédits arrivent dans quelques secondes.",
@@ -980,7 +978,10 @@
       "viaSite": "sur le site",
       "viaApp": "dans l’app",
       "refunded": "rendue",
-      "team": "Ton équipe Business"
+      "team": "Ton équipe Business",
+      "consentNote": "Sur la page de paiement Stripe, une case te demande de confirmer l’accès immédiat à tes crédits : tu renonces alors à ton droit de rétractation de 14 jours.",
+      "proIncluded": "Votre offre Pro inclut l’IA sans recharge : vous n’avez pas besoin de crédits.",
+      "added": "Crédits ajoutés : ton nouveau solde est à jour."
     },
     "team": {
       "metaTitle": "Équipe — Tiroir",
@@ -1077,13 +1078,11 @@
       "fromApp": "{tier}, géré dans l’app (App Store ou Google Play).",
       "fromInvoice": "{tier}, sur facture.",
       "portalError": "Impossible d’ouvrir la gestion de l’abonnement. Réessayez dans un instant.",
-      "waiver": "J’accepte les {cgu} et demande l’accès immédiat à l’abonnement : je renonce à mon droit de rétractation de 14 jours (art. L221-28 du Code de la consommation). Résiliable à tout moment.",
-      "terms": "conditions générales",
-      "waiverMissing": "Cochez la case pour continuer.",
       "invoicesTitle": "Factures",
       "invoicePdf": "PDF",
       "invoicePaid": "payée",
-      "invoiceOpen": "à payer"
+      "invoiceOpen": "à payer",
+      "consentNote": "Sur la page de paiement Stripe, une case vous demande de confirmer l’accès immédiat à votre abonnement et le renoncement à votre droit de rétractation de 14 jours."
     }
   }
 }

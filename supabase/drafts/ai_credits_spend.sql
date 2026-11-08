@@ -1,5 +1,7 @@
 -- ================================================================
--- ai_credits_spend.sql — BROUILLON (strategie/offres.md, marches 2 et 2 bis)
+-- ai_credits_spend.sql — dépense IA par quota puis crédits (strategie/offres.md,
+-- marches 2 et 2 bis). Version finale du 08/11/2026 : sans DROP, rejouable,
+-- aucune donnée existante modifiée (une table, des fonctions, des droits retirés).
 -- Toute dépense IA passe par ici : le quota du mois d'abord, puis les
 -- crédits achetés. Et un remboursement n'est plus jamais à la main du
 -- compte lui-même.
@@ -30,9 +32,13 @@ CREATE TABLE IF NOT EXISTS public.ai_spends (
 );
 CREATE INDEX IF NOT EXISTS ai_spends_user_idx ON public.ai_spends (user_id, created_at DESC);
 ALTER TABLE public.ai_spends ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "ai_spends: select own" ON public.ai_spends;
-CREATE POLICY "ai_spends: select own" ON public.ai_spends
-  FOR SELECT USING ((SELECT auth.uid()) = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'ai_spends' AND policyname = 'ai_spends: select own') THEN
+    CREATE POLICY "ai_spends: select own" ON public.ai_spends
+      FOR SELECT USING ((SELECT auth.uid()) = user_id);
+  END IF;
+END $$;
 REVOKE INSERT, UPDATE, DELETE ON public.ai_spends FROM PUBLIC, anon, authenticated;
 
 -- ── Famille et prix en crédits d'une fonction IA ─────────────────

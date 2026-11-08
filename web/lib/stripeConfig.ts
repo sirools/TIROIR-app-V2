@@ -13,6 +13,7 @@
 //
 // Module sans dépendance Next, testable.
 import { OFFERS_V4, VAT_RATE } from './offers'
+import { invoiceConsentNote } from './checkoutConsent'
 
 /** Version d'API figée : la forme des objets reçus ne change pas sous nos pieds. */
 export const STRIPE_API_VERSION = '2024-06-20'
@@ -220,6 +221,7 @@ export function consumerInvoiceFooter(env: Env = process.env): string {
   if (vatMode(env) === 'franchise') lines.push('TVA non applicable, art. 293 B du CGI.')
   else if (env.BILLING_VAT_NUMBER?.trim()) lines.push(`N° de TVA intracommunautaire : ${env.BILLING_VAT_NUMBER.trim()}`)
   lines.push('Prestation de services numériques.')
+  lines.push(invoiceConsentNote('fr'))
   return lines.join('\n')
 }
 

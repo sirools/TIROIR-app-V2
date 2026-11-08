@@ -12,5 +12,10 @@
     "footer": "Tiroir — overblik over dine ting, helt enkelt.",
     "subject": "{sender} har delt nogle genstande med dig på Tiroir",
     "anonymousSender": "En Tiroir-bruger"
+  },
+  "checkout": {
+    "consentSubscription": "Jeg anmoder om øjeblikkelig adgang til mit abonnement og anerkender, at jeg mister min fortrydelsesret på 14 dage. Jeg accepterer [vilkårene]({cgu}).",
+    "consentCredits": "Jeg anmoder om øjeblikkelig adgang til mine kreditter og anerkender, at jeg mister min fortrydelsesret på 14 dage. Jeg accepterer [vilkårene]({cgu}).",
+    "invoiceNote": "Øjeblikkelig adgang efter kundens ønske: afkald på fortrydelsesretten."
   }
 }

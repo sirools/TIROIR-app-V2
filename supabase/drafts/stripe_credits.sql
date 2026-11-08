@@ -1,8 +1,16 @@
 -- ================================================================
--- stripe_credits.sql — BROUILLON (crédits IA achetés sur le site, Stripe)
+-- stripe_credits.sql — crédits IA achetés sur le site (Stripe). Version
+-- finale du 08/11/2026, rejouable, aucune donnée existante modifiée.
 --
--- À appliquer APRÈS ai_credits.sql (en prod) et ai_credits_spend.sql
--- (brouillon) : l'historique ci-dessous lit ai_spends.
+-- À appliquer APRÈS ai_credits.sql et ai_credits_spend.sql : l'historique
+-- ci-dessous lit ai_spends.
+--
+-- Seule opération qui retire quelque chose : la règle « reason » du
+-- journal ai_credit_ledger est élargie au motif « reversal ». Une règle
+-- CHECK ne s'élargit pas sur place : elle est remplacée, dans une seule
+-- instruction, et seulement si elle ne connaît pas encore « reversal »
+-- (rejouer le script ne la touche plus). Aucune ligne n'est modifiée ;
+-- les lignes existantes sont revérifiées par la nouvelle règle, plus large.
 --
 -- Le journal reste ai_credit_ledger (en prod depuis le 30/09/2026) : un
 -- deuxième journal « credit_ledger » ferait deux soldes. Correspondance
@@ -21,13 +29,24 @@
 -- ================================================================
 
 -- ── 1. Nouvelle raison : reprise après remboursement (négative) ──
-ALTER TABLE public.ai_credit_ledger DROP CONSTRAINT IF EXISTS ai_credit_ledger_reason_check;
-ALTER TABLE public.ai_credit_ledger ADD CONSTRAINT ai_credit_ledger_reason_check
-  CHECK (reason IN ('welcome', 'purchase', 'gift', 'admin', 'consume', 'refund', 'reversal'));
-ALTER TABLE public.ai_credit_ledger DROP CONSTRAINT IF EXISTS ai_credit_ledger_sign;
-ALTER TABLE public.ai_credit_ledger ADD CONSTRAINT ai_credit_ledger_sign CHECK (
-  (reason IN ('consume', 'reversal') AND delta < 0) OR (reason NOT IN ('consume', 'reversal') AND delta > 0)
-);
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'public.ai_credit_ledger'::regclass
+                  AND conname = 'ai_credit_ledger_reason_check' AND pg_get_constraintdef(oid) LIKE '%reversal%') THEN
+    ALTER TABLE public.ai_credit_ledger
+      DROP CONSTRAINT IF EXISTS ai_credit_ledger_reason_check,
+      ADD CONSTRAINT ai_credit_ledger_reason_check
+        CHECK (reason IN ('welcome', 'purchase', 'gift', 'admin', 'consume', 'refund', 'reversal'));
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'public.ai_credit_ledger'::regclass
+                  AND conname = 'ai_credit_ledger_sign' AND pg_get_constraintdef(oid) LIKE '%reversal%') THEN
+    ALTER TABLE public.ai_credit_ledger
+      DROP CONSTRAINT IF EXISTS ai_credit_ledger_sign,
+      ADD CONSTRAINT ai_credit_ledger_sign CHECK (
+        (reason IN ('consume', 'reversal') AND delta < 0) OR (reason NOT IN ('consume', 'reversal') AND delta > 0)
+      );
+  END IF;
+END $$;
 -- Une reprise ne compte qu'une fois (ref : « stripe:<payment_intent>:<total repris> »).
 CREATE UNIQUE INDEX IF NOT EXISTS ai_credit_ledger_reversal_once_idx
   ON public.ai_credit_ledger (reason, ref)
@@ -68,9 +87,13 @@ CREATE TABLE IF NOT EXISTS public.stripe_credit_purchases (
 CREATE INDEX IF NOT EXISTS stripe_credit_purchases_user_idx ON public.stripe_credit_purchases (user_id, paid_at DESC);
 CREATE INDEX IF NOT EXISTS stripe_credit_purchases_paid_idx ON public.stripe_credit_purchases (paid_at DESC);
 ALTER TABLE public.stripe_credit_purchases ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "stripe_credit_purchases: select own" ON public.stripe_credit_purchases;
-CREATE POLICY "stripe_credit_purchases: select own" ON public.stripe_credit_purchases
-  FOR SELECT USING ((SELECT auth.uid()) = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'stripe_credit_purchases' AND policyname = 'stripe_credit_purchases: select own') THEN
+    CREATE POLICY "stripe_credit_purchases: select own" ON public.stripe_credit_purchases
+      FOR SELECT USING ((SELECT auth.uid()) = user_id);
+  END IF;
+END $$;
 REVOKE INSERT, UPDATE, DELETE ON public.stripe_credit_purchases FROM PUBLIC, anon, authenticated;
 
 -- ── 4. Enregistrer un achat et créditer (serveur seulement) ──────
