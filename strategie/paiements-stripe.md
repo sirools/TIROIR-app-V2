@@ -166,6 +166,58 @@ l'historique, sans entrer dans le solde.
 
 Réglage : `BUSINESS.proration` dans `web/lib/stripeConfig.ts`.
 
+## 3 bis. Abonnements Premium et Pro sur le site (08/11/2026)
+
+> Branche `feature/stripe-checkout`. Grille OFFERS_V4 confirmée par le
+> fondateur le 08/11/2026 : Premium 4,99 €/mois ou 39 €/an, Pro
+> 14,99 €/mois (pas d'annuel).
+
+**Tunnel** (le moins d'étapes possible, l'offre toujours visible) :
+
+| Étape | Où |
+| --- | --- |
+| 1. Tarifs : bascule mensuel / annuel (Premium), bouton par offre | `/pricing` → `/abonnement?offre=premium&periode=annuel` |
+| 2. Compte : pas connecté → création de compte (Google, Apple si activé, e-mail) avec l'offre affichée à côté ; déjà connecté → étape sautée | `/inscription?next=…` ou `/login?next=…`, composant `OfferRecap` |
+| 3. Paiement : récapitulatif + un bouton « Payer 39 € » → Stripe Checkout hébergé (carte, Apple Pay, Google Pay selon les moyens activés) | `/abonnement`, `POST /api/stripe/subscription` |
+| 4. Confirmation : attend le webhook (n'active rien), annonce l'offre, renvoie vers l'app | `/abonnement/merci` (lit `GET /api/stripe/subscription`) |
+| 5. Abandon : retour aux tarifs, message neutre, offre resélectionnée | `/pricing?offre=…&periode=…&paiement=annule` |
+| Gestion : « Gérer mon abonnement » (carte, changement d'offre, résiliation, factures) | `/mon-compte`, `POST /api/stripe/portal` → portail client Stripe |
+
+**Données** (`supabase/drafts/stripe_subscriptions.sql`, additif) : sur
+`profiles`, `stripe_customer_id`, `stripe_livemode`,
+`stripe_subscription_id`, `subscription_status`,
+`subscription_period_end`, `subscription_cancel_at_period_end`,
+`plan_source` (`web` | `app`). Le palier reste dans `profiles.plan` :
+quotas et fonctions lisent `effective_plan()` sans changement.
+
+**Règles** :
+- le webhook est la seule source de vérité : `apply_stripe_subscription`
+  reçoit l'état **actuel** de l'abonnement, relu chez Stripe (rejeu et
+  désordre sans effet) ; le palier vient du prix (`lookup_key`), jamais
+  des métadonnées ;
+- `active`, `trialing`, `past_due` → palier payant (`past_due` = en
+  retard, accès gardé pendant les relances) ; `canceled`, `unpaid`,
+  `incomplete_expired` → gratuit, **seulement** si le palier venait de
+  cet abonnement du site ; une résiliation dans le portail laisse
+  l'accès jusqu'à la fin de la période (`cancel_at_period_end`), puis
+  `customer.subscription.deleted` repasse en gratuit ;
+- le client Stripe est créé au premier paiement (pas à l'inscription :
+  pas de client pour chaque compte gratuit), un par mode (test / réel) ;
+- on ne vend pas un second abonnement : déjà abonné sur le site →
+  portail ; palier payant venu de l'app, d'une facture ou d'une
+  organisation → message (`stripe_subscription_gate`) ;
+- RevenueCat ne touche jamais un abonné du site en cours
+  (`nextPlan`, `_shared/storeProducts.ts`) et pose `plan_source = 'app'`
+  quand il donne un palier ; un Pro sur facture ou par une organisation
+  n'est jamais modifié par Stripe.
+
+**Écarts avec le brief, volontaires** : routes sous `/api/stripe/`
+(`subscription`, `portal`, `webhook` — un seul endpoint Stripe, déjà en
+place) ; identifiants de prix retrouvés par `lookup_key` plutôt qu'en
+variables d'environnement ; pas de Stripe Tax (franchise en base) ;
+pas de fichier `/.well-known/` pour Apple Pay (inutile avec Checkout
+hébergé, qui tourne sur le domaine de Stripe).
+
 ## 4. Suivi des revenus (tâche 3)
 
 Back-office → **Facturation** (`https://backoffice.tiroir.app/admin/facturation`) :
@@ -220,10 +272,13 @@ de l'ouverture.
    En réel, préférer une **clé restreinte** (`rk_live_…`) : Checkout
    Sessions (écriture), Products et Prices (lecture), Payment Intents et
    Charges (lecture), Customers et Tax IDs (écriture), Subscriptions
-   (écriture), Invoices (lecture). Jamais dans le dépôt.
+   (écriture), Invoices (lecture), Customer portal / Billing portal sessions
+   (écriture). Jamais dans le dépôt.
 3. **Produits** : `STRIPE_SECRET_KEY=sk_test_… node scripts/stripe-setup.mjs`
-   (crée les 3 packs et le siège Business, rejouable). Vérifier ensuite
-   dans Produits que les montants sont 2,99 / 6,99 / 19,99 / 39 €.
+   (crée les 3 packs, le siège Business, et les produits Tiroir Premium —
+   prix mensuel et annuel — et Tiroir Pro ; rejouable). Vérifier ensuite
+   dans Produits que les montants sont 2,99 / 6,99 / 19,99 / 39 € et
+   4,99 / 39 / 14,99 €.
 4. **Moyens de paiement** (Settings → Payment methods) : Carte (avec Apple
    Pay / Google Pay), **Prélèvement SEPA**, **Virements bancaires**
    (solde client, EUR).
@@ -256,7 +311,23 @@ de l'ouverture.
 9. **TVA** : rien à faire tant que Tiroir est en franchise en base. Plus
    tard seulement, si le seuil est dépassé : Product catalog → Tax rates
    → « TVA 20 % », inclusive → son id dans `STRIPE_TAX_RATE_ID`.
-10. **Préprod, impayé simulé** : Billing → Test clocks → nouvelle horloge
+10. **Portail client** (Settings → Billing → Customer portal) : activer ;
+    autoriser la mise à jour du moyen de paiement, l'historique des
+    factures, la **résiliation à la fin de la période** (pas immédiate),
+    et le **changement d'offre** entre les prix `tiroir_web_premium_monthly`,
+    `tiroir_web_premium_yearly`, `tiroir_web_pro_monthly` (prorata :
+    défaut) ; lien de retour par défaut `https://tiroir.app/mon-compte`.
+    Sans cette configuration, `POST /api/stripe/portal` échoue.
+11. **Paiements échoués par carte** (Settings → Billing → Revenue
+    recovery) : **Smart Retries** activées (par ex. 4 tentatives sur
+    2 semaines) ; e-mails « paiement échoué » et « carte qui expire »
+    activés ; après la dernière tentative : **annuler l'abonnement** (le
+    webhook repasse alors le compte en gratuit). Pendant les relances, le
+    compte reste payant (`past_due`).
+12. **Apple Pay / Google Pay** : rien à vérifier côté domaine avec
+    Checkout hébergé ; seulement s'assurer qu'ils sont actifs dans
+    Payment methods (point 4).
+13. **Préprod, impayé simulé** : Billing → Test clocks → nouvelle horloge
     → son id dans `STRIPE_TEST_CLOCK_ID` (voir § 8, B6).
 
 ## 7. Variables d'environnement
@@ -314,6 +385,26 @@ de test. Les tests SQL automatiques passent d'abord sur une base jetable :
 | B7 | Résilier l'abonnement dans le dashboard | `customer.subscription.deleted` → retour au gratuit immédiat |
 | B8 | Ouvrir le PDF d'une facture | Numéro `TIROIR-…` continu, mentions de l'EI, « TVA non applicable, art. 293 B du CGI », aucune ligne de TVA, échéance, pénalités et 40 € |
 
+### Abonnements Premium / Pro (site)
+
+Préalable : `stripe_subscriptions.sql` appliqué (après les trois
+autres), produits recréés par `scripts/stripe-setup.mjs`, portail client
+configuré (§ 6, point 10). En local : `stripe listen --forward-to
+localhost:3000/api/stripe/webhook`.
+
+| # | Scénario | Attendu |
+| --- | --- | --- |
+| A1 | Déconnecté : Tarifs → Annuel → « Passer Premium » | Création de compte avec le récapitulatif « Tiroir Premium 39 €/an » à côté ; après inscription (ou connexion), retour sur `/abonnement` |
+| A2 | « Payer 39 € », carte `4242 4242 4242 4242` | Page Merci « Premium est actif » en quelques secondes ; `profiles` : `plan = premium`, `plan_source = web`, `subscription_status = active` ; facture reçue par e-mail |
+| A3 | Carte refusée `4000 0000 0000 0002` | Erreur dans Checkout, rien d'activé ; « Retour » → Tarifs avec le message neutre, Premium annuel resélectionné |
+| A4 | 3D Secure `4000 0025 0000 3155` : valider / refuser | Premium / rien (abonnement `incomplete` puis expiré) |
+| A5 | Revenir sur `/abonnement` une fois abonné | « Déjà abonné », bouton « Gérer mon abonnement » |
+| A6 | Mon compte → Gérer → passer au Pro | `plan = pro` |
+| A7 | Portail → résilier | Mon compte : « Résilié : actif jusqu'au … » ; avancer la test clock au-delà de la période → `canceled` → gratuit |
+| A8 | Paiement échoué au renouvellement : changer la carte du client pour `4000 0000 0000 0341` (attachée, refusée au paiement), avancer la test clock d'une période | `invoice.payment_failed` → `past_due`, toujours Premium, bandeau « dernier paiement a échoué » ; après les relances → `canceled` → gratuit |
+| A9 | Renvoyer depuis le dashboard un `customer.subscription.updated` ancien | Rien ne change (état relu chez Stripe) |
+| A10 | Compte Premium de l'app (RevenueCat) qui ouvre `/abonnement` | Message « déjà une offre payante », pas de bouton de paiement |
+
 ### Revenus
 
 | # | Scénario | Attendu |
@@ -326,4 +417,8 @@ de test. Les tests SQL automatiques passent d'abord sur une base jetable :
    dans `supabase/migrations/` avec leur version (`supabase/drafts/README.md`).
 2. Refaire le § 6 en mode réel ; variables de prod dans Vercel.
 3. Relier les boutons « Bientôt disponible » de la page Tarifs à
-   `/credits` (le site affiche déjà les prix de la grille V4).
+   `/credits` (le site affiche déjà les prix de la grille V4). Premium et
+   Pro s'ouvrent seuls dès que `STRIPE_MODE` et la clé sont posés (la page
+   Tarifs est statique : **redéployer** après avoir posé les variables).
+4. Abonnements : appliquer `stripe_subscriptions.sql` **avant** de
+   redéployer `revenuecat-webhook` (il lit `plan_source`).

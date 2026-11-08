@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { OFFERS_V4 } from '../lib/offers'
-import { BUSINESS, CREDIT_PACKS, invoiceFooter, packByKey, prorationFor, stripeEnv, vatMode } from '../lib/stripeConfig'
+import { BUSINESS, CREDIT_PACKS, SUBSCRIPTION_PLANS, invoiceFooter, packByKey, prorationFor, stripeEnv, vatMode } from '../lib/stripeConfig'
 import { signPayload, verifyStripeSignature } from '../lib/stripe/signature'
 import { encodeForm, type StripeCall } from '../lib/stripe/api'
 import { accessUntil, invoiceRow, subscriptionSnapshot } from '../lib/stripe/business'
@@ -24,6 +24,7 @@ describe('config Stripe', () => {
     expect(PRODUCTS.map((p: { lookupKey: string; amount: number }) => [p.lookupKey, p.amount])).toEqual([
       ...CREDIT_PACKS.map(p => [p.lookupKey, p.amount]),
       [BUSINESS.lookupKey, BUSINESS.seatAmount],
+      ...SUBSCRIPTION_PLANS.map(p => [p.lookupKey, p.amount]),
     ])
   })
 
@@ -36,7 +37,7 @@ describe('config Stripe', () => {
   })
 
   test('aucune clé Stripe en dur dans le code', () => {
-    for (const file of ['web/lib/stripeConfig.ts', 'web/lib/stripe/api.ts', 'web/pages/api/stripe/webhook.ts', 'web/pages/api/stripe/checkout.ts', 'scripts/stripe-setup.mjs']) {
+    for (const file of ['web/lib/stripeConfig.ts', 'web/lib/stripe/api.ts', 'web/pages/api/stripe/webhook.ts', 'web/pages/api/stripe/checkout.ts', 'web/pages/api/stripe/subscription.ts', 'web/pages/api/stripe/portal.ts', 'web/lib/stripe/subscriptions.ts', 'scripts/stripe-setup.mjs']) {
       expect(readFileSync(path.join(root, file), 'utf8')).not.toMatch(/(sk|rk)_(test|live)_[A-Za-z0-9]{8,}|whsec_[A-Za-z0-9]{8,}/)
     }
   })

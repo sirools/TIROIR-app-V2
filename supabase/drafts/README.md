@@ -12,6 +12,7 @@ appliquées, elles passent dans `supabase/migrations/` sous le nom
 | `profiles_locale.sql` | Langue des comptes : `profiles.locale`, recopiée de `user_metadata.locale` (posée par le site et l'app dès l'inscription), suivie à chaque changement, rattrapée pour les comptes existants. Prépare les e-mails dans la langue du compte | `tests/run_locale.sh` (11 tests, base à part) |
 | `stripe_credits.sql` | Crédits achetés sur le site (Stripe) : achats, reprise des crédits après remboursement (`reversal`, négatif), événements Stripe traités une fois, historique du compte (journal + quota du mois). Après `ai_credits_spend.sql`. | `tests/run.sh` |
 | `business_billing.sql` | Formule Business : organisations, membres, factures, droits Pro des membres sans toucher aux Premium. | `tests/run.sh` |
+| `stripe_subscriptions.sql` | Abonnements Premium / Pro achetés sur le site : client et abonnement Stripe sur `profiles`, statut, fin de période, `plan_source` (web / app) ; palier posé par le webhook seul, sans toucher aux paliers de l'app ni aux Pro sur facture. Après `business_billing.sql`. | `tests/run.sh` |
 
 ## Tester
 
@@ -35,8 +36,9 @@ Sur une base Postgres **vide et jetable** (jamais la prod ni la preprod) :
    ```
 
 Puis, le jour où le paiement par Stripe ouvre (`strategie/paiements-stripe.md`) :
-`stripe_credits.sql`, puis `business_billing.sql`. Additifs ; aucun redéploiement
-de fonction nécessaire.
+`stripe_credits.sql`, puis `business_billing.sql`, puis `stripe_subscriptions.sql`.
+Additifs. Après `stripe_subscriptions.sql` seulement : redéployer
+`revenuecat-webhook` (il lit et écrit `profiles.plan_source`).
 
 Pourquoi « aussitôt » : l'étape 2 retire aux comptes le droit de se
 rembourser eux-mêmes. Les anciennes fonctions, qui remboursaient au nom du

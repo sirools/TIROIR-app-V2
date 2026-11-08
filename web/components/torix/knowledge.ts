@@ -142,7 +142,7 @@ export const TOPICS: Topic[] = [
       'Pro = Premium avec des quotas plus élevés. Premium, Pro et crédits s’achètent dans l’app (Pro à partir de la version qui le propose) ; sur le site, paiement pas encore ouvert (Stripe en mode test). Un Pro sur facture, posé dans le back-office, n’est jamais modifié par les stores.\n' +
       'Quotas mensuels décidés le 19/10 : Free 20 unités IA, Premium 150 unités et 50 retouches photo, Pro 600 unités et 100 retouches. Ils se règlent dans le back-office, onglet Quotas (la valeur en base fait foi).\n' +
       'Les analyses sont pondérées par leur coût : une scène Sonnet (Premium) pèse 4 unités, une scène Opus (Pro) 13.\n' +
-      'Paiement sur le site par Stripe, prêt en mode test seulement (pas encore en prod) : packs de crédits sur la page Crédits, crédités par le webhook dans le même journal que l’app ; Business facturé par siège, sur facture à 30 jours (virement ou SEPA), Pro pour les membres sans toucher aux Premium.',
+      'Paiement sur le site par Stripe, prêt en mode test seulement (pas encore en prod) : packs de crédits sur la page Crédits, crédités par le webhook dans le même journal que l’app ; abonnements Premium (mensuel, annuel) et Pro (mensuel) par le tunnel Tarifs → compte → Stripe Checkout, activés par le webhook seul (profiles.plan_source = web ; RevenueCat ne touche pas un abonné du site), gérés dans le portail client Stripe ; Business facturé par siège, sur facture à 30 jours (virement ou SEPA), Pro pour les membres sans toucher aux Premium.',
   },
   {
     id: 'commandements',

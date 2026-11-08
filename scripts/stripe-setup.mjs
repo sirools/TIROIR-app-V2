@@ -26,6 +26,11 @@ export const PRODUCTS = [
   { lookupKey: 'tiroir_web_credits_150', name: 'Tiroir — 150 crédits IA', amount: 699 },
   { lookupKey: 'tiroir_web_credits_500', name: 'Tiroir — 500 crédits IA', amount: 1999 },
   { lookupKey: 'tiroir_business_seat_monthly', name: 'Tiroir Business — siège', amount: 3900, recurring: 'month' },
+  // Abonnements des particuliers : un produit par palier (`product`), un
+  // prix par période.
+  { lookupKey: 'tiroir_web_premium_monthly', name: 'Tiroir Premium', product: 'premium', amount: 499, recurring: 'month' },
+  { lookupKey: 'tiroir_web_premium_yearly', name: 'Tiroir Premium', product: 'premium', amount: 3900, recurring: 'year' },
+  { lookupKey: 'tiroir_web_pro_monthly', name: 'Tiroir Pro', product: 'pro', amount: 1499, recurring: 'month' },
 ]
 
 const API_VERSION = '2024-06-20'
@@ -58,10 +63,14 @@ async function main() {
   const applyChanges = process.argv.includes('--apply-price-changes')
   console.log(`Stripe, mode ${mode}${applyChanges ? ' — changements de prix appliqués' : ''}`)
 
+  // Produit Stripe déjà utilisé par un palier (Premium mensuel et annuel
+  // partagent le même produit).
+  const productOf = new Map()
   for (const p of PRODUCTS) {
     const found = await stripe(key, 'GET', '/v1/prices', { 'lookup_keys[0]': p.lookupKey, active: true, limit: 1 })
     if (found.data[0]) {
       const price = found.data[0]
+      if (p.product) productOf.set(p.product, typeof price.product === 'string' ? price.product : price.product.id)
       const ok = price.unit_amount === p.amount && price.currency === 'eur'
       if (ok || !applyChanges) {
         console.log(`${ok ? '✓' : `⚠ montant différent (grille : ${p.amount / 100} €) :`} ${p.lookupKey} → ${price.id} (${price.unit_amount / 100} €)`)
@@ -80,9 +89,14 @@ async function main() {
       console.log(`↻ ${p.lookupKey} : ${price.unit_amount / 100} € → ${p.amount / 100} € (${price.id} désactivé, ${next.id} actif)`)
       continue
     }
-    const product = await stripe(key, 'POST', '/v1/products', { name: p.name, metadata: { lookup_key: p.lookupKey } })
+    let productId = p.product ? productOf.get(p.product) : null
+    if (!productId) {
+      const product = await stripe(key, 'POST', '/v1/products', { name: p.name, metadata: p.product ? { tier: p.product } : { lookup_key: p.lookupKey } })
+      productId = product.id
+      if (p.product) productOf.set(p.product, productId)
+    }
     const price = await stripe(key, 'POST', '/v1/prices', {
-      product: product.id,
+      product: productId,
       currency: 'eur',
       unit_amount: p.amount,
       // Prix TTC : en franchise en base, TTC = HT.

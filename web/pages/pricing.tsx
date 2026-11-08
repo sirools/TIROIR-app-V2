@@ -1,19 +1,30 @@
 import Head from 'next/head'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
+import type { GetStaticProps } from 'next'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { localeLinks } from '../components/layout/LocaleLinks'
 import StoreButtons from '../components/StoreButtons'
 import { OFFERS_V4 } from '../lib/offers'
 import { fill, formatEur, useCopy } from '../locales'
+import { useBillingCopy } from '../locales/billing'
+import { stripeEnv, type BillingPeriod, type PlanTier } from '../lib/stripeConfig'
+import { offerFromQuery, subscribePath } from '../lib/subscribeFlow'
 
 // Grille V4 (page Notion « Page Tarifs — textes V4 »). Tous les prix
 // viennent de lib/offers.ts : la page, Torix et les tests lisent la même
 // source. Textes dans web/locales (pricing), en cinq langues ; prix au
 // format de la langue.
 //
-// Le paiement n'est pas encore ouvert (Stripe en mode test) : les boutons
-// d'achat affichent « Bientôt disponible » et ne mènent nulle part. Seul le
-// gratuit renvoie vers les stores, et Business vers une adresse e-mail.
+// Premium et Pro : le bouton ouvre le tunnel d'abonnement
+// (/abonnement?offre=…&periode=…, lib/subscribeFlow.ts), Stripe Checkout
+// ensuite. Tant que Stripe n'est pas configuré sur le serveur (paymentOpen,
+// lu au build), les boutons affichent « Bientôt disponible ». Le gratuit
+// renvoie vers les stores, Business vers une adresse e-mail. Retour d'un
+// paiement abandonné : ?offre=…&periode=…&paiement=annule, message neutre
+// et offre gardée.
 const { free, packs, premium, pro, business } = OFFERS_V4
 
 const PLAN_CARD: React.CSSProperties = { padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }
@@ -24,10 +35,27 @@ const PRICE_SUB: React.CSSProperties = { fontSize: 14, color: 'var(--muted)', ma
 const LIST: React.CSSProperties = { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }
 const ITEM: React.CSSProperties = { display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 15, color: 'var(--ink)', lineHeight: 1.35 }
 
-export default function Pricing() {
+type Props = { paymentOpen: boolean }
+
+const YEARLY_SAVING = Math.round((1 - premium.yearlyTtc / (premium.monthlyTtc * 12)) * 100)
+
+export default function Pricing({ paymentOpen }: Props) {
   const { t: { pricing: t }, locale } = useCopy()
+  const { t: { subscribe: ts } } = useBillingCopy()
+  const router = useRouter()
   const eur = (n: number) => formatEur(n, locale)
   const n = free.aiActionsPerMonth
+  // Offre gardée au retour de Stripe (paiement abandonné).
+  const [period, setPeriod] = useState<BillingPeriod>('monthly')
+  const [chosen, setChosen] = useState<PlanTier | null>(null)
+  const cancelled = router.query.paiement === 'annule'
+  useEffect(() => {
+    if (!router.isReady) return
+    const offer = offerFromQuery(router.query)
+    if (offer) { setChosen(offer.tier); if (offer.tier === 'premium') setPeriod(offer.period) }
+    if (router.query.paiement === 'annule') document.getElementById('formules')?.scrollIntoView()
+  }, [router.isReady, router.query])
+  const yearly = period === 'yearly'
   return (
     <>
       <Head>
@@ -59,8 +87,14 @@ export default function Pricing() {
         </section>
 
         {/* ── Formules ── */}
-        <section className="section" style={{ paddingTop: 48 }}>
+        <section id="formules" className="section" style={{ paddingTop: 48 }}>
           <div className="container">
+            {cancelled && (
+              <p role="status" style={{ maxWidth: 640, margin: '0 auto 24px', padding: '12px 16px', borderRadius: 12, background: 'var(--beige)', color: 'var(--ink)', fontSize: 15, textAlign: 'center' }}>
+                {ts.cancelled}
+              </p>
+            )}
+            <PeriodToggle period={period} onChange={setPeriod} labels={{ monthly: ts.monthly, yearly: ts.yearly, save: fill(ts.yearlySave, { pct: YEARLY_SAVING }) }} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 20, maxWidth: 1180, margin: '0 auto', alignItems: 'stretch' }}>
 
               {/* Free */}
@@ -82,14 +116,18 @@ export default function Pricing() {
               </div>
 
               {/* Premium */}
-              <div className="card" style={{ ...PLAN_CARD, border: '2px solid var(--orange)' }}>
+              <div className="card" style={{ ...PLAN_CARD, border: '2px solid var(--orange)', ...(chosen === 'premium' ? CHOSEN : {}) }}>
                 <div>
                   <div style={{ ...PLAN_NAME, color: 'var(--orange)' }}>Premium</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={PRICE}>{eur(premium.monthlyTtc)}</span>
-                    <span style={PRICE_UNIT}>{t.perMonth}</span>
+                    <span style={PRICE}>{eur(yearly ? premium.yearlyTtc : premium.monthlyTtc)}</span>
+                    <span style={PRICE_UNIT}>{yearly ? ts.perYearUnit : t.perMonth}</span>
                   </div>
-                  <div style={PRICE_SUB}>{fill(t.perYear, { price: eur(premium.yearlyTtc) })}</div>
+                  <div style={PRICE_SUB}>
+                    {yearly
+                      ? `${eur(Math.round(premium.yearlyTtc / 12 * 100) / 100)} ${t.perMonth}`
+                      : fill(t.perYear, { price: eur(premium.yearlyTtc) })}
+                  </div>
                   <div style={PRICE_SUB}>{t.premium.tagline}</div>
                 </div>
                 <ul style={LIST}>
@@ -98,12 +136,14 @@ export default function Pricing() {
                   ))}
                 </ul>
                 <div style={{ marginTop: 'auto' }}>
-                  <SoonButton label={t.premium.cta} soon={t.soon} primary />
+                  {paymentOpen
+                    ? <BuyLink href={subscribePath('premium', period)} label={t.premium.cta} primary />
+                    : <SoonButton label={t.premium.cta} soon={t.soon} primary />}
                 </div>
               </div>
 
               {/* Pro */}
-              <div className="card" style={PLAN_CARD}>
+              <div className="card" style={{ ...PLAN_CARD, ...(chosen === 'pro' ? CHOSEN : {}) }}>
                 <div>
                   <div style={PLAN_NAME}>Pro</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
@@ -118,7 +158,9 @@ export default function Pricing() {
                   ))}
                 </ul>
                 <div style={{ marginTop: 'auto' }}>
-                  <SoonButton label={t.pro.cta} soon={t.soon} />
+                  {paymentOpen
+                    ? <BuyLink href={subscribePath('pro', 'monthly')} label={t.pro.cta} />
+                    : <SoonButton label={t.pro.cta} soon={t.soon} />}
                 </div>
               </div>
 
@@ -222,6 +264,64 @@ export default function Pricing() {
 
       <FooterTiroirWeb />
     </>
+  )
+}
+
+// Lu au build : paiement ouvert si Stripe est configuré sur le serveur.
+// Pro : mensuel seulement (grille V4) ; la bascule ne change que le Premium.
+export const getStaticProps: GetStaticProps<Props> = async () => ({
+  props: { paymentOpen: stripeEnv() !== null },
+})
+
+/** Offre retrouvée au retour d'un paiement abandonné. */
+const CHOSEN: React.CSSProperties = { outline: '3px solid var(--orange)', outlineOffset: 3 }
+
+function PeriodToggle({ period, onChange, labels }: {
+  period: BillingPeriod
+  onChange: (p: BillingPeriod) => void
+  labels: { monthly: string; yearly: string; save: string }
+}) {
+  const item = (p: BillingPeriod, label: React.ReactNode) => (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={period === p}
+      onClick={() => onChange(p)}
+      style={{
+        padding: '8px 18px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+        fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
+        background: period === p ? 'white' : 'transparent',
+        color: 'var(--ink)', boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
+      }}
+    >
+      {label}
+    </button>
+  )
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+      <div role="radiogroup" style={{ display: 'inline-flex', gap: 4, padding: 4, borderRadius: 999, background: 'var(--beige-2)' }}>
+        {item('monthly', labels.monthly)}
+        {item('yearly', <>{labels.yearly} <span style={{ color: 'var(--orange)', fontSize: 12 }}>{labels.save}</span></>)}
+      </div>
+    </div>
+  )
+}
+
+/** Bouton d'achat actif : ouvre le tunnel d'abonnement. */
+function BuyLink({ href, label, primary }: { href: string; label: string; primary?: boolean }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: '100%', padding: '13px 16px', borderRadius: 12, textDecoration: 'none',
+        border: primary ? 'none' : '1px solid rgba(0,0,0,0.12)',
+        background: primary ? 'var(--orange)' : 'white',
+        color: primary ? 'white' : 'var(--ink)', fontWeight: 700, fontSize: 15,
+      }}
+    >
+      {label}
+    </Link>
   )
 }
 

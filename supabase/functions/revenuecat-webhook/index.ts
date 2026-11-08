@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
   // ── Abonnement : Premium ou Pro selon le produit (grille V4) ──
   const { data: profile, error: readError } = await admin
     .from('profiles')
-    .select('plan, pro_since, pro_expires_at')
+    .select('plan, pro_since, pro_expires_at, plan_source, subscription_status')
     .eq('id', appUserId)
     .maybeSingle()
   if (readError) {
@@ -79,7 +79,9 @@ Deno.serve(async (req) => {
   if (profile && newPlan) {
     // Un Pro venu des stores n'a ni date d'entrée ni date de fin : celles-ci
     // sont réservées au Pro sur facture, géré dans le back-office.
-    const patch: Record<string, unknown> = { plan: newPlan }
+    // plan_source : le palier payant vient des stores (un abonné du site
+    // n'arrive jamais ici, voir nextPlan).
+    const patch: Record<string, unknown> = { plan: newPlan, plan_source: newPlan === 'free' ? null : 'app' }
     if (newPlan === 'pro') Object.assign(patch, { pro_since: null, pro_expires_at: null })
 
     const { error } = await admin

@@ -39,6 +39,45 @@ export function packByKey(key: unknown): CreditPack | null {
 }
 
 /**
+ * Abonnements des particuliers vendus sur le site (grille OFFERS_V4) :
+ * Premium mensuel ou annuel, Pro mensuel. Un produit Stripe par palier,
+ * un prix par période. Mêmes paliers que profiles.plan.
+ */
+export type PlanTier = 'premium' | 'pro'
+export type BillingPeriod = 'monthly' | 'yearly'
+export type SubscriptionPlan = {
+  /** Clé interne. */
+  key: string
+  tier: PlanTier
+  period: BillingPeriod
+  lookupKey: string
+  /** Centimes TTC par période. */
+  amount: number
+  interval: 'month' | 'year'
+}
+
+export const SUBSCRIPTION_PLANS: readonly SubscriptionPlan[] = [
+  { key: 'premium_monthly', tier: 'premium', period: 'monthly', lookupKey: 'tiroir_web_premium_monthly', amount: Math.round(OFFERS_V4.premium.monthlyTtc * 100), interval: 'month' },
+  { key: 'premium_yearly', tier: 'premium', period: 'yearly', lookupKey: 'tiroir_web_premium_yearly', amount: Math.round(OFFERS_V4.premium.yearlyTtc * 100), interval: 'year' },
+  { key: 'pro_monthly', tier: 'pro', period: 'monthly', lookupKey: 'tiroir_web_pro_monthly', amount: Math.round(OFFERS_V4.pro.monthlyTtc * 100), interval: 'month' },
+]
+
+/** Offre demandée par la page (`premium` + `yearly`), ou null si elle n'est pas vendue. */
+export function subscriptionPlanFor(tier: unknown, period: unknown): SubscriptionPlan | null {
+  return SUBSCRIPTION_PLANS.find(p => p.tier === tier && p.period === period) ?? null
+}
+
+/** Palier d'un prix Stripe, retrouvé par sa lookup_key (jamais par les métadonnées). */
+export function planByLookupKey(lookupKey: unknown): SubscriptionPlan | null {
+  return SUBSCRIPTION_PLANS.find(p => p.lookupKey === lookupKey) ?? null
+}
+
+/** Les périodes vendues pour un palier (Pro : mensuel seulement). */
+export function periodsFor(tier: PlanTier): BillingPeriod[] {
+  return SUBSCRIPTION_PLANS.filter(p => p.tier === tier).map(p => p.period)
+}
+
+/**
  * Proratisation quand le nombre de sièges change (Stripe :
  * proration_behavior). Option décidée par le fondateur le 26/10/2026 :
  *   - un membre ajouté en cours de mois est facturé au prorata, sur la

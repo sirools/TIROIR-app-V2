@@ -14,6 +14,9 @@ import {
   accessUntil, idOf, invoiceOrgId, invoiceRow, invoiceSubscriptionId, subscriptionSnapshot,
   type InvoiceRow, type SubscriptionSnapshot,
 } from './business'
+import {
+  individualInvoiceChanged, individualSubscriptionChanged, subscriptionCheckoutCompleted, type SubscriberStore,
+} from './subscriptions'
 
 export type StripeEvent = { id: string; type: string; livemode: boolean; data: { object: Record<string, unknown> } }
 
@@ -51,7 +54,8 @@ export interface BillingStore {
   logActivity(userId: string, action: string, payload: Record<string, unknown>): Promise<void>
 }
 
-export type WebhookDeps = { store: BillingStore; stripe: StripeCall; now?: () => Date }
+/** `subscribers` : abonnements Premium et Pro des particuliers (lib/stripe/subscriptions.ts). */
+export type WebhookDeps = { store: BillingStore; stripe: StripeCall; subscribers?: SubscriberStore; now?: () => Date }
 
 const obj = (v: unknown): Record<string, unknown> => (v && typeof v === 'object' ? (v as Record<string, unknown>) : {})
 const str = (v: unknown): string | null => (typeof v === 'string' && v ? v : null)
@@ -79,9 +83,14 @@ async function fresh(stripe: StripeCall, path: string, o: Record<string, unknown
 
 export async function handleStripeEvent(event: StripeEvent, deps: WebhookDeps): Promise<string> {
   const o = event.data.object
+  const { subscribers } = deps
   switch (event.type) {
     case 'checkout.session.completed':
     case 'checkout.session.async_payment_succeeded':
+      // Abonnement Premium / Pro d'un particulier : rattaché au compte.
+      if (o.mode === 'subscription' && obj(o.metadata).kind === 'subscription' && subscribers) {
+        return subscriptionCheckoutCompleted(o, { subscribers, stripe: deps.stripe })
+      }
       return creditPurchase(o, deps)
     case 'charge.refunded':
       return refund(o, deps)
@@ -89,11 +98,24 @@ export async function handleStripeEvent(event: StripeEvent, deps: WebhookDeps): 
     // qu'un événement arrivé en retard n'écrase pas un état plus récent.
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
-    case 'customer.subscription.deleted':
-      return subscriptionChanged(subscriptionSnapshot(await fresh(deps.stripe, '/v1/subscriptions/', o)), deps)
-    case 'invoice.finalized':
+    case 'customer.subscription.deleted': {
+      const current = await fresh(deps.stripe, '/v1/subscriptions/', o)
+      if (subscribers) {
+        const outcome = await individualSubscriptionChanged(current, { subscribers, stripe: deps.stripe })
+        if (outcome !== null) return outcome
+      }
+      return subscriptionChanged(subscriptionSnapshot(current), deps)
+    }
     case 'invoice.paid':
-    case 'invoice.payment_failed':
+    case 'invoice.payment_failed': {
+      const invoice = await fresh(deps.stripe, '/v1/invoices/', o)
+      if (subscribers) {
+        const outcome = await individualInvoiceChanged(event.type, invoice, invoiceSubscriptionId(invoice), { subscribers, stripe: deps.stripe })
+        if (outcome !== null) return outcome
+      }
+      return invoiceChanged(event.type, invoice, deps)
+    }
+    case 'invoice.finalized':
     case 'invoice.voided':
     case 'invoice.marked_uncollectible':
       return invoiceChanged(event.type, await fresh(deps.stripe, '/v1/invoices/', o), deps)

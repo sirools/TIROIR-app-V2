@@ -57,7 +57,19 @@ export type StoreEvent = {
   new_product_id?: unknown
   expiration_at_ms?: unknown
 }
-export type CurrentProfile = { plan: string; pro_since: string | null; pro_expires_at: string | null }
+export type CurrentProfile = {
+  plan: string
+  pro_since: string | null
+  pro_expires_at: string | null
+  /** Origine du palier payant : 'web' (Stripe, site) ou 'app' (stores). */
+  plan_source?: string | null
+  /** Statut Stripe de l'abonnement du site. */
+  subscription_status?: string | null
+}
+
+/** Abonnement du site (Stripe) en cours : son palier ne regarde que Stripe. */
+export const hasLiveWebSubscription = (p: CurrentProfile) =>
+  p.plan_source === 'web' && ['active', 'trialing', 'past_due'].includes(p.subscription_status ?? '')
 
 /** Pro sur facture encore en cours (posé et daté par le back-office). */
 const isInvoicedPro = (p: CurrentProfile, today: string) =>
@@ -69,6 +81,8 @@ const isInvoicedPro = (p: CurrentProfile, today: string) =>
  *
  * - Un client Pro sur facture en cours (pro_since posé par le back-office,
  *   période non échue) n'est jamais modifié par les stores.
+ * - Un abonné du site (Stripe) en cours non plus : son palier ne suit que
+ *   le webhook Stripe (apply_stripe_subscription).
  * - Changement de produit : c'est le nouveau produit qui compte.
  * - Fin de l'accès (endsAccess) : on ne retombe en gratuit que si c'est
  *   l'abonnement en cours qui s'arrête (la fin d'un Premium remplacé par un
@@ -80,6 +94,7 @@ export function nextPlan(
   today: string = new Date().toISOString().slice(0, 10),
 ): 'free' | StoreTier | null {
   if (isInvoicedPro(profile, today)) return null
+  if (hasLiveWebSubscription(profile)) return null
 
   if (ACTIVE_EVENTS.has(event.type)) {
     const product = event.type === 'PRODUCT_CHANGE' ? event.new_product_id ?? event.product_id : event.product_id
