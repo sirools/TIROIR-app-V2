@@ -207,6 +207,17 @@ describe('webhook : abonnements des particuliers', () => {
     await expect(handleStripeEvent(ev('customer.subscription.created', state.sub), { store: noOrgs, subscribers: m.store, stripe: stripeWith(state) })).rejects.toThrow()
   })
 
+  test('facture émise d’un particulier : ignorée, sans chercher d’organisation', async () => {
+    const m = subscriberStore()
+    let orgLookups = 0
+    const store = { ...noOrgs, async findOrg() { orgLookups++; throw new Error('table organizations absente') } }
+    const state = { sub: sub(), invoice: { id: 'in_1', status: 'open', subscription: 'sub_1' } }
+    for (const type of ['invoice.finalized', 'invoice.voided', 'invoice.marked_uncollectible']) {
+      expect(await handleStripeEvent(ev(type, state.invoice), { store, subscribers: m.store, stripe: stripeWith(state) })).toBe('ignoré (facture d’un particulier)')
+    }
+    expect(orgLookups).toBe(0)
+  })
+
   test('abonnement Business : laissé au traitement des organisations', async () => {
     const m = subscriberStore()
     const state = { sub: sub({ metadata: { org_id: 'org-x' }, items: { data: [{ quantity: 3, price: { lookup_key: 'tiroir_business_seat_monthly' } }] } }) }

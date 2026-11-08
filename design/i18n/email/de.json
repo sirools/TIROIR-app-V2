@@ -12,5 +12,10 @@
     "footer": "Tiroir — das Inventar Ihrer Dinge, ganz einfach.",
     "subject": "{sender} hat Gegenstände auf Tiroir mit Ihnen geteilt",
     "anonymousSender": "Ein Tiroir-Nutzer"
+  },
+  "checkout": {
+    "consentSubscription": "Ich verlange den sofortigen Zugang zu meinem Abonnement und bestätige, dass ich mein 14-tägiges Widerrufsrecht verliere. Ich akzeptiere die [AGB]({cgu}).",
+    "consentCredits": "Ich verlange den sofortigen Zugang zu meinen Credits und bestätige, dass ich mein 14-tägiges Widerrufsrecht verliere. Ich akzeptiere die [AGB]({cgu}).",
+    "invoiceNote": "Sofortiger Zugang auf Wunsch des Kunden: Verzicht auf das Widerrufsrecht."
   }
 }

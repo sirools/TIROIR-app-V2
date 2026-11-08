@@ -58,6 +58,28 @@ export default function FrBody() {
         </p>
       </LegalSection>
 
+      <LegalSection title="4 bis. Achats sur tiroir.app (abonnements et crédits IA)">
+        <p>
+          Les abonnements Premium et Pro, ainsi que les packs de crédits IA, peuvent aussi être achetés sur
+          tiroir.app, par carte bancaire, Apple Pay ou Google Pay. Le paiement est traité par Stripe ; TiROiR
+          n&apos;a jamais accès aux données de carte. Les prix sont affichés TTC, TVA française de 20 %
+          comprise, et une facture est envoyée par e-mail à chaque paiement.
+        </p>
+        <p>
+          Un abonnement acheté sur le site se renouvelle automatiquement à chaque échéance, mensuelle ou
+          annuelle. Il se gère depuis « Mon compte » (changement d&apos;offre, carte, factures, résiliation) ;
+          une résiliation prend effet à la fin de la période déjà payée. Les crédits IA achetés n&apos;expirent
+          pas.
+        </p>
+        <p>
+          <strong>Droit de rétractation.</strong> L&apos;accès à l&apos;abonnement ou aux crédits est fourni
+          immédiatement après le paiement. Avant de payer, le client coche une case par laquelle il demande cet
+          accès immédiat et reconnaît perdre son droit de rétractation de 14 jours, conformément à
+          l&apos;article L221-28 du Code de la consommation. Cet accord est conservé avec sa date et rappelé
+          sur la facture.
+        </p>
+      </LegalSection>
+
       <LegalSection title="5. Offres Pro et Business">
         <p>
           Les offres Pro et Business s&apos;adressent aux professionnels. Leur contenu et leurs tarifs sont

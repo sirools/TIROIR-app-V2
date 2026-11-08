@@ -17,8 +17,6 @@ const billingEn: BillingCopy = {
     perCredit: '{price} per credit',
     buy: 'Buy',
     soon: 'Coming soon',
-    waiver: 'I ask for immediate access to the credits and waive my 14-day right of withdrawal.',
-    waiverMissing: 'Tick the box above to continue.',
     redirecting: 'Taking you to payment…',
     error: 'Payment could not start. Please try again in a moment.',
     success: 'Payment received: your credits will arrive in a few seconds.',
@@ -40,6 +38,9 @@ const billingEn: BillingCopy = {
     viaApp: 'in the app',
     refunded: 'returned',
     team: 'Your Business team',
+    consentNote: 'On the Stripe payment page, a box asks you to confirm immediate access to your credits: you then waive your 14-day right of withdrawal.',
+    proIncluded: 'Your Pro plan includes AI with no top-up needed: you don’t need credits.',
+    added: 'Credits added: your balance is up to date.',
   },
   team: {
     metaTitle: 'Team — Tiroir',
@@ -135,13 +136,11 @@ const billingEn: BillingCopy = {
     fromApp: '{tier}, managed in the app (App Store or Google Play).',
     fromInvoice: '{tier}, invoiced.',
     portalError: 'Could not open subscription settings. Please try again in a moment.',
-    waiver: 'I accept the {cgu} and ask for immediate access to the subscription: I waive my 14-day right of withdrawal. Cancel anytime.',
-    terms: 'terms and conditions',
-    waiverMissing: 'Tick the box to continue.',
     invoicesTitle: 'Invoices',
     invoicePdf: 'PDF',
     invoicePaid: 'paid',
     invoiceOpen: 'due',
+    consentNote: 'On the Stripe payment page, a box asks you to confirm immediate access to your subscription and to waive your 14-day right of withdrawal.',
   },
 }
 

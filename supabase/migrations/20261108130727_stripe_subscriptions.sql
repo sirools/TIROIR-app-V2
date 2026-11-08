@@ -1,8 +1,15 @@
 -- ================================================================
--- stripe_subscriptions.sql — BROUILLON (abonnements Premium et Pro
--- vendus sur le site par Stripe, comptes particuliers)
+-- stripe_subscriptions.sql — abonnements Premium et Pro vendus sur le
+-- site par Stripe (comptes particuliers). Version finale, testée en local
+-- (tests/run.sh) et sur la pré-prod (tiroir-preprod) le 08/11/2026.
 --
--- Après stripe_credits.sql (table stripe_events) et business_billing.sql.
+-- Prérequis : la table stripe_events (stripe_credits.sql, ou créée seule
+-- en prod le 08/11/2026). Ne dépend pas de business_billing.sql.
+--
+-- Rejouable sans risque : aucun DROP, aucune suppression ni modification
+-- de données existantes. Créations conditionnelles (IF NOT EXISTS, ou
+-- vérification préalable pour la contrainte et la règle d'accès) ;
+-- CREATE OR REPLACE seulement sur les quatre fonctions de ce script.
 --
 -- Un compte qui s'abonne sur le site garde son palier dans
 -- profiles.plan, comme un abonné des stores : toutes les fonctions qui
@@ -19,7 +26,10 @@
 -- (UPDATE sur profiles déjà retiré à anon et authenticated, sauf
 -- colonnes listées : 20260926140000_profiles_update_columns.sql).
 --
--- ADDITIF : des colonnes et une fonction, rien de supprimé.
+-- ADDITIF : des colonnes, une table et quatre fonctions, rien de supprimé.
+-- Les nouvelles colonnes sont vides (NULL) pour les comptes existants,
+-- sauf subscription_cancel_at_period_end = false (valeur par défaut, posée
+-- sans réécrire la table).
 -- ================================================================
 
 -- ── 1. Colonnes ──────────────────────────────────────────────────
@@ -32,9 +42,13 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS subscription_cancel_at_period_end BOOLEAN NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS plan_source                       TEXT;
 
-ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_plan_source_check;
-ALTER TABLE public.profiles
-  ADD CONSTRAINT profiles_plan_source_check CHECK (plan_source IS NULL OR plan_source IN ('web', 'app'));
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_plan_source_check' AND conrelid = 'public.profiles'::regclass) THEN
+    ALTER TABLE public.profiles
+      ADD CONSTRAINT profiles_plan_source_check CHECK (plan_source IS NULL OR plan_source IN ('web', 'app'));
+  END IF;
+END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS profiles_stripe_customer_id_key
   ON public.profiles (stripe_customer_id) WHERE stripe_customer_id IS NOT NULL;
@@ -76,9 +90,13 @@ CREATE INDEX IF NOT EXISTS subscriptions_user_idx ON public.subscriptions (user_
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.subscriptions FROM PUBLIC, anon, authenticated;
 GRANT SELECT ON public.subscriptions TO authenticated;
-DROP POLICY IF EXISTS subscriptions_own_read ON public.subscriptions;
-CREATE POLICY subscriptions_own_read ON public.subscriptions FOR SELECT TO authenticated
-  USING (user_id = auth.uid());
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'subscriptions' AND policyname = 'subscriptions_own_read') THEN
+    CREATE POLICY subscriptions_own_read ON public.subscriptions FOR SELECT TO authenticated
+      USING (user_id = auth.uid());
+  END IF;
+END $$;
 
 -- Abonnement d'un store (RevenueCat) : noté dans le journal. Ne touche pas
 -- au palier (le webhook RevenueCat s'en charge, comme avant).

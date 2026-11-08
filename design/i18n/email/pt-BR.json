@@ -12,5 +12,10 @@
     "footer": "Tiroir — o inventário das suas coisas, de um jeito simples.",
     "subject": "{sender} compartilhou objetos com você no Tiroir",
     "anonymousSender": "Um usuário do Tiroir"
+  },
+  "checkout": {
+    "consentSubscription": "Solicito o acesso imediato à minha assinatura e reconheço que perco meu direito de arrependimento de 14 dias. Aceito os [termos e condições]({cgu}).",
+    "consentCredits": "Solicito o acesso imediato aos meus créditos e reconheço que perco meu direito de arrependimento de 14 dias. Aceito os [termos e condições]({cgu}).",
+    "invoiceNote": "Acesso imediato solicitado pelo cliente: renúncia ao direito de arrependimento."
   }
 }

@@ -300,6 +300,21 @@ export interface PresentationTexts {
 export const PRESENTATION_TEXTS: Partial<Record<EmailLanguage, PresentationTexts>> = ${JSON.stringify(presentation, null, 2)}
 `])
 
+  // Consentement du Checkout Stripe et mention des factures : lus par le
+  // site (routes de paiement), d'où une copie dans web/.
+  const checkoutLangs = codes.filter(c => all[c].checkout)
+  const checkout = Object.fromEntries(checkoutLangs.map(c => [c, all[c].checkout]))
+  out.push(['web/locales/checkout.generated.ts', `// ${header('email/ (section checkout)')}
+/** Case de rétractation du Checkout Stripe et mention des factures, par langue d'e-mail. */
+export interface CheckoutConsentTexts {
+  consentSubscription: string
+  consentCredits: string
+  invoiceNote: string
+}
+
+export const CHECKOUT_TEXTS: Partial<Record<string, CheckoutConsentTexts>> = ${JSON.stringify(checkout, null, 2)}
+`])
+
   // Présentation : gabarit sans texte + textes de chaque langue.
   const layoutFile = 'marketing/emails/gabarits/presentation.html'
   const layout = readFileSync(join(root, layoutFile), 'utf8')

@@ -13,6 +13,7 @@
 //
 // Module sans dépendance Next, testable.
 import { OFFERS_V4, VAT_RATE } from './offers'
+import { invoiceConsentNote } from './checkoutConsent'
 
 /** Version d'API figée : la forme des objets reçus ne change pas sous nos pieds. */
 export const STRIPE_API_VERSION = '2024-06-20'
@@ -160,6 +161,17 @@ export function stripeEnv(env: Env = process.env): StripeEnv | null {
   return { secretKey, webhookSecret: env.STRIPE_WEBHOOK_SECRET?.trim() || null, mode }
 }
 
+/**
+ * Vente de packs de crédits sur le site : fermée tant que
+ * STRIPE_CREDITS_OPEN=1 n'est pas posé, même si Stripe est configuré.
+ * Les abonnements peuvent ouvrir avant les crédits : ceux-ci demandent
+ * les tables de stripe_credits.sql et la dépense par crédits
+ * (ai_credits_spend.sql + fonctions IA redéployées) en prod.
+ */
+export function creditsSaleOpen(env: Env = process.env): boolean {
+  return stripeEnv(env) !== null && env.STRIPE_CREDITS_OPEN?.trim() === '1'
+}
+
 /** Adresse publique du site, pour les retours de Stripe Checkout. */
 export function siteUrl(env: Env = process.env): string {
   const raw = env.SITE_URL?.trim() || `https://${env.SITE_HOST?.trim() || 'tiroir.app'}`
@@ -209,6 +221,7 @@ export function consumerInvoiceFooter(env: Env = process.env): string {
   if (vatMode(env) === 'franchise') lines.push('TVA non applicable, art. 293 B du CGI.')
   else if (env.BILLING_VAT_NUMBER?.trim()) lines.push(`N° de TVA intracommunautaire : ${env.BILLING_VAT_NUMBER.trim()}`)
   lines.push('Prestation de services numériques.')
+  lines.push(invoiceConsentNote('fr'))
   return lines.join('\n')
 }
 
