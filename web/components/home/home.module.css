@@ -124,10 +124,8 @@
 /* ───────────── Hero ───────────── */
 
 .hero {
-  padding: 24px 0 40px;
-  background:
-    radial-gradient(80% 50% at 85% 0%, color-mix(in srgb, var(--orange) 14%, transparent), transparent),
-    var(--beige);
+  padding: 24px 0 8px;
+  background: var(--beige-2);
 }
 .heroGrid { display: grid; gap: 28px; }
 .badge {
@@ -152,108 +150,25 @@
 .heroSub { margin: 0 0 20px; font-size: 17px; line-height: 1.5; color: var(--muted); max-width: 540px; }
 .heroFree { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
 
-.stageWrap { display: grid; justify-items: center; gap: 12px; }
-.stageBox { width: 280px; height: 334px; }
-.stage {
+/* Vidéo « trois tiroirs » (1080×1350, fond #FFF9EF ≈ beige-2) : le fond
+   du hero est le même, le cadre ne se voit pas. Mobile : sous le texte,
+   toute la largeur, sans rognage. Le poster s'affiche tout de suite ; la
+   vidéo se pose dessus quand elle joue. */
+.heroMedia {
   position: relative;
-  width: 320px;
-  height: 382px;
-  margin: 0;
-  transform: scale(0.875);
-  transform-origin: 0 0;
+  aspect-ratio: 4 / 5;
+  width: calc(100% + 2 * var(--gutter));
+  margin: 0 calc(-1 * var(--gutter));
 }
-
-.fiche {
+.heroMedia img, .heroMedia video {
   position: absolute;
   inset: 0;
-  background: var(--white);
-  border-radius: 24px;
-  border: 1px solid var(--border-light);
-  box-shadow: 0 24px 60px -24px color-mix(in srgb, var(--ink) 30%, transparent), var(--shadow);
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
-.photo {
-  position: absolute;
-  left: 70px;
-  top: 48px;
-  width: 180px;
-  height: 180px;
-  border-radius: 18px;
-  background: var(--beige-2);
-  border: 1px solid var(--border-light);
-  overflow: hidden;
-  transform-origin: 0 0;
-  /* État final : vignette de 120 px en (20, 20). La photo reste plus
-     petite que le titre, qui reste ainsi l'élément principal (LCP). */
-  transform: translate(-50px, -28px) scale(0.6667);
-}
-.photo img { width: 100%; height: 100%; object-fit: contain; }
-.finder { position: absolute; left: 60px; top: 38px; width: 200px; height: 200px; opacity: 0; pointer-events: none; }
-.finder i { position: absolute; width: 26px; height: 26px; border: 3px solid var(--orange); }
-.finder i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 10px; }
-.finder i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 10px; }
-.finder i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 10px; }
-.finder i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 10px; }
-.flash { position: absolute; inset: 0; border-radius: 24px; background: var(--white); opacity: 0; pointer-events: none; }
-
-.ficheHead { position: absolute; left: 156px; right: 16px; top: 22px; }
-.ready {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--orange-soft);
-  color: var(--ink);
-  font-size: 11px;
-  font-weight: 700;
-}
-.objName { margin: 10px 0 2px; font-size: 18px; font-weight: 800; line-height: 1.2; }
-.objMeta { margin: 0; font-size: 13px; color: var(--muted); }
-.rows { position: absolute; left: 20px; right: 20px; top: 156px; margin: 0; padding: 0; list-style: none; }
-.row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 14px;
-}
-.row span { color: var(--muted); }
-.row strong { font-weight: 600; text-align: right; }
-.value {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  background: var(--beige-2);
-  border: 1px solid var(--border-light);
-}
-.valueLabel { font-size: 12px; font-weight: 600; color: var(--muted); }
-.valueAmount { margin-top: 2px; font-size: 24px; font-weight: 800; color: var(--ink); }
-
-.caps { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.cap {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  font-size: 13px;
-  font-weight: 700;
-}
-.cap b {
-  display: inline-grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--orange);
-  color: var(--white);
-  font-size: 11px;
-}
+.heroMedia video { opacity: 0; transition: opacity 0.4s var(--ease); }
+.heroMedia video[data-playing] { opacity: 1; }
 
 /* ───────────── Comment ça marche : visuels ───────────── */
 
@@ -456,26 +371,6 @@
 /* ───────────── Mouvement ───────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  .stage *, .caps > * {
-    animation-duration: 8s;
-    animation-iteration-count: infinite;
-    animation-timing-function: var(--ease);
-    animation-fill-mode: both;
-  }
-  .stage .fiche { animation-name: heroCard; }
-  .stage .photo { animation-name: heroPhoto; }
-  .stage .finder { animation-name: heroFinder; }
-  .stage .flash { animation-name: heroFlash; animation-timing-function: ease-out; }
-  .stage .ficheHead { animation-name: heroIn; }
-  .stage .row { animation-name: heroRow; }
-  .stage .row:nth-child(2) { animation-delay: 0.22s; }
-  .stage .row:nth-child(3) { animation-delay: 0.44s; }
-  .stage .value { animation-name: heroValue; }
-  .caps > :nth-child(1) { animation-name: cap1; }
-  .caps > :nth-child(2) { animation-name: cap2; }
-  .caps > :nth-child(3) { animation-name: cap3; }
-  .hero[data-paused] * { animation-play-state: paused !important; }
-
   @supports (animation-timeline: view()) {
     .page [data-rv] {
       animation: rvIn linear both;
@@ -491,50 +386,6 @@
   .page[data-motion="io"] [data-rv][data-in] { opacity: 1; transform: none; }
 }
 
-/* La photo est visible dès la première image (pas de fondu d'entrée) :
-   sinon Chrome ne la compte pour le LCP qu'après le JavaScript. Le fondu
-   se fait en fin de boucle, avant le retour au centre. */
-@keyframes heroPhoto {
-  0%, 18% { opacity: 1; transform: none; }
-  32%, 92% { opacity: 1; transform: translate(-50px, -28px) scale(0.6667); }
-  96% { opacity: 0; transform: translate(-50px, -28px) scale(0.6667); }
-  97% { opacity: 0; transform: scale(0.94); }
-  100% { opacity: 1; transform: none; }
-}
-@keyframes heroCard {
-  0%, 18% { opacity: 0; transform: scale(0.96); }
-  30%, 92% { opacity: 1; transform: none; }
-  98%, 100% { opacity: 0; transform: none; }
-}
-@keyframes heroFinder {
-  0% { opacity: 0; transform: scale(1.06); }
-  5%, 14% { opacity: 1; transform: none; }
-  20%, 100% { opacity: 0; transform: none; }
-}
-@keyframes heroFlash {
-  0%, 11% { opacity: 0; }
-  12.5% { opacity: 0.9; }
-  20%, 100% { opacity: 0; }
-}
-@keyframes heroIn {
-  0%, 30% { opacity: 0; transform: translateY(8px); }
-  38%, 92% { opacity: 1; transform: none; }
-  98%, 100% { opacity: 0; transform: none; }
-}
-@keyframes heroRow {
-  0%, 36% { opacity: 0; transform: translateY(8px); }
-  44%, 92% { opacity: 1; transform: none; }
-  98%, 100% { opacity: 0; transform: none; }
-}
-@keyframes heroValue {
-  0%, 54% { opacity: 0; transform: translateY(14px) scale(0.94); }
-  60% { opacity: 1; transform: translateY(-2px) scale(1.02); }
-  64%, 92% { opacity: 1; transform: none; }
-  98%, 100% { opacity: 0; transform: none; }
-}
-@keyframes cap1 { 0%, 18% { opacity: 1; transform: scale(1.06); } 22%, 96% { opacity: 0.45; transform: none; } 100% { opacity: 1; transform: scale(1.06); } }
-@keyframes cap2 { 0%, 20% { opacity: 0.45; transform: none; } 24%, 54% { opacity: 1; transform: scale(1.06); } 58%, 100% { opacity: 0.45; transform: none; } }
-@keyframes cap3 { 0%, 56% { opacity: 0.45; transform: none; } 60%, 94% { opacity: 1; transform: scale(1.06); } 98%, 100% { opacity: 0.45; transform: none; } }
 @keyframes rvIn {
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: none; }
@@ -549,6 +400,7 @@
   .rail > li { flex-basis: calc(50% - 6px); }
   .points { grid-template-columns: repeat(3, 1fr); }
   .valueGrid { grid-template-columns: 1fr 1fr; align-items: center; gap: 40px; }
+  .heroMedia { width: min(100%, 64vh); margin: 0 auto; }
   .plans { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -556,10 +408,8 @@
 
 @media (min-width: 1000px) {
   .section { padding: 96px 0; }
-  .hero { padding: 72px 0 88px; }
-  .heroGrid { grid-template-columns: 1.15fr 0.85fr; align-items: center; gap: 56px; }
-  .stageBox { width: 320px; height: 382px; }
-  .stage { transform: none; }
+  .hero { padding: 56px 0 64px; }
+  .heroGrid { grid-template-columns: 1.1fr 0.9fr; align-items: center; gap: 48px; }
   .rail { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin: 0; padding: 4px 0 12px; overflow: visible; }
   .rail > li { flex: none; }
   .dots { display: none; }
