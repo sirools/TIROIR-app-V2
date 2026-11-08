@@ -8,5 +8,10 @@
     "footer": "Tiroir — o inventário das suas coisas, de forma simples.",
     "subject": "{sender} partilhou objetos consigo no Tiroir",
     "anonymousSender": "Um utilizador do Tiroir"
+  },
+  "checkout": {
+    "consentSubscription": "Solicito o acesso imediato à minha subscrição e reconheço que perco o meu direito de livre resolução de 14 dias. Aceito os [termos e condições]({cgu}).",
+    "consentCredits": "Solicito o acesso imediato aos meus créditos e reconheço que perco o meu direito de livre resolução de 14 dias. Aceito os [termos e condições]({cgu}).",
+    "invoiceNote": "Acesso imediato solicitado pelo cliente: renúncia ao direito de livre resolução."
   }
 }

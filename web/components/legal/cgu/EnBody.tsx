@@ -57,6 +57,25 @@ export default function EnBody() {
         </p>
       </LegalSection>
 
+      <LegalSection title="4a. Purchases on tiroir.app (subscriptions and AI credits)">
+        <p>
+          Premium and Pro subscriptions, as well as AI credit packs, can also be bought on tiroir.app by card,
+          Apple Pay or Google Pay. Payment is processed by Stripe; TiROiR never has access to card details.
+          Prices include French VAT at 20%, and an invoice is emailed for each payment.
+        </p>
+        <p>
+          A subscription bought on the website renews automatically at each monthly or yearly term. It is
+          managed from “My account” (plan change, card, invoices, cancellation); cancellation takes effect at
+          the end of the period already paid. Purchased AI credits do not expire.
+        </p>
+        <p>
+          <strong>Right of withdrawal.</strong> Access to the subscription or credits is provided immediately
+          after payment. Before paying, the customer ticks a box requesting this immediate access and
+          acknowledging the loss of the 14-day right of withdrawal (article L221-28 of the French Consumer
+          Code). This consent is stored with its date and stated on the invoice.
+        </p>
+      </LegalSection>
+
       <LegalSection title="5. User content">
         <p>
           You retain all intellectual property rights in the photos, descriptions and documents you

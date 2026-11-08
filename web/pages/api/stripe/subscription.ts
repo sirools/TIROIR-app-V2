@@ -18,6 +18,7 @@ import { priceIdFor, stripeClient, type StripeCall } from '../../../lib/stripe/a
 import { adminSupabase } from '../../../lib/supabase'
 import { asLocale, localePrefix } from '../../../lib/localeRouting'
 import { checkoutReturnPaths } from '../../../lib/subscribeFlow'
+import { CONSENT_TEXT_VERSION, consentParams } from '../../../lib/checkoutConsent'
 
 type Admin = ReturnType<typeof adminSupabase>
 
@@ -77,9 +78,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const plan = subscriptionPlanFor(req.body?.tier, req.body?.period)
   if (!plan) return res.status(400).json({ error: 'PLAN' })
-  // Accès immédiat demandé, renonciation au droit de rétractation
-  // (art. L221-28 du Code de la consommation) : case cochée sur /abonnement.
-  if (req.body?.waiver !== true) return res.status(400).json({ error: 'WAIVER' })
 
   const { data: gate, error: gateError } = await db.rpc('stripe_subscription_gate', { p_user_id: user.id })
   if (gateError) {
@@ -97,7 +95,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const stripe = stripeClient(env)
     const customer = await customerFor(db, stripe, env, user)
     const tax = stripeTaxRates().exclusive
-    const waiverAt = new Date().toISOString()
     const session = await stripe<{ url: string }>('POST', '/v1/checkout/sessions', {
       mode: 'subscription',
       // Tiroir vend en son nom (EI, franchise de TVA, factures à son nom) :
@@ -112,22 +109,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       billing_address_collection: 'required',
       tax_id_collection: { enabled: true },
       customer_update: { address: 'auto', name: 'auto' },
-      metadata: { kind: 'subscription', user_id: user.id, plan: plan.key, waiver_at: waiverAt },
+      metadata: { kind: 'subscription', user_id: user.id, plan: plan.key, consent_version: CONSENT_TEXT_VERSION },
       // Recopiées sur l'abonnement : le webhook retrouve le compte même
       // sans la session (renouvellement, changement dans le portail).
-      subscription_data: { metadata: { kind: 'individual', user_id: user.id, plan: plan.key, waiver_at: waiverAt } },
+      subscription_data: { metadata: { kind: 'individual', user_id: user.id, plan: plan.key } },
       // Pas de payment_method_types : Stripe propose carte, Apple Pay,
       // Google Pay… selon les moyens activés dans le tableau de bord.
       locale: locale === 'de' || locale === 'es' || locale === 'en' ? locale : 'fr',
       success_url: `${base}${success}`,
       cancel_url: `${base}${cancel}`,
-      custom_text: {
-        submit: {
-          message: locale === 'fr'
-            ? 'Accès immédiat : vous avez demandé l’exécution du service dès le paiement et renoncé à votre droit de rétractation. Résiliable à tout moment depuis votre compte.'
-            : 'Immediate access: you asked for the service to start upon payment and waived your right of withdrawal. Cancel anytime from your account.',
-        },
-      },
+      // Case obligatoire, non pré-cochée : accès immédiat et renoncement
+      // au droit de rétractation (art. L221-28). Enregistrée par le webhook.
+      ...consentParams('subscription', locale, `${base}/cgu`),
     })
     return res.status(200).json({ url: session.url })
   } catch (e) {

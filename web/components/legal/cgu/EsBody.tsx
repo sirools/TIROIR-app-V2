@@ -59,6 +59,27 @@ export default function EsBody() {
         </p>
       </LegalSection>
 
+      <LegalSection title="4 bis. Compras en tiroir.app (suscripciones y créditos de IA)">
+        <p>
+          Las suscripciones Premium y Pro, así como los paquetes de créditos de IA, también pueden comprarse
+          en tiroir.app con tarjeta, Apple Pay o Google Pay. El pago lo procesa Stripe; TiROiR nunca tiene
+          acceso a los datos de la tarjeta. Los precios incluyen el IVA francés del 20 % y se envía una
+          factura por correo electrónico con cada pago.
+        </p>
+        <p>
+          Una suscripción comprada en el sitio se renueva automáticamente en cada vencimiento, mensual o
+          anual. Se gestiona desde «Mi cuenta» (cambio de plan, tarjeta, facturas, cancelación); la
+          cancelación surte efecto al final del periodo ya pagado. Los créditos de IA comprados no caducan.
+        </p>
+        <p>
+          <strong>Derecho de desistimiento.</strong> El acceso a la suscripción o a los créditos se
+          proporciona inmediatamente después del pago. Antes de pagar, el cliente marca una casilla con la
+          que solicita este acceso inmediato y reconoce perder su derecho de desistimiento de 14 días
+          (artículo L221-28 del Código de consumo francés). Este consentimiento se conserva con su fecha y
+          figura en la factura.
+        </p>
+      </LegalSection>
+
       <LegalSection title="5. Contenido del usuario">
         <p>
           Usted conserva la totalidad de los derechos de propiedad intelectual sobre las fotos,

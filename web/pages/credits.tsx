@@ -10,11 +10,12 @@
 // stores, voir strategie/paiements-stripe.md).
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
-import { serverSupabase } from '../lib/supabase'
+import { serverSupabase, supabase } from '../lib/supabase'
+import { creditsAllowedFor } from '../lib/creditsAccess'
 import { asLocale, localePrefix } from '../lib/localeRouting'
 import { CREDIT_PACKS, creditsSaleOpen } from '../lib/stripeConfig'
 import { OFFERS_V4 } from '../lib/offers'
@@ -28,14 +29,19 @@ type Props = {
   history: HistoryRow[]
   paymentOpen: boolean
   inTeam: boolean
+  /** Compte Pro : IA incluse, achat de crédits masqué (et refusé par le serveur). */
+  isPro: boolean
 }
 
 const POPULAR = OFFERS_V4.packs.findIndex(p => p.popular)
+/** Solde d'avant le paiement, gardé le temps du passage chez Stripe. */
+const BALANCE_BEFORE_KEY = 'tiroir:credits-before'
 
-export default function Credits({ balance, quota, history, paymentOpen, inTeam }: Props) {
+export default function Credits({ balance: initialBalance, quota, history, paymentOpen, inTeam, isPro }: Props) {
   const { t: { credits: t }, locale } = useBillingCopy()
   const router = useRouter()
-  const [waiver, setWaiver] = useState(false)
+  const [balance, setBalance] = useState(initialBalance)
+  const [added, setAdded] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const eur = (n: number) => formatEur(n, locale)
@@ -43,15 +49,43 @@ export default function Credits({ balance, quota, history, paymentOpen, inTeam }
   const outOfAi = balance <= 0 && !!quota && quota.used >= quota.quota
   const back = router.query.achat
 
+  // Retour de Stripe : le webhook crédite en quelques secondes ; on relit
+  // le solde jusqu'à le voir dépasser celui d'avant le paiement (mémorisé
+  // au clic sur « Acheter »). Rien n'est crédité ici.
+  useEffect(() => {
+    if (back !== 'ok') return
+    // Lu sans l'effacer tout de suite : en développement, React joue l'effet
+    // deux fois ; la valeur n'est retirée qu'une fois le crédit constaté.
+    let before = initialBalance
+    const forget = () => { try { sessionStorage.removeItem(BALANCE_BEFORE_KEY) } catch { /* facultatif */ } }
+    try {
+      const raw = sessionStorage.getItem(BALANCE_BEFORE_KEY)
+      if (raw !== null && Number.isFinite(Number(raw))) before = Number(raw)
+    } catch { /* stockage indisponible : on compare au solde affiché */ }
+    if (initialBalance > before) { forget(); setAdded(true); return }
+    let stop = false
+    let tries = 0
+    const tick = async () => {
+      tries += 1
+      const { data } = await supabase.rpc('get_my_ai_credits')
+      if (stop) return
+      if (typeof data === 'number' && data > before) { forget(); setBalance(data); setAdded(true); return }
+      if (tries < 20) setTimeout(tick, 2000)
+    }
+    tick()
+    return () => { stop = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [back])
+
   async function buy(pack: string) {
     setError(null)
-    if (!waiver) { setError(t.waiverMissing); return }
     setBusy(pack)
+    try { sessionStorage.setItem(BALANCE_BEFORE_KEY, String(balance)) } catch { /* facultatif */ }
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pack, waiver: true, locale }),
+        body: JSON.stringify({ pack, locale }),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok || !json.url) throw new Error(json.error)
@@ -72,7 +106,7 @@ export default function Credits({ balance, quota, history, paymentOpen, inTeam }
           <h1 className="h2" style={{ marginBottom: 8 }}>{t.title}</h1>
           <p className="p" style={{ marginBottom: 24 }}>{fill(t.intro, { n: OFFERS_V4.free.aiActionsPerMonth })}</p>
 
-          {back === 'ok' && <p role="status" style={s.ok}>{t.success}</p>}
+          {back === 'ok' && <p role="status" style={s.ok}>{added ? t.added : t.success}</p>}
           {back === 'annule' && <p role="status" style={s.note}>{t.cancelled}</p>}
           {outOfAi && (
             <div role="alert" style={s.alert}>
@@ -99,7 +133,8 @@ export default function Credits({ balance, quota, history, paymentOpen, inTeam }
             {inTeam && <a href={`${localePrefix(locale)}/equipe`} style={s.link}>{t.team} →</a>}
           </div>
 
-          {/* ── Achat ── */}
+          {/* ── Achat (masqué pour le Pro : IA incluse) ── */}
+          {isPro ? <p role="status" style={s.note}>{t.proIncluded}</p> : <>
           <h2 id="acheter" style={s.h2}>{t.buyTitle}</h2>
           <div style={s.packs}>
             {CREDIT_PACKS.map((p, i) => (
@@ -119,14 +154,10 @@ export default function Credits({ balance, quota, history, paymentOpen, inTeam }
               </div>
             ))}
           </div>
-          {paymentOpen && (
-            <label style={s.waiver}>
-              <input type="checkbox" checked={waiver} onChange={e => { setWaiver(e.target.checked); setError(null) }} style={{ marginTop: 3, appearance: 'auto', WebkitAppearance: 'checkbox', width: 18, height: 18, flexShrink: 0, accentColor: 'var(--orange)' }} />
-              <span>{t.waiver}</span>
-            </label>
-          )}
+          {paymentOpen && <p style={s.small}>{t.consentNote}</p>}
           {error && <p role="alert" style={s.error}>{error}</p>}
           <p style={s.small}>{t.secure}</p>
+          </>}
 
           {/* ── Historique ── */}
           <h2 style={s.h2}>{t.historyTitle}</h2>
@@ -174,6 +205,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
     supabase.rpc('get_my_credit_history', { p_limit: 50 }),
     supabase.from('org_members').select('org_id').eq('user_id', user.id).eq('status', 'active').maybeSingle(),
   ])
+  const { data: me } = await supabase.from('profiles').select('plan, pro_expires_at').eq('id', user.id).maybeSingle()
 
   // Tant que stripe_credits.sql n'est pas appliqué, l'historique se limite au journal.
   let rows = (history.data ?? []) as HistoryRow[]
@@ -193,6 +225,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
       history: rows,
       paymentOpen: creditsSaleOpen(),
       inTeam: !!team.data,
+      isPro: !creditsAllowedFor(me),
     },
   }
 }
@@ -213,7 +246,6 @@ const s: Record<string, React.CSSProperties> = {
   packPrice:   { fontSize: 18, fontWeight: 700, color: 'var(--ink)' },
   btn:         { marginTop: 10, padding: '11px 0', borderRadius: 12, background: 'var(--orange)', color: 'var(--white)', fontWeight: 700, fontSize: 15, border: 'none', fontFamily: 'inherit' },
   btnGhost:    { background: 'var(--white)', color: 'var(--ink)', border: '1.5px solid var(--border)' },
-  waiver:      { display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, color: 'var(--ink)', lineHeight: 1.5, margin: '16px 0 8px', cursor: 'pointer' },
   error:       { fontSize: 14, color: 'var(--error)', background: 'var(--error-light)', borderRadius: 8, padding: '8px 12px' },
   ok:          { fontSize: 14, color: 'var(--success)', fontWeight: 600, marginBottom: 16 },
   note:        { fontSize: 14, color: 'var(--muted)', marginBottom: 16 },
