@@ -1,4 +1,5 @@
-// Back-office › Facturation : les abonnements réels par canal (site, iOS,
+// Back-office › Facturation : la santé des paiements (webhooks en échec,
+// paiements refusés, litiges : lib/stripe/health.ts), les abonnements réels par canal (site, iOS,
 // Play Store, Pro sur facture : lib/subscriptionRevenue.ts), ce que Stripe
 // encaisse (crédits du site, factures Business), le MRR Business, une
 // projection à date, et la
@@ -23,6 +24,8 @@ import {
 } from '../../lib/revenue'
 import type { RevenueReport } from '../../lib/subscriptionRevenue'
 import { loadRevenueReport } from '../../lib/revenueLoad'
+import { disputeStatusLabel, type PaymentHealth } from '../../lib/stripe/health'
+import { loadPaymentHealth } from '../../lib/stripe/healthLoad'
 
 type OrgLine = {
   id: string; name: string; billing_email: string; subscription_status: string | null
@@ -38,11 +41,12 @@ type Props = {
   orgs: OrgLine[]
   thisMonth: number
   revenue: RevenueReport
+  health: PaymentHealth
 }
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 
-export default function Facturation({ stripeMode, mrr, months, projection, lines, orgs, thisMonth, revenue }: Props) {
+export default function Facturation({ stripeMode, mrr, months, projection, lines, orgs, thisMonth, revenue, health }: Props) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
@@ -75,6 +79,57 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
           Abonnements : MRR hors taxes, tous canaux (site et stores). Business et encaissements : montants TTC
           encaissés par Stripe, avant frais ; les achats faits dans l’app n’y sont pas.
         </p>
+
+        <h2 id="sante" style={s.h2}>Santé des paiements</h2>
+        {health.ok ? (
+          <p style={s.healthOk}>✓ Rien à signaler : aucun webhook en échec, aucun paiement refusé sur 30 jours, aucun litige ouvert.</p>
+        ) : (
+          <>
+            {health.stripeUnavailable && <p style={s.healthKo}>Stripe n’a pas pu être lu : paiements refusés et litiges inconnus.</p>}
+            <section style={s.tiles}>
+              <Tile label="Webhooks en échec" value={String(health.webhooks.length)} hint="30 derniers jours" />
+              <Tile label="Paiements refusés" value={String(health.failedPayments.length)} hint="30 derniers jours" />
+              <Tile label="Litiges ouverts" value={String(health.openDisputes)} hint={`${health.disputes.length} sur 90 jours`} />
+            </section>
+            {health.webhooks.length > 0 && (
+              <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+                <table style={s.table}>
+                  <thead><tr><th style={s.th}>Reçu</th><th style={s.th}>Événement</th><th style={s.th}>Problème</th></tr></thead>
+                  <tbody>
+                    {health.webhooks.slice(0, 20).map(w => (
+                      <tr key={w.id}><td style={s.td}>{fmtDate(w.at)}</td><td style={s.td}>{w.type}<br /><code style={s.code}>{w.id}</code></td><td style={s.td}>{w.problem}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {health.failedPayments.length > 0 && (
+              <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+                <table style={s.table}>
+                  <thead><tr><th style={s.th}>Date</th><th style={s.th}>Client</th><th style={s.thR}>Montant</th><th style={s.th}>Raison</th></tr></thead>
+                  <tbody>
+                    {health.failedPayments.slice(0, 20).map(f => (
+                      <tr key={f.id}><td style={s.td}>{fmtDate(f.at)}</td><td style={s.td}>{f.email ?? '—'}</td><td style={s.tdR}>{eurosFromCents(f.amount)}</td><td style={s.td}>{f.reason}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {health.disputes.length > 0 && (
+              <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+                <table style={s.table}>
+                  <thead><tr><th style={s.th}>Ouvert le</th><th style={s.thR}>Montant</th><th style={s.th}>Motif</th><th style={s.th}>Statut</th><th style={s.th}>Répondre avant</th></tr></thead>
+                  <tbody>
+                    {health.disputes.slice(0, 20).map(d => (
+                      <tr key={d.id}><td style={s.td}>{fmtDate(d.at)}</td><td style={s.tdR}>{eurosFromCents(d.amount)}</td><td style={s.td}>{d.reason}</td><td style={s.td}>{disputeStatusLabel(d.status)}</td><td style={s.td}>{d.dueBy ? fmtDate(d.dueBy) : '—'}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <p style={s.muted}>Litiges et paiements refusés : à traiter dans le tableau de bord Stripe. Un webhook en échec se rejoue depuis Stripe (Développeurs › Webhooks).</p>
+          </>
+        )}
 
         <h2 style={s.h2}>Abonnements</h2>
         <section style={s.tiles}>
@@ -252,13 +307,14 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
   const asked = typeof ctx.query.jusqua === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ctx.query.jusqua) ? new Date(`${ctx.query.jusqua}T00:00:00Z`) : null
   const mrr = businessMrr(orgRows)
   const months = monthlyCollected(creditRows, invoiceRows)
-  const revenue = await loadRevenueReport(db, now)
+  const [revenue, health] = await Promise.all([loadRevenueReport(db, now), loadPaymentHealth(db, now)])
 
   return {
     props: {
       adminNav: adminNavFor(guard.user, guard.isAdmin),
       stripeMode: stripeEnv()?.mode ?? null,
       revenue,
+      health,
       mrr,
       months,
       thisMonth: months.find(m => m.month === now.toISOString().slice(0, 7))?.total ?? 0,
@@ -279,6 +335,9 @@ const s: Record<string, React.CSSProperties> = {
   h2:        { fontSize: 20, fontWeight: 800, color: 'var(--ink)', margin: '32px 0 12px' },
   h3:        { fontSize: 16, fontWeight: 700, color: 'var(--ink)', margin: '24px 0 10px' },
   muted:     { fontSize: 13, color: 'var(--muted)' },
+  healthOk:  { fontSize: 14, color: 'var(--ink)', background: 'var(--white)', border: '1px solid var(--border-light)', borderRadius: 10, padding: '10px 14px' },
+  healthKo:  { fontSize: 14, fontWeight: 700, color: '#C0392B', margin: '0 0 12px' },
+  code:      { fontSize: 11, color: 'var(--muted)' },
   tiles:     { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, margin: '20px 0 12px' },
   tile:      { background: 'var(--white)', border: '1px solid var(--border-light)', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 4 },
   tileLabel: { fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' },
