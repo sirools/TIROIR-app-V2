@@ -34,6 +34,8 @@ type Props = {
 }
 
 const POPULAR = OFFERS_V4.packs.findIndex(p => p.popular)
+/** Solde d'avant le paiement, gardé le temps du passage chez Stripe. */
+const BALANCE_BEFORE_KEY = 'tiroir:credits-before'
 
 export default function Credits({ balance: initialBalance, quota, history, paymentOpen, inTeam, isPro }: Props) {
   const { t: { credits: t }, locale } = useBillingCopy()
@@ -48,16 +50,26 @@ export default function Credits({ balance: initialBalance, quota, history, payme
   const back = router.query.achat
 
   // Retour de Stripe : le webhook crédite en quelques secondes ; on relit
-  // le solde jusqu'à le voir augmenter (rien n'est crédité ici).
+  // le solde jusqu'à le voir dépasser celui d'avant le paiement (mémorisé
+  // au clic sur « Acheter »). Rien n'est crédité ici.
   useEffect(() => {
     if (back !== 'ok') return
+    // Lu sans l'effacer tout de suite : en développement, React joue l'effet
+    // deux fois ; la valeur n'est retirée qu'une fois le crédit constaté.
+    let before = initialBalance
+    const forget = () => { try { sessionStorage.removeItem(BALANCE_BEFORE_KEY) } catch { /* facultatif */ } }
+    try {
+      const raw = sessionStorage.getItem(BALANCE_BEFORE_KEY)
+      if (raw !== null && Number.isFinite(Number(raw))) before = Number(raw)
+    } catch { /* stockage indisponible : on compare au solde affiché */ }
+    if (initialBalance > before) { forget(); setAdded(true); return }
     let stop = false
     let tries = 0
     const tick = async () => {
       tries += 1
       const { data } = await supabase.rpc('get_my_ai_credits')
       if (stop) return
-      if (typeof data === 'number' && data > initialBalance) { setBalance(data); setAdded(true); return }
+      if (typeof data === 'number' && data > before) { forget(); setBalance(data); setAdded(true); return }
       if (tries < 20) setTimeout(tick, 2000)
     }
     tick()
@@ -68,6 +80,7 @@ export default function Credits({ balance: initialBalance, quota, history, payme
   async function buy(pack: string) {
     setError(null)
     setBusy(pack)
+    try { sessionStorage.setItem(BALANCE_BEFORE_KEY, String(balance)) } catch { /* facultatif */ }
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
