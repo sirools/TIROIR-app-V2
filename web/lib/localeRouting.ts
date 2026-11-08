@@ -6,11 +6,18 @@
 // anglaise (redirection temporaire, le temps de la traduire). Module sans
 // dépendance, appelé par middleware.ts, testé à part.
 
-export const LOCALES = ['fr', 'en', 'de', 'es'] as const
+export const LOCALES = ['fr', 'en', 'de', 'es', 'pt'] as const
 export type Locale = (typeof LOCALES)[number]
 
 /** Langues où seules les pages de TRANSLATED_PATHS existent. */
-export const PARTIAL_LOCALES: readonly Locale[] = ['de', 'es']
+export const PARTIAL_LOCALES: readonly Locale[] = ['de', 'es', 'pt']
+
+/**
+ * Langues partielles plus restreintes encore : seules ces pages existent.
+ * Portugais (du Brésil, la variante par défaut de l'app) : la homepage
+ * seulement, ouverte le 08/11/2026.
+ */
+export const LOCALE_PATHS: Partial<Record<Locale, readonly string[]>> = { pt: ['/'] }
 
 /** Pages traduites dans toutes les langues (textes dans web/locales). */
 export const TRANSLATED_PATHS: readonly string[] = [
@@ -29,6 +36,8 @@ export const TRANSLATED_PREFIXES: readonly string[] = ['/s/', '/share/o/']
 /** La page existe-t-elle dans cette langue ? */
 export function isTranslated(locale: Locale, pathname: string): boolean {
   const path = pathname || '/'
+  const only = LOCALE_PATHS[locale]
+  if (only) return only.includes(path)
   return !PARTIAL_LOCALES.includes(locale)
     || TRANSLATED_PATHS.includes(path)
     || TRANSLATED_PREFIXES.some(prefix => path.startsWith(prefix))
@@ -89,7 +98,9 @@ export function recipientLocale(acceptLanguage: string | null | undefined): Loca
     })
     .filter(x => x.lang && x.q > 0)
     .sort((a, b) => b.q - a.q || a.i - b.i)
-  const first = ranked.find(x => (LOCALES as readonly string[]).includes(x.lang))
+  // Seulement une langue où les pages de partage sont traduites.
+  const first = ranked.find(x =>
+    (LOCALES as readonly string[]).includes(x.lang) && isTranslated(x.lang as Locale, '/s/'))
   return first && first.lang !== 'fr' ? (first.lang as Locale) : null
 }
 

@@ -27,11 +27,11 @@ const nextConfig = {
   // les autres langues préfixées (tiroir.app/en/..., /de, /es).
   // Détection auto désactivée tant que toutes les pages publiques ne sont
   // pas traduites — les liens App Store pointent explicitement vers /en.
-  // Allemand et espagnol : les pages non traduites renvoient vers leur
-  // version anglaise (lib/localeRouting.ts). Langues de Tiroir : fr, en,
+  // Allemand, espagnol, portugais : les pages non traduites renvoient vers
+  // leur version anglaise (lib/localeRouting.ts ; portugais : homepage seule). Langues de Tiroir : fr, en,
   // es, de, pt (pt pas encore sur le site) ; voir locales/README.md.
   i18n: {
-    locales: ['fr', 'en', 'de', 'es'],
+    locales: ['fr', 'en', 'de', 'es', 'pt'],
     defaultLocale: 'fr',
     localeDetection: false,
   },

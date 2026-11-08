@@ -17,8 +17,18 @@ describe('langues du site', () => {
     expect(cfg).not.toMatch(/locale: false/)
   })
 
-  test('langues de Tiroir : fr, en, de, es sur le site (pt pas encore), pas de danois', () => {
-    expect([...LOCALES].sort()).toEqual(['de', 'en', 'es', 'fr'])
+  test('langues de Tiroir : fr, en, de, es, pt, pas de danois', () => {
+    expect([...LOCALES].sort()).toEqual(['de', 'en', 'es', 'fr', 'pt'])
+  })
+
+  test('portugais : la homepage seulement, le reste en anglais', () => {
+    expect(untranslatedRedirect('pt', '/')).toBeNull()
+    expect(untranslatedRedirect('pt', '/pricing')).toBe('/en/pricing')
+    expect(untranslatedRedirect('pt', '/about')).toBe('/en/about')
+    expect(untranslatedRedirect('pt', '/s/abc123')).toBe('/en/s/abc123')
+    expect(untranslatedRedirect('pt', '/logo-tiroir.svg')).toBeNull()
+    expect(isTranslated('pt', '/')).toBe(true)
+    expect(isTranslated('pt', '/pricing')).toBe(false)
   })
 
   test('anciennes adresses danoises : vers l’anglais', () => {
@@ -64,6 +74,9 @@ describe('langues du site', () => {
     expect(recipientLocale('it-IT,it;q=0.9,es;q=0.5')).toBe('es')
     expect(recipientLocale('ja')).toBeNull()
     expect(recipientLocale('en;q=0.4,da;q=0.9')).toBe('en')
+    // Partages non traduits en portugais : la langue suivante du navigateur.
+    expect(recipientLocale('pt-BR,pt;q=0.9,en;q=0.8')).toBe('en')
+    expect(recipientLocale('pt-BR')).toBeNull()
     expect(recipientLocale(null)).toBeNull()
     expect(isRecipientPage('/s/abc/123')).toBe(true)
     expect(isRecipientPage('/pricing')).toBe(false)

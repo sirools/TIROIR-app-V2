@@ -12,4 +12,6 @@ export const CGU_UPDATED = '2026-07-01'
 
 export const CGU_BODIES: Record<Locale, ComponentType> = {
   fr: FrBody, en: EnBody, de: DeBody, es: EsBody,
+  // Pas encore traduit : la page portugaise renvoie vers l’anglais.
+  pt: EnBody,
 }

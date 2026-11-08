@@ -102,16 +102,59 @@ const fr = {
       reassure: 'Gratuit, sans carte bancaire. {n} actions IA par mois incluses.',
       cta: 'Essayer gratuitement',
     },
-    pros: {
-      eyebrow: 'Pour les créatifs et les pros',
-      title: 'Moins de saisie, plus de métier.',
-      sub: 'Ton matériel, ton stock, tes collections : documentés en quelques photos, pendant que tu travailles.',
-      personas: [
-        { who: 'Styliste', text: 'Chaque pièce photographiée, rangée par shooting. Tu sais ce qui est sorti et ce qui est revenu.', chip: 'Prêtée · retour vendredi' },
-        { who: 'Régisseur', text: 'Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans ta poche.', chip: '42 pièces · 3 prêtées' },
-        { who: 'Brocanteur', text: 'Un déballage entier en une session grâce au mode rafale, avec un prix de départ pour chaque pièce.', chip: 'Rafale · 60 objets' },
-        { who: 'Musicien', text: 'Instruments et accessoires documentés, factures jointes : prêts pour l’assurance ou la revente.', chip: 'Valeur ≈ {price}' },
+    // Créatifs (Premium) et Pro/Business : vouvoiement (offres payantes).
+    // Les fonctions de ces formules sont à venir (page Tarifs) : verbes au
+    // futur, badge « Bientôt ». Rien ici qui ne soit sur la page Tarifs.
+    creatives: {
+      eyebrow: 'Pour les créatifs',
+      title: 'Votre matériel, sous contrôle.',
+      sub: 'Caméras, objectifs, pièces de garde-robe : sachez ce que vous avez, où c’est, et combien ça vaut.',
+      soon: 'Bientôt',
+      points: [
+        { title: 'Tout retrouver', text: 'Chaque pièce est photographiée et rangée par collection. Retrouvez-la en quelques secondes avant un tournage.' },
+        { title: 'Connaître sa valeur', text: 'Torix estimera automatiquement chaque pièce, et une courbe suivra sa valeur dans le temps.', soon: true },
+        { title: 'Partager en sécurité', text: 'Envoyez une liste en lecture seule à un assistant ou à un loueur, sans rien exposer d’autre.' },
       ],
+      card: {
+        label: 'Aperçu : la fiche d’un appareil photo, avec son estimation et la courbe de sa valeur sur douze mois.',
+        preview: 'Aperçu',
+        name: 'Appareil photo argentique',
+        meta: 'Collection Tournage · rangé',
+        estimateLabel: 'Estimation Torix',
+        trendLabel: 'Valeur sur 12 mois',
+      },
+      bridge: 'Besoin d’un export pour votre assurance ou d’estimer tout un parc d’un coup ?',
+      bridgeLink: 'Découvrez l’offre Pro.',
+      cta: 'Découvrir Premium',
+      ctaNote: 'Formule à venir : prix et détail sur la page Tarifs.',
+    },
+    pro: {
+      eyebrow: 'Pour les professionnels',
+      badge: 'Offres à venir',
+      title: 'Votre inventaire, un actif maîtrisé.',
+      sub: 'Vous pourrez estimer, documenter et justifier la valeur de l’ensemble de votre parc.',
+      points: [
+        { title: 'IA incluse', text: 'Les crédits IA seront inclus dans votre forfait, sans recharge à prévoir. Torix estimera automatiquement chaque objet.' },
+        { title: 'Estimation en lot', text: 'Vous estimerez tout un parc en une seule opération.' },
+        { title: 'Sources détaillées', text: 'Vous consulterez le détail des sources de chaque estimation, pour la justifier.' },
+        { title: 'Export assurance', text: 'Vous générerez un export prêt à transmettre à votre assureur.' },
+      ],
+      ctaPro: 'Découvrir l’offre Pro',
+      ctaNote: 'Formule à venir : prix et détail sur la page Tarifs.',
+      business: {
+        title: 'Pour les entreprises',
+        text: 'Toutes les fonctionnalités Pro, avec une facturation mensuelle sur facture, par virement ou prélèvement.',
+        cta: 'Nous contacter',
+      },
+      preview: {
+        label: 'Aperçu fictif d’un export assurance : quatre objets estimés en lot et leur valeur totale.',
+        title: 'Export assurance',
+        tag: 'Données fictives',
+        subtitle: 'Parc matériel · estimé en lot',
+        cols: ['Objet', 'Catégorie', 'Valeur'],
+        rows: [['Caméra cinéma', 'Image'], ['Objectif 35 mm', 'Optique'], ['Trépied vidéo', 'Machinerie'], ['Moniteur de terrain', 'Image']],
+        total: 'Total estimé',
+      },
     },
     everyone: {
       eyebrow: 'Et pour tout le monde',
