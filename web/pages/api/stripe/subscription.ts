@@ -13,7 +13,7 @@
 //   État lu en base, pour la page de confirmation (qui attend le webhook).
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { siteUrl, stripeEnv, subscriptionPlanFor, type StripeEnv } from '../../../lib/stripeConfig'
+import { envPriceId, siteUrl, stripeEnv, subscriptionPlanFor, type StripeEnv } from '../../../lib/stripeConfig'
 import { priceIdFor, stripeClient, type StripeCall } from '../../../lib/stripe/api'
 import { adminSupabase } from '../../../lib/supabase'
 import { asLocale, localePrefix } from '../../../lib/localeRouting'
@@ -89,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       managed_payments: { enabled: false },
       customer,
       client_reference_id: user.id,
-      line_items: [{ price: await priceIdFor(stripe, plan.lookupKey), quantity: 1 }],
+      line_items: [{ price: envPriceId(plan) ?? await priceIdFor(stripe, plan.lookupKey), quantity: 1 }],
       metadata: { kind: 'subscription', user_id: user.id, plan: plan.key },
       // Recopiées sur l'abonnement : le webhook retrouve le compte même
       // sans la session (renouvellement, changement dans le portail).

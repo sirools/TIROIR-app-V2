@@ -40,9 +40,15 @@ export function packByKey(key: unknown): CreditPack | null {
 
 /**
  * Abonnements des particuliers vendus sur le site (grille OFFERS_V4) :
- * Premium mensuel ou annuel, Pro mensuel. Un produit Stripe par palier,
- * un prix par période. Mêmes paliers que profiles.plan.
+ * Premium et Pro, mensuel ou annuel. Un produit Stripe par palier, un
+ * prix par période. Mêmes paliers que profiles.plan.
+ *
+ * Identifiant du prix Stripe : la variable d'environnement `priceEnv`
+ * (price_…, différent en test et en réel), sinon le prix actif qui porte
+ * la `lookup_key` (créé par scripts/stripe-setup.mjs).
  */
+type Env = Record<string, string | undefined>
+
 export type PlanTier = 'premium' | 'pro'
 export type BillingPeriod = 'monthly' | 'yearly'
 export type SubscriptionPlan = {
@@ -54,13 +60,32 @@ export type SubscriptionPlan = {
   /** Centimes TTC par période. */
   amount: number
   interval: 'month' | 'year'
+  /** Variable d'environnement qui donne l'identifiant du prix (price_…). */
+  priceEnv: string
 }
 
 export const SUBSCRIPTION_PLANS: readonly SubscriptionPlan[] = [
-  { key: 'premium_monthly', tier: 'premium', period: 'monthly', lookupKey: 'tiroir_web_premium_monthly', amount: Math.round(OFFERS_V4.premium.monthlyTtc * 100), interval: 'month' },
-  { key: 'premium_yearly', tier: 'premium', period: 'yearly', lookupKey: 'tiroir_web_premium_yearly', amount: Math.round(OFFERS_V4.premium.yearlyTtc * 100), interval: 'year' },
-  { key: 'pro_monthly', tier: 'pro', period: 'monthly', lookupKey: 'tiroir_web_pro_monthly', amount: Math.round(OFFERS_V4.pro.monthlyTtc * 100), interval: 'month' },
+  { key: 'premium_monthly', tier: 'premium', period: 'monthly', lookupKey: 'tiroir_web_premium_monthly', amount: Math.round(OFFERS_V4.premium.monthlyTtc * 100), interval: 'month', priceEnv: 'STRIPE_PRICE_PREMIUM_MONTHLY' },
+  { key: 'premium_yearly', tier: 'premium', period: 'yearly', lookupKey: 'tiroir_web_premium_yearly', amount: Math.round(OFFERS_V4.premium.yearlyTtc * 100), interval: 'year', priceEnv: 'STRIPE_PRICE_PREMIUM_YEARLY' },
+  { key: 'pro_monthly', tier: 'pro', period: 'monthly', lookupKey: 'tiroir_web_pro_monthly', amount: Math.round(OFFERS_V4.pro.monthlyTtc * 100), interval: 'month', priceEnv: 'STRIPE_PRICE_PRO_MONTHLY' },
+  { key: 'pro_yearly', tier: 'pro', period: 'yearly', lookupKey: 'tiroir_web_pro_yearly', amount: Math.round(OFFERS_V4.pro.yearlyTtc * 100), interval: 'year', priceEnv: 'STRIPE_PRICE_PRO_YEARLY' },
 ]
+
+/** Identifiant de prix posé dans l'environnement pour cette offre, ou null. */
+export function envPriceId(plan: SubscriptionPlan, env: Env = process.env): string | null {
+  const id = env[plan.priceEnv]?.trim()
+  return id && id.startsWith('price_') ? id : null
+}
+
+/**
+ * Offre d'un prix Stripe : par son identifiant (variables d'environnement),
+ * sinon par sa lookup_key. Jamais par les métadonnées.
+ */
+export function planByPrice(price: { id?: unknown; lookup_key?: unknown } | null | undefined, env: Env = process.env): SubscriptionPlan | null {
+  if (!price) return null
+  return SUBSCRIPTION_PLANS.find(p => typeof price.id === 'string' && envPriceId(p, env) === price.id)
+    ?? planByLookupKey(price.lookup_key)
+}
 
 /** Offre demandée par la page (`premium` + `yearly`), ou null si elle n'est pas vendue. */
 export function subscriptionPlanFor(tier: unknown, period: unknown): SubscriptionPlan | null {
@@ -72,7 +97,7 @@ export function planByLookupKey(lookupKey: unknown): SubscriptionPlan | null {
   return SUBSCRIPTION_PLANS.find(p => p.lookupKey === lookupKey) ?? null
 }
 
-/** Les périodes vendues pour un palier (Pro : mensuel seulement). */
+/** Les périodes vendues pour un palier. */
 export function periodsFor(tier: PlanTier): BillingPeriod[] {
   return SUBSCRIPTION_PLANS.filter(p => p.tier === tier).map(p => p.period)
 }
@@ -115,7 +140,6 @@ export type StripeEnv = {
   mode: StripeMode
 }
 
-type Env = Record<string, string | undefined>
 
 /**
  * Clés Stripe du serveur, ou null si le paiement n'est pas configuré

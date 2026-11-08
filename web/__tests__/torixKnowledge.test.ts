@@ -111,7 +111,7 @@ describe('les fiches suivent le code', () => {
     expect(fiche).toContain(`${OFFERS_V4.free.aiActionsPerMonth} actions IA par mois`)
     for (const pack of OFFERS_V4.packs) expect(fiche).toContain(`${pack.credits} à ${euros(pack.priceTtc)}`)
     expect(fiche).toContain(`${euros(OFFERS_V4.premium.monthlyTtc)}/mois ou ${euros(OFFERS_V4.premium.yearlyTtc)}/an`)
-    expect(fiche).toContain(`Pro (${euros(OFFERS_V4.pro.monthlyTtc)}/mois)`)
+    expect(fiche).toContain(`Pro (${euros(OFFERS_V4.pro.monthlyTtc)}/mois ou ${euros(OFFERS_V4.pro.yearlyTtc)}/an)`)
     expect(fiche).toContain(`${euros(OFFERS_V4.business.seatMonthly)} par siège`)
     expect(fiche).toContain('paiement pas encore ouvert')
   })

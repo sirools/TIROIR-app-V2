@@ -98,7 +98,6 @@ const billingEn: BillingCopy = {
     metaTitle: 'Subscription — Tiroir',
     monthly: 'Monthly',
     yearly: 'Yearly',
-    yearlySave: '−{pct}%',
     perYearUnit: '/year',
     cancelled: 'Payment interrupted: nothing was charged. Your plan is still selected below.',
     title: 'Complete your subscription',

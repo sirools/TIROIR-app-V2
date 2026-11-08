@@ -823,13 +823,14 @@
   "pricing": {
     "meta": {
       "title": "Preise — Tiroir",
-      "description": "Tiroir ist kostenlos, mit {free} KI-Aktionen pro Monat. KI-Credits ab {pack}, Premium für {premium} pro Monat, Pro für {pro} pro Monat, Business für {business} pro Platz."
+      "description": "Tiroir ist kostenlos, mit {free} KI-Aktionen pro Monat. KI-Credits ab {pack}, Premium für {premium} pro Monat, Pro für {pro} pro Monat, Business auf Anfrage."
     },
     "badge": "Preise",
     "title": "Alles erfasst. Wissen, was es wert ist.",
     "sub": "Tiroir ist für alle kostenlos. Sie zahlen nur, wenn Sie mehr wollen.",
     "perMonth": "/Monat",
     "perYear": "oder {price} pro Jahr",
+    "twoMonthsFree": "Zwei Monate geschenkt",
     "perSeat": "pro Platz/Monat",
     "soon": "Demnächst verfügbar",
     "free": {
@@ -840,7 +841,8 @@
         "Sammlungen nur zum Ansehen teilen",
         "Zusätzliche KI-Credits bei Bedarf"
       ],
-      "start": "Kostenlos starten"
+      "start": "Kostenlos starten",
+      "afterQuota": "Monatliches KI-Kontingent, danach Credits kaufen"
     },
     "premium": {
       "tagline": "Um den Wert Ihrer Sammlung im Blick zu behalten.",
@@ -870,7 +872,9 @@
         "Rollen und mehrere Konten",
         "Monatliche Rechnung, Überweisung oder Lastschrift"
       ],
-      "cta": "Kontakt aufnehmen"
+      "cta": "Kontakt aufnehmen",
+      "quote": "Auf Anfrage",
+      "billing": "Monatliche Rechnung"
     },
     "note": "Preise inkl. MwSt. Business wird per Rechnung bezahlt.",
     "credits": {

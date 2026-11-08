@@ -28,9 +28,10 @@ export const PRODUCTS = [
   { lookupKey: 'tiroir_business_seat_monthly', name: 'Tiroir Business — siège', amount: 3900, recurring: 'month' },
   // Abonnements des particuliers : un produit par palier (`product`), un
   // prix par période.
-  { lookupKey: 'tiroir_web_premium_monthly', name: 'Tiroir Premium', product: 'premium', amount: 499, recurring: 'month' },
-  { lookupKey: 'tiroir_web_premium_yearly', name: 'Tiroir Premium', product: 'premium', amount: 3900, recurring: 'year' },
-  { lookupKey: 'tiroir_web_pro_monthly', name: 'Tiroir Pro', product: 'pro', amount: 1499, recurring: 'month' },
+  { lookupKey: 'tiroir_web_premium_monthly', name: 'Tiroir Premium', product: 'premium', amount: 1500, recurring: 'month' },
+  { lookupKey: 'tiroir_web_premium_yearly', name: 'Tiroir Premium', product: 'premium', amount: 15000, recurring: 'year' },
+  { lookupKey: 'tiroir_web_pro_monthly', name: 'Tiroir Pro', product: 'pro', amount: 5000, recurring: 'month' },
+  { lookupKey: 'tiroir_web_pro_yearly', name: 'Tiroir Pro', product: 'pro', amount: 50000, recurring: 'year' },
 ]
 
 const API_VERSION = '2024-06-20'
@@ -71,6 +72,8 @@ async function main() {
     if (found.data[0]) {
       const price = found.data[0]
       if (p.product) productOf.set(p.product, typeof price.product === 'string' ? price.product : price.product.id)
+      // Palier sur le prix : le webhook le reconnaît encore une fois archivé.
+      if (p.product && price.metadata?.tier !== p.product) await stripe(key, 'POST', `/v1/prices/${price.id}`, { metadata: { tier: p.product } })
       const ok = price.unit_amount === p.amount && price.currency === 'eur'
       if (ok || !applyChanges) {
         console.log(`${ok ? '✓' : `⚠ montant différent (grille : ${p.amount / 100} €) :`} ${p.lookupKey} → ${price.id} (${price.unit_amount / 100} €)`)
@@ -83,6 +86,7 @@ async function main() {
         tax_behavior: 'inclusive',
         lookup_key: p.lookupKey,
         transfer_lookup_key: true,
+        ...(p.product ? { metadata: { tier: p.product } } : {}),
         ...(p.recurring ? { recurring: { interval: p.recurring } } : {}),
       })
       await stripe(key, 'POST', `/v1/prices/${price.id}`, { active: false })
@@ -102,6 +106,7 @@ async function main() {
       // Prix TTC : en franchise en base, TTC = HT.
       tax_behavior: 'inclusive',
       lookup_key: p.lookupKey,
+      ...(p.product ? { metadata: { tier: p.product } } : {}),
       ...(p.recurring ? { recurring: { interval: p.recurring } } : {}),
     })
     console.log(`+ ${p.lookupKey} → ${price.id} (${p.amount / 100} €)`)

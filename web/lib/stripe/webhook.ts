@@ -9,13 +9,13 @@
 // Supabase (supabaseBillingStore), les tests une implémentation en mémoire.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { packByKey } from '../stripeConfig'
-import type { StripeCall } from './api'
+import type { Params, StripeCall } from './api'
 import {
   accessUntil, idOf, invoiceOrgId, invoiceRow, invoiceSubscriptionId, subscriptionSnapshot,
   type InvoiceRow, type SubscriptionSnapshot,
 } from './business'
 import {
-  individualInvoiceChanged, individualSubscriptionChanged, subscriptionCheckoutCompleted, type SubscriberStore,
+  SUBSCRIPTION_EXPAND, individualInvoiceChanged, individualSubscriptionChanged, subscriptionCheckoutCompleted, type SubscriberStore,
 } from './subscriptions'
 
 export type StripeEvent = { id: string; type: string; livemode: boolean; data: { object: Record<string, unknown> } }
@@ -71,11 +71,11 @@ async function chargePaymentMethod(stripe: StripeCall, charge: unknown): Promise
 }
 
 /** Version actuelle d'un objet Stripe ; à défaut, celle de l'événement. */
-async function fresh(stripe: StripeCall, path: string, o: Record<string, unknown>): Promise<Record<string, unknown>> {
+async function fresh(stripe: StripeCall, path: string, o: Record<string, unknown>, params?: Params): Promise<Record<string, unknown>> {
   const id = str(o.id)
   if (!id) return o
   try {
-    return await stripe('GET', `${path}${id}`)
+    return await stripe('GET', `${path}${id}`, params)
   } catch {
     return o
   }
@@ -99,7 +99,7 @@ export async function handleStripeEvent(event: StripeEvent, deps: WebhookDeps): 
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
     case 'customer.subscription.deleted': {
-      const current = await fresh(deps.stripe, '/v1/subscriptions/', o)
+      const current = await fresh(deps.stripe, '/v1/subscriptions/', o, SUBSCRIPTION_EXPAND)
       if (subscribers) {
         const outcome = await individualSubscriptionChanged(current, { subscribers, stripe: deps.stripe })
         if (outcome !== null) return outcome

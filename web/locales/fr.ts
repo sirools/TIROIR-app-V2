@@ -229,17 +229,19 @@ const fr = {
   pricing: {
     meta: {
       title: 'Tarifs — Tiroir',
-      description: 'Tiroir est gratuit, avec {free} actions IA par mois. Crédits IA dès {pack}, Premium à {premium} par mois, Pro à {pro} par mois, Business à {business} par siège.',
+      description: 'Tiroir est gratuit, avec {free} actions IA par mois. Crédits IA dès {pack}, Premium à {premium} par mois, Pro à {pro} par mois, Business sur devis.',
     },
     badge: 'Tarifs',
     title: 'Rangez tout. Sachez ce que ça vaut.',
     sub: 'Tiroir est gratuit pour tout le monde. Payez seulement quand vous allez plus loin.',
     perMonth: '/mois',
     perYear: 'ou {price} par an',
+    // Mention de l'annuel : 10 mois payés pour 12 (grille du 08/11/2026).
+    twoMonthsFree: 'Deux mois offerts',
     perSeat: 'par siège/mois',
     soon: 'Bientôt disponible',
     free: {
-      tagline: 'Pour cataloguer tout ce que vous possédez.',
+      tagline: 'Pour cataloguer tout ce que tu possèdes.',
       features: [
         'Objets et collections illimités',
         '{n} actions IA par mois (identification, estimation)',
@@ -247,6 +249,7 @@ const fr = {
         'Crédits IA en plus, à la demande',
       ],
       start: 'Commencer gratuitement',
+      afterQuota: 'Quota IA mensuel, puis achat de crédits',
     },
     premium: {
       tagline: 'Pour suivre la valeur de votre collection.',
@@ -277,6 +280,8 @@ const fr = {
         'Facturation mensuelle, virement ou prélèvement',
       ],
       cta: 'Nous contacter',
+      quote: 'Sur devis',
+      billing: 'Facture mensuelle',
     },
     note: 'Prix TTC. Business se règle sur facture.',
     credits: {

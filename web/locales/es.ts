@@ -225,13 +225,14 @@ const es: Copy = {
   pricing: {
     meta: {
       title: 'Precios — Tiroir',
-      description: 'Tiroir es gratis, con {free} acciones de IA al mes. Créditos de IA desde {pack}, Premium a {premium} al mes, Pro a {pro} al mes, Business a {business} por usuario.',
+      description: 'Tiroir es gratis, con {free} acciones de IA al mes. Créditos de IA desde {pack}, Premium a {premium} al mes, Pro a {pro} al mes, Business bajo presupuesto.',
     },
     badge: 'Precios',
     title: 'Ordénalo todo. Sabe lo que vale.',
     sub: 'Tiroir es gratis para todos. Paga solo cuando quieras ir más allá.',
     perMonth: '/mes',
     perYear: 'o {price} al año',
+    twoMonthsFree: 'Dos meses gratis',
     perSeat: 'por usuario/mes',
     soon: 'Próximamente',
     free: {
@@ -243,6 +244,7 @@ const es: Copy = {
         'Créditos de IA extra, cuando quieras',
       ],
       start: 'Empieza gratis',
+      afterQuota: 'Cuota mensual de IA, luego compra de créditos',
     },
     premium: {
       tagline: 'Para seguir el valor de tu colección.',
@@ -273,6 +275,8 @@ const es: Copy = {
         'Facturación mensual, transferencia o domiciliación',
       ],
       cta: 'Contáctanos',
+      quote: 'Bajo presupuesto',
+      billing: 'Factura mensual',
     },
     note: 'IVA incluido. Business se paga con factura.',
     credits: {

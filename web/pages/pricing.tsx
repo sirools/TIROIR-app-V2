@@ -24,7 +24,7 @@ import { offerFromQuery, subscribePath } from '../lib/subscribeFlow'
 // renvoie vers les stores, Business vers une adresse e-mail. Retour d'un
 // paiement abandonné : ?offre=…&periode=…&paiement=annule, message neutre
 // et offre gardée.
-const { free, packs, premium, pro, business } = OFFERS_V4
+const { free, packs, premium, pro } = OFFERS_V4
 
 const PLAN_CARD: React.CSSProperties = { padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }
 const PLAN_NAME: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }
@@ -36,7 +36,8 @@ const ITEM: React.CSSProperties = { display: 'flex', alignItems: 'flex-start', g
 
 type Props = { paymentOpen: boolean }
 
-const YEARLY_SAVING = Math.round((1 - premium.yearlyTtc / (premium.monthlyTtc * 12)) * 100)
+/** Business : sur devis, pas de paiement en ligne. */
+const BUSINESS_CONTACT = 'mailto:clement.ougier@gmail.com?subject=Tiroir%20Business'
 
 export default function Pricing({ paymentOpen }: Props) {
   const { t: { pricing: t }, locale } = useCopy()
@@ -52,7 +53,7 @@ export default function Pricing({ paymentOpen }: Props) {
   useEffect(() => {
     const query = Object.fromEntries(new URLSearchParams(window.location.search))
     const offer = offerFromQuery(query)
-    if (offer) { setChosen(offer.tier); if (offer.tier === 'premium') setPeriod(offer.period) }
+    if (offer) { setChosen(offer.tier); setPeriod(offer.period) }
     if (query.paiement === 'annule') {
       setCancelled(true)
       requestAnimationFrame(() => document.getElementById('formules')?.scrollIntoView())
@@ -67,7 +68,7 @@ export default function Pricing({ paymentOpen }: Props) {
           name="description"
           content={fill(t.meta.description, {
             free: n, pack: eur(packs[0].priceTtc), premium: eur(premium.monthlyTtc),
-            pro: eur(pro.monthlyTtc), business: eur(business.seatMonthly),
+            pro: eur(pro.monthlyTtc),
           })}
         />
         {localeLinks(locale, '/pricing')}
@@ -97,7 +98,7 @@ export default function Pricing({ paymentOpen }: Props) {
                 {ts.cancelled}
               </p>
             )}
-            <PeriodToggle period={period} onChange={setPeriod} labels={{ monthly: ts.monthly, yearly: ts.yearly, save: fill(ts.yearlySave, { pct: YEARLY_SAVING }) }} />
+            <PeriodToggle period={period} onChange={setPeriod} labels={{ monthly: ts.monthly, yearly: ts.yearly, save: t.twoMonthsFree }} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 20, maxWidth: 1180, margin: '0 auto', alignItems: 'stretch' }}>
 
               {/* Free */}
@@ -105,6 +106,7 @@ export default function Pricing({ paymentOpen }: Props) {
                 <div>
                   <div style={PLAN_NAME}>Free</div>
                   <div style={PRICE}>{eur(0)}</div>
+                  <div style={PRICE_SUB}>{t.free.afterQuota}</div>
                   <div style={PRICE_SUB}>{t.free.tagline}</div>
                 </div>
                 <ul style={LIST}>
@@ -126,11 +128,7 @@ export default function Pricing({ paymentOpen }: Props) {
                     <span style={PRICE}>{eur(yearly ? premium.yearlyTtc : premium.monthlyTtc)}</span>
                     <span style={PRICE_UNIT}>{yearly ? ts.perYearUnit : t.perMonth}</span>
                   </div>
-                  <div style={PRICE_SUB}>
-                    {yearly
-                      ? `${eur(Math.round(premium.yearlyTtc / 12 * 100) / 100)} ${t.perMonth}`
-                      : fill(t.perYear, { price: eur(premium.yearlyTtc) })}
-                  </div>
+                  <YearlyLine yearly={yearly} yearlyPrice={premium.yearlyTtc} eur={eur} t={t} />
                   <div style={PRICE_SUB}>{t.premium.tagline}</div>
                 </div>
                 <ul style={LIST}>
@@ -150,9 +148,10 @@ export default function Pricing({ paymentOpen }: Props) {
                 <div>
                   <div style={PLAN_NAME}>Pro</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={PRICE}>{eur(pro.monthlyTtc)}</span>
-                    <span style={PRICE_UNIT}>{t.perMonth}</span>
+                    <span style={PRICE}>{eur(yearly ? pro.yearlyTtc : pro.monthlyTtc)}</span>
+                    <span style={PRICE_UNIT}>{yearly ? ts.perYearUnit : t.perMonth}</span>
                   </div>
+                  <YearlyLine yearly={yearly} yearlyPrice={pro.yearlyTtc} eur={eur} t={t} />
                   <div style={PRICE_SUB}>{t.pro.tagline}</div>
                 </div>
                 <ul style={LIST}>
@@ -162,7 +161,7 @@ export default function Pricing({ paymentOpen }: Props) {
                 </ul>
                 <div style={{ marginTop: 'auto' }}>
                   {paymentOpen
-                    ? <BuyLink href={subscribePath('pro', 'monthly')} label={t.pro.cta} />
+                    ? <BuyLink href={subscribePath('pro', period)} label={t.pro.cta} />
                     : <SoonButton label={t.pro.cta} soon={t.soon} />}
                 </div>
               </div>
@@ -172,9 +171,9 @@ export default function Pricing({ paymentOpen }: Props) {
                 <div>
                   <div style={{ ...PLAN_NAME, color: 'rgba(255,255,255,0.7)' }}>Business</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-                    <span style={{ ...PRICE, color: 'white' }}>{eur(business.seatMonthly)}</span>
-                    <span style={{ ...PRICE_UNIT, color: 'rgba(255,255,255,0.7)' }}>{t.perSeat}</span>
+                    <span style={{ ...PRICE, color: 'white' }}>{t.business.quote}</span>
                   </div>
+                  <div style={{ ...PRICE_SUB, color: 'rgba(255,255,255,0.7)' }}>{t.business.billing}</div>
                   <div style={{ ...PRICE_SUB, color: 'rgba(255,255,255,0.7)' }}>{t.business.tagline}</div>
                 </div>
                 <ul style={LIST}>
@@ -184,7 +183,7 @@ export default function Pricing({ paymentOpen }: Props) {
                 </ul>
                 <div style={{ marginTop: 'auto' }}>
                   <a
-                    href="mailto:hello@tiroir.app?subject=Tiroir%20Business"
+                    href={BUSINESS_CONTACT}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       padding: '13px 16px', borderRadius: 12, background: 'white',
@@ -271,10 +270,20 @@ export default function Pricing({ paymentOpen }: Props) {
 }
 
 // Lu au build : paiement ouvert si Stripe est configuré sur le serveur.
-// Pro : mensuel seulement (grille V4) ; la bascule ne change que le Premium.
 export const getStaticProps: GetStaticProps<Props> = async () => ({
   props: { paymentOpen: stripeEnv() !== null },
 })
+
+/** Sous le prix : l'autre période, ou « deux mois offerts » sur l'annuel. */
+function YearlyLine({ yearly, yearlyPrice, eur, t }: {
+  yearly: boolean; yearlyPrice: number
+  eur: (n: number) => string
+  t: { perYear: string; twoMonthsFree: string }
+}) {
+  return yearly
+    ? <div style={{ ...PRICE_SUB, color: 'var(--orange)', fontWeight: 700 }}>{t.twoMonthsFree}</div>
+    : <div style={PRICE_SUB}>{fill(t.perYear, { price: eur(yearlyPrice) })}</div>
+}
 
 /** Offre retrouvée au retour d'un paiement abandonné. */
 const CHOSEN: React.CSSProperties = { outline: '3px solid var(--orange)', outlineOffset: 3 }

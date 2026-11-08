@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { OFFERS_V4 } from '../lib/offers'
-import { SUBSCRIPTION_PLANS, planByLookupKey, subscriptionPlanFor } from '../lib/stripeConfig'
+import { SUBSCRIPTION_PLANS, envPriceId, planByLookupKey, planByPrice, subscriptionPlanFor } from '../lib/stripeConfig'
 import type { StripeCall } from '../lib/stripe/api'
 import { individualSubscription, type IndividualSubscription, type SubscriberStore } from '../lib/stripe/subscriptions'
 import { handleStripeEvent, type BillingStore, type StripeEvent } from '../lib/stripe/webhook'
@@ -13,10 +13,27 @@ describe('grille des abonnements', () => {
       ['premium_monthly', Math.round(OFFERS_V4.premium.monthlyTtc * 100), 'month'],
       ['premium_yearly', Math.round(OFFERS_V4.premium.yearlyTtc * 100), 'year'],
       ['pro_monthly', Math.round(OFFERS_V4.pro.monthlyTtc * 100), 'month'],
+      ['pro_yearly', Math.round(OFFERS_V4.pro.yearlyTtc * 100), 'year'],
     ])
-    expect(subscriptionPlanFor('pro', 'yearly')).toBeNull()
+    // Grille du 08/11/2026 : annuel = 10 mois (« deux mois offerts »).
+    expect(SUBSCRIPTION_PLANS.map(p => p.amount)).toEqual([1500, 15000, 5000, 50000])
+    expect(subscriptionPlanFor('pro', 'yearly')?.key).toBe('pro_yearly')
     expect(subscriptionPlanFor('business', 'monthly')).toBeNull()
     expect(planByLookupKey('tiroir_business_seat_monthly')).toBeNull()
+  })
+})
+
+describe('identifiants de prix (variables d’environnement)', () => {
+  const env = { STRIPE_PRICE_PRO_YEARLY: 'price_proAn', STRIPE_PRICE_PREMIUM_MONTHLY: 'pas-un-prix' }
+  test('le prix posé dans l’environnement est utilisé et reconnu par le webhook', () => {
+    const proYearly = subscriptionPlanFor('pro', 'yearly')!
+    expect(envPriceId(proYearly, env)).toBe('price_proAn')
+    expect(planByPrice({ id: 'price_proAn' }, env)?.key).toBe('pro_yearly')
+  })
+  test('sans variable (ou valeur invalide) : lookup_key', () => {
+    expect(envPriceId(subscriptionPlanFor('premium', 'monthly')!, env)).toBeNull()
+    expect(planByPrice({ id: 'price_autre', lookup_key: 'tiroir_web_premium_yearly' }, env)?.key).toBe('premium_yearly')
+    expect(planByPrice({ id: 'price_autre' }, env)).toBeNull()
   })
 })
 
@@ -25,8 +42,7 @@ describe('tunnel', () => {
     expect(subscribePath('premium', 'yearly')).toBe('/abonnement?offre=premium&periode=annuel')
     expect(offerFromQuery({ offre: 'premium', periode: 'annuel' })?.plan.key).toBe('premium_yearly')
     expect(offerFromQuery({ offre: 'premium' })?.plan.key).toBe('premium_monthly')
-    // Pro annuel n'existe pas : mensuel.
-    expect(offerFromQuery({ offre: 'pro', periode: 'annuel' })?.plan.key).toBe('pro_monthly')
+    expect(offerFromQuery({ offre: 'pro', periode: 'annuel' })?.plan.key).toBe('pro_yearly')
     expect(offerFromQuery({ offre: 'business' })).toBeNull()
     expect(offerFromQuery({})).toBeNull()
   })
@@ -113,6 +129,13 @@ describe('webhook : abonnements des particuliers', () => {
     expect(s?.tier).toBe('premium')
     // Abonnement Business (prix siège) : pas un abonnement de particulier.
     expect(individualSubscription(sub({ items: { data: [{ price: { lookup_key: 'tiroir_business_seat_monthly' } }] } }))).toBeNull()
+  })
+
+  test('ancien prix archivé (abonné qui garde son tarif) : palier lu sur le prix ou son produit', () => {
+    const archived = (price: Record<string, unknown>) => individualSubscription(sub({ items: { data: [{ price }] } }))
+    expect(archived({ id: 'price_ancien', metadata: { tier: 'pro' } })?.tier).toBe('pro')
+    expect(archived({ id: 'price_ancien', product: { id: 'prod_1', metadata: { tier: 'premium' } } })?.tier).toBe('premium')
+    expect(archived({ id: 'price_ancien', product: 'prod_1' })).toBeNull()
   })
 
   test('3D Secure en attente (incomplete) : rien d’activé', async () => {

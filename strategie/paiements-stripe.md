@@ -169,8 +169,14 @@ Réglage : `BUSINESS.proration` dans `web/lib/stripeConfig.ts`.
 ## 3 bis. Abonnements Premium et Pro sur le site (08/11/2026)
 
 > Branche `feature/stripe-checkout`. Grille OFFERS_V4 confirmée par le
-> fondateur le 08/11/2026 : Premium 4,99 €/mois ou 39 €/an, Pro
-> 14,99 €/mois (pas d'annuel).
+> fondateur le 08/11/2026, puis **grille de lancement** du même jour,
+> fixée jusqu'au passage à l'échelle : Premium 15 €/mois ou 150 €/an,
+> Pro 50 €/mois ou 500 €/an (annuel = deux mois offerts), Business sur
+> devis (facture mensuelle, contact, pas de paiement en ligne).
+> Identifiants de prix (test) dans `STRIPE_PRICE_PREMIUM_MONTHLY`,
+> `…_PREMIUM_YEARLY`, `…_PRO_MONTHLY`, `…_PRO_YEARLY` ; à défaut, la
+> `lookup_key`. Un prix archivé (abonné qui garde son ancien tarif) reste
+> reconnu par la métadonnée `tier` du prix ou de son produit.
 
 **Tunnel** (le moins d'étapes possible, l'offre toujours visible) :
 
@@ -278,7 +284,9 @@ de l'ouverture.
    (crée les 3 packs, le siège Business, et les produits Tiroir Premium —
    prix mensuel et annuel — et Tiroir Pro ; rejouable). Vérifier ensuite
    dans Produits que les montants sont 2,99 / 6,99 / 19,99 / 39 € et
-   4,99 / 39 / 14,99 €.
+   15 / 150 / 50 / 500 €. Un changement de prix : `--apply-price-changes`
+   (nouveau prix, ancien archivé, jamais modifié), puis reporter les
+   nouveaux identifiants dans `STRIPE_PRICE_*`.
 4. **Moyens de paiement** (Settings → Payment methods) : Carte (avec Apple
    Pay / Google Pay), **Prélèvement SEPA**, **Virements bancaires**
    (solde client, EUR).
@@ -314,9 +322,9 @@ de l'ouverture.
 10. **Portail client** (Settings → Billing → Customer portal) : activer ;
     autoriser la mise à jour du moyen de paiement, l'historique des
     factures, la **résiliation à la fin de la période** (pas immédiate),
-    et le **changement d'offre** entre les prix `tiroir_web_premium_monthly`,
-    `tiroir_web_premium_yearly`, `tiroir_web_pro_monthly` (prorata :
-    défaut) ; lien de retour par défaut `https://tiroir.app/mon-compte`.
+    et le **changement d'offre** entre les quatre prix Premium / Pro,
+    mensuel / annuel (prorata : défaut). Fait en mode test le 08/11/2026
+    (configuration par défaut du portail) ; lien de retour par défaut `https://tiroir.app/mon-compte`.
     Sans cette configuration, `POST /api/stripe/portal` échoue.
 11. **Paiements échoués par carte** (Settings → Billing → Revenue
     recovery) : **Smart Retries** activées (par ex. 4 tentatives sur
@@ -402,7 +410,7 @@ localhost:3000/api/stripe/webhook`.
 
 | # | Scénario | Attendu |
 | --- | --- | --- |
-| A1 | Déconnecté : Tarifs → Annuel → « Passer Premium » | Création de compte avec le récapitulatif « Tiroir Premium 39 €/an » à côté ; après inscription (ou connexion), retour sur `/abonnement` |
+| A1 | Déconnecté : Tarifs → Annuel → « Passer Premium » | Création de compte avec le récapitulatif « Tiroir Premium 150 €/an » à côté ; après inscription (ou connexion), retour sur `/abonnement` |
 | A2 | « Payer 39 € », carte `4242 4242 4242 4242` | Page Merci « Premium est actif » en quelques secondes ; `profiles` : `plan = premium`, `plan_source = web`, `subscription_status = active` ; facture reçue par e-mail |
 | A3 | Carte refusée `4000 0000 0000 0002` | Erreur dans Checkout, rien d'activé ; « Retour » → Tarifs avec le message neutre, Premium annuel resélectionné |
 | A4 | 3D Secure `4000 0025 0000 3155` : valider / refuser | Premium / rien (abonnement `incomplete` puis expiré) |

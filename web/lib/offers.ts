@@ -1,5 +1,5 @@
-// La grille des formules — grille V4, figée par le fondateur le 19/10/2026
-// pour toute la durée du projet (`strategie/offres.md`). Seule source des
+// La grille des formules — grille V4 du 19/10/2026, prix des abonnements
+// remplacés par la grille de lancement du 08/11/2026 (`strategie/offres.md`). Seule source des
 // prix affichés par le site et cités par Torix : ne jamais les réécrire
 // ailleurs. Les mêmes prix sont déclarés dans les stores et dans Stripe
 // (`strategie/packs-stores.md`).
@@ -19,9 +19,12 @@ export const OFFERS_V4 = {
     { id: 'tiroir_credits_150', credits: 150, priceTtc: 6.99, popular: true },
     { id: 'tiroir_credits_500', credits: 500, priceTtc: 19.99, popular: false },
   ],
-  premium: { monthlyTtc: 4.99, yearlyTtc: 39 },
+  // Grille de lancement du 08/11/2026 (fixée jusqu'au passage à l'échelle) :
+  // annuel = 10 mois, « deux mois offerts ».
+  premium: { monthlyTtc: 15, yearlyTtc: 150 },
   /** Pro = Premium avec des quotas plus élevés (réglés dans le back-office). */
-  pro: { monthlyTtc: 14.99 },
+  pro: { monthlyTtc: 50, yearlyTtc: 500 },
+  /** Business : sur devis, facture mensuelle (pas de paiement en ligne). Base de facturation par siège. */
   business: { seatMonthly: 39 },
 } as const
 

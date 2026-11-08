@@ -102,7 +102,6 @@ const billingFr = {
     metaTitle: 'Abonnement — Tiroir',
     monthly: 'Mensuel',
     yearly: 'Annuel',
-    yearlySave: '−{pct} %',
     perYearUnit: '/an',
     cancelled: 'Paiement interrompu : rien n’a été débité. Votre offre est toujours sélectionnée ci-dessous.',
     title: 'Finaliser votre abonnement',

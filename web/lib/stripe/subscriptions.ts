@@ -3,8 +3,9 @@
 // événements du webhook. Le palier du compte n'est changé QUE par ici
 // (règle d'or : la page de confirmation n'active jamais rien).
 //
-// Le palier vient du prix de l'abonnement (lookup_key → config du
-// serveur), jamais des métadonnées. L'état appliqué est toujours celui
+// Le palier vient du prix de l'abonnement (identifiant posé dans
+// l'environnement, ou lookup_key → config du serveur), jamais des
+// métadonnées. L'état appliqué est toujours celui
 // relu chez Stripe : rejouer un événement, ou les recevoir dans le
 // désordre, donne le même résultat. La base garde les règles (ne pas
 // retirer un palier venu de l'app ou d'une facture) :
@@ -13,7 +14,7 @@
 // La base est derrière SubscriberStore : la route passe l'implémentation
 // Supabase, les tests une implémentation en mémoire.
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { planByLookupKey, type PlanTier } from '../stripeConfig'
+import { planByPrice, type PlanTier } from '../stripeConfig'
 import type { StripeCall } from './api'
 import { fromEpoch, idOf } from './business'
 
@@ -43,14 +44,15 @@ export type IndividualSubscription = {
 export function individualSubscription(sub: unknown): IndividualSubscription | null {
   const s = obj(sub)
   const item = obj((obj(s.items).data as unknown[] | undefined)?.[0])
-  const plan = planByLookupKey(obj(item.price).lookup_key)
+  const price = obj(item.price)
+  const tier = planByPrice(price)?.tier ?? archivedTier(price)
   const id = str(s.id)
-  if (!plan || !id) return null
+  if (!tier || !id) return null
   return {
     id,
     customerId: idOf(s.customer),
     userId: str(obj(s.metadata).user_id),
-    tier: plan.tier,
+    tier,
     status: str(s.status) ?? 'incomplete',
     // Depuis 2025, la période vit sur l'élément d'abonnement.
     periodEnd: fromEpoch(s.current_period_end) ?? fromEpoch(item.current_period_end),
@@ -58,6 +60,19 @@ export function individualSubscription(sub: unknown): IndividualSubscription | n
     livemode: s.livemode === true,
   }
 }
+
+/**
+ * Palier d'un prix archivé (ancien tarif, gardé par les abonnés en cours) :
+ * sa lookup_key est passée au nouveau prix, mais le prix et son produit
+ * portent la métadonnée `tier` posée par scripts/stripe-setup.mjs.
+ */
+function archivedTier(price: Obj): PlanTier | null {
+  const t = str(obj(price.metadata).tier) ?? str(obj(obj(price.product).metadata).tier)
+  return t === 'premium' || t === 'pro' ? t : null
+}
+
+/** Abonnement relu chez Stripe, produit du prix développé (prix archivés). */
+export const SUBSCRIPTION_EXPAND = { expand: ['items.data.price.product'] }
 
 export interface SubscriberStore {
   /** Compte d'un abonnement : par id d'abonnement, puis par client Stripe. */
@@ -70,7 +85,7 @@ export interface SubscriberStore {
 export type SubscriptionDeps = { subscribers: SubscriberStore; stripe: StripeCall }
 
 async function readSubscription(stripe: StripeCall, id: string): Promise<unknown> {
-  return stripe('GET', `/v1/subscriptions/${id}`)
+  return stripe('GET', `/v1/subscriptions/${id}`, SUBSCRIPTION_EXPAND)
 }
 
 async function apply(sub: IndividualSubscription, hint: string | null, { subscribers }: SubscriptionDeps): Promise<string> {

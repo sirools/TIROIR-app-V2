@@ -224,13 +224,14 @@ const en: Copy = {
   pricing: {
     meta: {
       title: 'Pricing — Tiroir',
-      description: 'Tiroir is free, with {free} AI actions a month. AI credits from {pack}, Premium at {premium} a month, Pro at {pro} a month, Business at {business} per seat.',
+      description: 'Tiroir is free, with {free} AI actions a month. AI credits from {pack}, Premium at {premium} a month, Pro at {pro} a month, Business on quote.',
     },
     badge: 'Pricing',
     title: 'Sort everything. Know what it’s worth.',
     sub: 'Tiroir is free for everyone. Only pay when you want to go further.',
     perMonth: '/month',
     perYear: 'or {price} a year',
+    twoMonthsFree: 'Two months free',
     perSeat: 'per seat/month',
     soon: 'Coming soon',
     free: {
@@ -242,6 +243,7 @@ const en: Copy = {
         'Extra AI credits, on demand',
       ],
       start: 'Start for free',
+      afterQuota: 'Monthly AI quota, then buy credits',
     },
     premium: {
       tagline: 'To keep track of what your collection is worth.',
@@ -272,6 +274,8 @@ const en: Copy = {
         'Monthly invoicing, bank transfer or direct debit',
       ],
       cta: 'Contact us',
+      quote: 'Custom quote',
+      billing: 'Monthly invoice',
     },
     note: 'Prices include VAT. Business is invoiced.',
     credits: {

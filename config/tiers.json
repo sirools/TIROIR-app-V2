@@ -40,11 +40,11 @@
       "label": { "fr": "Premium", "en": "Premium", "es": "Premium", "de": "Premium", "pt-BR": "Premium", "pt-PT": "Premium" },
       "payment": "store_subscription",
       "price": {
-        "monthly": 4.99,
-        "yearly": 39,
-        "yearlyRule": "one_month_free",
-        "decision": "pending",
-        "$comment": "Le brief V4 dit « annuel = 1 mois offert » (11 × 4,99 = 54,89 €) ; la grille figée le 19/10 dit 39 €/an (≈ 6,5 mois offerts). À trancher avant d'écrire la mention sur la page Tarifs."
+        "monthly": 15,
+        "yearly": 150,
+        "yearlyRule": "two_months_free",
+        "decision": "2026-11-08",
+        "$comment": "Grille de lancement du 08/11/2026, fixée jusqu'au passage à l'échelle : annuel = 10 × le mensuel (« deux mois offerts »)."
       },
       "quotas": {
         "aiActionsMonthly": { "value": 150, "setting": "premium_ai_quota_monthly", "decision": "pending", "$comment": "Plafonné (150) ou illimité : question ouverte." },
@@ -76,11 +76,11 @@
       "label": { "fr": "Pro", "en": "Pro", "es": "Pro", "de": "Pro", "pt-BR": "Pro", "pt-PT": "Pro" },
       "payment": "store_subscription",
       "price": {
-        "monthly": 14.99,
-        "yearly": null,
-        "yearlyRule": "one_month_free",
-        "decision": "pending",
-        "$comment": "Pro annuel décidé le 01/11/2026 (tiroir_pro_annual) ; prix à donner par Clément. Avec la règle du brief : 11 × le prix mensuel."
+        "monthly": 50,
+        "yearly": 500,
+        "yearlyRule": "two_months_free",
+        "decision": "2026-11-08",
+        "$comment": "Grille de lancement du 08/11/2026, fixée jusqu'au passage à l'échelle : annuel = 10 × le mensuel (« deux mois offerts »)."
       },
       "quotas": {
         "aiActionsMonthly": { "value": 600, "setting": "pro_ai_quota_monthly" },

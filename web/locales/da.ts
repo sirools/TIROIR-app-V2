@@ -225,13 +225,14 @@ const da: Copy = {
   pricing: {
     meta: {
       title: 'Priser — Tiroir',
-      description: 'Tiroir er gratis med {free} AI-handlinger om måneden. AI-kreditter fra {pack}, Premium til {premium} om måneden, Pro til {pro} om måneden, Business til {business} pr. bruger.',
+      description: 'Tiroir er gratis med {free} AI-handlinger om måneden. AI-kreditter fra {pack}, Premium til {premium} om måneden, Pro til {pro} om måneden, Business efter tilbud.',
     },
     badge: 'Priser',
     title: 'Få styr på det hele. Vid, hvad det er værd.',
     sub: 'Tiroir er gratis for alle. Betal kun, når du vil videre.',
     perMonth: '/md.',
     perYear: 'eller {price} om året',
+    twoMonthsFree: 'To måneder gratis',
     perSeat: 'pr. bruger/md.',
     soon: 'Kommer snart',
     free: {
@@ -243,6 +244,7 @@ const da: Copy = {
         'Ekstra AI-kreditter efter behov',
       ],
       start: 'Kom gratis i gang',
+      afterQuota: 'Månedlig AI-kvote, derefter køb af kreditter',
     },
     premium: {
       tagline: 'Til at holde øje med, hvad din samling er værd.',
@@ -273,6 +275,8 @@ const da: Copy = {
         'Månedlig fakturering, bankoverførsel eller betalingsservice',
       ],
       cta: 'Kontakt os',
+      quote: 'Efter tilbud',
+      billing: 'Månedlig faktura',
     },
     note: 'Priser inkl. moms. Business faktureres.',
     credits: {
