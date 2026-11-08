@@ -4,6 +4,7 @@ import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { localeLinks } from '../components/layout/LocaleLinks'
 import StoreButtons from '../components/StoreButtons'
 import { OFFERS_V4 } from '../lib/offers'
+import { BUSINESS_MAILTO } from '../components/legal/contacts'
 import { fill, formatEur, useCopy } from '../locales'
 
 // Les montants annoncés pour les prochaines formules sont indépendants des prix
@@ -135,7 +136,7 @@ export default function Pricing() {
                 </ul>
                 <div style={{ marginTop: 'auto' }}>
                   <a
-                    href="mailto:hello@tiroir.app?subject=Tiroir%20Business"
+                    href={BUSINESS_MAILTO}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       padding: '13px 16px', borderRadius: 12, background: 'white',

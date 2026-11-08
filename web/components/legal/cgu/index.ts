@@ -8,7 +8,7 @@ import DeBody from './DeBody'
 import EsBody from './EsBody'
 
 /** Date de la dernière mise à jour du texte français (AAAA-MM-JJ). */
-export const CGU_UPDATED = '2026-07-01'
+export const CGU_UPDATED = '2026-11-08'
 
 export const CGU_BODIES: Record<Locale, ComponentType> = {
   fr: FrBody, en: EnBody, de: DeBody, es: EsBody,

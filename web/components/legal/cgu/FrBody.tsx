@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { LegalSection } from '../../layout/LegalPage'
-import { CONTACT_EMAIL, SUPPORT_EMAIL } from '../contacts'
+import { BUSINESS_EMAIL, BUSINESS_MAILTO, BUSINESS_SUBJECT, CONTACT_EMAIL, SUPPORT_EMAIL } from '../contacts'
 
 // Conditions Générales d'Utilisation — texte français, version qui fait foi.
 export default function FrBody() {
@@ -58,7 +58,19 @@ export default function FrBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="5. Contenu utilisateur">
+      <LegalSection title="5. Offres Pro et Business">
+        <p>
+          Les offres Pro et Business s&apos;adressent aux professionnels. Leur contenu et leurs tarifs sont
+          présentés sur la page Tarifs.
+        </p>
+        <p>
+          Toute démarche relative à ces offres (demande d&apos;information, devis, souscription, facturation)
+          se fait par e-mail, à l&apos;adresse <a href={BUSINESS_MAILTO}>{BUSINESS_EMAIL}</a>, avec l&apos;objet
+          « {BUSINESS_SUBJECT} ».
+        </p>
+      </LegalSection>
+
+      <LegalSection title="6. Contenu utilisateur">
         <p>
           Vous conservez l&apos;intégralité des droits de propriété intellectuelle sur les photos,
           descriptions et documents que vous téléversez sur le Service (« Contenu Utilisateur »).
@@ -76,7 +88,7 @@ export default function FrBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="6. Liens de partage">
+      <LegalSection title="7. Liens de partage">
         <p>
           Le Service vous permet de générer des liens publics donnant accès en lecture seule à une
           sélection d&apos;objets de votre choix. Vous êtes seul responsable des informations que vous
@@ -85,7 +97,7 @@ export default function FrBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="7. Intelligence artificielle">
+      <LegalSection title="8. Intelligence artificielle">
         <p>
           Les descriptions, catégorisations et estimations de valeur générées par l&apos;intelligence
           artificielle sont fournies à titre indicatif uniquement. Elles ne constituent en aucun cas une
@@ -95,7 +107,7 @@ export default function FrBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="8. Disponibilité du service">
+      <LegalSection title="9. Disponibilité du service">
         <p>
           Nous nous efforçons d&apos;assurer une disponibilité continue du Service, sans garantie
           d&apos;absence d&apos;interruption, notamment pour des opérations de maintenance. Nous ne saurions être
@@ -103,7 +115,7 @@ export default function FrBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="9. Limitation de responsabilité">
+      <LegalSection title="10. Limitation de responsabilité">
         <p>
           Le Service est fourni « en l&apos;état ». Dans la limite permise par la loi applicable, nous
           déclinons toute responsabilité pour les dommages indirects résultant de l&apos;utilisation ou de
@@ -115,7 +127,7 @@ export default function FrBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="10. Résiliation">
+      <LegalSection title="11. Résiliation">
         <p>
           Vous pouvez supprimer votre compte à tout moment depuis l&apos;application ou en nous contactant à{' '}
           <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. La suppression du compte entraîne
@@ -128,7 +140,7 @@ export default function FrBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="11. Modifications des CGU">
+      <LegalSection title="12. Modifications des CGU">
         <p>
           Nous pouvons modifier les présentes CGU à tout moment. Toute modification substantielle vous
           sera notifiée par e-mail ou dans l&apos;application au moins 30 jours avant son entrée en vigueur.
@@ -136,7 +148,7 @@ export default function FrBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="12. Droit applicable et juridiction">
+      <LegalSection title="13. Droit applicable et juridiction">
         <p>
           Les présentes CGU sont régies par le droit français. Tout litige relatif à leur interprétation
           ou à leur exécution relève de la compétence exclusive des tribunaux français, sous réserve des
@@ -147,6 +159,7 @@ export default function FrBody() {
       <LegalSection title="Contact">
         <p>Pour toute question relative aux présentes CGU :</p>
         <p><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
+        <p>Pour les offres Pro et Business : <a href={BUSINESS_MAILTO}>{BUSINESS_EMAIL}</a></p>
       </LegalSection>
     </>
   )

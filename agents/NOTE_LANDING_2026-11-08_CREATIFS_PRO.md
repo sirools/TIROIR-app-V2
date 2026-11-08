@@ -36,12 +36,26 @@ photo, c'est tout » et **remplacent « Pour les créatifs et les pros »**
 
 ## À fournir ou à valider
 
-1. **Contact Business** : validé le 2026-11-08. Le bouton « Nous contacter »
-   ouvre un e-mail à clement.ougier@gmail.com avec l'objet « Tiroir
-   Business » (`BUSINESS_CONTACT` dans `ProBusiness.tsx`). La section
-   n'affiche ni l'adresse e-mail ni d'adresse postale. La page Tarifs garde
-   son propre lien vers hello@tiroir.app : à aligner si ce doit être la
-   même adresse partout.
+1. **Contact Business** : validé le 2026-11-08. Toutes les démarches
+   Business et Pro passent par l'adresse du fondateur,
+   clement.ougier@gmail.com, avec l'objet « Tiroir Business ». Cette
+   adresse est écrite à un seul endroit, `BUSINESS_EMAIL` dans
+   `web/components/legal/contacts.ts`. Elle est lue par :
+   - le bouton « Nous contacter » de la landing (sans adresse affichée) ;
+   - le bouton Business de la page Tarifs (avant : hello@tiroir.app) ;
+   - les CGU (fr, en, es, de) : nouvel article « 5. Offres Pro et
+     Business » et une ligne de plus dans « Contact ». Les articles
+     suivants sont renumérotés de 6 à 13, et la date de mise à jour passe
+     au 2026-11-08.
+
+   Aucune adresse postale n'est affichée nulle part. hello@ (contact
+   général), support@ (comptes) et privacy@ (données personnelles) ne
+   changent pas.
+
+   **Reste dans l'app** : le texte `proBilling` (« Abonnement Professionnel
+   facturé en direct. Écrivez-nous à hello@tiroir.app… ») cite encore
+   hello@. Il vit sur la branche V4 (`design/i18n/app/*.json`) et ne
+   changera qu'avec une nouvelle version de l'app.
 2. **Visuel de la section créatifs** : une fiche avec la photo
    `public/screens/chain/appareil-photo.png` (un appareil argentique, sans
    marque visible), une estimation fictive (420 – 510 €) et une courbe

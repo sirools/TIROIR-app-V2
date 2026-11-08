@@ -20,6 +20,14 @@ Seule source de vérité : `design/tokens.json` (le site web actuel fait
 foi). Jamais de couleur ni de police décidée ailleurs : modifier le
 fichier, puis `node design/generate.mjs`. Voir `design/README.md`.
 
+## Contact Business
+
+Toutes les démarches Business et Pro (devis, souscription, facturation)
+passent par l'adresse du fondateur, avec l'objet « Tiroir Business ».
+Seule source : `BUSINESS_EMAIL` dans `web/components/legal/contacts.ts`,
+lue par la landing, la page Tarifs et les CGU. Jamais d'adresse postale
+affichée. hello@, support@ et privacy@ servent au reste.
+
 ## Langues et ton du site
 
 Langues de Tiroir : **fr, en, es, de, pt**. Le site (tiroir.app) sert fr,

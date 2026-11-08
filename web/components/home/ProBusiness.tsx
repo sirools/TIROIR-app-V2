@@ -1,16 +1,11 @@
 import Link from 'next/link'
 import { Building2, Calculator, FileCheck2, Layers, ListChecks } from 'lucide-react'
 import { formatEur, useCopy } from '../../locales'
+import { BUSINESS_MAILTO } from '../legal/contacts'
 import s from './home.module.css'
 
 const ICONS = [Calculator, Layers, ListChecks, FileCheck2]
 
-/**
- * Contact Business, validé par le fondateur (2026-11-08) : un e-mail
- * avec l'objet « Tiroir Business ». Seul le bouton s'affiche : ni
- * l'adresse e-mail ni d'adresse postale dans la section.
- */
-export const BUSINESS_CONTACT = 'mailto:clement.ougier@gmail.com?subject=Tiroir%20Business'
 
 /** Lignes fictives de l'aperçu d'export (valeurs en euros). */
 const ROWS = [4200, 1150, 680, 890]
@@ -88,7 +83,8 @@ export default function ProBusiness() {
             <h3 className={s.proBlockTitle}>{t.business.title}</h3>
             <p className={s.proText}>{t.business.text}</p>
           </div>
-          <a href={BUSINESS_CONTACT} className={s.bizCta}>{t.business.cta}</a>
+          {/* Adresse Business : components/legal/contacts.ts. Seul le bouton s'affiche. */}
+          <a href={BUSINESS_MAILTO} className={s.bizCta}>{t.business.cta}</a>
         </div>
       </div>
     </section>
