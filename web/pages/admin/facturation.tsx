@@ -173,7 +173,7 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
         <section style={s.tiles}>
           <Tile label="MRR Business" value={eurosFromCents(mrr)} />
           <Tile label={`Projection d’ici le ${fmtDate(projection.target)}`} value={eurosFromCents(projection.total)}
-            hint={`Business ${eurosFromCents(projection.business)} · crédits ${eurosFromCents(projection.credits)} · à encaisser ${eurosFromCents(projection.outstanding)} · ${projection.days} j`} />
+            hint={`abonnements ${eurosFromCents(projection.subscriptions)} HT · Business ${eurosFromCents(projection.business)} · crédits ${eurosFromCents(projection.credits)} · à encaisser ${eurosFromCents(projection.outstanding)} · ${projection.days} j`} />
           <Tile label="Encaissé ce mois-ci" value={eurosFromCents(thisMonth)} />
         </section>
         <form style={s.inline} onSubmit={e => { e.preventDefault(); const v = (e.currentTarget.elements.namedItem('jusqua') as HTMLInputElement).value; router.push({ query: v ? { jusqua: v } : {} }) }}>
@@ -181,7 +181,7 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
           <input type="date" name="jusqua" defaultValue={projection.target} style={s.input} />
           <button type="submit" style={s.btnGhost}>Recalculer</button>
         </form>
-        <p style={s.muted}>Projection sans croissance : MRR actuel prolongé, crédits au rythme moyen des 90 derniers jours, factures ouvertes encaissées.</p>
+        <p style={s.muted}>Projection sans croissance : MRR des abonnements (HT, stores estimés) et MRR Business prolongés ; crédits du site au rythme moyen des 90 derniers jours, jamais calculé sur moins de 30 jours ; factures ouvertes encaissées.</p>
 
         <h2 style={s.h2}>Par mois</h2>
         <table style={s.table}>
@@ -361,7 +361,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
       mrr,
       months,
       thisMonth: months.find(m => m.month === now.toISOString().slice(0, 7))?.total ?? 0,
-      projection: projectRevenue({ now, target: asked ?? nextChristmas(now), mrr, purchases: creditRows, invoices: invoiceRows }),
+      projection: projectRevenue({ now, target: asked ?? nextChristmas(now), mrr, subscriptionsMrr: revenue.mrrHt, purchases: creditRows, invoices: invoiceRows }),
       lines: billingLines(creditRows, invoiceRows).slice(0, 300),
       orgs: orgRows.map(o => ({
         id: o.id, name: o.name, billing_email: o.billing_email, subscription_status: o.subscription_status,
