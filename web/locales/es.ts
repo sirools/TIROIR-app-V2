@@ -1,5 +1,6 @@
 // Textos del sitio en español (España). Misma estructura que fr.ts.
-// A revisar por un hablante nativo.
+// Tono: tú para el público general, usted para Premium, Pro y Business
+// (ver web/locales/README.md). A revisar por un hablante nativo.
 import type { Copy } from './fr'
 import share from './share/es'
 import account from './account/es'
@@ -137,7 +138,7 @@ const es: Copy = {
       perSeat: 'por usuario/mes',
       plans: {
         free: 'Objetos y colecciones ilimitados, {n} análisis al mes.',
-        premium: 'Para seguir el valor de tu colección.',
+        premium: 'Para seguir el valor de su colección.',
         pro: 'Para quienes viven de sus objetos.',
         business: 'Para gestionar un stock en equipo.',
       },
@@ -189,14 +190,14 @@ const es: Copy = {
       start: 'Empieza gratis',
     },
     premium: {
-      tagline: 'Para seguir el valor de tu colección.',
+      tagline: 'Para seguir el valor de su colección.',
       features: [
         'Estimación automática con cuota mensual',
         'Curva de evolución del valor y botón Actualizar',
         'Fuentes resumidas en una línea',
         'Enlaces compartidos protegidos con contraseña',
       ],
-      cta: 'Pasar a Premium',
+      cta: 'Pase a Premium',
     },
     pro: {
       tagline: 'Para quienes viven de sus objetos.',
@@ -206,7 +207,7 @@ const es: Copy = {
         'Detalle de fuentes y comparación de mercado',
         'Exportación para el seguro',
       ],
-      cta: 'Pasar a Pro',
+      cta: 'Pase a Pro',
     },
     business: {
       tagline: 'Para gestionar un stock en equipo.',
@@ -215,9 +216,9 @@ const es: Copy = {
         'Roles y varias cuentas',
         'Facturación mensual, transferencia o domiciliación',
       ],
-      cta: 'Contáctanos',
+      cta: 'Contáctenos',
     },
-    note: 'Precios orientativos de los próximos planes con impuestos incluidos. Tu tienda de aplicaciones muestra los precios vigentes antes de la compra.',
+    note: 'Precios orientativos de los próximos planes con impuestos incluidos. Su tienda de aplicaciones muestra los precios vigentes antes de la compra.',
     credits: {
       title: 'Créditos de IA',
       sub: '¿Necesitas más? Recarga cuando quieras, sin suscripción.',
@@ -231,7 +232,7 @@ const es: Copy = {
       { q: '¿Qué es una acción de IA?', a: 'Una identificación o una estimación de un objeto.' },
       { q: '¿Qué pasa cuando se agota mi cuota?', a: 'Tiroir sigue funcionando; solo las acciones de IA necesitan créditos.' },
       { q: '¿Influyen los socios en las estimaciones?', a: 'No. Nuestros socios nunca influyen en las estimaciones: las ofertas comerciales están separadas de la estimación de valor.' },
-      { q: '¿Puedo cancelar?', a: 'Cuando quieras, desde el App Store, el Play Store o tu cuenta.' },
+      { q: '¿Puedo cancelar?', a: 'Cuando quiera, desde el App Store, el Play Store o su cuenta.' },
     ],
     final: {
       title: 'Empieza gratis.',

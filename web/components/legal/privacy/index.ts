@@ -4,7 +4,6 @@ import type { ComponentType } from 'react'
 import type { Locale } from '../../../lib/localeRouting'
 import FrBody from './FrBody'
 import EnBody from './EnBody'
-import DaBody from './DaBody'
 import DeBody from './DeBody'
 import EsBody from './EsBody'
 
@@ -12,5 +11,5 @@ import EsBody from './EsBody'
 export const PRIVACY_UPDATED = '2026-06-25'
 
 export const PRIVACY_BODIES: Record<Locale, ComponentType> = {
-  fr: FrBody, en: EnBody, da: DaBody, de: DeBody, es: EsBody,
+  fr: FrBody, en: EnBody, de: DeBody, es: EsBody,
 }

@@ -27,9 +27,9 @@ const accountEs: AccountCopy = {
 
   signup: {
     metaTitle: 'Crear una cuenta — Tiroir',
-    metaDescription: 'Cree su cuenta de Tiroir gratis y catalogue sus objetos.',
+    metaDescription: 'Crea tu cuenta de Tiroir gratis y cataloga tus objetos.',
     title: 'Crear una cuenta',
-    subtitle: 'Gratis, sin tarjeta bancaria. Empiece a catalogar sus objetos en unos segundos.',
+    subtitle: 'Gratis, sin tarjeta bancaria. Empieza a catalogar tus objetos en unos segundos.',
     passwordHint: 'Al menos 6 caracteres.',
     logMeIn: 'Iniciar sesión →',
     sentBefore: 'Casi listo: abre el correo enviado a ',
@@ -44,7 +44,7 @@ const accountEs: AccountCopy = {
     metaTitle: 'Contraseña olvidada — Tiroir',
     sentTitle: 'Correo enviado',
     sentBefore: 'Si existe una cuenta para ',
-    sentAfter: ', acabamos de enviarle un enlace para restablecer la contraseña. Es válido durante una hora y solo sirve una vez.',
+    sentAfter: ', acabamos de enviarte un enlace para restablecer la contraseña. Es válido durante una hora y solo sirve una vez.',
     notReceived: '¿No te ha llegado nada? Revisa la carpeta de spam. Si te registraste con Google, tu cuenta no tiene contraseña: usa el botón «Continuar con Google» en la página de inicio de sesión.',
     backToLogin: 'Volver al inicio de sesión',
     title: 'Contraseña olvidada',
@@ -107,11 +107,11 @@ const accountEs: AccountCopy = {
   unsubscribe: {
     metaTitle: 'Baja de la lista — Tiroir',
     okTitle: 'Hecho.',
-    okText: 'Ya no recibirá más correos de Tiroir.',
-    okDetail: 'Su cuenta y sus objetos no se ven afectados: solo se detienen los envíos. Los mensajes relacionados con su cuenta (restablecimiento de contraseña, enlaces compartidos recibidos) seguirán llegando.',
+    okText: 'Ya no recibirás más correos de Tiroir.',
+    okDetail: 'Tu cuenta y tus objetos no se ven afectados: solo se detienen los envíos. Los mensajes relacionados con tu cuenta (restablecimiento de contraseña, enlaces compartidos recibidos) seguirán llegando.',
     unknownTitle: 'Se ha dado de baja correctamente',
     unknownText: 'Puede que este enlace ya se haya usado o que esté incompleto.',
-    unknownDetail: 'En cualquier caso, no le enviaremos nada más. Si aun así le llegara algún mensaje, respóndalo: alguien lo leerá.',
+    unknownDetail: 'En cualquier caso, no te enviaremos nada más. Si aun así te llegara algún mensaje, respóndelo: alguien lo leerá.',
     back: 'Volver a tiroir.app',
   },
 

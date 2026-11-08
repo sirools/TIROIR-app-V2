@@ -27,9 +27,9 @@ const accountDe: AccountCopy = {
 
   signup: {
     metaTitle: 'Konto erstellen — Tiroir',
-    metaDescription: 'Erstellen Sie kostenlos Ihr Tiroir-Konto und katalogisieren Sie Ihre Sachen.',
+    metaDescription: 'Erstelle kostenlos dein Tiroir-Konto und katalogisiere deine Sachen.',
     title: 'Konto erstellen',
-    subtitle: 'Kostenlos, ohne Kreditkarte. Beginnen Sie in wenigen Sekunden, Ihre Sachen zu katalogisieren.',
+    subtitle: 'Kostenlos, ohne Kreditkarte. Beginne in wenigen Sekunden, deine Sachen zu katalogisieren.',
     passwordHint: 'Mindestens 6 Zeichen.',
     logMeIn: 'Mich anmelden →',
     sentBefore: 'Fast geschafft: Öffne die E-Mail an ',
@@ -107,11 +107,11 @@ const accountDe: AccountCopy = {
   unsubscribe: {
     metaTitle: 'Abmeldung — Tiroir',
     okTitle: 'Erledigt.',
-    okText: 'Sie erhalten keine E-Mails mehr von Tiroir.',
-    okDetail: 'Ihr Konto und Ihre Gegenstände bleiben unberührt: Nur die Mailings werden eingestellt. Nachrichten zu Ihrem Konto — Zurücksetzen des Passworts, erhaltene Freigaben — kommen weiterhin an.',
-    unknownTitle: 'Sie sind abgemeldet',
+    okText: 'Du erhältst keine E-Mails mehr von Tiroir.',
+    okDetail: 'Dein Konto und deine Gegenstände bleiben unberührt: Nur die Mailings werden eingestellt. Nachrichten zu deinem Konto — Zurücksetzen des Passworts, erhaltene Freigaben — kommen weiterhin an.',
+    unknownTitle: 'Du bist abgemeldet',
     unknownText: 'Dieser Link wurde vielleicht schon verwendet oder ist unvollständig.',
-    unknownDetail: 'In jedem Fall verschicken wir nichts mehr. Sollte Sie trotzdem eine Nachricht erreichen, antworten Sie einfach darauf: Jemand wird sie lesen.',
+    unknownDetail: 'In jedem Fall verschicken wir nichts mehr. Sollte dich trotzdem eine Nachricht erreichen, antworte einfach darauf: Jemand wird sie lesen.',
     back: 'Zurück zu tiroir.app',
   },
 

@@ -2,7 +2,7 @@
 // (voir lib/backofficeRouting.ts). Sans BACKOFFICE_HOST, ne fait rien.
 import { NextResponse, type NextRequest } from 'next/server'
 import { routeFor } from './lib/backofficeRouting'
-import { asLocale, isRecipientPage, recipientLocale, untranslatedRedirect } from './lib/localeRouting'
+import { asLocale, isRecipientPage, recipientLocale, retiredLocaleRedirect, untranslatedRedirect } from './lib/localeRouting'
 
 export function middleware(req: NextRequest) {
   const route = routeFor(
@@ -31,7 +31,18 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  // Danois, allemand, espagnol : seules les pages traduites sont servies.
+  // Anciennes adresses danoises (/da/…) : vers l'anglais, définitivement.
+  if (route.action === 'next' && req.nextUrl.locale === 'fr') {
+    const retired = retiredLocaleRedirect(req.nextUrl.pathname)
+    if (retired) {
+      const url = req.nextUrl.clone()
+      url.locale = 'en'
+      url.pathname = retired.slice(3) || '/'
+      return NextResponse.redirect(url, 308)
+    }
+  }
+
+  // Allemand, espagnol : seules les pages traduites sont servies.
   if (route.action === 'next') {
     const en = untranslatedRedirect(req.nextUrl.locale, req.nextUrl.pathname)
     if (en) {
