@@ -292,6 +292,8 @@
 .psReassure { margin: 0; font-size: 16px; line-height: 1.5; font-weight: 600; color: var(--ink); }
 .psCtaLabel { margin: 0 0 10px; font-size: 18px; font-weight: 800; }
 .psCta [role="group"] { display: grid; justify-items: center; }
+/* Sans vidéo (SHOW_DEMO_VIDEO) : la réassurance et le CTA, centrés, seuls. */
+.psDemoSolo { grid-template-columns: minmax(0, 420px); justify-content: center; }
 
 /* ───────────── Pour qui ───────────── */
 
@@ -577,4 +579,7 @@
   .psDemo { grid-template-columns: auto minmax(0, 420px); justify-content: center; align-items: center; gap: 72px; }
   .psCta { justify-items: start; text-align: left; }
   .psCta [role="group"] { justify-items: start; }
+  .psDemoSolo { grid-template-columns: minmax(0, 420px); }
+  .psDemoSolo .psCta { justify-items: center; text-align: center; }
+  .psDemoSolo .psCta [role="group"] { justify-items: center; }
 }

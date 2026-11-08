@@ -10,6 +10,13 @@ import s from './home.module.css'
 const PHOTO = '/screens/chain/veste.png'
 
 /**
+ * Bloc vidéo de démonstration : masqué tant que la vraie vidéo n'est pas
+ * fournie (public/assets/video/ ne contient qu'un placeholder). Passer à
+ * true pour l'afficher ; rien n'est téléchargé quand il est masqué.
+ */
+export const SHOW_DEMO_VIDEO = false
+
+/**
  * « Une photo, c'est tout. » — rassurer le grand public sur la
  * simplicité, juste après le hero.
  *
@@ -92,17 +99,19 @@ export default function PhotoSimple() {
           ))}
         </ol>
 
-        <div className={s.psDemo}>
-          <DemoVideo
-            src="/assets/video/demo-photo.mp4"
-            poster="/assets/video/demo-photo-poster.jpg"
-            frame="phone"
-            label={t.video.label}
-            captions={t.steps.map((step, i) => ({ from: i / t.steps.length, text: step.title }))}
-            badge={<><Clock size={14} strokeWidth={2.5} aria-hidden="true" />{t.video.badge}</>}
-            playLabel={t.video.play}
-            pauseLabel={t.video.pause}
-          />
+        <div className={`${s.psDemo} ${SHOW_DEMO_VIDEO ? '' : s.psDemoSolo}`}>
+          {SHOW_DEMO_VIDEO && (
+            <DemoVideo
+              src="/assets/video/demo-photo.mp4"
+              poster="/assets/video/demo-photo-poster.jpg"
+              frame="phone"
+              label={t.video.label}
+              captions={t.steps.map((step, i) => ({ from: i / t.steps.length, text: step.title }))}
+              badge={<><Clock size={14} strokeWidth={2.5} aria-hidden="true" />{t.video.badge}</>}
+              playLabel={t.video.play}
+              pauseLabel={t.video.pause}
+            />
+          )}
           <div className={s.psCta}>
             <p className={s.psReassure}>{fill(t.reassure, { n: OFFERS_V4.free.aiActionsPerMonth })}</p>
             <div role="group" aria-labelledby="photo-cta">

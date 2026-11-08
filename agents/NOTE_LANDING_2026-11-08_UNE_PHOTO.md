@@ -9,6 +9,8 @@ Branche `feat/landing-une-photo` (partie de `origin/main`, qui porte le hero « 
 - Animations : apparition décalée des étapes au scroll, puis une boucle CSS de 9 s (photo → la fiche se remplit champ par champ → l'objet glisse dans le tiroir). Elles n'utilisent que `transform` et `opacity`, sans librairie. La boucle tourne seulement à l'écran. En mouvement réduit, tout est statique : fiche remplie, objet rangé.
 - Textes : `home.photo` dans `web/locales/{fr,en,es,de,da}.ts`.
 
+**Bloc vidéo masqué pour l'instant** : `SHOW_DEMO_VIDEO = false` dans `PhotoSimple.tsx`. Sans la vidéo, la section enchaîne les trois étapes, la réassurance et le CTA, centrés. Une fois la vraie vidéo et son poster déposés (points 1 et 2), passer le flag à `true`.
+
 ## À fournir
 
 1. **Vidéo finale**, 9:16 (1080×1920 conseillé), 10 à 20 s, sans son. Remplacer `web/public/assets/video/demo-photo.mp4`. Le fichier actuel est un **placeholder** fait avec le poster du hero (86 Ko). Cible : moins de 1,5 Mo, H.264, `-movflags +faststart`. Une version WebM est possible, il faudra alors ajouter une `<source>`.
