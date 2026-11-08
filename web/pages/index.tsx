@@ -4,7 +4,7 @@ import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import SurveyInvite from '../components/SurveyInvite'
 import Hero from '../components/home/Hero'
-import HowItWorks from '../components/home/HowItWorks'
+import PhotoSimple from '../components/home/PhotoSimple'
 import ForPros from '../components/home/ForPros'
 import ForEveryone from '../components/home/ForEveryone'
 import Value from '../components/home/Value'
@@ -35,7 +35,7 @@ export default function Landing() {
       <div ref={root} className={s.page} data-motion={motion}>
         <main>
           <Hero />
-          <HowItWorks />
+          <PhotoSimple />
           <ForPros />
           <ForEveryone />
           <Value />
