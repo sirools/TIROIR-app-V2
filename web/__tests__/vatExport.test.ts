@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { monthRange, vatCsv, vatRows } from '../lib/stripe/vatExport'
+import { lastMonths, monthRange, vatByMonth, vatCsv, vatRows } from '../lib/stripe/vatExport'
 
 const nov = monthRange('2026-11')!
 const at = (iso: string) => Date.parse(iso) / 1000
@@ -37,5 +37,26 @@ describe('export TVA', () => {
     expect(csv).toContain('"Dupont; fils"')
     expect(csv).toContain(';15,00;3,00;18,00;EUR;')
     expect(csv).toContain('Total;;;;;;;15,00;3,00;18,00;EUR;')
+  })
+})
+
+describe('TVA collectée par mois', () => {
+  test('les derniers mois, du plus récent au plus ancien, passage d’année compris', () => {
+    expect(lastMonths(new Date('2026-01-15T00:00:00Z'), 3)).toEqual(['2026-01', '2025-12', '2025-11'])
+  })
+
+  test('totaux par mois de paiement ; mois vide à zéro', () => {
+    const months = vatByMonth([
+      inv({}),
+      inv({ id: 'in_c', number: 'TIROIR-0002', total: 699, total_excluding_tax: 583, total_tax_amounts: [{ amount: 116 }],
+        metadata: { kind: 'credits' }, subscription: null, subscription_details: null }),
+      inv({ id: 'in_o', number: 'TIROIR-0003', status_transitions: { paid_at: at('2026-10-05T10:00:00Z') } }),
+      inv({ id: 'in_open', number: 'TIROIR-0004', status: 'open' }),
+    ], ['2026-11', '2026-10', '2026-09'])
+    expect(months).toEqual([
+      { month: '2026-11', invoices: 2, ht: 20.83, vat: 4.16, ttc: 24.99 },
+      { month: '2026-10', invoices: 1, ht: 15, vat: 3, ttc: 18 },
+      { month: '2026-09', invoices: 0, ht: 0, vat: 0, ttc: 0 },
+    ])
   })
 })

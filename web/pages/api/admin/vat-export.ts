@@ -7,6 +7,7 @@ import { adminSupabase } from '../../../lib/supabase'
 import { stripeEnv } from '../../../lib/stripeConfig'
 import { stripeClient } from '../../../lib/stripe/api'
 import { monthRange, vatCsv, vatRows } from '../../../lib/stripe/vatExport'
+import { fetchPaidInvoices } from '../../../lib/stripe/vatLoad'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'private, no-store')
@@ -22,23 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const env = stripeEnv()
   if (!env) return res.status(503).json({ error: 'Stripe non configuré' })
 
-  // Une facture payée dans le mois a pu être émise avant (échéance, relance) :
-  // on lit les factures créées jusqu'à 62 jours plus tôt, filtrées ensuite
-  // sur la date de paiement.
-  const stripe = stripeClient(env)
-  const invoices: unknown[] = []
-  let startingAfter: string | undefined
+  let invoices: unknown[]
   try {
-    for (let page = 0; page < 50; page++) {
-      const list = await stripe<{ data: { id: string }[]; has_more: boolean }>('GET', '/v1/invoices', {
-        status: 'paid', limit: 100,
-        created: { gte: range.start - 62 * 86400, lt: range.end },
-        ...(startingAfter ? { starting_after: startingAfter } : {}),
-      })
-      invoices.push(...list.data)
-      if (!list.has_more || !list.data.length) break
-      startingAfter = list.data[list.data.length - 1].id
-    }
+    invoices = await fetchPaidInvoices(stripeClient(env), range.start, range.end)
   } catch (e) {
     console.error('[vat-export]', (e as Error).message)
     return res.status(502).json({ error: 'Stripe' })
