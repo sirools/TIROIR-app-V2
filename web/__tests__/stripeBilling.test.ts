@@ -284,3 +284,13 @@ describe('revenus', () => {
     expect(lines[0].what).toBe('Business · 2 sièges · TIROIR-0002')
   })
 })
+
+describe('vente de crédits', () => {
+  test('fermée tant que STRIPE_CREDITS_OPEN=1 n’est pas posé, même avec Stripe configuré', async () => {
+    const { creditsSaleOpen } = await import('../lib/stripeConfig')
+    const stripe = { STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_MODE: 'test' }
+    expect(creditsSaleOpen(stripe)).toBe(false)
+    expect(creditsSaleOpen({ ...stripe, STRIPE_CREDITS_OPEN: '1' })).toBe(true)
+    expect(creditsSaleOpen({ STRIPE_CREDITS_OPEN: '1' })).toBe(false)
+  })
+})
