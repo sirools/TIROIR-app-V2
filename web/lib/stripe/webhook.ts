@@ -15,7 +15,7 @@ import {
   type InvoiceRow, type SubscriptionSnapshot,
 } from './business'
 import {
-  SUBSCRIPTION_EXPAND, individualInvoiceChanged, individualSubscriptionChanged, subscriptionCheckoutCompleted, type SubscriberStore,
+  SUBSCRIPTION_EXPAND, individualInvoiceChanged, isIndividualInvoice, individualSubscriptionChanged, subscriptionCheckoutCompleted, type SubscriberStore,
 } from './subscriptions'
 
 export type StripeEvent = { id: string; type: string; livemode: boolean; data: { object: Record<string, unknown> } }
@@ -117,8 +117,16 @@ export async function handleStripeEvent(event: StripeEvent, deps: WebhookDeps): 
     }
     case 'invoice.finalized':
     case 'invoice.voided':
-    case 'invoice.marked_uncollectible':
-      return invoiceChanged(event.type, await fresh(deps.stripe, '/v1/invoices/', o), deps)
+    case 'invoice.marked_uncollectible': {
+      const invoice = await fresh(deps.stripe, '/v1/invoices/', o)
+      // Facture d'un abonnement de particulier : Stripe l'envoie lui-même ;
+      // rien à noter côté Business (billing_invoices ne suit que les
+      // organisations).
+      if (subscribers && await isIndividualInvoice(invoiceSubscriptionId(invoice), deps.stripe)) {
+        return 'ignoré (facture d’un particulier)'
+      }
+      return invoiceChanged(event.type, invoice, deps)
+    }
     default:
       return 'ignoré'
   }
@@ -251,6 +259,9 @@ export function supabaseBillingStore(db: SupabaseClient): BillingStore {
       for (const [column, value] of [['id', orgId], ['stripe_subscription_id', subscriptionId], ['stripe_customer_id', customerId]] as const) {
         if (!value) continue
         const { data, error } = await db.from('organizations').select(ORG_COLUMNS).eq(column, value).maybeSingle()
+        // Formule Business pas encore installée (business_billing.sql) :
+        // aucune organisation, ce n'est pas une erreur.
+        if (error && (error.code === 'PGRST205' || error.code === '42P01')) return null
         fail('organizations', error)
         if (data) return data as OrgRow
       }

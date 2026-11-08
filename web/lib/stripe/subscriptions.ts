@@ -99,6 +99,16 @@ async function apply(sub: IndividualSubscription, hint: string | null, { subscri
   return subscribers.apply(userId, sub)
 }
 
+/** La facture appartient-elle à un abonnement de particulier (Premium, Pro) ? */
+export async function isIndividualInvoice(subscriptionId: string | null, stripe: StripeCall): Promise<boolean> {
+  if (!subscriptionId) return false
+  try {
+    return individualSubscription(await readSubscription(stripe, subscriptionId)) !== null
+  } catch {
+    return false
+  }
+}
+
 /** checkout.session.completed en mode subscription : rattacher l'abonnement au compte. */
 export async function subscriptionCheckoutCompleted(session: Obj, deps: SubscriptionDeps): Promise<string> {
   const subscriptionId = idOf(session.subscription)
