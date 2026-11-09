@@ -1,7 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { creditsForProduct, nextPlan, storeSubscriptionRow } from '../_shared/storeProducts.ts'
+import { creditsForProduct, duplicateSubscription, nextPlan, storeSubscriptionRow } from '../_shared/storeProducts.ts'
+import { isAuthorized, MIN_SECRET_LENGTH, secretWeakness } from '../_shared/webhookAuth.ts'
 
-const REVENUECAT_WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET')!
+const REVENUECAT_WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET')
 const SUPABASE_URL               = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
@@ -15,9 +16,13 @@ Deno.serve(async (req) => {
     return new Response('Method not allowed', { status: 405 })
   }
 
-  // Vérification du secret webhook
-  const authHeader = req.headers.get('Authorization')
-  if (authHeader !== REVENUECAT_WEBHOOK_SECRET) {
+  // Vérification du secret webhook (fonction déployée sans vérification
+  // JWT : supabase/config.toml, _shared/webhookAuth.ts).
+  const weakness = secretWeakness(REVENUECAT_WEBHOOK_SECRET)
+  if (weakness) {
+    console.error(`[revenuecat-webhook] SECRET FAIBLE (${weakness}) : remplacer REVENUECAT_WEBHOOK_SECRET par un secret aléatoire de ${MIN_SECRET_LENGTH} caractères ou plus, le même dans RevenueCat.`)
+  }
+  if (!isAuthorized(req.headers.get('Authorization'), REVENUECAT_WEBHOOK_SECRET)) {
     console.warn('[revenuecat-webhook] Unauthorized request')
     return new Response('Unauthorized', { status: 401 })
   }
@@ -75,6 +80,23 @@ Deno.serve(async (req) => {
   }
 
   const newPlan = profile ? nextPlan(event, profile) : null
+
+  // Double abonnement : achat des stores alors que le compte est déjà payé
+  // sur le site ou sur facture. Le palier ne bouge pas (l'autre source le
+  // gère) ; on le signale pour rembourser ou prévenir le client.
+  const duplicate = profile ? duplicateSubscription(event, profile) : null
+  if (duplicate) {
+    console.warn(`[revenuecat-webhook] DOUBLE ABONNEMENT (${duplicate}) pour ${appUserId} : ${eventType} ${event.product_id ?? ''}`)
+    const { error: dupError } = await admin.from('activity_log').insert({
+      user_id: appUserId,
+      action: 'purchase.duplicate',
+      payload: {
+        other_source: duplicate, event_type: eventType, plan: profile?.plan ?? null,
+        product_id: event.new_product_id ?? event.product_id ?? null, store: event.store ?? null,
+      },
+    })
+    if (dupError) console.warn('[revenuecat-webhook] activity_log duplicate', dupError.message)
+  }
 
   if (profile && newPlan) {
     // Un Pro venu des stores n'a ni date d'entrée ni date de fin : celles-ci
