@@ -13,7 +13,7 @@ import {
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import {
-  Screen, EmptyState, ActionSheet, PromptDialog,
+  Screen, FormScreen, FormSheet, EmptyState, ActionSheet, PromptDialog,
   CollectionEditSheet, EditableCollection, CollectionPatch,
   Colors, Typography, Spacing, Radius,
 } from '@/components/ui'
@@ -960,7 +960,7 @@ export default function CollectionDetailScreen() {
   }
 
   return (
-    <Screen edges={['top']} topColor={Colors.surface}>
+    <FormScreen mode="fixed" edges={['top']} topColor={Colors.surface}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={isSelectMode ? exitSelectMode : () => router.back()} style={styles.headerBtn} hitSlop={12}>
@@ -1090,7 +1090,7 @@ export default function CollectionDetailScreen() {
       />
 
       {/* Modal renommer */}
-      <Modal visible={renameVisible} transparent animationType="fade" onRequestClose={() => setRenameVisible(false)}>
+      <FormSheet visible={renameVisible} animationType="fade" onRequestClose={() => setRenameVisible(false)}>
         <TouchableOpacity style={styles.renameBackdrop} activeOpacity={1} onPress={() => setRenameVisible(false)} />
         <View style={styles.renameCard}>
           <Text style={styles.renameTitle}>{t('collectionDetail.renameTitle')}</Text>
@@ -1117,7 +1117,7 @@ export default function CollectionDetailScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </FormSheet>
 
       {/* Modal confirmation suppression */}
       <Modal visible={deleteVisible} transparent animationType="fade" onRequestClose={() => setDeleteVisible(false)}>
@@ -1506,7 +1506,7 @@ export default function CollectionDetailScreen() {
         onClose={() => setSharePanelVisible(false)}
         onDone={() => { setSharePanelVisible(false); exitSelectMode() }}
       />
-    </Screen>
+    </FormScreen>
   )
 }
 
@@ -1644,8 +1644,6 @@ const styles = StyleSheet.create({
 
   renameBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.4)' },
   renameCard: {
-    position: 'absolute',
-    bottom: 0, left: 0, right: 0,
     backgroundColor: Colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,

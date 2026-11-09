@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { KeyboardProvider } from '@/components/ui/keyboard'
 import { Platform } from 'react-native'
 import Purchases, { LOG_LEVEL } from 'react-native-purchases'
 import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
@@ -81,10 +82,13 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <AuthProvider>
-        <RootGuard />
-      </AuthProvider>
+      {/* Toute la gestion du clavier passe par src/components/ui/keyboard. */}
+      <KeyboardProvider>
+        <StatusBar style="dark" />
+        <AuthProvider>
+          <RootGuard />
+        </AuthProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   )
 }

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, ActivityIndicator, Linking,
-  Modal, KeyboardAvoidingView, Platform,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +16,7 @@ import {
   getRegionPreference, setRegionPreference, deviceRegion, regionLabel,
   SUPPORTED_REGIONS, type RegionPreference,
 } from '@/i18n/region'
-import { Screen, Button, Input, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { Screen, FormSheet, Button, Input, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { saveAccountLocale } from '@/features/auth/accountLocale'
 
 const MIN_PASSWORD_LENGTH = 8
@@ -264,60 +263,58 @@ export default function SettingsScreen() {
       />
 
       {/* Changement de mot de passe — modale plutôt qu'Alert.prompt (iOS only) */}
-      <Modal
+      <FormSheet
         visible={passwordModalVisible}
-        transparent
         animationType="fade"
         onRequestClose={closePasswordModal}
+        placement="center"
+        containerStyle={styles.modalBackdrop}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.modalBackdrop}
-        >
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={closePasswordModal}
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={closePasswordModal}
+        />
+        <View style={styles.modalCard}>
+          <Text style={styles.modalTitle}>{t('settings.changePasswordTitle')}</Text>
+          <Text style={styles.modalMessage}>{t('settings.changePasswordMessage')}</Text>
+
+          <Input
+            label={t('settings.newPasswordLabel')}
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            autoComplete="new-password"
+            autoFocus
           />
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>{t('settings.changePasswordTitle')}</Text>
-            <Text style={styles.modalMessage}>{t('settings.changePasswordMessage')}</Text>
+          <Input
+            label={t('settings.confirmPasswordLabel')}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            autoComplete="new-password"
+            containerStyle={{ marginTop: Spacing.md }}
+            returnKeyType="done"
+            onSubmitEditing={submitNewPassword}
+          />
 
-            <Input
-              label={t('settings.newPasswordLabel')}
-              value={newPassword}
-              onChangeText={setNewPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="new-password"
-              autoFocus
+          {passwordError && <Text style={styles.modalError}>{passwordError}</Text>}
+
+          <View style={styles.modalActions}>
+            <TouchableOpacity onPress={closePasswordModal} style={styles.modalCancel}>
+              <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+            <Button
+              label={t('settings.savePassword')}
+              onPress={submitNewPassword}
+              loading={savingPassword}
+              style={{ flex: 1 }}
             />
-            <Input
-              label={t('settings.confirmPasswordLabel')}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="new-password"
-              containerStyle={{ marginTop: Spacing.md }}
-            />
-
-            {passwordError && <Text style={styles.modalError}>{passwordError}</Text>}
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity onPress={closePasswordModal} style={styles.modalCancel}>
-                <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
-              </TouchableOpacity>
-              <Button
-                label={t('settings.savePassword')}
-                onPress={submitNewPassword}
-                loading={savingPassword}
-                style={{ flex: 1 }}
-              />
-            </View>
           </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        </View>
+      </FormSheet>
     </Screen>
   )
 }

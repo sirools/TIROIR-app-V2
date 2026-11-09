@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 import {
-  View, Text, StyleSheet, Modal, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, Pressable,
+  View, Text, StyleSheet, TextInput, TouchableOpacity, Pressable,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Colors, Typography, Spacing, Radius } from './tokens'
+import { FormSheet } from './keyboard'
 import { extractLastEmoji } from '@/utils/emoji'
 
 interface EmojiKeyboardSheetProps {
@@ -52,52 +52,47 @@ export function EmojiKeyboardSheet({ visible, previewColor, onPick, onClose }: E
   const showHelp = raw.length > 0 && !picked
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        style={s.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Pressable style={s.backdrop} onPress={onClose} />
+    <FormSheet visible={visible} animationType="fade" onRequestClose={onClose} containerStyle={s.overlay}>
+      <Pressable style={s.backdrop} onPress={onClose} />
 
-        <View style={s.card}>
-          <Text style={s.title}>{t('emojiKeyboard.title')}</Text>
-          <Text style={s.hint}>{t('emojiKeyboard.hint')}</Text>
+      <View style={s.card}>
+        <Text style={s.title}>{t('emojiKeyboard.title')}</Text>
+        <Text style={s.hint}>{t('emojiKeyboard.hint')}</Text>
 
-          <View style={[s.preview, { backgroundColor: previewColor ?? Colors.accentLight }]}>
-            <Text style={s.previewEmoji}>{picked ?? '⌨️'}</Text>
-          </View>
-
-          <TextInput
-            ref={inputRef}
-            value={raw}
-            onChangeText={handleChange}
-            style={[s.input, showHelp && s.inputError]}
-            placeholder={t('emojiKeyboard.placeholder')}
-            placeholderTextColor={Colors.textTertiary}
-            autoCorrect={false}
-            autoCapitalize="none"
-            returnKeyType="done"
-            onSubmitEditing={() => picked && onPick(picked)}
-          />
-
-          {showHelp && <Text style={s.error}>{t('emojiKeyboard.notAnEmoji')}</Text>}
-
-          <View style={s.actions}>
-            <TouchableOpacity style={s.cancelBtn} onPress={onClose} activeOpacity={0.7}>
-              <Text style={s.cancelText}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[s.confirmBtn, !picked && s.confirmDisabled]}
-              onPress={() => picked && onPick(picked)}
-              disabled={!picked}
-              activeOpacity={0.85}
-            >
-              <Text style={s.confirmText}>{t('emojiKeyboard.use')}</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={[s.preview, { backgroundColor: previewColor ?? Colors.accentLight }]}>
+          <Text style={s.previewEmoji}>{picked ?? '⌨️'}</Text>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+
+        <TextInput
+          ref={inputRef}
+          value={raw}
+          onChangeText={handleChange}
+          style={[s.input, showHelp && s.inputError]}
+          placeholder={t('emojiKeyboard.placeholder')}
+          placeholderTextColor={Colors.textTertiary}
+          autoCorrect={false}
+          autoCapitalize="none"
+          returnKeyType="done"
+          onSubmitEditing={() => picked && onPick(picked)}
+        />
+
+        {showHelp && <Text style={s.error}>{t('emojiKeyboard.notAnEmoji')}</Text>}
+
+        <View style={s.actions}>
+          <TouchableOpacity style={s.cancelBtn} onPress={onClose} activeOpacity={0.7}>
+            <Text style={s.cancelText}>{t('common.cancel')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.confirmBtn, !picked && s.confirmDisabled]}
+            onPress={() => picked && onPick(picked)}
+            disabled={!picked}
+            activeOpacity={0.85}
+          >
+            <Text style={s.confirmText}>{t('emojiKeyboard.use')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </FormSheet>
   )
 }
 

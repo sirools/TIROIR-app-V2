@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
+import { FormSheet, SheetScrollView } from './keyboard'
 import {
-  View, Text, StyleSheet, TextInput, TouchableOpacity, Modal,
-  Image, ActivityIndicator, ScrollView, Alert,
+  View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ActivityIndicator, Alert,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import * as ImagePicker from 'expo-image-picker'
@@ -173,13 +173,13 @@ export function CollectionEditSheet({ visible, collection, onClose, onSaved }: P
   if (!collection) return null
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <FormSheet visible={visible} animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={s.backdrop} activeOpacity={1} onPress={onClose} />
       <View style={s.sheet}>
         <View style={s.handle} />
         <Text style={s.title}>{t('collections.editTitle')}</Text>
 
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.body}>
+        <SheetScrollView contentContainerStyle={s.body}>
           <Text style={s.fieldLabel}>{t('collections.nameLabel')}</Text>
           <TextInput
             value={name}
@@ -258,7 +258,7 @@ export function CollectionEditSheet({ visible, collection, onClose, onSaved }: P
               )}
             </View>
           )}
-        </ScrollView>
+        </SheetScrollView>
 
         <TouchableOpacity
           style={[s.saveBtn, (busy || !name.trim()) && s.saveBtnOff]}
@@ -271,7 +271,7 @@ export function CollectionEditSheet({ visible, collection, onClose, onSaved }: P
             : <Text style={s.saveBtnText}>{t('common.save')}</Text>}
         </TouchableOpacity>
       </View>
-    </Modal>
+    </FormSheet>
   )
 }
 

@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 import {
-  View, Text, StyleSheet, Modal, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, Pressable,
+  View, Text, StyleSheet, TextInput, TouchableOpacity, Pressable,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Colors, Typography, Spacing, Radius } from './tokens'
+import { FormSheet } from './keyboard'
 
 interface PromptDialogProps {
   visible: boolean
@@ -39,42 +39,37 @@ export function PromptDialog({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        style={s.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Pressable style={s.backdrop} onPress={onClose} />
-        <View style={s.card}>
-          <Text style={s.title}>{title}</Text>
-          <TextInput
-            ref={inputRef}
-            value={value}
-            onChangeText={setValue}
-            style={s.input}
-            placeholder={placeholder}
-            placeholderTextColor={Colors.textTertiary}
-            returnKeyType="done"
-            maxLength={80}
-            selectTextOnFocus
-            onSubmitEditing={submit}
-          />
-          <View style={s.actions}>
-            <TouchableOpacity style={s.cancelBtn} onPress={onClose} activeOpacity={0.7}>
-              <Text style={s.cancelText}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[s.confirmBtn, !value.trim() && s.confirmDisabled]}
-              onPress={submit}
-              disabled={!value.trim()}
-              activeOpacity={0.85}
-            >
-              <Text style={s.confirmText}>{confirmLabel}</Text>
-            </TouchableOpacity>
-          </View>
+    <FormSheet visible={visible} animationType="fade" onRequestClose={onClose} containerStyle={s.overlay}>
+      <Pressable style={s.backdrop} onPress={onClose} />
+      <View style={s.card}>
+        <Text style={s.title}>{title}</Text>
+        <TextInput
+          ref={inputRef}
+          value={value}
+          onChangeText={setValue}
+          style={s.input}
+          placeholder={placeholder}
+          placeholderTextColor={Colors.textTertiary}
+          returnKeyType="done"
+          maxLength={80}
+          selectTextOnFocus
+          onSubmitEditing={submit}
+        />
+        <View style={s.actions}>
+          <TouchableOpacity style={s.cancelBtn} onPress={onClose} activeOpacity={0.7}>
+            <Text style={s.cancelText}>{t('common.cancel')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.confirmBtn, !value.trim() && s.confirmDisabled]}
+            onPress={submit}
+            disabled={!value.trim()}
+            activeOpacity={0.85}
+          >
+            <Text style={s.confirmText}>{confirmLabel}</Text>
+          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      </View>
+    </FormSheet>
   )
 }
 

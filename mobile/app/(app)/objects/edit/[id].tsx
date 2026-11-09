@@ -3,17 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
-import { Screen, Input, Button, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { Screen, FormScreen, Input, Button, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { TiroirObject, Collection } from '@/types/database'
 
 // ─── Types locaux ────────────────────────────────────────────────────────────
@@ -202,106 +199,99 @@ export default function EditObjectScreen() {
   const selectedCollection = collections.find(c => c.id === form.collection_id) ?? null
 
   return (
-    <Screen edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
-        {/* ── Header ── */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.headerBack}>
-            <Text style={styles.headerBackText}>{t('common.cancel')}</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('objectEdit.title')}</Text>
-          <TouchableOpacity
-            onPress={handleSave}
-            disabled={saving}
-            style={styles.headerSave}
-          >
-            {saving ? (
-              <ActivityIndicator color={Colors.accent} size="small" />
-            ) : (
-              <Text style={styles.headerSaveText}>{t('objectEdit.save')}</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* ── Formulaire ── */}
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Titre */}
-          <Input
-            label={t('objectEdit.titleLabel')}
-            value={form.title}
-            onChangeText={text => {
-              setForm(prev => ({ ...prev, title: text }))
-              if (errors.title) setErrors(prev => ({ ...prev, title: undefined }))
-            }}
-            placeholder={t('objectEdit.titlePlaceholder')}
-            error={errors.title}
-            autoCapitalize="sentences"
-            returnKeyType="next"
-          />
-
-          {/* Description */}
-          <Input
-            label={t('objectEdit.descriptionLabel')}
-            value={form.description}
-            onChangeText={text => setForm(prev => ({ ...prev, description: text }))}
-            placeholder={t('objectEdit.descriptionPlaceholder')}
-            multiline
-            numberOfLines={4}
-            containerStyle={styles.textareaContainer}
-            style={styles.textarea}
-            textAlignVertical="top"
-            returnKeyType="next"
-          />
-
-          {/* Emplacement */}
-          <Input
-            label={t('object.locationLabel')}
-            value={form.location_note}
-            onChangeText={text => setForm(prev => ({ ...prev, location_note: text }))}
-            placeholder={t('objectEdit.locationPlaceholder')}
-            autoCapitalize="sentences"
-            returnKeyType="done"
-          />
-
-          {/* Collection */}
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionLabel}>{t('object.collectionLabel')}</Text>
-            <View style={styles.collectionList}>
-              {collections.map(col => (
-                <CollectionChip
-                  key={col.id}
-                  label={col.name}
-                  selected={form.collection_id === col.id}
-                  onPress={() => handleCollectionSelect(col.id)}
-                />
-              ))}
-            </View>
-            {selectedCollection && (
-              <Text style={styles.collectionHint}>
-                {t('objectEdit.collectionSelected', { name: selectedCollection.name })}
-              </Text>
-            )}
+    <FormScreen
+      edges={['top', 'bottom']}
+      contentContainerStyle={styles.scrollContent}
+      header={
+        <>
+          {/* ── Header ── */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.headerBack}>
+              <Text style={styles.headerBackText}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t('objectEdit.title')}</Text>
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={saving}
+              style={styles.headerSave}
+            >
+              {saving ? (
+                <ActivityIndicator color={Colors.accent} size="small" />
+              ) : (
+                <Text style={styles.headerSaveText}>{t('objectEdit.save')}</Text>
+              )}
+            </TouchableOpacity>
           </View>
+        </>
+      }
+    >
+      {/* Titre */}
+      <Input
+        label={t('objectEdit.titleLabel')}
+        value={form.title}
+        onChangeText={text => {
+          setForm(prev => ({ ...prev, title: text }))
+          if (errors.title) setErrors(prev => ({ ...prev, title: undefined }))
+        }}
+        placeholder={t('objectEdit.titlePlaceholder')}
+        error={errors.title}
+        autoCapitalize="sentences"
+        returnKeyType="next"
+      />
 
-          {/* Bouton Enregistrer (bas de page) */}
-          <Button
-            label={t('objectEdit.saveChanges')}
-            onPress={handleSave}
-            loading={saving}
-            style={styles.saveButton}
-          />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Screen>
+      {/* Description */}
+      <Input
+        label={t('objectEdit.descriptionLabel')}
+        value={form.description}
+        onChangeText={text => setForm(prev => ({ ...prev, description: text }))}
+        placeholder={t('objectEdit.descriptionPlaceholder')}
+        multiline
+        numberOfLines={4}
+        containerStyle={styles.textareaContainer}
+        style={styles.textarea}
+        textAlignVertical="top"
+        returnKeyType="next"
+      />
+
+      {/* Emplacement */}
+      <Input
+        label={t('object.locationLabel')}
+        value={form.location_note}
+        onChangeText={text => setForm(prev => ({ ...prev, location_note: text }))}
+        placeholder={t('objectEdit.locationPlaceholder')}
+        autoCapitalize="sentences"
+        returnKeyType="done"
+        onSubmitEditing={handleSave}
+      />
+
+      {/* Collection */}
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionLabel}>{t('object.collectionLabel')}</Text>
+        <View style={styles.collectionList}>
+          {collections.map(col => (
+            <CollectionChip
+              key={col.id}
+              label={col.name}
+              selected={form.collection_id === col.id}
+              onPress={() => handleCollectionSelect(col.id)}
+            />
+          ))}
+        </View>
+        {selectedCollection && (
+          <Text style={styles.collectionHint}>
+            {t('objectEdit.collectionSelected', { name: selectedCollection.name })}
+          </Text>
+        )}
+      </View>
+
+      {/* Bouton Enregistrer (bas de page) */}
+      <Button
+        label={t('objectEdit.saveChanges')}
+        onPress={handleSave}
+        loading={saving}
+        style={styles.saveButton}
+      />
+    </FormScreen>
   )
 }
 
