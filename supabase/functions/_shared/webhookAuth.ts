@@ -38,3 +38,14 @@ export function isAuthorized(header: string | null | undefined, secret: string |
   for (let i = 0; i < Math.max(a.length, b.length); i++) diff |= (a[i] ?? 0) ^ (b[i] ?? 0)
   return diff === 0
 }
+
+/**
+ * Vrai si l'en-tête correspond à l'un des secrets (rotation : courant et
+ * suivant). Chaque secret est comparé, sans s'arrêter au premier trouvé :
+ * la durée ne dit pas lequel a répondu.
+ */
+export function isAuthorizedAny(header: string | null | undefined, secrets: readonly (string | undefined | null)[]): boolean {
+  let ok = false
+  for (const secret of secrets) ok = isAuthorized(header, secret) || ok
+  return ok
+}

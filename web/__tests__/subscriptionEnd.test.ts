@@ -27,7 +27,7 @@ describe('fin de l’accès payant (webhook RevenueCat)', () => {
   test('le webhook s’en sert, via la règle du palier', () => {
     const fn = (f: string) => readFileSync(path.join(__dirname, '../../supabase/functions', f), 'utf8')
     expect(fn('_shared/storeProducts.ts')).toContain("from './subscriptionEnd.ts'")
-    expect(fn('revenuecat-webhook/index.ts')).toContain("from '../_shared/storeProducts.ts'")
-    expect(fn('revenuecat-webhook/index.ts') + fn('_shared/storeProducts.ts')).not.toContain('INACTIVE_EVENTS')
+    expect(fn('revenuecat-webhook/handler.ts')).toContain("from '../_shared/storeProducts.ts'")
+    expect(fn('revenuecat-webhook/handler.ts') + fn('_shared/storeProducts.ts')).not.toContain('INACTIVE_EVENTS')
   })
 })

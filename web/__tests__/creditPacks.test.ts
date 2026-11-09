@@ -21,7 +21,7 @@ describe('packs de crédits', () => {
     })
     expect(webhook).toEqual(app)
     // Le webhook passe bien par le module partagé, sans copie locale.
-    const src = readFileSync(path.join(root, 'supabase/functions/revenuecat-webhook/index.ts'), 'utf8')
+    const src = readFileSync(path.join(root, 'supabase/functions/revenuecat-webhook/handler.ts'), 'utf8')
     expect(src).toContain("from '../_shared/storeProducts.ts'")
     expect(src).not.toMatch(/CREDIT_PACKS\s*[:=]/)
   })

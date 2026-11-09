@@ -10,10 +10,27 @@
 -- public.subscriptions, le compte prend son palier (le plus haut, Pro
 -- avant Premium) avec plan_source = 'app'.
 --
--- Additif et rejouable : CREATE OR REPLACE de apply_stripe_subscription,
--- même signature, même comportement en dehors de ce cas. Après
--- supabase/migrations/20261108130727_stripe_subscriptions.sql.
+-- SCRIPT FINAL, prêt pour la prod (à n'appliquer qu'avec l'accord de
+-- Clément). Non destructif : aucun DROP, aucune table ni colonne touchée,
+-- aucune donnée modifiée ; seul le corps de apply_stripe_subscription
+-- change (CREATE OR REPLACE, même signature, mêmes droits). Rejouable :
+-- deux passages donnent le même résultat. Même comportement qu'avant en
+-- dehors du cas ci-dessus. Prérequis :
+-- supabase/migrations/20261108130727_stripe_subscriptions.sql (en prod).
 -- Tests : tests/stripe_end_keeps_store.test.sql (tests/run.sh).
+--
+-- Avant : sauvegarde de la prod (preprod/sauvegarde/sauvegarde-base.sh,
+-- ou au minimum la définition actuelle, déjà relevée dans
+-- rollback/stripe_end_keeps_store.rollback.sql).
+-- Après : vérifier que la fonction contient v_store_tier :
+--   SELECT pg_get_functiondef('public.apply_stripe_subscription(uuid,text,text,text,text,timestamptz,boolean,boolean,text)'::regprocedure) LIKE '%v_store_tier%';
+-- Retour arrière : rollback/stripe_end_keeps_store.rollback.sql.
+
+DO $$ BEGIN
+  IF to_regclass('public.subscriptions') IS NULL THEN
+    RAISE EXCEPTION 'public.subscriptions absente : appliquer d''abord 20261108130727_stripe_subscriptions.sql';
+  END IF;
+END $$;
 
 CREATE OR REPLACE FUNCTION public.apply_stripe_subscription(
   p_user_id              UUID,

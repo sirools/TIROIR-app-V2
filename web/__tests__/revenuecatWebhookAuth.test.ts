@@ -18,8 +18,8 @@ describe('authentification du webhook RevenueCat', () => {
   })
 
   test('le webhook passe par isAuthorized, plus par une comparaison directe', () => {
-    const src = readFileSync(path.join(root, 'supabase/functions/revenuecat-webhook/index.ts'), 'utf8')
-    expect(src).toContain('isAuthorized(req.headers.get(\'Authorization\'), REVENUECAT_WEBHOOK_SECRET)')
+    const src = readFileSync(path.join(root, 'supabase/functions/revenuecat-webhook/handler.ts'), 'utf8')
+    expect(src).toContain("isAuthorizedAny(req.headers.get('Authorization'), deps.secrets)")
     expect(src).not.toMatch(/authHeader !== REVENUECAT_WEBHOOK_SECRET/)
   })
 
