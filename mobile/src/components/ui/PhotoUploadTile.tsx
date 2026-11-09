@@ -192,7 +192,8 @@ export function PhotoUploadTile({
               size={ringSize}
               strokeWidth={ringSize >= 40 ? 3 : 2.5}
               color={Colors.textInverse}
-              trackColor={Colors.borderLight}
+              trackColor={Colors.textInverse}
+              trackOpacity={Opacity.scrim}
             >
               {status === 'uploading' && (showPercent || !compact) && (
                 <Text style={[styles.percent, { fontSize: ringSize >= 40 ? Typography.xs : 9 }]}>{percent}</Text>
@@ -215,12 +216,15 @@ export function PhotoUploadTile({
 
         {status === 'error' && (
           <View style={styles.stack}>
-            <View style={styles.errorIcon}>
-              <CircleAlert size={compact ? 16 : 18} color={Colors.error} strokeWidth={2.2} />
-            </View>
+            {/* En petit, la bordure dit déjà l'échec : seul le bouton reste. */}
+            {!compact && (
+              <View style={styles.errorIcon}>
+                <CircleAlert size={18} color={Colors.error} strokeWidth={2.2} />
+              </View>
+            )}
             {!!onRetry && (
               <View style={[styles.retryPill, compact && styles.retryPillCompact]}>
-                <RotateCw size={12} color={Colors.error} strokeWidth={2.4} />
+                <RotateCw size={compact ? 16 : 12} color={Colors.error} strokeWidth={2.4} />
                 {!compact && <Text style={styles.retryText}>{t('upload.tile.retry')}</Text>}
               </View>
             )}
@@ -293,7 +297,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
   },
-  retryPillCompact: { paddingHorizontal: Spacing.xs + 2 },
+  retryPillCompact: { padding: Spacing.sm },
   retryText: { color: Colors.error, fontSize: Typography.xs, fontWeight: Typography.semibold },
   close: {
     position: 'absolute',

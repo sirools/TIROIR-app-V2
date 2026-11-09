@@ -36,7 +36,7 @@ function fakeSend(scenario: Scenario, index: number) {
   return (job: StorageUpload): UploadHandle => {
     let timer: ReturnType<typeof setInterval> | undefined
     let reject: (e: Error) => void = () => {}
-    const durationMs = scenario === 'big' ? 14000 : scenario === 'slow' ? 6000 + index * 900 : 1800
+    const durationMs = scenario === 'big' ? 20000 : scenario === 'slow' ? 9000 + index * 1500 : 8000
     const promise = new Promise<void>((resolve, rej) => {
       reject = rej
       const start = Date.now()
@@ -48,7 +48,7 @@ function fakeSend(scenario: Scenario, index: number) {
           clearInterval(timer)
           uploadStore.simulateNetwork(false)
           rej(new UploadError('network', 'NETWORK'))
-          setTimeout(() => uploadStore.simulateNetwork(true), 4000)
+          setTimeout(() => uploadStore.simulateNetwork(true), 10000)
           return
         }
         if (scenario === 'server' && index === 2 && p > 0.7) {

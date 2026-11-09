@@ -25,6 +25,8 @@ export interface ProgressRingProps {
   strokeWidth?: number
   color?: string
   trackColor?: string
+  /** Opacité de la piste (sur une photo : piste claire mais discrète). */
+  trackOpacity?: number
   style?: ViewStyle
   /** Contenu centré dans l'anneau (pourcentage, icône…). */
   children?: React.ReactNode
@@ -45,6 +47,7 @@ export function ProgressRing({
   strokeWidth = 3,
   color = Colors.accent,
   trackColor = Colors.borderLight,
+  trackOpacity = 1,
   style,
   children,
 }: ProgressRingProps) {
@@ -87,7 +90,7 @@ export function ProgressRing({
     <View style={[{ width: size, height: size }, style]}>
       <Animated.View style={[StyleSheet.absoluteFill, rotation]}>
         <Svg width={size} height={size}>
-          <Circle cx={size / 2} cy={size / 2} r={r} stroke={trackColor} strokeWidth={strokeWidth} fill="none" />
+          <Circle cx={size / 2} cy={size / 2} r={r} stroke={trackColor} strokeOpacity={trackOpacity} strokeWidth={strokeWidth} fill="none" />
           <AnimatedCircle
             cx={size / 2}
             cy={size / 2}
