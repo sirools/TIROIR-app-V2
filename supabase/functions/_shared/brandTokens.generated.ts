@@ -45,4 +45,12 @@ export const Brand = {
     weight: { regular: '400', medium: '500', semibold: '600', bold: '700' },
     lineHeight: { tight: 1.2, normal: 1.4, relaxed: 1.6 },
   },
+  /** Animations : durées (ms), courbes de Bézier, zoom d'entrée */
+  motion: {
+    duration: { fast: 180, base: 300, slow: 500, finish: 560 },
+    easing: { out: [0.33, 1, 0.68, 1], inOut: [0.65, 0, 0.35, 1] },
+    enterScale: 0.96,
+  },
+  /** Opacités : voile d'attente */
+  opacity: { scrim: 0.4 },
 } as const
