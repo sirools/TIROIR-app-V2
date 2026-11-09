@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { View, Text, StyleSheet, Animated, Platform, Image, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Animated, TouchableOpacity, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@/lib/supabase'
 import { assistantService } from '@/services/assistant'
 import {
   Screen, Button, Colors, Typography, Spacing, Radius,
   CollectionPickerSheet, PickedCollection, useToast,
+  PhotoUploadTile, UploadStatusBar,
 } from '@/components/ui'
+import { useUploadQueue } from '@/features/uploads'
 import { useAuth } from '@/features/auth/AuthContext'
 import { type PhotoSource, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
 import { BUY_CREDITS_ROUTE, isCreditsRefusal } from '@/lib/buyCredits'
@@ -40,7 +41,6 @@ export default function UploadingScreen() {
   const { showToast } = useToast()
 
   const [phase, setPhase] = useState<Phase>('uploading')
-  const [uploadProgress, setUploadProgress] = useState(0)
   const [stepStatuses, setStepStatuses] = useState<Record<StepKey, StepStatus>>({
     upload: 'active', identify: 'pending', attrs: 'pending', sheet: 'pending',
   })
@@ -48,8 +48,14 @@ export default function UploadingScreen() {
   const [error, setError] = useState<string | null>(null)
   // Refus « quota atteint, crédits insuffisants » : l'écran propose un pack.
   const [outOfCredits, setOutOfCredits] = useState(false)
-  const [images, setImages] = useState<PickedImage[]>([])
-  const [uploadedCount, setUploadedCount] = useState(0)
+  // Chaque photo a son propre envoi, mené par la file commune : l'écran
+  // n'envoie plus rien lui-même, il affiche l'état de chacune.
+  const uploads = useUploadQueue(`draft:${draftId}`)
+  const { summary } = uploads
+  /** Des photos ont été confiées à la file pour ce brouillon. */
+  const [uploadsStarted, setUploadsStarted] = useState(false)
+  const analysisStarted = useRef(false)
+  const { width: screenWidth } = useWindowDimensions()
   const [showManualNav, setShowManualNav] = useState(false)
   const processedDraftId = useRef<string | null>(null)
   const pendingDraftId = useRef<string | null>(null)
@@ -91,13 +97,12 @@ export default function UploadingScreen() {
 
     // Réinitialiser tout l'état pour ce nouveau draft
     setPhase('uploading')
-    setUploadProgress(0)
     setStepStatuses({ upload: 'active', identify: 'pending', attrs: 'pending', sheet: 'pending' })
     setConfidence(0)
     setError(null)
     setOutOfCredits(false)
-    setImages([])
-    setUploadedCount(0)
+    setUploadsStarted(false)
+    analysisStarted.current = false
     setShowManualNav(false)
     setAnalysisDone(false)
     setDestination(collectionId ? { id: collectionId, name: '' } : undefined)
@@ -109,8 +114,7 @@ export default function UploadingScreen() {
     if (parsed.length === 0) {
       runAnalysisOnly()
     } else {
-      setImages(parsed)
-      run(parsed)
+      startUploads(parsed)
     }
   }, [draftId, imagesParam, user])
 
@@ -127,18 +131,59 @@ export default function UploadingScreen() {
     setConfidence(to)
   }
 
-  async function run(imgs: PickedImage[]) {
+  /**
+   * Confie les photos à la file : 2 à 3 envois en parallèle, chacun avec
+   * son anneau. L'analyse part quand toutes sont arrivées (voir l'effet
+   * plus bas) — une photo en échec attend un geste (Réessayer ou la
+   * retirer), elle n'est jamais perdue en silence.
+   */
+  function startUploads(imgs: PickedImage[]) {
+    uploads.add(imgs.map((img, position) => ({
+      uri: img.uri,
+      contentType: img.mimeType,
+      keepWhenDone: true,
+      path: () => {
+        const ext = img.mimeType === 'image/jpeg' ? 'jpg' : 'png'
+        return `${user!.id}/drafts/${draftId}/${Date.now()}_${position}.${ext}`
+      },
+      commit: async (storagePath: string) => {
+        const zoomPath = zoomPathFor(storagePath, img.source)
+        const { error: dbError } = await supabase.from('ai_draft_images').insert({
+          draft_id: draftId, user_id: user!.id, storage_path: storagePath, zoom_path: zoomPath, mime_type: img.mimeType, position,
+        })
+        if (dbError) throw new Error(t('uploading.saveImageError', { n: position + 1, msg: dbError.message }))
+        queueZoomCopy(img.source, zoomPath)
+      },
+    })))
+    setUploadsStarted(true)
+  }
+
+  // Toutes les photos sont arrivées : l'analyse commence.
+  useEffect(() => {
+    if (!uploadsStarted || analysisStarted.current) return
+    if (summary.total === 0) {
+      // Toutes les photos ont été retirées : il n'y a plus rien à analyser.
+      handleRetry()
+      return
+    }
+    if (summary.settled && summary.failed === 0 && summary.done === summary.total) {
+      analysisStarted.current = true
+      runAnalysis()
+    }
+  }, [uploadsStarted, summary.total, summary.done, summary.failed, summary.settled])
+
+  // En quittant l'écran, la file oublie les vignettes de ce brouillon.
+  useEffect(() => () => {
+    uploads.setAnalyzing(false)
+    uploads.clearDone()
+  }, [draftId])
+
+  async function runAnalysis() {
     try {
-      // Phase upload
-      for (let i = 0; i < imgs.length; i++) {
-        await uploadImage(imgs[i], i)
-        const pct = Math.round(((i + 1) / imgs.length) * 100)
-        setUploadProgress(pct)
-        setUploadedCount(i + 1)
-      }
       setStep('upload', 'done')
       setStep('identify', 'active')
       setPhase('analyzing')
+      uploads.setAnalyzing(true)
       // La destination n'est demandée que si le parcours ne l'impose pas.
       if (!collectionId) setPickerVisible(true)
 
@@ -160,9 +205,11 @@ export default function UploadingScreen() {
       animateConfidence(87)
       await new Promise(r => setTimeout(r, 500))
 
+      uploads.setAnalyzing(false)
       setAnalysisDone(true)
     } catch (err) {
-      console.error('[Upload]', err)
+      console.error('[Analyze]', err)
+      uploads.setAnalyzing(false)
       setError(err instanceof Error ? err.message : t('uploading.genericError'))
       setOutOfCredits(isCreditsRefusal(err))
       setPhase('error')
@@ -241,44 +288,13 @@ export default function UploadingScreen() {
     }
   }
 
-  async function uploadImage(img: PickedImage, position: number) {
-    const imageId = `${Date.now()}_${position}`
-    const ext = img.mimeType === 'image/jpeg' ? 'jpg' : 'png'
-    const storagePath = `${user!.id}/drafts/${draftId}/${imageId}.${ext}`
-
-    let uploadData: Blob | Uint8Array
-    if (Platform.OS === 'web') {
-      const response = await fetch(img.uri)
-      uploadData = await response.blob()
-    } else {
-      const base64 = await FileSystem.readAsStringAsync(img.uri, { encoding: FileSystem.EncodingType.Base64 })
-      const binary = atob(base64)
-      const bytes = new Uint8Array(binary.length)
-      for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j)
-      uploadData = bytes
-    }
-
-    const { error: storageError } = await supabase.storage
-      .from('object-images')
-      .upload(storagePath, uploadData, { contentType: img.mimeType, upsert: false })
-    if (storageError) throw new Error(t('uploading.uploadImageError', { n: position + 1, msg: storageError.message }))
-
-    const zoomPath = zoomPathFor(storagePath, img.source)
-    const { error: dbError } = await supabase.from('ai_draft_images').insert({
-      draft_id: draftId, user_id: user!.id, storage_path: storagePath, zoom_path: zoomPath, mime_type: img.mimeType, position,
-    })
-    if (dbError) throw new Error(t('uploading.saveImageError', { n: position + 1, msg: dbError.message }))
-    queueZoomCopy(img.source, zoomPath)
-  }
-
   async function handleRetry() {
     setPhase('uploading')
-    setUploadProgress(0)
-    setUploadedCount(0)
     setError(null)
     setOutOfCredits(false)
     setStepStatuses({ upload: 'active', identify: 'pending', attrs: 'pending', sheet: 'pending' })
     processedDraftId.current = null
+    for (const job of uploads.jobs) uploads.cancel(job.id)
     await supabase.rpc('reject_draft', { p_draft_id: draftId })
     router.back()
   }
@@ -299,6 +315,9 @@ export default function UploadingScreen() {
     )
   }
 
+  // Jusqu'à cinq vignettes sur une ligne, dans la marge de l'écran.
+  const tileSize = Math.min(96, Math.floor((screenWidth - 2 * Spacing.lg - 4 * Spacing.sm) / 5))
+
   const confidenceWidth = confidenceAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] })
 
   /** La fiche est prête mais on ignore encore où la ranger. */
@@ -316,18 +335,19 @@ export default function UploadingScreen() {
           <View style={styles.stepDot} />
         </View>
 
-        {/* Miniatures des photos uploadées */}
-        {images.length > 0 && (
+        {/* Une vignette par photo, avec son propre état d'envoi */}
+        {uploads.jobs.length > 0 && (
           <View style={styles.photoRow}>
-            {images.map((img, i) => (
-              <View key={i} style={styles.photoThumb}>
-                <Image source={{ uri: img.uri }} style={styles.photoImg} resizeMode="cover" />
-                {i < uploadedCount && (
-                  <View style={styles.photoCheck}>
-                    <Text style={styles.photoCheckText}>✓</Text>
-                  </View>
-                )}
-              </View>
+            {uploads.jobs.map(job => (
+              <PhotoUploadTile
+                key={job.id}
+                source={job.uri}
+                status={job.status}
+                progress={job.progress}
+                size={tileSize}
+                onRetry={() => uploads.retry(job.id)}
+                onCancel={() => uploads.cancel(job.id)}
+              />
             ))}
           </View>
         )}
@@ -343,7 +363,7 @@ export default function UploadingScreen() {
             {awaitingDestination
               ? t('uploading.readySub')
               : phase === 'uploading'
-                ? t('uploading.progress', { percent: uploadProgress, done: uploadedCount, total: images.length, count: images.length })
+                ? t('uploading.waitingPhotos')
                 : t('uploading.preparingSheet')}
           </Text>
         </View>
@@ -364,11 +384,9 @@ export default function UploadingScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Barre de progression upload */}
+        {/* Compteur d'ensemble : « 2 sur 5 envoyées », hors connexion, échecs */}
         {phase === 'uploading' && (
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${uploadProgress}%` }]} />
-          </View>
+          <UploadStatusBar summary={summary} onRetryAll={uploads.retryAll} />
         )}
 
         {/* Checklist IA */}
@@ -399,7 +417,7 @@ export default function UploadingScreen() {
                     {t(step.labelKey)}
                   </Text>
                   <Text style={styles.checkSub}>
-                    {step.key === 'upload' ? `${uploadProgress} %` : t(step.subKey)}
+                    {step.key === 'upload' ? `${Math.round(summary.progress * 100)} %` : t(step.subKey)}
                   </Text>
                 </View>
               </Animated.View>
@@ -475,24 +493,11 @@ const styles = StyleSheet.create({
 
   photoRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.sm,
+    // Laisse dépasser la croix d'annulation des vignettes.
+    paddingTop: Spacing.xs,
   },
-  photoThumb: {
-    flex: 1,
-    height: 72,
-    borderRadius: Radius.md,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceWarm,
-    position: 'relative',
-  },
-  photoImg: { width: '100%', height: '100%' },
-  photoCheck: {
-    position: 'absolute', top: 6, right: 6,
-    width: 18, height: 18, borderRadius: 9,
-    backgroundColor: Colors.accent,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  photoCheckText: { color: Colors.textInverse, fontSize: 10, fontWeight: Typography.bold },
 
   titleBlock: { gap: 4 },
   title: {
@@ -527,14 +532,6 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     textDecorationLine: 'underline',
   },
-
-  progressTrack: {
-    height: 4,
-    backgroundColor: Colors.borderLight,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: { height: '100%', backgroundColor: Colors.accent, borderRadius: 2 },
 
   checklist: { gap: Spacing.sm },
   checkItem: {

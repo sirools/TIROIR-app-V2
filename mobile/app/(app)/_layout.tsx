@@ -73,6 +73,7 @@ export default function AppLayout() {
         <Tabs.Screen name="objects/edit/[id]" options={{ href: null }} />
         <Tabs.Screen name="collections/index" options={{ href: null }} />
         <Tabs.Screen name="collections/[id]"  options={{ href: null }} />
+        <Tabs.Screen name="dev/uploads"       options={{ href: null }} />
       </Tabs>
     </ToastProvider>
   )

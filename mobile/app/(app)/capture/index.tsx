@@ -11,6 +11,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
+import { uploadStore } from '@/features/uploads'
 import { useAuth } from '@/features/auth/AuthContext'
 import { hasPhotoZoom } from '@/lib/plan'
 import { type PhotoSource, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
@@ -278,40 +279,34 @@ export default function CaptureScreen() {
         await supabase.from('objects').update({ collection_id: dest.id }).eq('id', objectId)
       }
 
-      for (let i = 0; i < images.length; i++) {
-        const img = images[i]
-        const ext = img.mimeType === 'image/jpeg' ? 'jpg' : 'png'
-        const storagePath = `${user!.id}/${objectId}/${Date.now()}_${i}.${ext}`
-
-        let uploadData: Blob | Uint8Array
-        if (Platform.OS === 'web') {
-          const response = await fetch(img.uri)
-          uploadData = await response.blob()
-        } else {
-          const base64 = await FileSystem.readAsStringAsync(img.uri, { encoding: FileSystem.EncodingType.Base64 })
-          const binary = atob(base64)
-          const bytes = new Uint8Array(binary.length)
-          for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j)
-          uploadData = bytes
-        }
-
-        const { error: storageError } = await supabase.storage
-          .from('object-images')
-          .upload(storagePath, uploadData, { contentType: img.mimeType, upsert: false })
-        if (storageError) throw new Error(storageError.message)
-
-        const zoomPath = zoomPathFor(storagePath, img.source)
-        await supabase.from('object_images').insert({
-          object_id: objectId,
-          user_id: user!.id,
-          storage_path: storagePath,
-          zoom_path: zoomPath,
-          mime_type: img.mimeType,
-          position: i,
-          is_cover: i === 0,
-        })
-        queueZoomCopy(img.source, zoomPath)
-      }
+      // La fiche s'enregistre tout de suite ; les photos finissent de
+      // s'envoyer en arrière-plan, chacune avec son anneau sur la fiche
+      // (même file, groupe de l'objet). Attendre ici bloquerait l'écran
+      // sans rien apprendre de plus à l'utilisateur.
+      const userId = user!.id
+      uploadStore.add(images.map((img, i) => ({
+        group: `object:${objectId}`,
+        uri: img.uri,
+        contentType: img.mimeType,
+        path: () => {
+          const ext = img.mimeType === 'image/jpeg' ? 'jpg' : 'png'
+          return `${userId}/${objectId}/${Date.now()}_${i}.${ext}`
+        },
+        commit: async (storagePath: string) => {
+          const zoomPath = zoomPathFor(storagePath, img.source)
+          const { error } = await supabase.from('object_images').insert({
+            object_id: objectId,
+            user_id: userId,
+            storage_path: storagePath,
+            zoom_path: zoomPath,
+            mime_type: img.mimeType,
+            position: i,
+            is_cover: i === 0,
+          })
+          if (error) throw new Error(error.message)
+          queueZoomCopy(img.source, zoomPath)
+        },
+      })))
 
       let name = dest?.name
       if (dest && !name) {

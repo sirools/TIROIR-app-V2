@@ -20,11 +20,8 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import i18n from 'i18next'
 import * as ImagePicker from 'expo-image-picker'
-import * as ImageManipulator from 'expo-image-manipulator'
-import * as FileSystem from 'expo-file-system/legacy'
 import * as Clipboard from 'expo-clipboard'
 import * as WebBrowser from 'expo-web-browser'
-import { decode } from 'base64-arraybuffer'
 import { Plus, Minus, Pencil, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, ChevronUp, ChevronDown, MapPin, Share2, Sparkles, Star, Info, CalendarDays, UserRound, ExternalLink } from 'lucide-react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
@@ -33,10 +30,12 @@ import { isCreditsRefusal, offerCredits } from '@/lib/buyCredits'
 import { useAuth } from '@/features/auth/AuthContext'
 import { hasPhotoZoom, isPaidPlan } from '@/lib/plan'
 import { STANDARD_WIDTH, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
+import { prepareJpeg, useUploadQueue } from '@/features/uploads'
 import {
   Screen, FormScreen, FormScrollView, FormSheet, SheetScrollView, focusNextField,
   Colors, Typography, Spacing, Radius, ActionSheet, Checkbox, useToast,
   CollectionPickerSheet, PickedCollection, TorixMark,
+  PhotoUploadTile, UploadStatusBar,
 } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
 import PhotoViewer from '@/components/PhotoViewer'
@@ -298,7 +297,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
   const { profile } = useAuth()
   const [activeIndex, setActiveIndex] = useState(0)
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
-  const [uploading, setUploading] = useState(false)
+  const uploads = useUploadQueue(`object:${objectId}`)
   const [enhancing, setEnhancing] = useState(false)
   const [studioOpen, setStudioOpen] = useState(false)
   const [settingCover, setSettingCover] = useState(false)
@@ -325,6 +324,30 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
 
   const safeIndex = Math.min(activeIndex, Math.max(0, images.length - 1))
 
+  // Dernière liste connue : les envois finissent parfois après un autre
+  // changement (suppression, couverture), voire après la sortie de la fiche.
+  const imagesRef = useRef(images)
+  imagesRef.current = images
+  const onImagesChangeRef = useRef(onImagesChange)
+  onImagesChangeRef.current = onImagesChange
+  // Un enregistrement à la fois : position et couverture se décident dans l'ordre d'arrivée.
+  const commitChain = useRef<Promise<unknown>>(Promise.resolve())
+
+  // Photos envoyées depuis un autre écran (saisie manuelle : la fiche
+  // s'ouvre avant la fin des envois) : on relit la liste quand l'une d'elles
+  // arrive sans figurer encore dans le diaporama.
+  const arrivedPaths = uploads.jobs
+    .filter(j => j.status === 'done' && j.storagePath)
+    .map(j => j.storagePath!)
+    .join(',')
+  React.useEffect(() => {
+    if (!arrivedPaths) return
+    const known = new Set(imagesRef.current.map(i => i.storage_path))
+    if (arrivedPaths.split(',').every(p => known.has(p))) return
+    supabase.from('object_images').select('*').eq('object_id', objectId).order('position')
+      .then(({ data }) => { if (data) onImagesChangeRef.current(data as ObjectImage[]) })
+  }, [arrivedPaths])
+
   async function pickAndUpload() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (!perm.granted) {
@@ -335,75 +358,56 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
       mediaTypes: ['images'],
       quality: 0.85,
       allowsEditing: false,
+      allowsMultipleSelection: true,
+      selectionLimit: 5,
     })
-    if (result.canceled || !result.assets[0]) return
-
-    setUploading(true)
-    try {
-      const asset = result.assets[0]
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error(t('documents.notAuthenticated'))
-      const userId = session.user.id
-
-      // Même format que la capture : 1200 px pour tous. La haute définition,
-      // réservée aux abonnés, passe par la copie de zoom.
-      const reduced = await ImageManipulator.manipulateAsync(
-        asset.uri,
-        asset.width > STANDARD_WIDTH ? [{ resize: { width: STANDARD_WIDTH } }] : [],
-        { compress: 0.82, format: ImageManipulator.SaveFormat.JPEG },
-      )
-      const mimeType = 'image/jpeg'
-      // Le Storage attend : {user_id}/{object_id}/{filename}
-      const storagePath = `${userId}/${objectId}/${Date.now()}.jpg`
-      const source = canZoom ? { uri: asset.uri, width: asset.width, height: asset.height } : null
-      const zoomPath = zoomPathFor(storagePath, source)
-
-      // iOS/Android : lecture base64 via expo-file-system → ArrayBuffer (évite le bug Hermes blob)
-      let uploadBody: ArrayBuffer | Blob
-      if (Platform.OS === 'web') {
-        uploadBody = await (await fetch(reduced.uri)).blob()
-      } else {
-        const base64 = await FileSystem.readAsStringAsync(reduced.uri, {
-          encoding: FileSystem.EncodingType.Base64,
-        })
-        uploadBody = decode(base64)
-      }
-
-      const { error: upErr } = await supabase.storage
-        .from('object-images')
-        .upload(storagePath, uploadBody, { contentType: mimeType })
-      if (upErr) throw upErr
-
-      const isFirstImage = images.length === 0
-
-      const { data: inserted, error: insErr } = await supabase
-        .from('object_images')
-        .insert({
-          object_id: objectId,
-          user_id: userId,
-          storage_path: storagePath,
-          zoom_path: zoomPath,
-          mime_type: mimeType,
-          is_cover: isFirstImage,
-          position: images.length,
-        })
-        .select()
-        .single()
-      if (insErr) throw insErr
-      queueZoomCopy(source, zoomPath)
-
-      const newImages = [...images, inserted as ObjectImage]
-      onImagesChange(newImages)
-      // Aller à la nouvelle image
-      setTimeout(() => {
-        flatRef.current?.scrollToIndex({ index: newImages.length - 1, animated: true })
-        setActiveIndex(newImages.length - 1)
-      }, 100)
-    } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : t('documents.uploadFailed'))
-    } finally {
-      setUploading(false)
+    if (result.canceled || !result.assets.length) return
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      Alert.alert(t('common.error'), t('documents.notAuthenticated'))
+      return
     }
+    const userId = session.user.id
+
+    // Chaque photo part dans la file commune : miniature tout de suite,
+    // anneau pendant l'envoi, et l'envoi continue si l'on quitte la fiche.
+    uploads.add(result.assets.map((asset, i) => {
+      const source = canZoom ? { uri: asset.uri, width: asset.width, height: asset.height } : null
+      return {
+        uri: asset.uri,
+        // Même format que la capture : 1200 px pour tous. La haute définition,
+        // réservée aux abonnés, passe par la copie de zoom.
+        prepare: prepareJpeg(Math.min(asset.width || STANDARD_WIDTH, STANDARD_WIDTH)),
+        // Le Storage attend : {user_id}/{object_id}/{filename}
+        path: () => `${userId}/${objectId}/${Date.now()}_${i}.jpg`,
+        commit: (storagePath: string) => {
+          const run = commitChain.current.then(async () => {
+            const current = imagesRef.current
+            const zoomPath = zoomPathFor(storagePath, source)
+            const { data: inserted, error: insErr } = await supabase
+              .from('object_images')
+              .insert({
+                object_id: objectId,
+                user_id: userId,
+                storage_path: storagePath,
+                zoom_path: zoomPath,
+                mime_type: 'image/jpeg',
+                is_cover: !current.some(img => img.is_cover),
+                position: current.length,
+              })
+              .select()
+              .single()
+            if (insErr) throw insErr
+            queueZoomCopy(source, zoomPath)
+            const next = [...current, inserted as ObjectImage]
+            imagesRef.current = next
+            onImagesChangeRef.current(next)
+          })
+          commitChain.current = run.catch(() => {})
+          return run
+        },
+      }
+    }))
   }
 
   async function deleteActive() {
@@ -645,14 +649,37 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
       <TouchableOpacity
         style={sl.addBtn}
         onPress={pickAndUpload}
-        disabled={uploading}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={t('upload.addPhotos')}
       >
-        {uploading
-          ? <ActivityIndicator size="small" color="white" />
-          : <Plus size={18} color="white" strokeWidth={2.5} />
-        }
+        <Plus size={18} color="white" strokeWidth={2.5} />
       </TouchableOpacity>
+
+      {/* Photos en cours d'envoi : une vignette chacune, sur la photo de garde.
+          L'envoi continue même si l'on quitte la fiche. */}
+      {uploads.jobs.length > 0 && (
+        <View style={sl.uploads} pointerEvents="box-none">
+          {uploads.jobs.length > 1 && (
+            <View style={sl.uploadsBar}>
+              <UploadStatusBar summary={uploads.summary} onRetryAll={uploads.retryAll} />
+            </View>
+          )}
+          <View style={sl.uploadsRow}>
+            {uploads.jobs.map(job => (
+              <PhotoUploadTile
+                key={job.id}
+                source={job.uri}
+                status={job.status}
+                progress={job.progress}
+                size={56}
+                onRetry={() => uploads.retry(job.id)}
+                onCancel={() => uploads.cancel(job.id)}
+              />
+            ))}
+          </View>
+        </View>
+      )}
 
       {/* Bouton améliorer (IA, premium) */}
       {total > 0 && (
@@ -751,6 +778,18 @@ const sl = StyleSheet.create({
     backgroundColor: Colors.accent,
     alignItems: 'center', justifyContent: 'center',
   },
+
+  // Envois en cours : entre les boutons du bas, au-dessus des points.
+  uploads: {
+    position: 'absolute', left: 56, right: 56, bottom: 26,
+    alignItems: 'center', gap: Spacing.sm,
+  },
+  uploadsBar: {
+    alignSelf: 'stretch',
+    backgroundColor: Colors.surface, borderRadius: Radius.md,
+    paddingHorizontal: Spacing.sm + 2, paddingVertical: Spacing.xs + 2,
+  },
+  uploadsRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: Spacing.sm },
 
   // Bouton améliorer IA (au-dessus du bouton ajouter)
   enhanceBtn: {

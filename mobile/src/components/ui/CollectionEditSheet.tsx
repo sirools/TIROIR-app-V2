@@ -6,10 +6,11 @@ import {
 import { useTranslation } from 'react-i18next'
 import * as ImagePicker from 'expo-image-picker'
 import * as ImageManipulator from 'expo-image-manipulator'
-import * as FileSystem from 'expo-file-system/legacy'
 import { Camera, Images, Trash2 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { Colors, Typography, Spacing, Radius } from './tokens'
+import { PhotoUploadTile } from './PhotoUploadTile'
+import { useUploadQueue } from '@/features/uploads/uploadQueue'
 import { COLLECTION_EMOJIS, COLLECTION_COLORS } from './CollectionComposer'
 
 export interface EditableCollection {
@@ -59,10 +60,17 @@ export function CollectionEditSheet({ visible, collection, onClose, onSaved }: P
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
   const [mode, setMode] = useState<'icon' | 'photo'>('icon')
   const [busy, setBusy] = useState(false)
+  // La couverture fait partie de ce qu'on enregistre : « Enregistrer »
+  // attend la fin de son envoi (et le dit), plutôt que d'enregistrer
+  // une collection sans la photo qu'on vient de choisir.
+  const cover = useUploadQueue(`cover:${collection?.id ?? 'none'}`)
+  const coverJob = cover.jobs[cover.jobs.length - 1]
+  const coverPending = !!coverJob && coverJob.status !== 'done'
 
   // Réinitialisé à chaque ouverture : garder l'état d'une collection
   // précédente ferait éditer la mauvaise.
   useEffect(() => {
+    if (!visible) cover.clearDone()
     if (!visible || !collection) return
     setName(collection.name)
     setEmoji(collection.emoji ?? '📦')
@@ -94,49 +102,36 @@ export function CollectionEditSheet({ visible, collection, onClose, onSaved }: P
       : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.9, allowsEditing: true, aspect: [1, 1] })
     if (res.canceled || !res.assets[0]) return
 
-    setBusy(true)
-    try {
-      const rendered = await ImageManipulator.ImageManipulator
-        .manipulate(res.assets[0].uri)
-        .resize({ width: COVER_SIZE })
-        .renderAsync()
-      const saved = await rendered.saveAsync({
-        compress: 0.85, format: ImageManipulator.SaveFormat.JPEG,
-      })
-
-      const b64 = await FileSystem.readAsStringAsync(saved.uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      })
-      const binary = atob(b64)
-      const bytes = new Uint8Array(binary.length)
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('AUTH')
-
-      const path = `${user.id}/collections/${collection.id}/${Date.now()}.jpg`
-      const { error: upErr } = await supabase.storage
-        .from('object-images')
-        .upload(path, bytes, { contentType: 'image/jpeg', upsert: false })
-      if (upErr) throw new Error(upErr.message)
-
-      // L'ancienne couverture part une fois la nouvelle en place : si
-      // l'envoi échoue, on n'a rien perdu.
-      if (coverPath && coverPath !== path) {
-        await supabase.storage.from('object-images').remove([coverPath])
-      }
-
-      setCoverPath(path)
-      setCoverUrl(saved.uri)
-      setMode('photo')
-    } catch (e) {
-      Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e))
-    } finally {
-      setBusy(false)
-    }
+    const asset = res.assets[0]
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const previous = coverPath
+    // Une couverture à la fois : la nouvelle remplace celle en cours d'envoi.
+    for (const job of cover.jobs) cover.cancel(job.id)
+    setMode('photo')
+    cover.add([{
+      uri: asset.uri,
+      keepWhenDone: true,
+      prepare: async uri => {
+        const rendered = await ImageManipulator.ImageManipulator.manipulate(uri).resize({ width: COVER_SIZE }).renderAsync()
+        const saved = await rendered.saveAsync({ compress: 0.85, format: ImageManipulator.SaveFormat.JPEG })
+        return saved.uri
+      },
+      path: () => `${user.id}/collections/${collection.id}/${Date.now()}.jpg`,
+      commit: async (path, preparedUri) => {
+        // L'ancienne couverture part une fois la nouvelle en place : si
+        // l'envoi échoue, on n'a rien perdu.
+        if (previous && previous !== path) {
+          await supabase.storage.from('object-images').remove([previous])
+        }
+        setCoverPath(path)
+        setCoverUrl(preparedUri)
+      },
+    }])
   }
 
   async function removeCover() {
+    for (const job of cover.jobs) cover.cancel(job.id)
     if (coverPath) await supabase.storage.from('object-images').remove([coverPath])
     setCoverPath(null)
     setCoverUrl(null)
@@ -230,7 +225,18 @@ export function CollectionEditSheet({ visible, collection, onClose, onSaved }: P
             </>
           ) : (
             <View style={s.photoBlock}>
-              {coverUrl ? (
+              {coverPending ? (
+                <View style={s.tileWrap}>
+                  <PhotoUploadTile
+                    source={coverJob.uri}
+                    status={coverJob.status}
+                    progress={coverJob.progress}
+                    size={180}
+                    onRetry={() => cover.retry(coverJob.id)}
+                    onCancel={() => cover.cancel(coverJob.id)}
+                  />
+                </View>
+              ) : coverUrl ? (
                 <Image source={{ uri: coverUrl }} style={s.preview} resizeMode="cover" />
               ) : (
                 <View style={[s.preview, s.previewEmpty]}>
@@ -260,10 +266,14 @@ export function CollectionEditSheet({ visible, collection, onClose, onSaved }: P
           )}
         </SheetScrollView>
 
+        {coverPending && (
+          <Text style={s.waitHint} accessibilityLiveRegion="polite">{t('upload.waitBeforeSave')}</Text>
+        )}
         <TouchableOpacity
-          style={[s.saveBtn, (busy || !name.trim()) && s.saveBtnOff]}
+          style={[s.saveBtn, (busy || coverPending || !name.trim()) && s.saveBtnOff]}
           onPress={save}
-          disabled={busy || !name.trim()}
+          disabled={busy || coverPending || !name.trim()}
+          accessibilityState={{ disabled: busy || coverPending || !name.trim() }}
           activeOpacity={0.85}
         >
           {busy
@@ -322,6 +332,8 @@ const s = StyleSheet.create({
 
   photoBlock: { gap: Spacing.sm, marginTop: Spacing.sm },
   preview: { width: '100%', height: 180, borderRadius: Radius.lg, backgroundColor: Colors.surfaceWarm },
+  tileWrap: { alignItems: 'center', paddingTop: Spacing.xs },
+  waitHint: { fontSize: Typography.sm, color: Colors.textSecondary, textAlign: 'center', marginBottom: Spacing.sm },
   previewEmpty: { alignItems: 'center', justifyContent: 'center', gap: Spacing.xs },
   previewHint: { fontSize: Typography.sm, color: Colors.textTertiary, textAlign: 'center', paddingHorizontal: Spacing.lg },
   photoActions: { flexDirection: 'row', gap: Spacing.sm },

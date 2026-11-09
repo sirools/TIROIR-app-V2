@@ -7,13 +7,13 @@ import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import * as ImagePicker from 'expo-image-picker'
 import * as ImageManipulator from 'expo-image-manipulator'
-import * as FileSystem from 'expo-file-system/legacy'
-import { ArrowLeft, Edit3, Check, Package, FolderOpen, TrendingUp, Link2, Brain, Camera, Zap, Sparkles } from 'lucide-react-native'
+import { ArrowLeft, Edit3, Check, Package, FolderOpen, TrendingUp, Link2, Brain, Camera, Zap, Sparkles, RotateCw } from 'lucide-react-native'
 import Purchases from 'react-native-purchases'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan, isProPlan, planLabelKey } from '@/lib/plan'
-import { Screen, FormScrollView, Input, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { Screen, FormScrollView, Input, ActionSheet, Colors, Typography, Spacing, Radius, ProgressRing } from '@/components/ui'
+import { useUploadQueue } from '@/features/uploads'
 import { UserAvatar } from '@/components/ui/UserAvatar'
 import { AvatarViewer } from '@/components/ui/AvatarViewer'
 import { sumLots } from '@/features/objects/quantity'
@@ -49,8 +49,13 @@ export default function ProfileScreen() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [avatarSheet, setAvatarSheet] = useState(false)
   const [avatarViewer, setAvatarViewer] = useState(false)
-  const [avatarBusy, setAvatarBusy] = useState(false)
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [avatarRemoving, setAvatarRemoving] = useState(false)
+  // Envoi de la photo de profil : anneau autour de l'avatar, reprise au toucher.
+  const avatar = useUploadQueue(`avatar:${user?.id ?? 'none'}`)
+  const avatarJob = avatar.jobs[avatar.jobs.length - 1]
+  const avatarFailed = avatarJob?.status === 'error'
+  const avatarBusy = avatarRemoving || (!!avatarJob && avatarJob.status !== 'done' && !avatarFailed)
+  const avatarPreview = avatarJob && avatarJob.status !== 'done' ? avatarJob.uri : null
 
   const plan: string = (profile as any)?.plan ?? 'free'
   const isPaid = isPaidPlan(plan)
@@ -153,70 +158,51 @@ export default function ProfileScreen() {
       : await ImagePicker.launchImageLibraryAsync(options)
     if (res.canceled || !res.assets[0]) return
 
-    setAvatarBusy(true)
-    try {
-      const rendered = await ImageManipulator.ImageManipulator
-        .manipulate(res.assets[0].uri)
-        .resize({ width: AVATAR_SIZE })
-        .renderAsync()
-      const saved = await rendered.saveAsync({
-        compress: 0.85, format: ImageManipulator.SaveFormat.JPEG,
-      })
-      setAvatarPreview(saved.uri)
-
-      const b64 = await FileSystem.readAsStringAsync(saved.uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      })
-      const binary = atob(b64)
-      const bytes = new Uint8Array(binary.length)
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-
-      const path = `${user.id}/avatar/${Date.now()}.jpg`
-      const { error: upErr } = await supabase.storage
-        .from('object-images')
-        .upload(path, bytes, { contentType: 'image/jpeg', upsert: false })
-      if (upErr) throw new Error(upErr.message)
-
-      const { error: dbErr } = await supabase
-        .from('profiles')
-        .update({ avatar_path: path, updated_at: new Date().toISOString() })
-        .eq('id', user.id)
-      if (dbErr) {
-        await supabase.storage.from('object-images').remove([path])
-        throw new Error(dbErr.message)
-      }
-
-      // L'ancienne photo part une fois la nouvelle enregistrée : si
-      // l'envoi échoue, on n'a rien perdu.
-      const previous = profile?.avatar_path
-      if (previous && previous !== path) {
-        await supabase.storage.from('object-images').remove([previous])
-      }
-      await refreshProfile()
-    } catch (e) {
-      Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e))
-    } finally {
-      setAvatarPreview(null)
-      setAvatarBusy(false)
-    }
+    const asset = res.assets[0]
+    const userId = user.id
+    // Une photo à la fois : la nouvelle remplace celle en cours d'envoi.
+    for (const job of avatar.jobs) avatar.cancel(job.id)
+    avatar.add([{
+      uri: asset.uri,
+      prepare: async uri => {
+        const rendered = await ImageManipulator.ImageManipulator.manipulate(uri).resize({ width: AVATAR_SIZE }).renderAsync()
+        const saved = await rendered.saveAsync({ compress: 0.85, format: ImageManipulator.SaveFormat.JPEG })
+        return saved.uri
+      },
+      path: () => `${userId}/avatar/${Date.now()}.jpg`,
+      commit: async path => {
+        const previous = profile?.avatar_path
+        const { error: dbErr } = await supabase
+          .from('profiles')
+          .update({ avatar_path: path, updated_at: new Date().toISOString() })
+          .eq('id', userId)
+        if (dbErr) throw new Error(dbErr.message)
+        // L'ancienne photo part une fois la nouvelle enregistrée : si
+        // l'envoi échoue, on n'a rien perdu.
+        if (previous && previous !== path) {
+          await supabase.storage.from('object-images').remove([previous])
+        }
+        await refreshProfile()
+      },
+    }])
   }
 
   async function removeAvatar() {
     const previous = profile?.avatar_path
     if (!user || !previous) return
-    setAvatarBusy(true)
+    setAvatarRemoving(true)
     const { error } = await supabase
       .from('profiles')
       .update({ avatar_path: null, updated_at: new Date().toISOString() })
       .eq('id', user.id)
     if (error) {
-      setAvatarBusy(false)
+      setAvatarRemoving(false)
       Alert.alert(t('common.error'), error.message)
       return
     }
     await supabase.storage.from('object-images').remove([previous])
     await refreshProfile()
-    setAvatarBusy(false)
+    setAvatarRemoving(false)
   }
 
   const photosMax = stats ? (stats.objectsMax !== null ? stats.objectsMax * (stats.photosPerObject ?? 1) : null) : null
@@ -256,24 +242,35 @@ export default function ProfileScreen() {
               accessibilityRole="button"
               accessibilityLabel={t(profile?.avatar_path ? 'profile.photoView' : 'profile.photoChange')}
             >
-              <UserAvatar
-                size={80}
-                avatarPath={profile?.avatar_path}
-                displayName={profile?.display_name}
-                localUri={avatarPreview}
-              />
+              <ProgressRing
+                size={92}
+                strokeWidth={3}
+                progress={avatarJob ? (avatarFailed ? 1 : avatarJob.progress) : 0}
+                indeterminate={avatarJob?.status === 'preparing'}
+                color={avatarFailed ? Colors.error : Colors.accent}
+                trackColor={avatarJob ? Colors.borderLight : 'transparent'}
+              >
+                <UserAvatar
+                  size={80}
+                  avatarPath={profile?.avatar_path}
+                  displayName={profile?.display_name}
+                  localUri={avatarPreview}
+                />
+              </ProgressRing>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.avatarBadge}
-              onPress={() => setAvatarSheet(true)}
+              style={[styles.avatarBadge, avatarFailed && styles.avatarBadgeError]}
+              onPress={() => avatarFailed ? avatar.retry(avatarJob!.id) : setAvatarSheet(true)}
               disabled={avatarBusy}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel={t('profile.photoChange')}
+              accessibilityLabel={avatarFailed ? `${t('upload.tile.error')}. ${t('upload.tile.retry')}` : t('profile.photoChange')}
             >
-              {avatarBusy
-                ? <ActivityIndicator size="small" color="white" />
-                : <Camera size={14} color="white" strokeWidth={2} />}
+              {avatarFailed
+                ? <RotateCw size={14} color="white" strokeWidth={2.4} />
+                : avatarBusy
+                  ? <ActivityIndicator size="small" color="white" />
+                  : <Camera size={14} color="white" strokeWidth={2} />}
             </TouchableOpacity>
           </View>
           {profile?.display_name && (
@@ -518,6 +515,7 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: Colors.background,
     alignItems: 'center', justifyContent: 'center',
   },
+  avatarBadgeError: { backgroundColor: Colors.error },
   avatarName: { fontSize: Typography.lg, fontWeight: Typography.bold, color: Colors.textPrimary },
   planBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
