@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ScrollView, ActivityIndicator, Animated, Easing, Keyboard,
+  ScrollView, ActivityIndicator, Animated, Easing,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Colors, Typography, Spacing, Radius } from './tokens'
 import { EmojiKeyboardSheet } from './EmojiKeyboardSheet'
+import { dismissKeyboard } from './keyboard'
 
 export const COLLECTION_EMOJIS = [
   '📦', '👗', '👟', '🧸', '📚', '🎸', '🏡', '🖼️', '💻', '⌚', '🧴', '🎮', '🪴', '🍳',
@@ -71,7 +72,7 @@ export function CollectionComposer({ variant, onCreate }: CollectionComposerProp
   }
 
   function close() {
-    Keyboard.dismiss()
+    dismissKeyboard()
     setEditing(false)
     setName('')
     setEmoji(DEFAULT_EMOJI)

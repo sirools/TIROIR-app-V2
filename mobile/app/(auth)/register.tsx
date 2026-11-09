@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Linking } from 'react-native'
+import { View, Text, StyleSheet, Platform, TouchableOpacity, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import * as AppleAuthentication from 'expo-apple-authentication'
 import { supabase } from '@/lib/supabase'
 import { signInWithApple, signInWithGoogle } from '@/features/auth/socialAuth'
-import { Screen, Button, Input, Checkbox, GoogleButton, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { Screen, FormScreen, PRIMARY_BUTTON_SPACE, dismissKeyboard, Button, Input, Checkbox, GoogleButton, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { preferredLanguage } from '@/i18n'
 
 export default function RegisterScreen() {
@@ -110,11 +110,7 @@ export default function RegisterScreen() {
   }
 
   return (
-    <Screen>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.kav}
-      >
+    <FormScreen keepVisibleBelow={PRIMARY_BUTTON_SPACE * 2}>
         <View style={styles.container}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
@@ -148,6 +144,8 @@ export default function RegisterScreen() {
               onChangeText={setPassword}
               secureTextEntry
               placeholder={t('auth.register.passwordPlaceholder')}
+              returnKeyType="done"
+              onSubmitEditing={() => (cguAccepted ? handleRegister() : dismissKeyboard())}
               containerStyle={{ marginTop: Spacing.md }}
             />
 
@@ -200,13 +198,11 @@ export default function RegisterScreen() {
             </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
-    </Screen>
+    </FormScreen>
   )
 }
 
 const styles = StyleSheet.create({
-  kav: { flex: 1 },
   container: {
     flex: 1,
     paddingHorizontal: Spacing.lg,

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  View, Text, StyleSheet, Image, TextInput, FlatList,
+  View, Text, StyleSheet, Image, TextInput,
   TouchableOpacity, ActivityIndicator, Alert, Animated,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -10,7 +10,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { hasPhotoZoom } from '@/lib/plan'
-import { Screen, Colors, Typography, Spacing, Radius, CollectionPickerSheet } from '@/components/ui'
+import { Screen, FormScreen, FormFlatList, focusNextField, Colors, Typography, Spacing, Radius, CollectionPickerSheet } from '@/components/ui'
 import {
   beginBatch, extendBatch, runBatch, retryItem, confirmBatch,
   applyEditedTitles, compressImages,
@@ -352,6 +352,8 @@ export default function BatchReviewScreen() {
                 placeholder={t('batch.titlePlaceholder')}
                 placeholderTextColor={Colors.textTertiary}
                 returnKeyType="next"
+                submitBehavior="submit"
+                onSubmitEditing={focusNextField}
               />
               <Text style={styles.rowMeta} numberOfLines={1}>
                 {[attrs?.category, attrs?.brand].filter(Boolean).join(' · ') || t('batch.noMeta')}
@@ -388,43 +390,68 @@ export default function BatchReviewScreen() {
   }
 
   return (
-    <Screen edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleAbandon} hitSlop={10} style={styles.closeBtn}>
-          <X size={22} color={Colors.textPrimary} strokeWidth={1.8} />
-        </TouchableOpacity>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>{t('batch.reviewTitle')}</Text>
-          <Text style={styles.subtitle}>
-            {settledCount < items.length
-              ? t('batch.progress', { done: settledCount, total: items.length })
-              : t('batch.readyCount', { count: readyCount })}
-          </Text>
-        </View>
-      </View>
+    <FormScreen
+      mode="list"
+      edges={['top', 'bottom']}
+      header={
+        <>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={handleAbandon} hitSlop={10} style={styles.closeBtn}>
+              <X size={22} color={Colors.textPrimary} strokeWidth={1.8} />
+            </TouchableOpacity>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>{t('batch.reviewTitle')}</Text>
+              <Text style={styles.subtitle}>
+                {settledCount < items.length
+                  ? t('batch.progress', { done: settledCount, total: items.length })
+                  : t('batch.readyCount', { count: readyCount })}
+              </Text>
+            </View>
+          </View>
 
-      {settledCount < items.length && (
-        <View style={styles.progressTrack}>
-          <Animated.View
-            style={[
-              styles.progressFill,
-              {
-                width: progressAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['0%', '100%'],
-                }),
-              },
-            ]}
-          />
+          {settledCount < items.length && (
+            <View style={styles.progressTrack}>
+              <Animated.View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: progressAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0%', '100%'],
+                    }),
+                  },
+                ]}
+              />
+            </View>
+          )}
+        </>
+      }
+      footer={
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.btnPrimary, (isBusy || readyCount === 0) && styles.btnDisabled]}
+            onPress={() => presetCollectionId
+              ? runConfirm(presetCollectionId)
+              : setPickerVisible(true)
+            }
+            disabled={isBusy || readyCount === 0}
+            activeOpacity={0.85}
+          >
+            {phase === 'confirming'
+              ? <ActivityIndicator size="small" color={Colors.textInverse} />
+              : <Text style={styles.btnPrimaryText}>
+                  {t('batch.confirmCta', { count: readyCount })}
+                </Text>
+            }
+          </TouchableOpacity>
         </View>
-      )}
-
-      <FlatList
+      }
+    >
+      <FormFlatList
         data={visibleItems}
         keyExtractor={item => item.draftId}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
-        keyboardShouldPersistTaps="handled"
         ItemSeparatorComponent={() => <View style={styles.sep} />}
         ListFooterComponent={
           /* En pied de liste plutôt qu'en en-tête : on prolonge la
@@ -454,25 +481,6 @@ export default function BatchReviewScreen() {
         }
       />
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.btnPrimary, (isBusy || readyCount === 0) && styles.btnDisabled]}
-          onPress={() => presetCollectionId
-            ? runConfirm(presetCollectionId)
-            : setPickerVisible(true)
-          }
-          disabled={isBusy || readyCount === 0}
-          activeOpacity={0.85}
-        >
-          {phase === 'confirming'
-            ? <ActivityIndicator size="small" color={Colors.textInverse} />
-            : <Text style={styles.btnPrimaryText}>
-                {t('batch.confirmCta', { count: readyCount })}
-              </Text>
-          }
-        </TouchableOpacity>
-      </View>
-
       {/* Destination du lot — dernière décision avant création */}
       <CollectionPickerSheet
         visible={pickerVisible}
@@ -482,7 +490,7 @@ export default function BatchReviewScreen() {
         onSelect={dest => runConfirm(dest?.id ?? null)}
         onDismiss={() => setPickerVisible(false)}
       />
-    </Screen>
+    </FormScreen>
   )
 }
 

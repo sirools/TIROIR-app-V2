@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
@@ -18,6 +17,7 @@ import {
   Screen, ActionSheet, CollectionComposer, PromptDialog,
   CollectionEditSheet, EditableCollection, CollectionPatch,
   Colors, Typography, Spacing, Radius,
+  FormFlatList,
 } from '@/components/ui'
 import { CollectionSortButton } from '@/components/CollectionSortButton'
 import {
@@ -205,7 +205,7 @@ export default function CollectionsScreen() {
         )}
       </View>
 
-      <FlatList
+      <FormFlatList
         data={ordered}
         keyExtractor={c => c.id}
         contentContainerStyle={styles.list}

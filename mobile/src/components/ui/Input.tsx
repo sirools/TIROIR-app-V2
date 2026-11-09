@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { forwardRef, useState } from 'react'
 import {
   View,
   TextInput,
@@ -8,6 +8,7 @@ import {
   ViewStyle,
 } from 'react-native'
 import { Colors, Typography, Spacing, Radius } from './tokens'
+import { focusNextField } from './keyboard/FormScreen'
 
 interface InputProps extends TextInputProps {
   label?: string
@@ -15,13 +16,24 @@ interface InputProps extends TextInputProps {
   containerStyle?: ViewStyle
 }
 
-export function Input({ label, error, containerStyle, style, ...props }: InputProps) {
+/**
+ * Champ de saisie. « Suivant » (`returnKeyType="next"`, le défaut) passe au
+ * champ suivant sans fermer le clavier ; sur le dernier champ, passer
+ * `returnKeyType="done"` (ou `go`, `send`…) et `onSubmitEditing` pour valider.
+ * À poser dans un `FormScreen`, `FormScrollView` ou `FormSheet`.
+ */
+export const Input = forwardRef<TextInput, InputProps>(function Input(
+  { label, error, containerStyle, style, returnKeyType = 'next', onSubmitEditing, onFocus, onBlur, multiline, ...props },
+  ref,
+) {
   const [focused, setFocused] = useState(false)
+  const goesNext = returnKeyType === 'next' && !onSubmitEditing && !multiline
 
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
+        ref={ref}
         style={[
           styles.input,
           focused && styles.inputFocused,
@@ -29,14 +41,18 @@ export function Input({ label, error, containerStyle, style, ...props }: InputPr
           style,
         ]}
         placeholderTextColor={Colors.textTertiary}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        returnKeyType={returnKeyType}
+        submitBehavior={goesNext ? 'submit' : undefined}
+        onSubmitEditing={goesNext ? () => focusNextField() : onSubmitEditing}
+        multiline={multiline}
+        onFocus={e => { setFocused(true); onFocus?.(e) }}
+        onBlur={e => { setFocused(false); onBlur?.(e) }}
         {...props}
       />
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   container: {

@@ -5,7 +5,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   TextInput,
   RefreshControl,
   Alert,
@@ -22,6 +21,7 @@ import {
   ActionSheet, CollectionComposer, PromptDialog, TiroirLoader,
   CollectionEditSheet, EditableCollection, CollectionPatch,
   Colors, Typography, Spacing, Radius,
+  FormFlatList,
 } from '@/components/ui'
 import { CollectionSortButton } from '@/components/CollectionSortButton'
 import {
@@ -194,12 +194,11 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <FlatList
+      <FormFlatList
         data={loading ? [] : visible}
         keyExtractor={c => c.id}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />}
         /* Virtualisation : seules les lignes à l'écran sont montées, donc
            les photos de couverture des autres ne sont jamais téléchargées.
@@ -360,7 +359,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
   // `gap` retiré : il s'appliquait entre l'en-tête et CHAQUE ligne de la
-  // FlatList, en plus du séparateur. Les écarts sont désormais portés par
+  // en plus du séparateur. Les écarts sont désormais portés par
   // les blocs qui les demandent, une seule fois chacun.
   content: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg, paddingBottom: 96 },
   headerBlock: { marginBottom: Spacing.sm },
