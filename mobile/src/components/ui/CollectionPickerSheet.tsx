@@ -136,6 +136,7 @@ export function CollectionPickerSheet({
           <ActivityIndicator style={styles.loader} color={Colors.accent} />
         ) : (
           <SheetFlatList
+            footerHoldsField
             data={ordered}
             keyExtractor={c => c.id}
             style={styles.list}

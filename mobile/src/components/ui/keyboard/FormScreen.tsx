@@ -105,6 +105,8 @@ export const FormScrollView = forwardRef<React.ElementRef<typeof KeyboardAwareSc
 function useKeepFocusedInputVisible(
   listRef: React.RefObject<{ measureInWindow: View['measureInWindow'] } | null>,
   scrollTo: (y: number) => void,
+  /** Défiler à chaque ouverture, même si le champ est déjà visible. */
+  always = false,
 ) {
   const offsetY = useRef(0)
   useEffect(() => {
@@ -116,13 +118,14 @@ function useKeepFocusedInputVisible(
         focused.measureInWindow((_x, y, _w, h) => {
           const below = y + h + FIELD_GAP - (listY + listH)
           const above = listY - (y - FIELD_GAP)
-          if (below > 0) scrollTo(offsetY.current + below)
+          if (always) scrollTo(offsetY.current + Math.max(0, below))
+          else if (below > 0) scrollTo(offsetY.current + below)
           else if (above > 0) scrollTo(Math.max(0, offsetY.current - above))
         })
       })
     })
     return () => sub.remove()
-  }, [listRef, scrollTo])
+  }, [listRef, scrollTo, always])
   return offsetY
 }
 
@@ -151,15 +154,30 @@ export function SheetScrollView({ children, onScroll, ...props }: ScrollViewProp
 }
 
 /** FlatList d'une `FormSheet` (même règle que `SheetScrollView`). */
-function SheetFlatListInner<T>({ onScroll, ...props }: FlatListProps<T>, ref: React.ForwardedRef<FlatList<T> | null>) {
+type SheetFlatListProps<T> = FlatListProps<T> & {
+  /**
+   * Le champ vit dans le pied de liste avec ses boutons (créer une
+   * collection) : à l'ouverture du clavier, la liste descend jusqu'en bas
+   * pour montrer le pied entier, pas seulement le champ.
+   */
+  footerHoldsField?: boolean
+}
+
+function SheetFlatListInner<T>(
+  { onScroll, footerHoldsField = false, ...props }: SheetFlatListProps<T>,
+  ref: React.ForwardedRef<FlatList<T> | null>,
+) {
   const listRef = useRef<FlatList<T>>(null)
   useImperativeHandle(ref, () => listRef.current as FlatList<T>)
-  const scrollTo = useCallback((y: number) => listRef.current?.scrollToOffset({ offset: y, animated: true }), [])
+  const scrollTo = useCallback((y: number) => {
+    if (footerHoldsField) listRef.current?.scrollToEnd({ animated: true })
+    else listRef.current?.scrollToOffset({ offset: y, animated: true })
+  }, [footerHoldsField])
   const nativeRef = useRef<View | null>(null)
   useEffect(() => {
     nativeRef.current = (listRef.current?.getNativeScrollRef() as unknown as View) ?? null
   })
-  const offsetY = useKeepFocusedInputVisible(nativeRef, scrollTo)
+  const offsetY = useKeepFocusedInputVisible(nativeRef, scrollTo, footerHoldsField)
   return (
     <FlatList
       ref={listRef}
@@ -172,7 +190,7 @@ function SheetFlatListInner<T>({ onScroll, ...props }: FlatListProps<T>, ref: Re
   )
 }
 export const SheetFlatList = forwardRef(SheetFlatListInner) as <T>(
-  props: FlatListProps<T> & { ref?: React.Ref<FlatList<T>> },
+  props: SheetFlatListProps<T> & { ref?: React.Ref<FlatList<T>> },
 ) => React.ReactElement
 
 /**
