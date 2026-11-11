@@ -4,6 +4,13 @@ Lancement le **mardi 24 novembre 2026**, clôture le **mardi 15 décembre**.
 Accroche : **« Noël avant Noël »**. Page : https://fr.ulule.com/tiroir-app/
 (projet n° 240562). Paliers : 1 000 €, 2 000 €, 5 000 €.
 
+**Mode de collecte : dons** (décision du 11 novembre, sur proposition
+d'Ulule). Pas de contreparties, pas de tout ou rien : chaque don est acquis,
+l'objectif et la date de fin sont facultatifs (on garde le 15 décembre pour
+l'élan), et l'argent se vire à la demande. La commission d'Ulule s'applique à
+tout ce qui est viré. Tiroir n'étant pas une association, pas de reçu fiscal.
+Les paliers restent des caps affichés sur le site et dans les e-mails.
+
 Ce document compare ce qui est en place (PR #101 et #103, fusionnées sur
 `main`) à la checklist du brief, puis liste ce qui reste à faire avant le 18.
 
@@ -60,8 +67,11 @@ Classés par gravité.
 6. **Les documents de campagne datent de l'ancien calendrier** :
    `campagne-kkbb/ulule-v2.md`, `checklist.md`, `faq.md` parlent d'un
    lancement le 12 janvier, d'une fin le 9 février, d'un objectif de 4 000 €
-   et de livraisons en février 2027. À aligner avec 24 nov. → 15 déc., objectif
-   abaissé, paliers 1 000 / 2 000 / 5 000.
+   en tout ou rien et de contreparties livrées en février 2027. Avec la
+   collecte de dons, `contreparties.md` ne sert plus, et la description, la
+   FAQ (« Et si l'objectif n'est pas atteint ? ») et le texte « C'est tout ou
+   rien » de `ulule-v2.md` sont à réécrire. Calendrier : 24 nov. → 15 déc.,
+   paliers 1 000 / 2 000 / 5 000.
 7. **URL de campagne en variable d'environnement** : le brief la demande. Elle
    est aujourd'hui en base (modifiable depuis l'admin, sans redéploiement),
    avec `https://fr.ulule.com/tiroir-app/` écrite en dur comme secours dans
@@ -107,18 +117,26 @@ quatre e-mails, la jauge et les paliers.
       personne, désinscription. Textes dans `design/i18n/email/fr.json`, à
       valider par Clément.
 - [x] **Bannière « Noël avant Noël »** : accroche, rappel « jusqu'au
-      15 décembre, des cadeaux à offrir avant Noël », jauge et paliers
+      15 décembre, un don du montant que tu veux, un coup de pouce avant
+      Noël », jauge et paliers
       1 000 / 2 000 / 5 000 lus sur l'API publique d'Ulule (cache 5 min,
       bannière sans jauge si l'API ne répond pas).
 - [x] **Jauge et paliers dans les e-mails** de relance, 48 h et bilan (montant
       lu au moment de l'envoi).
 - [x] `ULULE_PAGE_URL` en secours à la place de l'URL en dur.
 - [x] Tests à jour (les dates de test sont encore le 12 janvier).
+- [x] **Collecte de dons** (11 nov.) : plus aucune contrepartie promise dans
+      la bannière ni les e-mails ; le merci parle d'un don ; l'import
+      reconnaît « ID du don », « Montant du don », « Date du don ». Les
+      intitulés réels de l'export de dons restent à vérifier le 17.
 
 ### Clément
 
-- [ ] **Avant le 18** : page Ulule complète, infos bancaires, objectif
-      abaissé, envoi en relecture (≈ 2 jours ouvrés).
+- [ ] **Répondre à Ulule** : accord pour la collecte de dons, date de fin le
+      15 décembre, objectif affiché 1 000 € (ou aucun).
+- [ ] **Avant le 18** : page Ulule repassée en dons (retirer les
+      contreparties, réécrire les passages « tout ou rien » et
+      « remboursé »), infos bancaires, envoi en relecture (≈ 2 jours ouvrés).
 - [ ] **Relire et valider la PR #105** (textes des e-mails et de la bannière),
       puis appliquer sa migration avant le déploiement. Elle met la date de
       lancement au `24/11/2026 08:00`. Sans elle, change la date à la main

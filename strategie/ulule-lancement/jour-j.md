@@ -1,7 +1,8 @@
 # Jour J — mardi 24 novembre 2026, « Noël avant Noël »
 
+Collecte de **dons** : pas de contreparties, pas de tout ou rien.
 Objectif du matin : **le premier palier (1 000 €) dans les premières heures**,
-pour qu'Ulule mette le projet en avant.
+pour donner l'élan à tous ceux qui découvriront la page ensuite.
 
 Adresses :
 - Page : https://fr.ulule.com/tiroir-app/
@@ -52,7 +53,10 @@ Adresses :
    > compte énormément pour moi. Clément
 
    Envoyé le 24 au matin, le message gagnerait à dire « Aujourd'hui » plutôt
-   que « Le 24 novembre » : à toi de voir.
+   que « Le 24 novembre » : à toi de voir. Autre point, avec la collecte de
+   dons : rien ne garantit qu'Ulule mette en avant un projet qui atteint son
+   premier palier. Tu peux remplacer cette phrase par « une collecte qui
+   démarre fort donne envie aux autres de suivre ».
 10. Bio Instagram : mettre le lien `tiroir.app/u/instagram`
     (créé par la PR #105 ; sans elle, mets l'adresse Ulule). Publier le post
     et la story du lancement.
@@ -64,8 +68,8 @@ Adresses :
     ambassadeurs.
 
 **Le soir**
-13. Ulule → exporter les contributions (CSV). Admin → Import : regarder
-    l'aperçu (colonnes reconnues, commandes payées), puis valider. Les mercis
+13. Ulule → exporter les dons (CSV). Admin → Import : regarder
+    l'aperçu (colonnes reconnues, dons payés), puis valider. Les mercis
     partent aux nouveaux contributeurs seulement.
 14. Si l'aperçu refuse le fichier : ne rien forcer. Noter les colonnes
     affichées et me les envoyer, je corrige l'import le lendemain matin. Les
@@ -75,8 +79,8 @@ Adresses :
 
 - **Chaque soir** : export Ulule puis import dans l'admin (mercis).
 - **Vendredi 4 décembre** : e-mail de relance mi-campagne.
-- **Dimanche 13 décembre** : e-mail « dernières 48 h », cadeaux à offrir avant
-  Noël.
+- **Dimanche 13 décembre** : e-mail « dernières 48 h », un dernier coup de
+  pouce avant Noël.
 - **Mardi 15 décembre** : clôture. Dernier import le soir.
 - **Mercredi 16 décembre** : e-mail de bilan et de remerciement à tous.
 
