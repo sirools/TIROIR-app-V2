@@ -830,8 +830,13 @@
     "ululeInvite": {
       "label": "Ulule campaign",
       "close": "Close",
-      "title": "Tiroir de famille, on Ulule",
-      "text": "Our crowdfunding campaign, to give Tiroir the means to grow.",
+      "title": "Christmas comes early",
+      "textBefore": "On {date}, Tiroir de famille launches on Ulule: one month before Christmas, to give Tiroir the means to grow.",
+      "textLive": "Until December 15, support Tiroir on Ulule with a donation of any amount. A little boost before Christmas.",
+      "raised": "{amount} raised",
+      "next": "Next milestone: {amount}",
+      "allReached": "Every milestone reached. Thank you!",
+      "milestones": "Milestones",
       "cta": "See the campaign"
     }
   },

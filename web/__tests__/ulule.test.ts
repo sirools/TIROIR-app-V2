@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'vitest'
 import {
-  campaignUrl, firstNameOf, formatLaunchDate, parisInputToIso, parseAmbassadorLines, parseAmountCents,
-  parseCsv, parseExport, parseOrderDate, referrerOrigin, toParisInput, uniqueSlug,
+  campaignUrl, firstNameOf, formatEuros, formatLaunchDate, parisInputToIso, parseAmbassadorLines, parseAmountCents,
+  parseCsv, parseExport, parseMilestones, parseOrderDate, progressOf, referrerOrigin, toParisInput, uniqueSlug,
 } from '../lib/ulule'
-import { renderPrelaunch, renderThanks } from '../lib/ululeEmails'
+import { renderCampaign, renderPrelaunch, renderThanks } from '../lib/ululeEmails'
+import { slugFromPageUrl } from '../lib/ululeProgress'
 
 describe('ambassadeurs', () => {
   test('slug sans accent, puis suffixe en cas de doublon', () => {
@@ -13,12 +14,19 @@ describe('ambassadeurs', () => {
   })
 
   test('une personne par ligne, les lignes illisibles sont rendues', () => {
-    const { valid, invalid } = parseAmbassadorLines('Marie, Dupont, MARIE@Exemple.fr\nJean;jean@exemple.fr\nsans adresse, ni rien')
+    const { valid, invalid } = parseAmbassadorLines('Marie, Dupont, MARIE@Exemple.fr\nJean;jean@exemple.fr\nPaul, Dupont, paul@typo\nmauvaise@, Paul')
     expect(valid).toEqual([
       { firstName: 'Marie', lastName: 'Dupont', email: 'marie@exemple.fr' },
       { firstName: 'Jean', lastName: '', email: 'jean@exemple.fr' },
     ])
-    expect(invalid).toEqual(['sans adresse, ni rien'])
+    expect(invalid).toEqual(['Paul, Dupont, paul@typo', 'mauvaise@, Paul'])
+  })
+
+  test('sans adresse : un lien seul, pour un proche prévenu par SMS', () => {
+    expect(parseAmbassadorLines('Mamie, Ougier\nTonton').valid).toEqual([
+      { firstName: 'Mamie', lastName: 'Ougier', email: null },
+      { firstName: 'Tonton', lastName: '', email: null },
+    ])
   })
 })
 
@@ -78,6 +86,11 @@ describe('lecture de l’export', () => {
     })
   })
 
+  test('un export de dons : intitulés « don » reconnus', () => {
+    const r = parseExport('ID du don;Email;Nom complet;Montant du don;Statut;Date du don\n7;a@b.fr;Ana B;10;payment-done;24/11/2026 08:15\n')
+    expect(r.ok && r.orders[0]).toMatchObject({ orderId: '7', amountCents: 1000, contributedAt: '2026-11-24T07:15:00.000Z' })
+  })
+
   test('une colonne indispensable absente : refus, avec les colonnes trouvées', () => {
     const r = parseExport('Nom;Montant\nMarie;25\n')
     expect(r.ok).toBe(false)
@@ -121,5 +134,81 @@ describe('e-mails', () => {
   test('merci, avec ou sans prénom', () => {
     expect(renderThanks({ prenom: 'Marie' }).text).toMatch(/^Salut Marie,/)
     expect(renderThanks({ prenom: '' }).text).toMatch(/^Salut,/)
+  })
+})
+
+describe('jauge et paliers', () => {
+  const steps = [100_000, 200_000, 500_000]
+
+  test('prochain palier, part remplie, paliers atteints', () => {
+    expect(progressOf(0, steps)).toEqual({ amountCents: 0, nextCents: 100_000, ratio: 0, reached: 0 })
+    expect(progressOf(150_000, steps)).toMatchObject({ nextCents: 200_000, ratio: 0.75, reached: 1 })
+    expect(progressOf(200_000, steps)).toMatchObject({ nextCents: 500_000, reached: 2 })
+    expect(progressOf(600_000, steps)).toMatchObject({ nextCents: null, ratio: 1, reached: 3 })
+  })
+
+  test('paliers saisis en euros dans l’admin', () => {
+    expect(parseMilestones('5000, 1 000 ; 2000')).toEqual([100_000, 200_000, 500_000])
+    expect(parseMilestones('1000, mille')).toBeNull()
+    expect(parseMilestones('')).toBeNull()
+  })
+
+  test('montants sans centimes inutiles', () => {
+    expect(formatEuros(100_000)).toBe('1\u00a0000\u00a0€')
+    expect(formatEuros(2_550)).toBe('25,50\u00a0€')
+  })
+
+  test('slug de la page Ulule, pour l’API publique', () => {
+    expect(slugFromPageUrl('https://fr.ulule.com/tiroir-app/')).toBe('tiroir-app')
+    expect(slugFromPageUrl('pas une adresse')).toBeNull()
+  })
+})
+
+describe('e-mails de la campagne', () => {
+  const base = {
+    prenom: 'Marie', lien: 'https://tiroir.app/u/marie-dupont', premierPalier: '1\u00a0000\u00a0€',
+    montant: '1\u00a0250\u00a0€', palier: '2\u00a0000\u00a0€',
+    desinscription: 'https://tiroir.app/desinscription?t=abc', adresse: '',
+  }
+
+  test('lancement : Noël avant Noël, collecte de dons, premier palier, lien perso, désinscription', () => {
+    const m = renderCampaign('launch', base)
+    expect(m.subject).toContain('Noël avant Noël')
+    expect(m.text).toContain('collecte de dons')
+    expect(m.text).toContain('Premier palier : 1\u00a0000\u00a0€')
+    expect(m.text).toContain('https://tiroir.app/u/marie-dupont')
+    expect(m.html).toContain('href="https://tiroir.app/desinscription?t=abc"')
+    expect(m.html).not.toMatch(/\{\w+\}/)
+    expect(m.text).not.toMatch(/\{\w+\}/)
+  })
+
+  test('collecte de dons : aucune contrepartie promise', () => {
+    for (const k of ['launch', 'reminder', 'last48h', 'recap'] as const) {
+      expect(renderCampaign(k, base).text).not.toMatch(/contreparties|cadeau|sous le sapin/i)
+    }
+  })
+
+  test('relance : la jauge quand Ulule répond, rien sinon', () => {
+    expect(renderCampaign('reminder', base).text).toContain('On en est à 1\u00a0250\u00a0€. Prochain palier : 2\u00a0000\u00a0€.')
+    const blind = renderCampaign('reminder', { ...base, montant: null, palier: null })
+    expect(blind.text).not.toContain('On en est')
+    expect(blind.html).not.toMatch(/\{\w+\}/)
+  })
+
+  test('48 h : tous les paliers dépassés', () => {
+    expect(renderCampaign('last48h', { ...base, palier: null }).text).toContain('tous les paliers sont dépassés')
+  })
+
+  test('bilan à un contributeur : sans lien perso, sans prénom, pied « stop »', () => {
+    const m = renderCampaign('recap', { ...base, prenom: '', lien: null, desinscription: null })
+    expect(m.text).toMatch(/^Salut,/)
+    expect(m.text).toContain('Ensemble, on a réuni 1\u00a0250\u00a0€.')
+    expect(m.text).toContain('réponds simplement « stop »')
+    expect(m.html).not.toContain('/u/')
+    expect(m.html).not.toMatch(/\{\w+\}/)
+  })
+
+  test('un prénom ne peut pas injecter de HTML', () => {
+    expect(renderCampaign('launch', { ...base, prenom: 'Marie <b>' }).html).toContain('Marie &lt;b&gt;')
   })
 })
