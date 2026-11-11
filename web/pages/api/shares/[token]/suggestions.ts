@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .maybeSingle()
   if (!link) return res.status(404).json({ error: 'NOT_FOUND' })
 
-  if (link.options?.password_protected && !hasSignedCookie(token, req)) {
+  if (link.options?.password_protected && !hasSignedCookie(token, req, link.options?.password_hash)) {
     return res.status(403).json({ error: 'PASSWORD_REQUIRED' })
   }
 

@@ -60,6 +60,7 @@ type ShareLinkRow = {
   options: {
     allow_download?: boolean
     password_protected?: boolean
+    password_hash?: string | null
     fields?: Partial<ShareFields>
   } | null
   expires_at: string | null
@@ -133,9 +134,9 @@ export function safeFilename(value: string): string {
   return normalized || 'tiroir-export'
 }
 
-function hasSignedShareCookie(req: NextApiRequest, token: string): boolean {
-  // La valeur est vérifiée (signature HMAC, fraîcheur), pas seulement sa présence.
-  return hasSignedCookie(token, req)
+function hasSignedShareCookie(req: NextApiRequest, token: string, passwordHash?: string | null): boolean {
+  // La valeur est vérifiée (signature HMAC, fraîcheur, mot de passe actuel), pas seulement sa présence.
+  return hasSignedCookie(token, req, passwordHash)
 }
 
 /**
@@ -171,7 +172,7 @@ export async function resolveShareExport(
   }
 
   if (!shareLink.options?.allow_download) return { ok: false, status: 403, error: 'DOWNLOAD_DISABLED' }
-  if (shareLink.options?.password_protected && !hasSignedShareCookie(req, token)) {
+  if (shareLink.options?.password_protected && !hasSignedShareCookie(req, token, shareLink.options?.password_hash)) {
     return { ok: false, status: 403, error: 'PASSWORD_REQUIRED' }
   }
 
