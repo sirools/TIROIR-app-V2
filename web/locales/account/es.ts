@@ -224,6 +224,12 @@ const accountEs: AccountCopy = {
     identityTaken: 'Esta cuenta ya está vinculada a otra cuenta de Tiroir. Inicia sesión con ella, elimina esa segunda cuenta o escribe a support@tiroir.app.',
     lastIdentity: 'No puedes desvincular tu último método de inicio de sesión: añade otro primero.',
   },
+  campaign: {
+    metaTitle: 'Tiroir de famille — Próximamente',
+    title: 'Nos vemos el {date}',
+    text: 'La campaña Tiroir de famille aún no está abierta. Este enlace te llevará allí desde el primer día.',
+    home: 'Descubrir Tiroir',
+  },
 }
 
 export default accountEs

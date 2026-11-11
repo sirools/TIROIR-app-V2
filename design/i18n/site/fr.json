@@ -520,7 +520,13 @@
       "identityTaken": "Ce compte est déjà rattaché à un autre compte Tiroir. Connecte-toi avec lui, supprime ce second compte ou écris à support@tiroir.app.",
       "lastIdentity": "Impossible de délier ton dernier moyen de connexion : ajoute-en un autre d’abord."
     },
-    "$comment": "Textes account en français — référence de structure pour en, de, es\n(type AccountCopy). Importé par ../fr.ts sous la clé « account ».\nPages de compte : connexion, inscription, mot de passe, confirmation,\nbienvenue, merci, désinscription, mon compte, profil, mes partages.\nLes marqueurs {email}, {min}, {n}, {date} sont remplacés à l'affichage."
+    "$comment": "Textes account en français — référence de structure pour en, de, es\n(type AccountCopy). Importé par ../fr.ts sous la clé « account ».\nPages de compte : connexion, inscription, mot de passe, confirmation,\nbienvenue, merci, désinscription, mon compte, profil, mes partages.\nLes marqueurs {email}, {min}, {n}, {date} sont remplacés à l'affichage.",
+    "campaign": {
+      "metaTitle": "Tiroir de famille — Rendez-vous",
+      "title": "Rendez-vous le {date}",
+      "text": "La campagne Tiroir de famille n’est pas encore ouverte. Ce lien t’y emmènera dès le premier jour.",
+      "home": "Découvrir Tiroir"
+    }
   },
   "about": {
     "meta": {
