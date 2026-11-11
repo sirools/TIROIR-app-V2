@@ -91,33 +91,40 @@ Classés par gravité.
 
 ## 4. Reste à faire avant le 18
 
-### Claude Code (sur une branche, rien en prod sans feu vert)
+### Claude Code : fait dans la PR #105 (pas en prod, attend ton feu vert)
 
-- [ ] **Liens sans e-mail** : un ambassadeur peut n'avoir pas d'adresse
+Les écarts 1 à 5 et 7 sont traités dans
+https://github.com/sirools/TIROIR-app-V2/pull/105 : la migration passe la
+date au 24 novembre, crée les liens `accueil` et `instagram`, ajoute les
+quatre e-mails, la jauge et les paliers.
+
+- [x] **Liens sans e-mail** : un ambassadeur peut n'avoir pas d'adresse
       (proche, famille, « accueil », « instagram ») ; il a un lien et compte
       dans le tableau de bord, mais ne reçoit aucun e-mail.
-- [ ] **Quatre e-mails de plus** : lancement (24 matin), relance (4 déc.),
+- [x] **Quatre e-mails de plus** : lancement (24 matin), relance (4 déc.),
       dernières 48 h (13 déc.), bilan (16 déc.). Même mécanique que le
       pré-lancement : envoi déclenché par Clément depuis l'admin, une fois par
       personne, désinscription. Textes dans `design/i18n/email/fr.json`, à
       valider par Clément.
-- [ ] **Bannière « Noël avant Noël »** : accroche, rappel « jusqu'au
+- [x] **Bannière « Noël avant Noël »** : accroche, rappel « jusqu'au
       15 décembre, des cadeaux à offrir avant Noël », jauge et paliers
       1 000 / 2 000 / 5 000 lus sur l'API publique d'Ulule (cache 5 min,
       bannière sans jauge si l'API ne répond pas).
-- [ ] **Jauge et paliers dans les e-mails** de relance, 48 h et bilan (montant
+- [x] **Jauge et paliers dans les e-mails** de relance, 48 h et bilan (montant
       lu au moment de l'envoi).
-- [ ] `ULULE_PAGE_URL` en secours à la place de l'URL en dur.
-- [ ] Tests à jour (les dates de test sont encore le 12 janvier).
+- [x] `ULULE_PAGE_URL` en secours à la place de l'URL en dur.
+- [x] Tests à jour (les dates de test sont encore le 12 janvier).
 
 ### Clément
 
 - [ ] **Avant le 18** : page Ulule complète, infos bancaires, objectif
       abaissé, envoi en relecture (≈ 2 jours ouvrés).
-- [ ] **Changer la date de lancement** dans `/admin/ulule` → `24/11/2026 08:00`.
+- [ ] **Relire et valider la PR #105** (textes des e-mails et de la bannière),
+      puis appliquer sa migration avant le déploiement. Elle met la date de
+      lancement au `24/11/2026 08:00`. Sans elle, change la date à la main
+      dans `/admin/ulule` → Réglages.
 - [ ] Donner la **liste des 5 ambassadeurs** (prénom, nom, e-mail) et la liste
       des proches ou familles qui auront un lien (un nom suffit).
-- [ ] Valider les textes des quatre nouveaux e-mails et de la bannière.
 - [ ] Vérifier `RESEND_API_KEY` dans Vercel (production).
 - [ ] Aligner les documents de campagne sur le nouveau calendrier (écart 6).
 - [ ] **Mardi 17** : test de bout en bout (ci-dessous), puis feu vert.

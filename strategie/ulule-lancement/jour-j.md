@@ -54,7 +54,7 @@ Adresses :
    Envoyé le 24 au matin, le message gagnerait à dire « Aujourd'hui » plutôt
    que « Le 24 novembre » : à toi de voir.
 10. Bio Instagram : mettre le lien `tiroir.app/u/instagram`
-    (suivi une fois les liens sans e-mail en place ; sinon, l'adresse Ulule). Publier le post
+    (créé par la PR #105 ; sans elle, mets l'adresse Ulule). Publier le post
     et la story du lancement.
 
 **8 h 30 → 12 h — suivre**
