@@ -72,7 +72,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     .single()
   if (!link) return empty(token, objectId, 'not_found')
   if (link.is_archived || (link.expires_at && new Date(link.expires_at) < new Date())) return empty(token, objectId, 'expired')
-  if (link.options?.password_protected && !hasSignedCookie(token, ctx.req)) return empty(token, objectId, 'gated')
+  if (link.options?.password_protected && !hasSignedCookie(token, ctx.req, link.options?.password_hash)) return empty(token, objectId, 'gated')
   const ids: string[] = Array.isArray(link.object_ids) ? link.object_ids : []
   if (!ids.includes(objectId)) return empty(token, objectId, 'not_found')
 

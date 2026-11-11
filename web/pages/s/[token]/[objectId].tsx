@@ -168,7 +168,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     return { props: { token, object: null, images: [], documents: [], insurances: [], error: 'expired' } }
   }
 
-  if (link.options?.password_protected && !hasSignedCookie(token, ctx.req)) {
+  if (link.options?.password_protected && !hasSignedCookie(token, ctx.req, link.options?.password_hash)) {
     return { props: { token, object: null, images: [], documents: [], insurances: [], gated: true } }
   }
 

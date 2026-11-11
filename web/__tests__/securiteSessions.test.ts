@@ -49,14 +49,23 @@ describe('partages protégés : seule une clé signée ouvre', () => {
     expect(src).not.toMatch(/weakAuthorized/)
   })
 
+  test.each([
+    'pages/s/[token].tsx', 'pages/s/[token]/[objectId].tsx', 'pages/s/[token]/[objectId]/vente.tsx',
+    'pages/api/shares/[token]/suggestions.ts',
+  ])('%s lie la clé au mot de passe actuel du partage', p => {
+    const calls = code(p).match(/hasSignedCookie\([^\n]*/g) ?? []
+    expect(calls.length).toBeGreaterThan(0)
+    for (const call of calls) expect(call).toContain('link.options?.password_hash')
+  })
+
   test('l’export vérifie la signature, pas seulement la présence du cookie', () => {
-    expect(code('lib/shareExportData.ts')).toContain('return hasSignedCookie(token, req)')
+    expect(code('lib/shareExportData.ts')).toContain('return hasSignedCookie(token, req, passwordHash)')
   })
 
   test('les deux routes de vérification posent une clé signée', () => {
     expect(code('pages/api/shares/verify.ts')).not.toContain('`${Date.now()}.ok`')
     expect(code('pages/api/shares/verify.ts')).toContain('signedCookieValue(slug)')
-    expect(code('pages/api/shares/[token]/verify.ts')).toContain('signedCookieValue(token)')
+    expect(code('pages/api/shares/[token]/verify.ts')).toContain('signedCookieValue(token, Date.now(), passwordHash)')
   })
 })
 

@@ -161,7 +161,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   }
 
   // Clé SIGNÉE exigée (le cookie non signé `<ts>.ok` se fabriquait à la main).
-  if (link.options?.password_protected && !hasSignedCookie(token, ctx.req)) {
+  if (link.options?.password_protected && !hasSignedCookie(token, ctx.req, link.options?.password_hash)) {
     return { props: { token, title: link.title ?? null, objects: [], allowDownload: false, fields: ALL_FIELDS, gated: true } }
   }
 
@@ -273,7 +273,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     wishes,
     isOwner: viewerId !== null && viewerId === link.user_id,
     isLoggedIn: viewerId !== null,
-    suggestLocked: Boolean(link.options?.password_protected) && !hasSignedCookie(token, ctx.req),
+    suggestLocked: Boolean(link.options?.password_protected) && !hasSignedCookie(token, ctx.req, link.options?.password_hash),
   }
 
   return {
