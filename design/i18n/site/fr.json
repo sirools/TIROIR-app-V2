@@ -850,8 +850,13 @@
     "ululeInvite": {
       "label": "Campagne Ulule",
       "close": "Fermer",
-      "title": "Tiroir de famille, sur Ulule",
-      "text": "Notre campagne de financement participatif, pour donner à Tiroir les moyens de grandir.",
+      "title": "Noël avant Noël",
+      "textBefore": "Le {date}, Tiroir de famille arrive sur Ulule : un mois avant Noël, pour donner à Tiroir les moyens de grandir.",
+      "textLive": "Jusqu’au 15 décembre, soutiens Tiroir sur Ulule. Les contreparties s’offrent : un cadeau à glisser sous le sapin.",
+      "raised": "{amount} collectés",
+      "next": "Prochain palier : {amount}",
+      "allReached": "Tous les paliers sont atteints. Merci !",
+      "milestones": "Paliers",
       "cta": "Voir la campagne"
     }
   },

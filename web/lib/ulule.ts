@@ -25,22 +25,30 @@ export function uniqueSlug(firstName: string, lastName: string, taken: Set<strin
   return slug
 }
 
-export type AmbassadorLine = { firstName: string; lastName: string; email: string }
+export type AmbassadorLine = { firstName: string; lastName: string; email: string | null }
 
-/** Une personne par ligne : « Prénom, Nom, e-mail » (virgule, point-virgule ou tabulation). */
+/**
+ * Une personne par ligne : « Prénom, Nom, e-mail » (virgule, point-virgule ou
+ * tabulation). Sans adresse (« Prénom, Nom »), la personne a un lien perso
+ * mais ne reçoit aucun e-mail : proche prévenu par SMS, Instagram…
+ * Une adresse mal écrite rend la ligne illisible plutôt que d'en faire un nom.
+ */
 export function parseAmbassadorLines(text: string): { valid: AmbassadorLine[]; invalid: string[] } {
   const valid: AmbassadorLine[] = []
   const invalid: string[] = []
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim()
     if (!line) continue
-    const parts = line.split(/[,;\t]/).map(p => p.trim())
-    const email = (parts.at(-1) ?? '').toLowerCase()
-    if (parts.length < 2 || !parts[0] || !isEmail(email)) {
+    const parts = line.split(/[,;\t]/).map(p => p.trim()).filter(Boolean)
+    const last = (parts.at(-1) ?? '').toLowerCase()
+    const hasEmail = last.includes('@')
+    if (!parts[0] || (hasEmail && (parts.length < 2 || !isEmail(last))) || parts.slice(0, hasEmail ? -1 : undefined).some(p => p.includes('@'))) {
       invalid.push(line)
       continue
     }
-    valid.push({ firstName: parts[0], lastName: parts.slice(1, -1).join(' '), email })
+    valid.push(hasEmail
+      ? { firstName: parts[0], lastName: parts.slice(1, -1).join(' '), email: last }
+      : { firstName: parts[0], lastName: parts.slice(1).join(' '), email: null })
   }
   return { valid, invalid }
 }
@@ -224,4 +232,44 @@ export function parseExport(text: string): ExportParse {
 
 export function firstNameOf(fullName: string): string {
   return fullName.trim().split(/\s+/)[0] ?? ''
+}
+
+// ── Jauge et paliers ──────────────────────────────────────────────
+
+export const DEFAULT_MILESTONES_CENTS = [100_000, 200_000, 500_000]
+
+export type Progress = {
+  amountCents: number
+  /** Premier palier pas encore atteint ; null quand tous le sont. */
+  nextCents: number | null
+  /** Part du palier visé (ou du dernier), entre 0 et 1. */
+  ratio: number
+  reached: number
+}
+
+export function progressOf(amountCents: number, milestonesCents: number[]): Progress {
+  const steps = [...milestonesCents].filter(n => n > 0).sort((a, b) => a - b)
+  const nextCents = steps.find(m => m > amountCents) ?? null
+  const target = nextCents ?? steps.at(-1) ?? 0
+  return {
+    amountCents,
+    nextCents,
+    ratio: target ? Math.min(1, amountCents / target) : 0,
+    reached: steps.filter(m => m <= amountCents).length,
+  }
+}
+
+/** « 1 000 € », sans centimes quand ils sont nuls. */
+export function formatEuros(cents: number, locale = 'fr-FR'): string {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency', currency: 'EUR', maximumFractionDigits: cents % 100 ? 2 : 0,
+  }).format(cents / 100).replace(/\u202f/g, '\u00a0')
+}
+
+/** « 1000, 2 000 ; 5000 » (euros) vers des centimes, en ordre ; null si illisible. */
+export function parseMilestones(raw: string): number[] | null {
+  const parts = raw.split(/[,;]/).map(p => p.trim()).filter(Boolean)
+  const cents = parts.map(parseAmountCents)
+  if (!parts.length || cents.some(c => !c)) return null
+  return Array.from(new Set(cents as number[])).sort((a, b) => a - b)
 }

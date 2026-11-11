@@ -6,11 +6,10 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { adminSupabase } from '../../lib/supabase'
 import { campaignUrl, formatLaunchDate, referrerOrigin, SLUG_FORMAT } from '../../lib/ulule'
+import { fallbackPageUrl } from '../../lib/ululeProgress'
 import { useCopy } from '../../locales'
 
 type Props = { date: string }
-
-const FALLBACK_PAGE = 'https://fr.ulule.com/tiroir-app/'
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   ctx.res.setHeader('Cache-Control', 'private, no-store')
@@ -19,7 +18,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = String(ctx.params?.slug ?? '').toLowerCase()
   const db = adminSupabase()
   const { data: campaign } = await db.from('ulule_campaign').select('*').eq('id', 1).single()
-  if (!campaign) return { redirect: { destination: FALLBACK_PAGE, permanent: false } }
+  if (!campaign) return { redirect: { destination: fallbackPageUrl(), permanent: false } }
 
   const { data: ambassador } = SLUG_FORMAT.test(slug)
     ? await db.from('ambassadors').select('slug').eq('slug', slug).maybeSingle()

@@ -7,11 +7,12 @@ import { useRouter } from 'next/router'
 import { requireTorixOwnerPage } from '../../lib/adminAuth'
 import { adminSupabase } from '../../lib/supabase'
 import { adminNavFor, type AdminNav } from '../../lib/adminNav'
-import { campaignUrl, toParisInput } from '../../lib/ulule'
-import { personalLink } from '../../lib/ululeServer'
+import { campaignUrl, DEFAULT_MILESTONES_CENTS, formatEuros, progressOf, toParisInput } from '../../lib/ulule'
+import { personalLink, type EmailKind } from '../../lib/ululeServer'
+import { fetchUluleAmountCents } from '../../lib/ululeProgress'
 
 type Ambassador = {
-  id: string; first_name: string; last_name: string; email: string; slug: string; unsubscribed: boolean
+  id: string; first_name: string; last_name: string; email: string | null; slug: string; unsubscribed: boolean
   clicks: number; contributions: number; amount_cents: number
   email_status: string | null; sent_at: string | null; opened_at: string | null
   first_click_at: string | null; bounced_at: string | null; link: string
@@ -25,13 +26,25 @@ type Props = {
   launchInput: string
   pageUrl: string
   presaleNumber: string
+  milestonesInput: string
+  milestonesCents: number[]
+  ululeAmountCents: number | null
   exampleUrl: string
   hasPostalAddress: boolean
   ambassadors: Ambassador[]
   totals: { paid_count: number; paid_cents: number; unattributed_count: number; other_count: number }
   counts: { prelaunch_failed: number; thanks_sent: number; thanks_failed: number; stuck: number }
+  byKind: Record<EmailKind, { sent: number; failed: number; to_send: number }>
   recent: Recent[]
 }
+
+// Les quatre envois de la campagne, dans l'ordre du calendrier.
+const CAMPAIGN_EMAILS: { kind: EmailKind; title: string; when: string; audience: string }[] = [
+  { kind: 'launch', title: 'C’est parti', when: 'mardi 24 novembre, le matin, une fois la page publiée', audience: 'ambassadeurs' },
+  { kind: 'reminder', title: 'Relance mi-campagne', when: 'vers le vendredi 4 décembre', audience: 'ambassadeurs' },
+  { kind: 'last48h', title: 'Dernières 48 h', when: 'dimanche 13 décembre', audience: 'ambassadeurs' },
+  { kind: 'recap', title: 'Bilan et merci', when: 'mercredi 16 décembre, après le dernier import', audience: 'ambassadeurs et contributeurs, une fois par adresse' },
+]
 type Preview = {
   ok: true; columns: string[]; rows: number; rejected: { line: number; reason: string }[]
   paidCount: number; paidCents: number; attributed: number; withoutEmail: number; forgotten: number
@@ -49,6 +62,8 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
     db.from('app_settings').select('email_postal_address').eq('id', 1).single(),
   ])
   if (!campaign || !dash) throw new Error('Tables de la campagne Ulule illisibles : migration appliquée ?')
+  const milestonesCents: number[] = campaign.milestones_cents?.length ? campaign.milestones_cents : DEFAULT_MILESTONES_CENTS
+  const launched = Date.now() >= new Date(campaign.launch_at).getTime()
 
   return {
     props: {
@@ -56,11 +71,15 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
       launchInput: toParisInput(campaign.launch_at),
       pageUrl: campaign.page_url,
       presaleNumber: campaign.presale_number,
+      milestonesInput: milestonesCents.map(c => c / 100).join(', '),
+      milestonesCents,
+      ululeAmountCents: launched ? await fetchUluleAmountCents(campaign.presale_number, campaign.page_url) : null,
       exampleUrl: campaignUrl(campaign.page_url, campaign.presale_number, 'prenom-nom'),
       hasPostalAddress: !!(settings?.email_postal_address ?? '').trim(),
       ambassadors: dash.ambassadors.map((a: Omit<Ambassador, 'link'>) => ({ ...a, link: personalLink(a.slug) })),
       totals: dash.totals,
       counts: dash.email_counts,
+      byKind: dash.by_kind,
       recent: dash.recent,
     },
   }
@@ -83,6 +102,7 @@ async function call(payload: Record<string, unknown>) {
 }
 
 function emailState(a: Ambassador): string {
+  if (!a.email) return 'Lien seul'
   if (a.unsubscribed) return 'Désinscrit·e'
   if (a.bounced_at) return 'Rebond'
   if (a.first_click_at) return 'Cliqué'
@@ -97,14 +117,17 @@ export default function Ulule(p: Props) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
-  const [settings, setSettings] = useState({ launchAt: p.launchInput, pageUrl: p.pageUrl, presaleNumber: p.presaleNumber })
+  const [settings, setSettings] = useState({
+    launchAt: p.launchInput, pageUrl: p.pageUrl, presaleNumber: p.presaleNumber, milestones: p.milestonesInput,
+  })
   const [lines, setLines] = useState('')
   const [forget, setForget] = useState('')
   const [csv, setCsv] = useState('')
   const [preview, setPreview] = useState<Preview | null>(null)
   const [extraPaid, setExtraPaid] = useState<string[]>([])
 
-  const toSend = p.ambassadors.filter(a => !a.unsubscribed && !a.email_status).length
+  const toSend = p.byKind.prelaunch.to_send
+  const progress = p.ululeAmountCents === null ? null : progressOf(p.ululeAmountCents, p.milestonesCents)
 
   async function run(task: () => Promise<string>) {
     setBusy(true)
@@ -120,7 +143,7 @@ export default function Ulule(p: Props) {
     }
   }
 
-  async function drain(kind: 'prelaunch' | 'thanks') {
+  async function drain(kind: EmailKind) {
     let sent = 0
     let failed = 0
     for (;;) {
@@ -184,7 +207,14 @@ export default function Ulule(p: Props) {
       {message && <p className="message" role="status">{message}</p>}
 
       <section className="cards">
-        <div className="card"><span>Contributions payées</span><b>{p.totals.paid_count}</b></div>
+        <div className="card">
+          <span>Sur Ulule, en direct</span>
+          <b>{progress ? formatEuros(progress.amountCents) : '—'}</b>
+          <small>{progress
+            ? progress.nextCents ? `Prochain palier : ${formatEuros(progress.nextCents)}` : 'Tous les paliers atteints'
+            : 'Ulule ne répond pas encore (page pas en ligne ?)'}</small>
+        </div>
+        <div className="card"><span>Contributions payées (importées)</span><b>{p.totals.paid_count}</b></div>
         <div className="card"><span>Collecté</span><b>{euros(p.totals.paid_cents)}</b></div>
         <div className="card"><span>Sans ambassadeur</span><b>{p.totals.unattributed_count}</b></div>
         <div className="card"><span>Mercis envoyés</span><b>{p.counts.thanks_sent}</b></div>
@@ -200,7 +230,7 @@ export default function Ulule(p: Props) {
           <tbody>
             {p.ambassadors.map(a => (
               <tr key={a.id}>
-                <td>{a.first_name} {a.last_name}<br /><small>{a.email}</small></td>
+                <td>{a.first_name} {a.last_name}<br /><small>{a.email ?? 'sans e-mail'}</small></td>
                 <td><code>{a.link}</code></td>
                 <td>{a.clicks}</td>
                 <td>{a.contributions}</td>
@@ -219,7 +249,7 @@ export default function Ulule(p: Props) {
           </tbody>
         </table>
       </div>
-      <label htmlFor="lines">Ajouter : une personne par ligne, « Prénom, Nom, e-mail »</label>
+      <label htmlFor="lines">Ajouter : une personne par ligne, « Prénom, Nom, e-mail ». Sans e-mail (« Prénom, Nom »), la personne a un lien à lui envoyer toi-même, et ne reçoit aucun e-mail.</label>
       <textarea id="lines" rows={4} value={lines} onChange={e => setLines(e.target.value)} />
       <button disabled={busy || !lines.trim()} onClick={() => run(async () => {
         const r = await call({ action: 'add-ambassadors', lines })
@@ -242,6 +272,33 @@ export default function Ulule(p: Props) {
           })}>Remettre {p.counts.prelaunch_failed} échec(s) en file</button>
         )}
       </div>
+
+      <h2>E-mails de la campagne</h2>
+      <p className="note">Chacun part une seule fois par personne, quand tu cliques. Les personnes sans e-mail et les désinscrites sont écartées. La relance, les 48 h et le bilan donnent le montant lu sur Ulule au moment de l’envoi.</p>
+      {CAMPAIGN_EMAILS.map(e => {
+        const c = p.byKind[e.kind]
+        return (
+          <div key={e.kind} className="mail">
+            <h3>{e.title}</h3>
+            <p className="note">Quand : {e.when}. À qui : {e.audience}. Déjà envoyés : {c.sent}.</p>
+            <div className="row">
+              <button disabled={busy} onClick={() => run(async () => {
+                const r = await call({ action: 'send-test', kind: e.kind })
+                return `Test « ${e.title} » envoyé à ${r.to}.`
+              })}>M’envoyer un test</button>
+              <button className="primary" disabled={busy || !c.to_send} onClick={() => {
+                if (window.confirm(`Envoyer « ${e.title} » à ${c.to_send} personne(s) ?`)) run(() => drain(e.kind))
+              }}>Envoyer à {c.to_send} personne(s)</button>
+              {c.failed > 0 && (
+                <button disabled={busy} onClick={() => run(async () => {
+                  await call({ action: 'retry-failed', kind: e.kind })
+                  return `Échecs remis en file : renvoie quand tu veux.`
+                })}>Remettre {c.failed} échec(s) en file</button>
+              )}
+            </div>
+          </div>
+        )
+      })}
 
       <h2>Contributions</h2>
       <p className="note">Dans le back-office Ulule, exporte tes contributeurs en CSV, puis dépose le fichier ici. Rien n’est écrit ni envoyé avant ta confirmation. Tu peux réimporter le même fichier sans risque : chacun ne reçoit le merci qu’une fois.</p>
@@ -312,6 +369,8 @@ export default function Ulule(p: Props) {
       <input id="url" value={settings.pageUrl} onChange={e => setSettings({ ...settings, pageUrl: e.target.value })} />
       <label htmlFor="presale">Numéro de collecte (dans l’adresse du mode édition)</label>
       <input id="presale" value={settings.presaleNumber} onChange={e => setSettings({ ...settings, presaleNumber: e.target.value })} />
+      <label htmlFor="milestones">Paliers de la jauge, en euros (bannière de l’accueil et e-mails)</label>
+      <input id="milestones" value={settings.milestones} onChange={e => setSettings({ ...settings, milestones: e.target.value })} />
       <p className="note">Exemple de destination : <code>{p.exampleUrl}</code></p>
       <button disabled={busy} onClick={() => run(async () => { await call({ action: 'settings', ...settings }); return 'Enregistré.' })}>Enregistrer</button>
 
@@ -351,6 +410,8 @@ export default function Ulule(p: Props) {
         .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
         .message { background: var(--beige-2); padding: 10px 12px; border-radius: 8px; }
         .warn { color: var(--orange); font-size: 14px; }
+        .mail { border-top: 1px solid var(--border-light); padding: 12px 0; }
+        .mail .note { margin: 0; }
         .preview { border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 16px 0; }
       `}</style>
     </main>

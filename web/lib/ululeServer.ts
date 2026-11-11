@@ -2,10 +2,15 @@
 import { createHash } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { DEFAULT_SITE_HOST } from './backofficeRouting'
-import { firstNameOf, formatLaunchDate, parseExport, type ExportOrder } from './ulule'
-import { renderPrelaunch, renderThanks, type RenderedEmail } from './ululeEmails'
+import {
+  DEFAULT_MILESTONES_CENTS, firstNameOf, formatEuros, formatLaunchDate, parseExport, progressOf, type ExportOrder,
+} from './ulule'
+import { renderCampaign, renderPrelaunch, renderThanks, type CampaignKind, type RenderedEmail } from './ululeEmails'
+import { fetchUluleAmountCents } from './ululeProgress'
 
-export type EmailKind = 'prelaunch' | 'thanks'
+export const EMAIL_KINDS = ['prelaunch', 'launch', 'reminder', 'last48h', 'recap', 'thanks'] as const
+export type EmailKind = typeof EMAIL_KINDS[number]
+export const isEmailKind = (v: unknown): v is EmailKind => EMAIL_KINDS.includes(v as EmailKind)
 
 const FROM = 'Clément de Tiroir <hello@tiroir.app>'
 // Assez court pour tenir dans le délai d'une fonction Vercel : la page
@@ -58,41 +63,79 @@ export async function sendEmail(params: {
   }
 }
 
-async function campaignContext(db: SupabaseClient) {
+type Context = {
+  campaign: { launch_at: string; page_url: string; presale_number: string; paid_statuses: string[]; milestones_cents?: number[] }
+  adresse: string
+  milestones: number[]
+  /** Montant lu sur Ulule une fois par lot ; null si Ulule ne répond pas. */
+  amountCents: number | null
+}
+
+async function campaignContext(db: SupabaseClient, kind?: EmailKind): Promise<Context> {
   const [{ data: campaign, error }, { data: settings }] = await Promise.all([
     db.from('ulule_campaign').select('*').eq('id', 1).single(),
     db.from('app_settings').select('email_postal_address').eq('id', 1).single(),
   ])
   if (error || !campaign) throw new Error(`Campagne illisible : ${error?.message}`)
-  return { campaign, adresse: (settings?.email_postal_address ?? '').trim() as string }
+  const needsAmount = kind === 'reminder' || kind === 'last48h' || kind === 'recap'
+  return {
+    campaign,
+    adresse: (settings?.email_postal_address ?? '').trim() as string,
+    milestones: campaign.milestones_cents?.length ? campaign.milestones_cents : DEFAULT_MILESTONES_CENTS,
+    amountCents: needsAmount ? await fetchUluleAmountCents(campaign.presale_number, campaign.page_url) : null,
+  }
+}
+
+const unsubscribeLink = (token: string) => `${publicSite()}/desinscription?t=${token}`
+// Gmail et Yahoo exigent la désinscription en un clic.
+const oneClick = (url: string) => ({ 'List-Unsubscribe': `<${url}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' })
+
+type Recipient = { name: string; slug: string | null; token: string | null }
+
+/** Le message d'une personne, pour un e-mail donné. */
+function messageFor(kind: EmailKind, r: Recipient, ctx: Context): { email: RenderedEmail; headers?: Record<string, string> } {
+  if (kind === 'thanks') return { email: renderThanks({ prenom: firstNameOf(r.name) }) }
+  if (kind === 'prelaunch') return prelaunchFor({ name: r.name, slug: r.slug!, token: r.token! }, ctx.campaign.launch_at, ctx.adresse)
+
+  const desinscription = r.token ? unsubscribeLink(r.token) : null
+  const progress = ctx.amountCents === null ? null : progressOf(ctx.amountCents, ctx.milestones)
+  const email = renderCampaign(kind as CampaignKind, {
+    prenom: firstNameOf(r.name),
+    lien: r.slug ? personalLink(r.slug) : null,
+    premierPalier: formatEuros(ctx.milestones[0] ?? 0),
+    montant: progress ? formatEuros(progress.amountCents) : null,
+    palier: progress?.nextCents ? formatEuros(progress.nextCents) : null,
+    desinscription,
+    adresse: ctx.adresse,
+  })
+  return {
+    email,
+    headers: desinscription
+      ? oneClick(desinscription)
+      : { 'List-Unsubscribe': '<mailto:hello@tiroir.app?subject=stop>' },
+  }
 }
 
 function prelaunchFor(r: { name: string; slug: string; token: string }, launchAt: string, adresse: string) {
-  const desinscription = `${publicSite()}/desinscription?t=${r.token}`
+  const desinscription = unsubscribeLink(r.token)
   return {
     email: renderPrelaunch({
       prenom: r.name, date: formatLaunchDate(launchAt), lien: personalLink(r.slug), desinscription, adresse,
     }),
-    // Gmail et Yahoo exigent la désinscription en un clic.
-    headers: {
-      'List-Unsubscribe': `<${desinscription}>`,
-      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-    },
+    headers: oneClick(desinscription),
   }
 }
 
 export async function sendTest(db: SupabaseClient, kind: EmailKind, to: string, prenom: string) {
-  const { campaign, adresse } = await campaignContext(db)
-  const email = kind === 'prelaunch'
-    ? prelaunchFor({ name: prenom, slug: 'test', token: 'test' }, campaign.launch_at, adresse).email
-    : renderThanks({ prenom })
+  const ctx = await campaignContext(db, kind)
+  const { email } = messageFor(kind, { name: prenom, slug: 'test', token: 'test' }, ctx)
   return sendEmail({ to, email: { ...email, subject: `[Test] ${email.subject}` } })
 }
 
 export type BatchReport = { sent: number; failed: number; done: boolean; stopped: string | null }
 
 export async function sendBatch(db: SupabaseClient, kind: EmailKind): Promise<BatchReport> {
-  const { campaign, adresse } = await campaignContext(db)
+  const ctx = await campaignContext(db, kind)
   const { data: todo, error } = await db.rpc('ulule_next_recipients', { p_kind: kind, p_limit: BATCH_SIZE })
   if (error) throw new Error(error.message)
   const recipients = (todo ?? []) as {
@@ -111,9 +154,7 @@ export async function sendBatch(db: SupabaseClient, kind: EmailKind): Promise<Ba
     if (!claimed?.length) continue
     const id = claimed[0].id as number
 
-    const message = kind === 'prelaunch'
-      ? prelaunchFor({ name: r.name, slug: r.slug!, token: r.unsubscribe_token! }, campaign.launch_at, adresse)
-      : { email: renderThanks({ prenom: firstNameOf(r.name) }), headers: undefined }
+    const message = messageFor(kind, { name: r.name, slug: r.slug, token: r.unsubscribe_token }, ctx)
 
     const result = await sendEmail({ to: r.email, ...message, idempotencyKey: `ulule-${kind}-${id}` })
 

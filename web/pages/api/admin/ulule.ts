@@ -2,14 +2,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { requireTorixOwnerApi } from '../../../lib/adminAuth'
 import { adminSupabase } from '../../../lib/supabase'
-import { isEmail, parseAmbassadorLines, parisInputToIso, uniqueSlug } from '../../../lib/ulule'
+import { isEmail, parseAmbassadorLines, parseMilestones, parisInputToIso, uniqueSlug } from '../../../lib/ulule'
 import {
-  forgetEmail, importExport, resetFailed, sendBatch, sendTest, type EmailKind,
+  forgetEmail, importExport, isEmailKind as isKind, resetFailed, sendBatch, sendTest,
 } from '../../../lib/ululeServer'
 
 export const config = { api: { bodyParser: { sizeLimit: '4mb' } } }
-
-const isKind = (v: unknown): v is EmailKind => v === 'prelaunch' || v === 'thanks'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const user = await requireTorixOwnerApi(req, res)
@@ -25,11 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const launchAt = parisInputToIso(String(body.launchAt ?? ''))
         const pageUrl = String(body.pageUrl ?? '').trim()
         const presaleNumber = String(body.presaleNumber ?? '').trim()
-        if (!launchAt || !/^https:\/\/[a-z.]*ulule\.com\//.test(pageUrl) || !/^\d+$/.test(presaleNumber)) {
-          return res.status(400).json({ error: 'Date, adresse Ulule ou numéro de collecte invalide.' })
+        const milestones = parseMilestones(String(body.milestones ?? ''))
+        if (!launchAt || !/^https:\/\/[a-z.]*ulule\.com\//.test(pageUrl) || !/^\d+$/.test(presaleNumber) || !milestones) {
+          return res.status(400).json({ error: 'Date, adresse Ulule, numéro de collecte ou paliers invalides.' })
         }
         const { error } = await db.from('ulule_campaign')
-          .update({ launch_at: launchAt, page_url: pageUrl, presale_number: presaleNumber }).eq('id', 1)
+          .update({ launch_at: launchAt, page_url: pageUrl, presale_number: presaleNumber, milestones_cents: milestones })
+          .eq('id', 1)
         if (error) throw new Error(error.message)
         return res.status(200).json({ ok: true })
       }
@@ -39,12 +39,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { data: existing, error } = await db.from('ambassadors').select('slug, email')
         if (error) throw new Error(error.message)
         const taken = new Set((existing ?? []).map(a => a.slug as string))
-        const emails = new Set((existing ?? []).map(a => a.email as string))
-        const rows: { first_name: string; last_name: string; email: string; slug: string }[] = []
+        const emails = new Set((existing ?? []).map(a => a.email as string | null).filter(Boolean))
+        const rows: { first_name: string; last_name: string; email: string | null; slug: string }[] = []
         let duplicates = 0
         for (const a of valid) {
-          if (emails.has(a.email)) { duplicates++; continue }
-          emails.add(a.email)
+          if (a.email && emails.has(a.email)) { duplicates++; continue }
+          if (a.email) emails.add(a.email)
           rows.push({
             first_name: a.firstName, last_name: a.lastName, email: a.email,
             slug: uniqueSlug(a.firstName, a.lastName, taken),
