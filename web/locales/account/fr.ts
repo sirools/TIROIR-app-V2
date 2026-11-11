@@ -231,6 +231,12 @@ const accountFr = {
     identityTaken: 'Ce compte est déjà rattaché à un autre compte Tiroir. Connecte-toi avec lui, supprime ce second compte ou écris à support@tiroir.app.',
     lastIdentity: 'Impossible de délier ton dernier moyen de connexion : ajoute-en un autre d’abord.',
   },
+  campaign: {
+    metaTitle: 'Tiroir de famille — Rendez-vous',
+    title: 'Rendez-vous le {date}',
+    text: 'La campagne Tiroir de famille n’est pas encore ouverte. Ce lien t’y emmènera dès le premier jour.',
+    home: 'Découvrir Tiroir',
+  },
 }
 
 export type AccountCopy = typeof accountFr

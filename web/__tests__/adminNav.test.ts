@@ -26,7 +26,7 @@ const keys = (u: typeof owner, isAdmin: boolean) => {
 
 describe('sections du header admin', () => {
   test('le propriétaire de Torix voit tout', () => {
-    expect(keys(owner, true)).toEqual(['accueil', 'facturation', 'marketing', 'torix'])
+    expect(keys(owner, true)).toEqual(['accueil', 'facturation', 'marketing', 'ulule', 'torix'])
   })
 
   test('un autre admin ne voit pas Torix Lab', () => {

@@ -224,6 +224,12 @@ const accountDe: AccountCopy = {
     identityTaken: 'Dieses Konto ist bereits mit einem anderen Tiroir-Konto verbunden. Melde dich damit an, lösche dieses zweite Konto oder schreib an support@tiroir.app.',
     lastIdentity: 'Deine letzte Anmeldemethode kann nicht entfernt werden: Füge zuerst eine andere hinzu.',
   },
+  campaign: {
+    metaTitle: 'Tiroir de famille — Bald verfügbar',
+    title: 'Wir sehen uns am {date}',
+    text: 'Die Kampagne Tiroir de famille ist noch nicht geöffnet. Dieser Link bringt dich ab dem ersten Tag dorthin.',
+    home: 'Tiroir entdecken',
+  },
 }
 
 export default accountDe
