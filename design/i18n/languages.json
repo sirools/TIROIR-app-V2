@@ -15,6 +15,6 @@
       "regions": ["PT", "AO", "MZ", "CV", "GW", "ST", "TL", "MO"],
       "$regions": "Pays où l'on écrit le portugais européen ; partout ailleurs, « pt » donne pt-BR."
     },
-    { "code": "da", "name": "Dansk", "intl": "da-DK", "app": false, "site": true, "email": true }
+    { "code": "da", "name": "Dansk", "intl": "da-DK", "app": false, "site": false, "email": true, "$comment": "Retiré du site le 08/11/2026 (main, PR #85) ; e-mails gardés." }
   ]
 }

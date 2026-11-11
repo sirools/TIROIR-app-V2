@@ -140,6 +140,8 @@
   },
   "paywall": {
     "unavailable": "Subscrições indisponíveis de momento.",
+    "alreadySubscribedTitle": "Já é assinante",
+    "alreadySubscribedBody": "A sua conta já tem uma subscrição ativa. Não é preciso comprar de novo: os pacotes de créditos continuam disponíveis abaixo.",
     "freeTrial": "✦ 7 dias de experiência grátis",
     "startTrial": "Começar a experiência grátis",
     "subscribe": "Subscrever",

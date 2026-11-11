@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
-  ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform,
+  ScrollView, ActivityIndicator,
 } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -9,7 +9,7 @@ import { ArrowLeft, Send, Package } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan } from '@/lib/plan'
-import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { FormScreen, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 interface ReferencedObject {
   id: string
@@ -121,100 +121,100 @@ export default function AssistantScreen() {
   const showMissingChip = missingLocationTitles !== null && missingLocationTitles.length > 0 && messages.length === 1
 
   return (
-    <Screen edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.replace('/assistant')} hitSlop={12}>
-          <ArrowLeft size={22} color={Colors.textPrimary} strokeWidth={1.8} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleRow}>
-          <Text style={styles.headerTitle}>{t('assistant.title')}</Text>
-          <View style={styles.betaBadge}>
-            <Text style={styles.betaBadgeText}>BETA</Text>
-          </View>
-        </View>
-        <View style={{ width: 22 }} />
-      </View>
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
-        <ScrollView
-          ref={scrollRef}
-          contentContainerStyle={styles.scroll}
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
-        >
-          {messages.map(m => (
-            <View
-              key={m.id}
-              style={[styles.bubbleRow, m.role === 'user' ? styles.bubbleRowUser : styles.bubbleRowAssistant]}
-            >
-              <View style={{ maxWidth: '82%' }}>
-                <View style={[styles.bubble, m.role === 'user' ? styles.bubbleUser : styles.bubbleAssistant]}>
-                  <Text style={[styles.bubbleText, m.role === 'user' ? styles.bubbleTextUser : styles.bubbleTextAssistant]}>
-                    {m.content}
-                  </Text>
-                </View>
-                {m.objects && m.objects.length > 0 && (
-                  <View style={styles.objectChips}>
-                    {m.objects.map(o => (
-                      <TouchableOpacity
-                        key={o.id}
-                        style={styles.objectChip}
-                        onPress={() => router.push({ pathname: '/objects/[id]', params: { id: o.id } })}
-                        activeOpacity={0.8}
-                      >
-                        <Package size={12} color={Colors.accent} strokeWidth={2} />
-                        <Text style={styles.objectChipText} numberOfLines={1}>{o.title}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-            </View>
-          ))}
-
-          {showMissingChip && (
-            <View style={[styles.bubbleRow, styles.bubbleRowAssistant]}>
-              <TouchableOpacity style={styles.chip} onPress={showMissingLocationList} activeOpacity={0.8}>
-                <Text style={styles.chipText}>{t('assistant.seeList')}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {sending && (
-            <View style={[styles.bubbleRow, styles.bubbleRowAssistant]}>
-              <View style={[styles.bubble, styles.bubbleAssistant, styles.bubbleLoading]}>
-                <ActivityIndicator size="small" color="white" />
-              </View>
-            </View>
-          )}
-        </ScrollView>
-
-        <View style={styles.inputBar}>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder={t('assistant.inputPlaceholder')}
-            placeholderTextColor={Colors.textTertiary}
-            returnKeyType="send"
-            onSubmitEditing={sendMessage}
-            editable={!sending}
-          />
-          <TouchableOpacity
-            style={[styles.sendBtn, (sending || !input.trim()) && styles.sendBtnDisabled]}
-            onPress={sendMessage}
-            disabled={sending || !input.trim()}
-            activeOpacity={0.85}
-          >
-            <Send size={16} color="white" strokeWidth={2.2} />
+    <FormScreen
+      mode="fixed"
+      edges={['top', 'bottom']}
+      header={
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.replace('/assistant')} hitSlop={12}>
+            <ArrowLeft size={22} color={Colors.textPrimary} strokeWidth={1.8} />
           </TouchableOpacity>
+          <View style={styles.headerTitleRow}>
+            <Text style={styles.headerTitle}>{t('assistant.title')}</Text>
+            <View style={styles.betaBadge}>
+              <Text style={styles.betaBadgeText}>BETA</Text>
+            </View>
+          </View>
+          <View style={{ width: 22 }} />
         </View>
-      </KeyboardAvoidingView>
-    </Screen>
+      }
+    >
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+      >
+        {messages.map(m => (
+          <View
+            key={m.id}
+            style={[styles.bubbleRow, m.role === 'user' ? styles.bubbleRowUser : styles.bubbleRowAssistant]}
+          >
+            <View style={{ maxWidth: '82%' }}>
+              <View style={[styles.bubble, m.role === 'user' ? styles.bubbleUser : styles.bubbleAssistant]}>
+                <Text style={[styles.bubbleText, m.role === 'user' ? styles.bubbleTextUser : styles.bubbleTextAssistant]}>
+                  {m.content}
+                </Text>
+              </View>
+              {m.objects && m.objects.length > 0 && (
+                <View style={styles.objectChips}>
+                  {m.objects.map(o => (
+                    <TouchableOpacity
+                      key={o.id}
+                      style={styles.objectChip}
+                      onPress={() => router.push({ pathname: '/objects/[id]', params: { id: o.id } })}
+                      activeOpacity={0.8}
+                    >
+                      <Package size={12} color={Colors.accent} strokeWidth={2} />
+                      <Text style={styles.objectChipText} numberOfLines={1}>{o.title}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+        ))}
+
+        {showMissingChip && (
+          <View style={[styles.bubbleRow, styles.bubbleRowAssistant]}>
+            <TouchableOpacity style={styles.chip} onPress={showMissingLocationList} activeOpacity={0.8}>
+              <Text style={styles.chipText}>{t('assistant.seeList')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {sending && (
+          <View style={[styles.bubbleRow, styles.bubbleRowAssistant]}>
+            <View style={[styles.bubble, styles.bubbleAssistant, styles.bubbleLoading]}>
+              <ActivityIndicator size="small" color="white" />
+            </View>
+          </View>
+        )}
+      </ScrollView>
+
+      <View style={styles.inputBar}>
+        <TextInput
+          style={styles.input}
+          value={input}
+          onChangeText={setInput}
+          placeholder={t('assistant.inputPlaceholder')}
+          placeholderTextColor={Colors.textTertiary}
+          returnKeyType="send"
+          onSubmitEditing={sendMessage}
+          editable={!sending}
+        />
+        <TouchableOpacity
+          style={[styles.sendBtn, (sending || !input.trim()) && styles.sendBtnDisabled]}
+          onPress={sendMessage}
+          disabled={sending || !input.trim()}
+          activeOpacity={0.85}
+        >
+          <Send size={16} color="white" strokeWidth={2.2} />
+        </TouchableOpacity>
+      </View>
+    </FormScreen>
   )
 }
 

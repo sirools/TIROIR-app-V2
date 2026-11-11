@@ -108,10 +108,6 @@ const accountEn: AccountCopy = {
     back: 'Back to tiroir.app',
   },
   myAccount: {
-    billingTitle: 'AI credits and team',
-    billingText: 'Your AI credit balance and history, and credit packs. For a Business team: members and invoices.',
-    creditsLink: 'My AI credits →',
-    teamLink: 'My Business team →',
     metaTitle: 'My account — Tiroir',
     title: 'My account',
     signedInAs: 'Signed in as ',
@@ -147,6 +143,10 @@ const accountEn: AccountCopy = {
     footnoteBefore: 'To change your display name, go to ',
     footnoteLink: 'My profile',
     footnoteAfter: '.',
+    billingTitle: 'AI credits and team',
+    billingText: 'Your AI credit balance and history, and credit packs. For a Business team: members and invoices.',
+    creditsLink: 'My AI credits →',
+    teamLink: 'My Business team →',
   },
   profile: {
     metaTitle: 'My profile — Tiroir',
@@ -223,6 +223,12 @@ const accountEn: AccountCopy = {
     linkingDisabled: 'Account linking must first be enabled in Supabase (Authentication → “Allow manual linking”).',
     identityTaken: 'This account is already attached to another Tiroir account. Sign in with it, delete that second account or write to support@tiroir.app.',
     lastIdentity: 'You can’t unlink your last sign-in method: add another one first.',
+  },
+  campaign: {
+    metaTitle: 'Tiroir de famille — Coming soon',
+    title: 'See you on {date}',
+    text: 'The Tiroir de famille campaign isn’t open yet. This link will take you there from day one.',
+    home: 'Discover Tiroir',
   },
 }
 

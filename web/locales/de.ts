@@ -25,7 +25,7 @@ const de: Copy = {
     newHere: 'Neu bei Tiroir?',
     openMenu: 'Menü öffnen',
     closeMenu: 'Menü schließen',
-    footerTagline: 'Fotografieren Sie Ihre Sachen, Tiroir schreibt den Eintrag. Ihr Inventar, endlich aktuell.',
+    footerTagline: 'Fotografiere deine Sachen, Tiroir schreibt den Eintrag. Dein Inventar, endlich aktuell.',
     product: 'Produkt',
     project: 'Das Projekt',
     about: 'Über uns',
@@ -41,21 +41,21 @@ const de: Copy = {
   home: {
     meta: {
       title: 'Tiroir — ein Foto, und alles ist erfasst',
-      description: 'Fotografieren Sie einen Gegenstand: Tiroir schreibt den Eintrag, ordnet ihn ein und schätzt seinen Wert. Für Kreative, Profis und alle, die wissen wollen, was sie besitzen.',
+      description: 'Fotografiere einen Gegenstand: Tiroir schreibt den Eintrag, ordnet ihn ein und schätzt seinen Wert. Für Kreative, Profis und alle, die wissen wollen, was sie besitzen.',
     },
     hero: {
       badge: 'Für iOS und Android',
       variants: [
         {
-          title: 'Ein Foto – und alles, was Sie besitzen, ist erfasst.',
+          title: 'Ein Foto – und alles, was du besitzt, ist erfasst.',
           sub: 'Tiroir schreibt für jeden Gegenstand den Eintrag – mit Kategorie, Zustand und Wert.',
         },
         {
-          title: 'Wissen, was Sie haben. Und was es wert ist.',
+          title: 'Wissen, was du hast. Und was es wert ist.',
           sub: 'Tiroir schreibt für jeden Gegenstand den Eintrag – mit Kategorie, Zustand und Wert.',
         },
         {
-          title: 'Ihr Inventar erledigt sich von selbst.',
+          title: 'Dein Inventar erledigt sich von selbst.',
           sub: 'Ein Foto genügt, Tiroir kümmert sich um den Rest. Ganz ohne Technikkenntnisse.',
         },
       ],
@@ -74,47 +74,56 @@ const de: Copy = {
         valueLabel: 'Geschätzter Wert',
       },
     },
-    how: {
-      eyebrow: 'So funktioniert’s',
-      title: 'Drei Schritte, nichts einzurichten.',
+    photo: {
+      title: 'Ein Foto. Das war’s.',
+      sub: 'Torix, die KI von Tiroir, erkennt deinen Gegenstand und füllt seinen Eintrag aus. Du wählst nur die Schublade.',
       steps: [
         {
-          title: 'Fotografieren',
-          text: 'Ein Gegenstand, ein Foto. Oder hundert auf einmal im Serienmodus.',
+          title: 'Du machst das Foto',
+          text: 'Ein Gegenstand, ein Foto. Kein Formular.',
         },
         {
-          title: 'Der Eintrag schreibt sich',
-          text: 'Name, Kategorie, Material, Zustand: alles ausgefüllt. Korrigieren Sie bei Bedarf.',
+          title: 'Torix füllt den Eintrag aus',
+          text: 'Name, Kategorie, Zustand: Alles schreibt sich von selbst. Korrigiere, wenn du willst.',
         },
         {
-          title: 'Alles erfasst',
-          text: 'Sammlungen, Suche, Status: Sie finden alles wieder, jederzeit.',
+          title: 'Schon eingeräumt',
+          text: 'Du wählst die Schublade, während Torix arbeitet. Danach findest du alles sofort.',
         },
       ],
       fiche: {
         name: 'Jeansjacke',
         rows: [
           ['Kategorie', 'Kleidung'],
-          ['Material', 'Denim'],
           ['Zustand', 'Gut'],
         ],
+        estimate: 'Wert',
+        estimateCta: '✦ Schätzen',
       },
-      collections: ['Kleiderschrank', 'Zu verkaufen', 'Studio'],
-      search: 'blaue Jacke',
+      drawer: 'Garderobe',
+      stored: 'Eingeräumt',
+      video: {
+        label: 'Demovideo: Aus dem Foto eines Gegenstands wird ein vollständiger Eintrag, eingeräumt in eine Schublade.',
+        badge: '10 Sekunden',
+        play: 'Video abspielen',
+        pause: 'Video pausieren',
+      },
+      reassure: 'Kostenlos, ohne Kreditkarte. {n} KI-Aktionen pro Monat inklusive.',
+      cta: 'Kostenlos testen',
     },
     pros: {
       eyebrow: 'Für Kreative und Profis',
-      title: 'Weniger Tipparbeit, mehr Zeit für Ihren Job.',
-      sub: 'Ihre Ausrüstung, Ihr Lager, Ihre Sammlungen: mit ein paar Fotos dokumentiert, während Sie arbeiten.',
+      title: 'Weniger Tipparbeit, mehr Zeit für deinen Job.',
+      sub: 'Deine Ausrüstung, dein Lager, deine Sammlungen: mit ein paar Fotos dokumentiert, während du arbeitest.',
       personas: [
         {
           who: 'Stylistin',
-          text: 'Jedes Teil fotografiert und nach Shooting sortiert. Sie wissen, was rausging und was zurückkam.',
+          text: 'Jedes Teil fotografiert und nach Shooting sortiert. Du weißt, was rausging und was zurückkam.',
           chip: 'Verliehen · zurück am Freitag',
         },
         {
           who: 'Aufnahmeleiter',
-          text: 'Die Technik vor dem Dreh erfasst, nach der Rückgabe geprüft. Der ganze Bestand passt in Ihre Hosentasche.',
+          text: 'Die Technik vor dem Dreh erfasst, nach der Rückgabe geprüft. Der ganze Bestand passt in deine Hosentasche.',
           chip: '42 Teile · 3 verliehen',
         },
         {
@@ -136,15 +145,15 @@ const de: Copy = {
       points: [
         {
           title: 'Keine Vorkenntnisse nötig',
-          text: 'Keine Tabellen, keine leeren Formulare. Sie fotografieren, Tiroir füllt aus.',
+          text: 'Keine Tabellen, keine leeren Formulare. Du fotografierst, Tiroir füllt aus.',
         },
         {
-          title: 'Ihre Daten gehören Ihnen',
+          title: 'Deine Daten gehören dir',
           text: 'Keine Werbung, kein Weiterverkauf, kein Training von Modellen. Wer sein Konto löscht, löscht alles – sofort.',
         },
         {
           title: 'Teilen nur zum Ansehen',
-          text: 'Ein Link zu einer Sammlung: Andere sehen sie ohne Konto und ohne App. Sie deaktivieren den Link, wann Sie wollen.',
+          text: 'Ein Link zu einer Sammlung: Andere sehen sie ohne Konto und ohne App. Du deaktivierst den Link, wann du willst.',
         },
       ],
       usesTitle: 'Auch praktisch, um…',
@@ -154,10 +163,10 @@ const de: Copy = {
         'Preise für den Flohmarkt festzulegen',
         'Den Kleiderschrank auszumisten',
       ],
-      why: 'Warum das funktioniert: Eine KI zur Bilderkennung beschreibt jedes Foto. Das Ergebnis bleibt ein Vorschlag – jedes Feld lässt sich ändern, und Ihre Korrekturen haben immer Vorrang.',
+      why: 'Warum das funktioniert: Eine KI zur Bilderkennung beschreibt jedes Foto. Das Ergebnis bleibt ein Vorschlag – jedes Feld lässt sich ändern, und deine Korrekturen haben immer Vorrang.',
     },
     value: {
-      eyebrow: 'Der Wert Ihrer Sachen',
+      eyebrow: 'Der Wert deiner Sachen',
       title: 'Wissen, was es wert ist – und dranbleiben.',
       sub: 'Eine Schätzung auf Basis vergleichbarer Angebote, keine Zahl aus dem Hut.',
       items: [
@@ -167,11 +176,11 @@ const de: Copy = {
         },
         {
           title: 'Verfolgen',
-          text: 'Der Wert jedes Gegenstands und jeder Sammlung, aktualisiert, wann Sie wollen.',
+          text: 'Der Wert jedes Gegenstands und jeder Sammlung, aktualisiert, wann du willst.',
         },
         {
           title: 'Verkaufen',
-          text: 'Als „Verkauft“ markieren, mit dem echten Preis: Der Gegenstand bleibt in Ihrem Verlauf.',
+          text: 'Als „Verkauft“ markieren, mit dem echten Preis: Der Gegenstand bleibt in deinem Verlauf.',
         },
       ],
       note: 'Kein Gutachten: Bei seltenen Stücken ist es eine Größenordnung.',
@@ -184,7 +193,7 @@ const de: Copy = {
     pricing: {
       eyebrow: 'Preise',
       title: 'Kostenlos starten.',
-      sub: 'Wechseln Sie in einen höheren Tarif, wenn Sie ihn brauchen.',
+      sub: 'Wechsle in einen höheren Tarif, wenn du ihn brauchst.',
       perMonth: '/Monat',
       perSeat: 'pro Platz/Monat',
       plans: {
@@ -201,15 +210,15 @@ const de: Copy = {
       items: [
         {
           q: 'Muss ich mich mit Technik auskennen?',
-          a: 'Nein. Sie machen ein Foto, Tiroir füllt den Eintrag aus. Alles lässt sich mit einem Tippen ändern.',
+          a: 'Nein. Du machst ein Foto, Tiroir füllt den Eintrag aus. Alles lässt sich mit einem Tippen ändern.',
         },
         {
           q: 'Und wenn der Eintrag falsch ist?',
-          a: 'Jedes Feld ist bearbeitbar, und Ihre Korrekturen haben immer Vorrang. Die genaue Marke oder den Kaufpreis kennen nur Sie.',
+          a: 'Jedes Feld ist bearbeitbar, und deine Korrekturen haben immer Vorrang. Die genaue Marke oder den Kaufpreis kennst nur du.',
         },
         {
           q: 'Sind meine Fotos privat?',
-          a: 'Ja. Nichts ist öffentlich, solange Sie keinen Link teilen – und den können Sie jederzeit deaktivieren.',
+          a: 'Ja. Nichts ist öffentlich, solange du keinen Link teilst – und den kannst du jederzeit deaktivieren.',
         },
         {
           q: 'Wie zuverlässig ist die Schätzung?',
@@ -218,24 +227,36 @@ const de: Copy = {
       ],
     },
     final: {
-      title: 'Ihr erster Gegenstand, erfasst mit einem Foto.',
+      title: 'Dein erster Gegenstand, erfasst mit einem Foto.',
       sub: 'Kostenlos, ohne Kreditkarte.',
+    },
+    ululeInvite: {
+      label: 'Ulule-Kampagne',
+      close: 'Schließen',
+      title: 'Weihnachten kommt früher',
+      textBefore: 'Am {date} startet Tiroir de famille auf Ulule: einen Monat vor Weihnachten, damit Tiroir wachsen kann.',
+      textLive: 'Bis zum 15. Dezember kannst du Tiroir auf Ulule mit einer Spende in beliebiger Höhe unterstützen. Ein kleiner Schub vor Weihnachten.',
+      raised: '{amount} gesammelt',
+      next: 'Nächstes Ziel: {amount}',
+      allReached: 'Alle Ziele erreicht. Danke!',
+      milestones: 'Ziele',
+      cta: 'Zur Kampagne',
     },
   },
   pricing: {
     meta: {
       title: 'Preise — Tiroir',
-      description: 'Tiroir ist kostenlos, mit {free} KI-Aktionen pro Monat. KI-Credits ab {pack}, Premium für {premium} pro Monat, Pro für {pro} pro Monat, Business für {business} pro Platz.',
+      description: 'Tiroir ist kostenlos, mit {free} KI-Aktionen pro Monat. KI-Credits ab {pack}, Premium für {premium} pro Monat, Pro für {pro} pro Monat, Business auf Anfrage.',
     },
     badge: 'Preise',
     title: 'Alles erfasst. Wissen, was es wert ist.',
-    sub: 'Tiroir ist für alle kostenlos. Sie zahlen nur, wenn Sie mehr wollen.',
+    sub: 'Tiroir ist für alle kostenlos. Du zahlst nur, wenn du mehr willst.',
     perMonth: '/Monat',
     perYear: 'oder {price} pro Jahr',
     perSeat: 'pro Platz/Monat',
     soon: 'Demnächst verfügbar',
     free: {
-      tagline: 'Um alles zu erfassen, was Sie besitzen.',
+      tagline: 'Um alles zu erfassen, was du besitzt.',
       features: [
         'Unbegrenzt viele Gegenstände und Sammlungen',
         '{n} KI-Aktionen pro Monat (Erkennung, Schätzung)',
@@ -243,6 +264,7 @@ const de: Copy = {
         'Zusätzliche KI-Credits bei Bedarf',
       ],
       start: 'Kostenlos starten',
+      afterQuota: 'Monatliches KI-Kontingent, danach Credits kaufen',
     },
     premium: {
       tagline: 'Um den Wert Ihrer Sammlung im Blick zu behalten.',
@@ -250,7 +272,6 @@ const de: Copy = {
         'Automatische Schätzung mit Monatskontingent',
         'Wertverlauf als Kurve und Aktualisieren-Button',
         'Quellen in einer Zeile zusammengefasst',
-        'Vorschläge für Gegenstände von Ihren Liebsten',
         'Passwortgeschützte Freigabelinks',
       ],
       cta: 'Zu Premium wechseln',
@@ -273,11 +294,13 @@ const de: Copy = {
         'Monatliche Rechnung, Überweisung oder Lastschrift',
       ],
       cta: 'Kontakt aufnehmen',
+      quote: 'Auf Anfrage',
+      billing: 'Monatliche Rechnung',
     },
     note: 'Preise inkl. MwSt. Business wird per Rechnung bezahlt.',
     credits: {
       title: 'KI-Credits',
-      sub: 'Mehr nötig? Laden Sie jederzeit auf, ohne Abo.',
+      sub: 'Mehr nötig? Lade jederzeit auf, ohne Abo.',
       unit: '{n} Credits',
       popular: 'Am beliebtesten',
       note: 'Sichere Kartenzahlung. Credits verfallen nicht.',
@@ -306,12 +329,15 @@ const de: Copy = {
       title: 'Kostenlos starten.',
       sub: 'Unbegrenzt viele Gegenstände und Sammlungen, {n} KI-Aktionen pro Monat. Keine Kreditkarte nötig.',
     },
+    twoMonthsFree: 'Zwei Monate geschenkt',
+    vatIncl: 'inkl. MwSt.',
+    vatExcl: '{price} netto',
   },
   errors: {
     notFoundTitle: 'Seite nicht gefunden',
     notFoundText: 'Die gesuchte Seite existiert nicht oder wurde verschoben.',
     serverTitle: 'Serverfehler',
-    serverText: 'Bei uns ist ein Problem aufgetreten. Bitte versuchen Sie es gleich noch einmal.',
+    serverText: 'Bei uns ist ein Problem aufgetreten. Bitte versuch es gleich noch einmal.',
     back: 'Zur Startseite',
   },
 }

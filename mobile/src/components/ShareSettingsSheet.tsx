@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
+import { FormSheet, SheetScrollView } from '@/components/ui'
 import {
-  View, Text, StyleSheet, TouchableOpacity, Modal,
-  ScrollView, Switch, TextInput, ActivityIndicator, Alert,
+  View, Text, StyleSheet, TouchableOpacity, Switch, TextInput, ActivityIndicator, Alert,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Lock } from 'lucide-react-native'
@@ -139,14 +139,14 @@ export function ShareSettingsSheet({ visible, link, onClose, onSaved }: Props) {
   const durationLabel = DURATIONS.find(d => d.days === expiresDays)?.labelKey ?? 'sharePanel.durationNever'
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <FormSheet visible={visible} animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={s.backdrop} activeOpacity={1} onPress={onClose} />
       <View style={s.sheet}>
         <View style={s.handle} />
         <Text style={s.title}>{t('shares.editTitle')}</Text>
         <Text style={s.help}>{t('shares.editHelp')}</Text>
 
-        <ScrollView style={s.body} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <SheetScrollView style={s.body}>
           <View style={s.section}>
             <Text style={s.sectionLabel}>{t('sharePanel.shareName')}</Text>
             <View style={s.field}>
@@ -226,7 +226,7 @@ export function ShareSettingsSheet({ visible, link, onClose, onSaved }: Props) {
             </View>
             {!passwordProtected && <Text style={s.sectionHelp}>{t('shares.passwordHint')}</Text>}
           </View>
-        </ScrollView>
+        </SheetScrollView>
 
         <View style={s.footer}>
           <TouchableOpacity style={s.btnGhost} onPress={onClose} activeOpacity={0.8}>
@@ -252,7 +252,7 @@ export function ShareSettingsSheet({ visible, link, onClose, onSaved }: Props) {
           { label: t('common.cancel'), cancel: true, onPress: () => {} },
         ]}
       />
-    </Modal>
+    </FormSheet>
   )
 }
 
@@ -262,7 +262,6 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(26, 22, 18, 0.4)',
   },
   sheet: {
-    position: 'absolute', left: 0, right: 0, bottom: 0,
     maxHeight: '88%',
     backgroundColor: Colors.background,
     borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl,

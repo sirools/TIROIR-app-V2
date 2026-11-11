@@ -1,7 +1,6 @@
 {
   "$comment": "Textes du site en français — langue de référence : les autres fichiers\n(en, da, de, es) suivent exactement cette structure (type `Copy`).\nLes marqueurs {n}, {price}… sont remplacés à l'affichage.\n\nPositionnement : on vend un résultat, pas de l'IA. L'IA n'apparaît\njamais dans un titre, seulement comme explication discrète (home.why).",
   "share": {
-    "$comment": "Textes share en français — référence de structure pour en, da, de, es\n(type ShareCopy). Importé par ../fr.ts sous la clé « share ».\n\nPages de partage (/s/<jeton>, sa fiche objet, l'aperçu de vente) et\nanciennes pages /share/… ; les marqueurs {n}, {date}… sont remplacés à\nl'affichage (fill). Le tutoiement et le vouvoiement suivent ceux de\nchaque texte d'origine.",
     "meta": {
       "$defaultTitle": "Titre d'un partage sans nom.",
       "defaultTitle": "Partage TiROiR",
@@ -64,8 +63,8 @@
     "list": {
       "backToMyShares": "← Retour à mes partages",
       "notFoundTitle": "Lien introuvable",
-      "expiredSub": "Demandez un nouveau lien au propriétaire.",
-      "notFoundSub": "Vérifiez l'adresse ou demandez un nouveau lien.",
+      "expiredSub": "Demande un nouveau lien au propriétaire.",
+      "notFoundSub": "Vérifie l'adresse ou demande un nouveau lien.",
       "sharedVia": "Partagé via TiROiR · {count}",
       "objectsOne": "{n} objet",
       "objectsOther": "{n} objets",
@@ -100,14 +99,14 @@
       "deselectAll": "Tout désélectionner",
       "selectedOne": "{n} objet sélectionné",
       "selectedOther": "{n} objets sélectionnés",
-      "ctaTitle": "Créez votre inventaire personnel",
-      "ctaSub": "TiROiR — photographiez, cataloguez, retrouvez."
+      "ctaTitle": "Crée ton inventaire personnel",
+      "ctaSub": "TiROiR — photographie, catalogue, retrouve."
     },
     "object": {
       "notFound": "Objet introuvable",
       "salePreview": "Voir en vente (prototype) →",
       "salePrice": "Prix de vente",
-      "yourEstimate": "Votre estimation",
+      "yourEstimate": "Ton estimation",
       "estimatedMarketValue": "Valeur marchande estimée",
       "lotTotal": "Total du lot : {amount}",
       "ownerEstimate": "Estimation du propriétaire",
@@ -332,10 +331,10 @@
         "loaned": "Prêté",
         "lost": "Perdu"
       }
-    }
+    },
+    "$comment": "Textes share en français — référence de structure pour en, de, es\n(type ShareCopy). Importé par ../fr.ts sous la clé « share ».\n\nPages de partage (/s/<jeton>, sa fiche objet, l'aperçu de vente) et\nanciennes pages /share/… ; les marqueurs {n}, {date}… sont remplacés à\nl'affichage (fill). Tutoiement partout : ces pages s'adressent au grand\npublic (règle de ton : web/locales/README.md). « Vous convenez » (sale.step3)\nest un pluriel : l'acheteur et le propriétaire."
   },
   "account": {
-    "$comment": "Textes account en français — référence de structure pour en, da, de, es\n(type AccountCopy). Importé par ../fr.ts sous la clé « account ».\nPages de compte : connexion, inscription, mot de passe, confirmation,\nbienvenue, merci, désinscription, mon compte, profil, mes partages.\nLes marqueurs {email}, {min}, {n}, {date} sont remplacés à l'affichage.",
     "$common": "Éléments communs aux écrans de connexion et d'inscription.",
     "common": {
       "continueGoogle": "Continuer avec Google",
@@ -361,9 +360,9 @@
     },
     "signup": {
       "metaTitle": "Créer un compte — Tiroir",
-      "metaDescription": "Créez votre compte Tiroir gratuitement et cataloguez vos objets.",
+      "metaDescription": "Crée ton compte Tiroir gratuitement et catalogue tes objets.",
       "title": "Créer un compte",
-      "subtitle": "Gratuit, sans carte bancaire. Commencez à cataloguer vos objets en quelques secondes.",
+      "subtitle": "Gratuit, sans carte bancaire. Commence à cataloguer tes objets en quelques secondes.",
       "passwordHint": "Au moins 6 caractères.",
       "logMeIn": "Me connecter →",
       "sentBefore": "Presque fini : ouvre l’e-mail envoyé à ",
@@ -435,18 +434,14 @@
     "unsubscribe": {
       "metaTitle": "Désinscription — Tiroir",
       "okTitle": "C’est fait.",
-      "okText": "Vous ne recevrez plus d’e-mails de Tiroir.",
-      "okDetail": "Votre compte et vos objets ne sont pas touchés : seuls les envois s’arrêtent. Les messages liés à votre compte — réinitialisation de mot de passe, partage reçu — continuent d’arriver.",
-      "unknownTitle": "Vous êtes bien désinscrit·e",
+      "okText": "Tu ne recevras plus d’e-mails de Tiroir.",
+      "okDetail": "Ton compte et tes objets ne sont pas touchés : seuls les envois s’arrêtent. Les messages liés à ton compte — réinitialisation de mot de passe, partage reçu — continuent d’arriver.",
+      "unknownTitle": "Tu es bien désinscrit·e",
       "unknownText": "Ce lien a peut-être déjà été utilisé, ou il est incomplet.",
-      "unknownDetail": "Dans tous les cas, plus rien ne partira de notre côté. Si un message vous parvenait malgré tout, répondez-y : quelqu’un le lira.",
+      "unknownDetail": "Dans tous les cas, plus rien ne partira de notre côté. Si un message te parvenait malgré tout, réponds-y : quelqu’un le lira.",
       "back": "Retour sur tiroir.app"
     },
     "myAccount": {
-      "billingTitle": "Crédits IA et équipe",
-      "billingText": "Ton solde de crédits IA, leur historique, et l’achat de packs. Pour une équipe Business : membres et factures.",
-      "creditsLink": "Mes crédits IA →",
-      "teamLink": "Mon équipe Business →",
       "metaTitle": "Mon compte — Tiroir",
       "title": "Mon compte",
       "signedInAs": "Connecté avec ",
@@ -481,7 +476,11 @@
       "sendLink": "M’envoyer un lien",
       "footnoteBefore": "Pour modifier ton nom d’affichage, rends-toi sur ",
       "footnoteLink": "Mon profil",
-      "footnoteAfter": "."
+      "footnoteAfter": ".",
+      "billingTitle": "Crédits IA et équipe",
+      "billingText": "Ton solde de crédits IA, leur historique, et l’achat de packs. Pour une équipe Business : membres et factures.",
+      "creditsLink": "Mes crédits IA →",
+      "teamLink": "Mon équipe Business →"
     },
     "profile": {
       "metaTitle": "Mon profil — Tiroir",
@@ -560,10 +559,16 @@
       "linkingDisabled": "La liaison de comptes doit d’abord être activée dans Supabase (Authentication → « Allow manual linking »).",
       "identityTaken": "Ce compte est déjà rattaché à un autre compte Tiroir. Connecte-toi avec lui, supprime ce second compte ou écris à support@tiroir.app.",
       "lastIdentity": "Impossible de délier ton dernier moyen de connexion : ajoute-en un autre d’abord."
+    },
+    "$comment": "Textes account en français — référence de structure pour en, de, es\n(type AccountCopy). Importé par ../fr.ts sous la clé « account ».\nPages de compte : connexion, inscription, mot de passe, confirmation,\nbienvenue, merci, désinscription, mon compte, profil, mes partages.\nLes marqueurs {email}, {min}, {n}, {date} sont remplacés à l'affichage.",
+    "campaign": {
+      "metaTitle": "Tiroir de famille — Rendez-vous",
+      "title": "Rendez-vous le {date}",
+      "text": "La campagne Tiroir de famille n’est pas encore ouverte. Ce lien t’y emmènera dès le premier jour.",
+      "home": "Découvrir Tiroir"
     }
   },
   "about": {
-    "$comment": "Textes about en français — référence de structure pour en, da, de, es\n(type AboutCopy). Importé par ../fr.ts sous la clé « about ».",
     "meta": {
       "title": "À propos — Tiroir",
       "description": "Qui est derrière Tiroir : Clément Ougier, fondateur solo. Le projet, ce que je cherche (conseils, associés, testeurs) et comment me joindre."
@@ -577,7 +582,7 @@
     "hero": {
       "badge": "À propos",
       "title": "Bonjour, moi c’est Clément.",
-      "p1": "Je suis product designer, et Tiroir est mon projet — conçu, dessiné et développé en solo. L’idée est simple : vous photographiez un objet, l’IA rédige sa fiche, et votre inventaire se tient enfin tout seul.",
+      "p1": "Je suis product designer, et Tiroir est mon projet — conçu, dessiné et développé en solo. L’idée est simple : tu photographies un objet, l’IA rédige sa fiche, et ton inventaire se tient enfin tout seul.",
       "p2": "Je construis en public, je me trompe en public, et j’apprends beaucoup plus vite quand je parle à des gens qu’en restant devant mon écran. C’est tout l’objet de cette page.",
       "linkedin": "Me suivre sur LinkedIn"
     },
@@ -601,7 +606,7 @@
         },
         {
           "title": "Des personnes qui connaissent le terrain",
-          "body": "Seconde main, friperies, brocanteurs, assurance, déménagement, succession : si vous vivez un de ces mondes au quotidien, votre regard vaut dix études de marché."
+          "body": "Seconde main, friperies, brocanteurs, assurance, déménagement, succession : si tu vis un de ces mondes au quotidien, ton regard vaut dix études de marché."
         },
         {
           "title": "Peut-être un ou une associée",
@@ -615,7 +620,7 @@
     },
     "agenda": {
       "title": "Mon agenda est ouvert",
-      "body": "30 minutes, en visio, sans ordre du jour imposé. Que vous ayez un conseil, une question, une critique ou juste de la curiosité pour le projet : prenez un créneau, il est pour vous.",
+      "body": "30 minutes, en visio, sans ordre du jour imposé. Que tu aies un conseil, une question, une critique ou juste de la curiosité pour le projet : prends un créneau, il est pour toi.",
       "mail": "ou m’écrire à {email}"
     },
     "contact": {
@@ -624,10 +629,10 @@
       "blog": "cofondateurauchomage.fr — les coulisses, sans filtre.",
       "emailLabel": "E-mail",
       "email": "{email} — je réponds à tout le monde."
-    }
+    },
+    "$comment": "Textes about en français — référence de structure pour en, de, es\n(type AboutCopy). Importé par ../fr.ts sous la clé « about »."
   },
   "legal": {
-    "$comment": "Textes legal en français — référence de structure pour en, da, de, es\n(type LegalCopy). Importé par ../fr.ts sous la clé « legal ».\nLe corps des documents vit dans components/legal/{cgu,privacy}/.",
     "$updated": "Date de mise à jour, {date} formatée dans la langue (components/legal/date.ts).",
     "updated": "Dernière mise à jour : {date}",
     "$notice": "Avertissement en tête des traductions, suivi d'un lien vers la version\nfrançaise. Vide en français : la page française n'en affiche pas.",
@@ -642,7 +647,8 @@
       "title": "Politique de confidentialité — Tiroir",
       "description": "Politique de confidentialité de l'application Tiroir.",
       "heading": "Politique de confidentialité"
-    }
+    },
+    "$comment": "Textes legal en français — référence de structure pour en, de, es\n(type LegalCopy). Importé par ../fr.ts sous la clé « legal ».\nLe corps des documents vit dans components/legal/{cgu,privacy}/."
   },
   "layout": {
     "pricing": "Tarifs",
@@ -656,7 +662,7 @@
     "newHere": "Pas encore inscrit ?",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
-    "footerTagline": "Photographiez vos objets, Tiroir rédige la fiche. Votre inventaire, enfin tenu à jour.",
+    "footerTagline": "Photographie tes objets, Tiroir rédige la fiche. Ton inventaire, enfin tenu à jour.",
     "product": "Produit",
     "project": "Le projet",
     "about": "À propos",
@@ -671,24 +677,24 @@
   },
   "home": {
     "meta": {
-      "title": "Tiroir — une photo, et vos objets sont rangés",
-      "description": "Photographiez un objet : Tiroir rédige sa fiche, le range et estime sa valeur. Pour les créatifs, les pros et tous ceux qui veulent savoir ce qu’ils possèdent."
+      "title": "Tiroir — une photo, et tes objets sont rangés",
+      "description": "Photographie un objet : Tiroir rédige sa fiche, le range et estime sa valeur. Pour les créatifs, les pros et tous ceux qui veulent savoir ce qu’ils possèdent."
     },
     "hero": {
       "badge": "Disponible sur iOS et Android",
       "$variants": "Trois accroches ; la variante active se choisit dans locales/index.ts.",
       "variants": [
         {
-          "title": "Une photo, et tout ce que vous possédez est rangé.",
-          "sub": "Tiroir rédige la fiche de chaque objet à votre place, catégorie, état et valeur comprises."
+          "title": "Une photo, et tout ce que tu possèdes est rangé.",
+          "sub": "Tiroir rédige la fiche de chaque objet à ta place, catégorie, état et valeur comprises."
         },
         {
-          "title": "Sachez enfin ce que vous avez, et ce que ça vaut.",
-          "sub": "Tiroir rédige la fiche de chaque objet à votre place, catégorie, état et valeur comprises."
+          "title": "Sache enfin ce que tu as, et ce que ça vaut.",
+          "sub": "Tiroir rédige la fiche de chaque objet à ta place, catégorie, état et valeur comprises."
         },
         {
-          "title": "Votre inventaire se fait tout seul.",
-          "sub": "Prenez une photo, Tiroir s’occupe du reste. Aucune compétence technique requise."
+          "title": "Ton inventaire se fait tout seul.",
+          "sub": "Prends une photo, Tiroir s’occupe du reste. Aucune compétence technique requise."
         }
       ],
       "free": "Gratuit pour commencer",
@@ -719,21 +725,21 @@
         "valueLabel": "Valeur estimée"
       }
     },
-    "how": {
-      "eyebrow": "Comment ça marche",
-      "title": "Trois gestes, aucun réglage.",
+    "photo": {
+      "title": "Une photo, c’est tout.",
+      "sub": "Torix, l’IA de Tiroir, reconnaît ton objet et remplit sa fiche. Toi, tu choisis juste le tiroir.",
       "steps": [
         {
-          "title": "Photographiez",
-          "text": "Un objet, une photo. Ou cent d’un coup, en mode rafale."
+          "title": "Tu prends la photo",
+          "text": "Un objet, une photo. Aucun formulaire à remplir."
         },
         {
-          "title": "La fiche s’écrit",
-          "text": "Nom, catégorie, matière, état : tout est rempli. Vous corrigez si besoin."
+          "title": "Torix remplit la fiche",
+          "text": "Nom, catégorie, état : tout s’écrit tout seul. Tu corriges si tu veux."
         },
         {
           "title": "C’est rangé",
-          "text": "Collections, recherche, statut : vous retrouvez tout, à tout moment."
+          "text": "Tu choisis le tiroir pendant que Torix travaille. Ensuite, tu retrouves tout en un instant."
         }
       ],
       "fiche": {
@@ -744,35 +750,37 @@
             "Vêtements"
           ],
           [
-            "Matière",
-            "Denim"
-          ],
-          [
             "État",
             "Bon"
           ]
-        ]
+        ],
+        "estimate": "Valeur",
+        "estimateCta": "✦ Estimer"
       },
-      "collections": [
-        "Dressing",
-        "À vendre",
-        "Studio"
-      ],
-      "search": "veste bleue"
+      "drawer": "Dressing",
+      "stored": "Rangée",
+      "video": {
+        "label": "Vidéo de démonstration : la photo d’un objet devient une fiche complète, rangée dans un tiroir.",
+        "badge": "10 secondes",
+        "play": "Lire la vidéo",
+        "pause": "Mettre la vidéo en pause"
+      },
+      "reassure": "Gratuit, sans carte bancaire. {n} actions IA par mois incluses.",
+      "cta": "Essayer gratuitement"
     },
     "pros": {
       "eyebrow": "Pour les créatifs et les pros",
       "title": "Moins de saisie, plus de métier.",
-      "sub": "Votre matériel, votre stock, vos collections : documentés en quelques photos, pendant que vous travaillez.",
+      "sub": "Ton matériel, ton stock, tes collections : documentés en quelques photos, pendant que tu travailles.",
       "personas": [
         {
           "who": "Styliste",
-          "text": "Chaque pièce photographiée, rangée par shooting. Vous savez ce qui est sorti et ce qui est revenu.",
+          "text": "Chaque pièce photographiée, rangée par shooting. Tu sais ce qui est sorti et ce qui est revenu.",
           "chip": "Prêtée · retour vendredi"
         },
         {
           "who": "Régisseur",
-          "text": "Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans votre poche.",
+          "text": "Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans ta poche.",
           "chip": "42 pièces · 3 prêtées"
         },
         {
@@ -790,19 +798,19 @@
     "everyone": {
       "eyebrow": "Et pour tout le monde",
       "title": "Pas besoin d’être pro. Ni technicien.",
-      "sub": "Si vous savez prendre une photo, vous savez utiliser Tiroir.",
+      "sub": "Si tu sais prendre une photo, tu sais utiliser Tiroir.",
       "points": [
         {
           "title": "Aucune compétence requise",
-          "text": "Pas de tableau ni de formulaire vide. Vous photographiez, Tiroir remplit."
+          "text": "Pas de tableau ni de formulaire vide. Tu photographies, Tiroir remplit."
         },
         {
-          "title": "Vos données restent à vous",
-          "text": "Pas de publicité, rien n’est revendu ni utilisé pour entraîner des modèles. Supprimer votre compte efface tout, immédiatement."
+          "title": "Tes données restent à toi",
+          "text": "Pas de publicité, rien n’est revendu ni utilisé pour entraîner des modèles. Supprimer ton compte efface tout, immédiatement."
         },
         {
           "title": "Partage en lecture seule",
-          "text": "Un lien vers une collection : la personne regarde, sans compte ni application. Vous coupez le lien quand vous voulez."
+          "text": "Un lien vers une collection : la personne regarde, sans compte ni application. Tu coupes le lien quand tu veux."
         }
       ],
       "usesTitle": "Ça sert aussi à…",
@@ -812,11 +820,11 @@
         "Fixer les prix d’un vide-grenier",
         "Faire le tri dans un dressing"
       ],
-      "why": "Pourquoi ça marche : une intelligence artificielle de reconnaissance d’image décrit chaque photo. Le résultat reste une proposition — chaque champ se modifie, et vos corrections priment toujours."
+      "why": "Pourquoi ça marche : une intelligence artificielle de reconnaissance d’image décrit chaque photo. Le résultat reste une proposition — chaque champ se modifie, et tes corrections priment toujours."
     },
     "value": {
-      "eyebrow": "La valeur de vos objets",
-      "title": "Sachez ce que ça vaut, et suivez-le.",
+      "eyebrow": "La valeur de tes objets",
+      "title": "Sache ce que ça vaut, et suis-le.",
       "sub": "Une estimation fondée sur des annonces comparables, pas un chiffre sorti d’un chapeau.",
       "items": [
         {
@@ -825,11 +833,11 @@
         },
         {
           "title": "Suivre",
-          "text": "La valeur de chaque objet et de chaque collection, actualisée quand vous voulez."
+          "text": "La valeur de chaque objet et de chaque collection, actualisée quand tu veux."
         },
         {
           "title": "Revendre",
-          "text": "Marquez « Vendu » avec le prix réel : l’objet reste dans votre historique."
+          "text": "Marque « Vendu » avec le prix réel : l’objet reste dans ton historique."
         }
       ],
       "note": "Ce n’est pas une expertise : pour une pièce rare, c’est un ordre de grandeur.",
@@ -842,7 +850,7 @@
     "pricing": {
       "eyebrow": "Tarifs",
       "title": "Gratuit pour commencer.",
-      "sub": "Passez à la formule supérieure quand vous en avez besoin.",
+      "sub": "Passe à la formule supérieure quand tu en as besoin.",
       "perMonth": "/mois",
       "perSeat": "par siège/mois",
       "plans": {
@@ -859,15 +867,15 @@
       "items": [
         {
           "q": "Faut-il s’y connaître en technologie ?",
-          "a": "Non. Vous prenez une photo, Tiroir remplit la fiche. Tout se corrige d’un geste."
+          "a": "Non. Tu prends une photo, Tiroir remplit la fiche. Tout se corrige d’un geste."
         },
         {
           "q": "Et si la fiche se trompe ?",
-          "a": "Chaque champ est modifiable, et vos corrections priment toujours. La marque exacte ou le prix d’achat, c’est vous qui les connaissez."
+          "a": "Chaque champ est modifiable, et tes corrections priment toujours. La marque exacte ou le prix d’achat, c’est toi qui les connais."
         },
         {
           "q": "Mes photos sont-elles privées ?",
-          "a": "Oui. Rien n’est public tant que vous ne partagez pas un lien, et vous pouvez le désactiver à tout moment."
+          "a": "Oui. Rien n’est public tant que tu ne partages pas un lien, et tu peux le désactiver à tout moment."
         },
         {
           "q": "L’estimation est-elle fiable ?",
@@ -876,31 +884,44 @@
       ]
     },
     "final": {
-      "title": "Votre premier objet, rangé en une photo.",
+      "title": "Ton premier objet, rangé en une photo.",
       "sub": "Gratuit, sans carte bancaire."
+    },
+    "ululeInvite": {
+      "label": "Campagne Ulule",
+      "close": "Fermer",
+      "title": "Noël avant Noël",
+      "textBefore": "Le {date}, Tiroir de famille arrive sur Ulule : un mois avant Noël, pour donner à Tiroir les moyens de grandir.",
+      "textLive": "Jusqu’au 15 décembre, soutiens Tiroir sur Ulule par un don, du montant que tu veux. Un coup de pouce avant Noël.",
+      "raised": "{amount} collectés",
+      "next": "Prochain palier : {amount}",
+      "allReached": "Tous les paliers sont atteints. Merci !",
+      "milestones": "Paliers",
+      "cta": "Voir la campagne"
     }
   },
   "pricing": {
     "meta": {
       "title": "Tarifs — Tiroir",
-      "description": "Tiroir est gratuit, avec {free} actions IA par mois. Crédits IA dès {pack}, Premium à {premium} par mois, Pro à {pro} par mois, Business à {business} par siège."
+      "description": "Tiroir est gratuit, avec {free} actions IA par mois. Crédits IA dès {pack}, Premium à {premium} par mois, Pro à {pro} par mois, Business sur devis."
     },
     "badge": "Tarifs",
-    "title": "Rangez tout. Sachez ce que ça vaut.",
-    "sub": "Tiroir est gratuit pour tout le monde. Payez seulement quand vous allez plus loin.",
+    "title": "Range tout. Sache ce que ça vaut.",
+    "sub": "Tiroir est gratuit pour tout le monde. Tu ne paies que si tu vas plus loin.",
     "perMonth": "/mois",
     "perYear": "ou {price} par an",
     "perSeat": "par siège/mois",
     "soon": "Bientôt disponible",
     "free": {
-      "tagline": "Pour cataloguer tout ce que vous possédez.",
+      "tagline": "Pour cataloguer tout ce que tu possèdes.",
       "features": [
         "Objets et collections illimités",
         "{n} actions IA par mois (identification, estimation)",
         "Partage de collections en lecture seule",
         "Crédits IA en plus, à la demande"
       ],
-      "start": "Commencer gratuitement"
+      "start": "Commencer gratuitement",
+      "afterQuota": "Quota IA mensuel, puis achat de crédits"
     },
     "premium": {
       "tagline": "Pour suivre la valeur de votre collection.",
@@ -908,7 +929,6 @@
         "Estimation automatique avec quota mensuel",
         "Courbe de suivi de valeur et bouton Actualiser",
         "Sources résumées en une ligne",
-        "Suggestions d’objets par vos proches",
         "Liens de partage protégés par mot de passe"
       ],
       "cta": "Passer Premium"
@@ -930,12 +950,14 @@
         "Rôles et comptes multiples",
         "Facturation mensuelle, virement ou prélèvement"
       ],
-      "cta": "Nous contacter"
+      "cta": "Nous contacter",
+      "quote": "Sur devis",
+      "billing": "Facture mensuelle"
     },
     "note": "Prix TTC. Business se règle sur facture.",
     "credits": {
       "title": "Crédits IA",
-      "sub": "Besoin de plus ? Rechargez quand vous voulez, sans abonnement.",
+      "sub": "Besoin de plus ? Recharge quand tu veux, sans abonnement.",
       "unit": "{n} crédits",
       "popular": "Le plus choisi",
       "note": "Paiement sécurisé par carte. Les crédits n’expirent pas.",
@@ -961,15 +983,20 @@
       }
     ],
     "final": {
-      "title": "Commencez gratuitement.",
+      "title": "Commence gratuitement.",
       "sub": "Objets et collections illimités, {n} actions IA par mois. Aucune carte bancaire requise."
-    }
+    },
+    "$twoMonthsFree": "Mention de l'annuel : 10 mois payés pour 12 (grille du 08/11/2026).",
+    "twoMonthsFree": "Deux mois offerts",
+    "$vatIncl": "Après un prix TTC (assujetti à la TVA) ; vatExcl : le même prix hors taxes.",
+    "vatIncl": "TTC",
+    "vatExcl": "soit {price} HT"
   },
   "errors": {
     "notFoundTitle": "Page introuvable",
     "notFoundText": "La page demandée n’existe pas ou a été déplacée.",
     "serverTitle": "Erreur interne",
-    "serverText": "Un problème est survenu de notre côté. Réessayez dans un instant.",
+    "serverText": "Un problème est survenu de notre côté. Réessaie dans un instant.",
     "back": "Retour à l’accueil"
   },
   "billing": {
@@ -989,8 +1016,6 @@
       "perCredit": "{price} le crédit",
       "buy": "Acheter",
       "soon": "Bientôt disponible",
-      "waiver": "Je demande l’accès immédiat aux crédits et je renonce à mon droit de rétractation de 14 jours (art. L221-28 du Code de la consommation).",
-      "waiverMissing": "Coche la case ci-dessus pour continuer.",
       "redirecting": "Redirection vers le paiement…",
       "error": "Le paiement n’a pas pu démarrer. Réessaie dans un instant.",
       "success": "Paiement reçu : tes crédits arrivent dans quelques secondes.",
@@ -1011,7 +1036,10 @@
       "viaSite": "sur le site",
       "viaApp": "dans l’app",
       "refunded": "rendue",
-      "team": "Ton équipe Business"
+      "team": "Ton équipe Business",
+      "consentNote": "Sur la page de paiement Stripe, une case te demande de confirmer l’accès immédiat à tes crédits : tu renonces alors à ton droit de rétractation de 14 jours.",
+      "proIncluded": "Votre offre Pro inclut l’IA sans recharge : vous n’avez pas besoin de crédits.",
+      "added": "Crédits ajoutés : ton nouveau solde est à jour."
     },
     "team": {
       "metaTitle": "Équipe — Tiroir",
@@ -1065,6 +1093,54 @@
       "view": "Voir / payer",
       "pdf": "PDF",
       "noInvoices": "Pas encore de facture."
+    },
+    "subscribe": {
+      "$comment": "Tunnel d'abonnement Premium / Pro sur le site (tarifs → compte → Stripe Checkout → confirmation) et carte Abonnement de Mon compte.",
+      "metaTitle": "Abonnement — Tiroir",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "perYearUnit": "/an",
+      "cancelled": "Paiement interrompu : rien n’a été débité. Votre offre est toujours sélectionnée ci-dessous.",
+      "title": "Finaliser votre abonnement",
+      "recapTitle": "Votre offre",
+      "billedMonthly": "Facturé {price} chaque mois",
+      "billedYearly": "Facturé {price} chaque année",
+      "renewal": "Renouvellement automatique, résiliable à tout moment depuis votre compte.",
+      "change": "Changer d’offre",
+      "signedInAs": "Connecté avec {email}",
+      "switchAccount": "Changer de compte",
+      "pay": "Payer {price}",
+      "payNote": "Paiement sécurisé par Stripe : carte bancaire, Apple Pay ou Google Pay.",
+      "redirecting": "Redirection vers le paiement…",
+      "already": "Vous êtes déjà abonné sur le site. Changez d’offre ou de carte depuis la gestion de votre abonnement.",
+      "manage": "Gérer mon abonnement",
+      "elsewhere": "Votre compte a déjà une offre payante (dans l’app, ou sur facture). Pour la modifier, passez par l’app ou écrivez-nous.",
+      "closed": "Le paiement en ligne ouvre très bientôt.",
+      "error": "Le paiement n’a pas pu démarrer. Réessayez dans un instant.",
+      "accountFirst": "Créez votre compte (ou connectez-vous) : vous passez ensuite directement au paiement.",
+      "successMetaTitle": "Merci — Tiroir",
+      "successTitle": "Merci !",
+      "waiting": "Paiement reçu. Activation de votre offre…",
+      "active": "{tier} est actif sur votre compte.",
+      "next": "Ouvrez Tiroir sur votre téléphone avec le même compte : vos nouvelles fonctions y sont déjà. La facture arrive par e-mail.",
+      "slow": "L’activation prend un peu plus de temps que prévu. Elle se fera toute seule dans quelques minutes ; rien d’autre à faire.",
+      "getApp": "Télécharger l’app",
+      "seeAccount": "Voir mon compte",
+      "accountTitle": "Abonnement",
+      "planFree": "Offre gratuite.",
+      "seeOffers": "Voir les offres",
+      "planActive": "{tier}, abonnement en cours.",
+      "renewsOn": "Prochain renouvellement le {date}.",
+      "endsOn": "Résilié : l’offre reste active jusqu’au {date}, puis votre compte repasse en gratuit.",
+      "pastDue": "Le dernier paiement a échoué. Votre offre reste active pendant les nouvelles tentatives : mettez à jour votre carte.",
+      "fromApp": "{tier}, géré dans l’app (App Store ou Google Play).",
+      "fromInvoice": "{tier}, sur facture.",
+      "portalError": "Impossible d’ouvrir la gestion de l’abonnement. Réessayez dans un instant.",
+      "invoicesTitle": "Factures",
+      "invoicePdf": "PDF",
+      "invoicePaid": "payée",
+      "invoiceOpen": "à payer",
+      "consentNote": "Sur la page de paiement Stripe, une case vous demande de confirmer l’accès immédiat à votre abonnement et le renoncement à votre droit de rétractation de 14 jours."
     }
   }
 }

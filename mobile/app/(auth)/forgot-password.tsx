@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
-import { Screen, Button, Input, Colors, Typography, Spacing } from '@/components/ui'
+import { FormScreen, PRIMARY_BUTTON_SPACE, Button, Input, Colors, Typography, Spacing } from '@/components/ui'
 
 export default function ForgotPasswordScreen() {
   const router = useRouter()
@@ -32,11 +32,7 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <Screen>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.kav}
-      >
+    <FormScreen keepVisibleBelow={PRIMARY_BUTTON_SPACE}>
         <View style={styles.container}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backRow}>
             <Text style={styles.backText}>← {t('common.back')}</Text>
@@ -73,6 +69,8 @@ export default function ForgotPasswordScreen() {
                 autoComplete="email"
                 placeholder={t('auth.forgot.emailPlaceholder')}
                 autoFocus
+                returnKeyType="send"
+                onSubmitEditing={handleSend}
               />
               {error && <Text style={styles.error}>{error}</Text>}
               <Button
@@ -84,13 +82,11 @@ export default function ForgotPasswordScreen() {
             </View>
           )}
         </View>
-      </KeyboardAvoidingView>
-    </Screen>
+    </FormScreen>
   )
 }
 
 const styles = StyleSheet.create({
-  kav: { flex: 1 },
   container: {
     flex: 1,
     paddingHorizontal: Spacing.lg,

@@ -12,5 +12,10 @@
     "footer": "Tiroir — an inventory of your things, made simple.",
     "subject": "{sender} shared some items with you on Tiroir",
     "anonymousSender": "A Tiroir user"
+  },
+  "checkout": {
+    "consentSubscription": "I ask for immediate access to my subscription and acknowledge that I lose my 14-day right of withdrawal. I accept the [terms and conditions]({cgu}).",
+    "consentCredits": "I ask for immediate access to my credits and acknowledge that I lose my 14-day right of withdrawal. I accept the [terms and conditions]({cgu}).",
+    "invoiceNote": "Immediate access requested by the customer: right of withdrawal waived."
   }
 }

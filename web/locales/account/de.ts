@@ -26,9 +26,9 @@ const accountDe: AccountCopy = {
   },
   signup: {
     metaTitle: 'Konto erstellen — Tiroir',
-    metaDescription: 'Erstellen Sie kostenlos Ihr Tiroir-Konto und katalogisieren Sie Ihre Sachen.',
+    metaDescription: 'Erstelle kostenlos dein Tiroir-Konto und katalogisiere deine Sachen.',
     title: 'Konto erstellen',
-    subtitle: 'Kostenlos, ohne Kreditkarte. Beginnen Sie in wenigen Sekunden, Ihre Sachen zu katalogisieren.',
+    subtitle: 'Kostenlos, ohne Kreditkarte. Beginne in wenigen Sekunden, deine Sachen zu katalogisieren.',
     passwordHint: 'Mindestens 6 Zeichen.',
     logMeIn: 'Mich anmelden →',
     sentBefore: 'Fast geschafft: Öffne die E-Mail an ',
@@ -100,18 +100,14 @@ const accountDe: AccountCopy = {
   unsubscribe: {
     metaTitle: 'Abmeldung — Tiroir',
     okTitle: 'Erledigt.',
-    okText: 'Sie erhalten keine E-Mails mehr von Tiroir.',
-    okDetail: 'Ihr Konto und Ihre Gegenstände bleiben unberührt: Nur die Mailings werden eingestellt. Nachrichten zu Ihrem Konto — Zurücksetzen des Passworts, erhaltene Freigaben — kommen weiterhin an.',
-    unknownTitle: 'Sie sind abgemeldet',
+    okText: 'Du erhältst keine E-Mails mehr von Tiroir.',
+    okDetail: 'Dein Konto und deine Gegenstände bleiben unberührt: Nur die Mailings werden eingestellt. Nachrichten zu deinem Konto — Zurücksetzen des Passworts, erhaltene Freigaben — kommen weiterhin an.',
+    unknownTitle: 'Du bist abgemeldet',
     unknownText: 'Dieser Link wurde vielleicht schon verwendet oder ist unvollständig.',
-    unknownDetail: 'In jedem Fall verschicken wir nichts mehr. Sollte Sie trotzdem eine Nachricht erreichen, antworten Sie einfach darauf: Jemand wird sie lesen.',
+    unknownDetail: 'In jedem Fall verschicken wir nichts mehr. Sollte dich trotzdem eine Nachricht erreichen, antworte einfach darauf: Jemand wird sie lesen.',
     back: 'Zurück zu tiroir.app',
   },
   myAccount: {
-    billingTitle: 'KI-Credits und Team',
-    billingText: 'Dein KI-Credit-Guthaben, der Verlauf und Credit-Pakete. Für ein Business-Team: Mitglieder und Rechnungen.',
-    creditsLink: 'Meine KI-Credits →',
-    teamLink: 'Mein Business-Team →',
     metaTitle: 'Mein Konto — Tiroir',
     title: 'Mein Konto',
     signedInAs: 'Angemeldet als ',
@@ -147,6 +143,10 @@ const accountDe: AccountCopy = {
     footnoteBefore: 'Um deinen Anzeigenamen zu ändern, geh zu ',
     footnoteLink: 'Mein Profil',
     footnoteAfter: '.',
+    billingTitle: 'KI-Credits und Team',
+    billingText: 'Dein KI-Credit-Guthaben, der Verlauf und Credit-Pakete. Für ein Business-Team: Mitglieder und Rechnungen.',
+    creditsLink: 'Meine KI-Credits →',
+    teamLink: 'Mein Business-Team →',
   },
   profile: {
     metaTitle: 'Mein Profil — Tiroir',
@@ -223,6 +223,12 @@ const accountDe: AccountCopy = {
     linkingDisabled: 'Die Kontoverknüpfung muss zuerst in Supabase aktiviert werden (Authentication → „Allow manual linking“).',
     identityTaken: 'Dieses Konto ist bereits mit einem anderen Tiroir-Konto verbunden. Melde dich damit an, lösche dieses zweite Konto oder schreib an support@tiroir.app.',
     lastIdentity: 'Deine letzte Anmeldemethode kann nicht entfernt werden: Füge zuerst eine andere hinzu.',
+  },
+  campaign: {
+    metaTitle: 'Tiroir de famille — Bald verfügbar',
+    title: 'Wir sehen uns am {date}',
+    text: 'Die Kampagne Tiroir de famille ist noch nicht geöffnet. Dieser Link bringt dich ab dem ersten Tag dorthin.',
+    home: 'Tiroir entdecken',
   },
 }
 

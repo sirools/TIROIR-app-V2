@@ -9,13 +9,17 @@
 // Supabase (supabaseBillingStore), les tests une implémentation en mémoire.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { packByKey } from '../stripeConfig'
-import type { StripeCall } from './api'
+import { consentFromSession, type ConsentRecord } from '../checkoutConsent'
+import type { Params, StripeCall } from './api'
 import {
   accessUntil, idOf, invoiceOrgId, invoiceRow, invoiceSubscriptionId, subscriptionSnapshot,
   type InvoiceRow, type SubscriptionSnapshot,
 } from './business'
+import {
+  SUBSCRIPTION_EXPAND, individualInvoiceChanged, isIndividualInvoice, individualSubscriptionChanged, subscriptionCheckoutCompleted, type SubscriberStore,
+} from './subscriptions'
 
-export type StripeEvent = { id: string; type: string; livemode: boolean; data: { object: Record<string, unknown> } }
+export type StripeEvent = { id: string; type: string; livemode: boolean; created?: number; data: { object: Record<string, unknown> } }
 
 export type OrgRow = {
   id: string
@@ -49,9 +53,12 @@ export interface BillingStore {
   syncEntitlements(orgId: string): Promise<void>
   upsertInvoice(row: InvoiceRow & { org_id: string | null; payment_method: string | null }): Promise<void>
   logActivity(userId: string, action: string, payload: Record<string, unknown>): Promise<void>
+  /** Accord de rétractation recueilli au Checkout (checkout_consents), une fois par session. */
+  recordConsent?(c: ConsentRecord): Promise<void>
 }
 
-export type WebhookDeps = { store: BillingStore; stripe: StripeCall; now?: () => Date }
+/** `subscribers` : abonnements Premium et Pro des particuliers (lib/stripe/subscriptions.ts). */
+export type WebhookDeps = { store: BillingStore; stripe: StripeCall; subscribers?: SubscriberStore; now?: () => Date }
 
 const obj = (v: unknown): Record<string, unknown> => (v && typeof v === 'object' ? (v as Record<string, unknown>) : {})
 const str = (v: unknown): string | null => (typeof v === 'string' && v ? v : null)
@@ -67,11 +74,11 @@ async function chargePaymentMethod(stripe: StripeCall, charge: unknown): Promise
 }
 
 /** Version actuelle d'un objet Stripe ; à défaut, celle de l'événement. */
-async function fresh(stripe: StripeCall, path: string, o: Record<string, unknown>): Promise<Record<string, unknown>> {
+async function fresh(stripe: StripeCall, path: string, o: Record<string, unknown>, params?: Params): Promise<Record<string, unknown>> {
   const id = str(o.id)
   if (!id) return o
   try {
-    return await stripe('GET', `${path}${id}`)
+    return await stripe('GET', `${path}${id}`, params)
   } catch {
     return o
   }
@@ -79,9 +86,18 @@ async function fresh(stripe: StripeCall, path: string, o: Record<string, unknown
 
 export async function handleStripeEvent(event: StripeEvent, deps: WebhookDeps): Promise<string> {
   const o = event.data.object
+  const { subscribers } = deps
   switch (event.type) {
     case 'checkout.session.completed':
     case 'checkout.session.async_payment_succeeded':
+      if (event.type === 'checkout.session.completed') {
+        const consent = consentFromSession(o, event.created ? new Date(event.created * 1000) : undefined)
+        if (consent && deps.store.recordConsent) await deps.store.recordConsent(consent)
+      }
+      // Abonnement Premium / Pro d'un particulier : rattaché au compte.
+      if (o.mode === 'subscription' && obj(o.metadata).kind === 'subscription' && subscribers) {
+        return subscriptionCheckoutCompleted(o, { subscribers, stripe: deps.stripe })
+      }
       return creditPurchase(o, deps)
     case 'charge.refunded':
       return refund(o, deps)
@@ -89,14 +105,35 @@ export async function handleStripeEvent(event: StripeEvent, deps: WebhookDeps): 
     // qu'un événement arrivé en retard n'écrase pas un état plus récent.
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
-    case 'customer.subscription.deleted':
-      return subscriptionChanged(subscriptionSnapshot(await fresh(deps.stripe, '/v1/subscriptions/', o)), deps)
-    case 'invoice.finalized':
+    case 'customer.subscription.deleted': {
+      const current = await fresh(deps.stripe, '/v1/subscriptions/', o, SUBSCRIPTION_EXPAND)
+      if (subscribers) {
+        const outcome = await individualSubscriptionChanged(current, { subscribers, stripe: deps.stripe })
+        if (outcome !== null) return outcome
+      }
+      return subscriptionChanged(subscriptionSnapshot(current), deps)
+    }
     case 'invoice.paid':
-    case 'invoice.payment_failed':
+    case 'invoice.payment_failed': {
+      const invoice = await fresh(deps.stripe, '/v1/invoices/', o)
+      if (subscribers) {
+        const outcome = await individualInvoiceChanged(event.type, invoice, invoiceSubscriptionId(invoice), { subscribers, stripe: deps.stripe })
+        if (outcome !== null) return outcome
+      }
+      return invoiceChanged(event.type, invoice, deps)
+    }
+    case 'invoice.finalized':
     case 'invoice.voided':
-    case 'invoice.marked_uncollectible':
-      return invoiceChanged(event.type, await fresh(deps.stripe, '/v1/invoices/', o), deps)
+    case 'invoice.marked_uncollectible': {
+      const invoice = await fresh(deps.stripe, '/v1/invoices/', o)
+      // Facture d'un abonnement de particulier : Stripe l'envoie lui-même ;
+      // rien à noter côté Business (billing_invoices ne suit que les
+      // organisations).
+      if (subscribers && await isIndividualInvoice(invoiceSubscriptionId(invoice), deps.stripe)) {
+        return 'ignoré (facture d’un particulier)'
+      }
+      return invoiceChanged(event.type, invoice, deps)
+    }
     default:
       return 'ignoré'
   }
@@ -229,6 +266,9 @@ export function supabaseBillingStore(db: SupabaseClient): BillingStore {
       for (const [column, value] of [['id', orgId], ['stripe_subscription_id', subscriptionId], ['stripe_customer_id', customerId]] as const) {
         if (!value) continue
         const { data, error } = await db.from('organizations').select(ORG_COLUMNS).eq(column, value).maybeSingle()
+        // Formule Business pas encore installée (business_billing.sql) :
+        // aucune organisation, ce n'est pas une erreur.
+        if (error && (error.code === 'PGRST205' || error.code === '42P01')) return null
         fail('organizations', error)
         if (data) return data as OrgRow
       }
@@ -253,6 +293,16 @@ export function supabaseBillingStore(db: SupabaseClient): BillingStore {
     async logActivity(userId, action, payload) {
       const { error } = await db.from('activity_log').insert({ user_id: userId, action, payload })
       if (error) console.warn('[stripe-webhook] activity_log', error.message)
+    },
+    async recordConsent(c) {
+      const { error } = await db.from('checkout_consents').upsert({
+        stripe_session_id: c.sessionId, user_id: c.userId, kind: c.kind, item: c.item, consent: 'accepted',
+        text_version: c.textVersion, locale: c.locale, livemode: c.livemode, accepted_at: c.acceptedAt.toISOString(),
+      }, { onConflict: 'stripe_session_id', ignoreDuplicates: true })
+      // Table pas encore installée (checkout_consents.sql) : l'achat ne doit
+      // pas échouer pour autant ; la preuve reste dans la session Stripe.
+      if (error && (error.code === 'PGRST205' || error.code === '42P01')) { console.warn('[stripe-webhook] checkout_consents absente'); return }
+      fail('checkout_consents', error)
     },
   }
 }

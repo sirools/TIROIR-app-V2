@@ -5,7 +5,6 @@ import { useRouter } from 'next/router'
 import { asLocale, type Locale } from '../lib/localeRouting'
 import fr, { type Copy } from './fr'
 import en from './en'
-import da from './da'
 import de from './de'
 import es from './es'
 import { LANGUAGE_NAMES, LANGUAGE_INTL } from './languages.generated'
@@ -13,7 +12,7 @@ import { LANGUAGE_NAMES, LANGUAGE_INTL } from './languages.generated'
 /** Accroche active de la homepage : 1, 2 ou 3 (textes dans chaque langue, home.hero.variants). */
 export const HERO_VARIANT: 1 | 2 | 3 = 1
 
-export const COPIES: Record<Locale, Copy> = { fr, en, da, de, es }
+export const COPIES: Record<Locale, Copy> = { fr, en, de, es }
 
 // Noms et balises Intl : design/i18n/languages.json (module généré).
 export const LOCALE_NAMES = LANGUAGE_NAMES as Record<Locale, string>

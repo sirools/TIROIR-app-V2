@@ -2,7 +2,7 @@
 /** Langues proposées dans l'app (iOS et Android), dans l'ordre du sélecteur. */
 export const APP_LANGUAGES = ["fr","en","es","de","pt-BR","pt-PT"] as const
 /** Langues proposées sur le site. */
-export const SITE_LANGUAGES = ["fr","en","es","de","da"] as const
+export const SITE_LANGUAGES = ["fr","en","es","de"] as const
 /** Langues dans lesquelles partent les e-mails. */
 export const EMAIL_LANGUAGES = ["fr","en","es","de","pt-BR","pt-PT","da"] as const
 /** Langue de référence : toutes les autres suivent ses clés. */

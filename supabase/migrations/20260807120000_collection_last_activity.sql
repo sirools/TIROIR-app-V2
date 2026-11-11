@@ -23,6 +23,10 @@
 -- tous par patch_object, donc par le declencheur set_objects_updated_at.
 -- ================================================================
 
+-- Le type de retour change (last_activity_at) : CREATE OR REPLACE ne le
+-- permet pas sur une base neuve (préprod, Supabase local). Sans effet en prod.
+DROP FUNCTION IF EXISTS public.list_collections_with_counts();
+
 CREATE OR REPLACE FUNCTION public.list_collections_with_counts()
 RETURNS TABLE(
   id               UUID,

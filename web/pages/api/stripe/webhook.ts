@@ -1,5 +1,6 @@
 // Webhook Stripe : la seule porte par laquelle un paiement change quelque
-// chose dans Tiroir (crédits, droits Business, factures).
+// chose dans Tiroir (crédits, abonnements Premium et Pro, droits Business,
+// factures).
 //
 //   1. signature vérifiée sur le corps brut (STRIPE_WEBHOOK_SECRET) ;
 //   2. mode vérifié : un événement de test n'est jamais traité par un
@@ -15,6 +16,7 @@ import { stripeEnv } from '../../../lib/stripeConfig'
 import { verifyStripeSignature } from '../../../lib/stripe/signature'
 import { stripeClient } from '../../../lib/stripe/api'
 import { handleStripeEvent, supabaseBillingStore, type StripeEvent } from '../../../lib/stripe/webhook'
+import { supabaseSubscriberStore } from '../../../lib/stripe/subscriptions'
 import { adminSupabase } from '../../../lib/supabase'
 
 // Corps brut : la signature porte sur les octets exacts reçus.
@@ -61,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const outcome = await handleStripeEvent(event, { store: supabaseBillingStore(db), stripe: stripeClient(env) })
+    const outcome = await handleStripeEvent(event, { store: supabaseBillingStore(db), subscribers: supabaseSubscriberStore(db), stripe: stripeClient(env) })
     await db.from('stripe_events').update({ processed_at: new Date().toISOString(), error: null }).eq('id', event.id)
     console.log(`[stripe-webhook] ${event.type} ${event.id} → ${outcome}`)
     return res.status(200).json({ received: true })

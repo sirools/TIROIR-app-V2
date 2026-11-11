@@ -60,6 +60,28 @@ export default function DeBody() {
         </p>
       </LegalSection>
 
+      <LegalSection title="4a. Käufe auf tiroir.app (Abonnements und KI-Credits)">
+        <p>
+          Premium- und Pro-Abonnements sowie KI-Credit-Pakete können auch auf tiroir.app per Karte,
+          Apple Pay oder Google Pay gekauft werden. Die Zahlung wickelt Stripe ab; TiROiR hat nie Zugriff auf
+          Kartendaten. Die Preise enthalten die französische Mehrwertsteuer von 20 %; zu jeder Zahlung wird
+          eine Rechnung per E-Mail versandt.
+        </p>
+        <p>
+          Ein auf der Website gekauftes Abonnement verlängert sich automatisch zu jedem monatlichen oder
+          jährlichen Termin. Es wird unter „Mein Konto“ verwaltet (Tarifwechsel, Karte, Rechnungen,
+          Kündigung); eine Kündigung wird zum Ende des bereits bezahlten Zeitraums wirksam. Gekaufte
+          KI-Credits verfallen nicht.
+        </p>
+        <p>
+          <strong>Widerrufsrecht.</strong> Der Zugang zum Abonnement oder zu den Credits wird unmittelbar nach
+          der Zahlung bereitgestellt. Vor der Zahlung kreuzt der Kunde ein Kästchen an, mit dem er diesen
+          sofortigen Zugang verlangt und bestätigt, sein 14-tägiges Widerrufsrecht zu verlieren (Artikel
+          L221-28 des französischen Verbrauchergesetzbuchs). Diese Zustimmung wird mit Datum gespeichert und
+          auf der Rechnung vermerkt.
+        </p>
+      </LegalSection>
+
       <LegalSection title="5. Nutzerinhalte">
         <p>
           Sie behalten sämtliche Rechte des geistigen Eigentums an den Fotos, Beschreibungen und

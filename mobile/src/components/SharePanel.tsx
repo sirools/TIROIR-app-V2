@@ -1,12 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react'
 import {
-  View, Text, StyleSheet, TouchableOpacity, Modal, Animated, Image,
+  View, Text, StyleSheet, TouchableOpacity, Animated, Image,
   ScrollView, Share, ActivityIndicator, Switch, TextInput,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff, Plus, X, ChevronRight, ChevronLeft } from 'lucide-react-native'
 import { ActionSheet } from '@/components/ui/ActionSheet'
+import { FormSheet, SheetScrollView, focusNextField } from '@/components/ui/keyboard'
 import { supabase } from '@/lib/supabase'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui/tokens'
 import { TiroirObject } from '@/types/database'
@@ -251,7 +252,7 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
   ]
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+    <FormSheet visible={visible} animationType="none" onRequestClose={onClose}>
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
       <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
         <View style={styles.handle} />
@@ -313,7 +314,7 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
         ) : !generatedUrl ? (
           <>
             <Text style={styles.title}>{t('sharePanel.title')}</Text>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <SheetScrollView>
               {/* Sélection — une bande qu'on balaye du pouce plutôt qu'une
                   liste verticale qui mange la moitié du tiroir. */}
               <View style={styles.section}>
@@ -353,6 +354,8 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
                     placeholder={t('sharePanel.shareName')}
                     placeholderTextColor={Colors.textTertiary}
                     returnKeyType="next"
+                    submitBehavior="submit"
+                    onSubmitEditing={focusNextField}
                   />
                 </View>
 
@@ -363,6 +366,8 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
                     onChangeText={setContactName}
                     placeholder={t('sharePanel.recipientName')}
                     returnKeyType="next"
+                    submitBehavior="submit"
+                    onSubmitEditing={focusNextField}
                   />
                 )}
                 {activeFields.includes('email') && (
@@ -375,6 +380,8 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
                       autoCapitalize="none"
                       keyboardType="email-address"
                       returnKeyType="next"
+                      submitBehavior="submit"
+                      onSubmitEditing={focusNextField}
                     />
                     {!emailIsValid && <Text style={styles.contactError}>{t('sharePanel.invalidEmail')}</Text>}
                     {trimmedEmail.length > 0 && emailIsValid && (
@@ -459,7 +466,7 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
                   <ChevronRight size={17} color={Colors.textTertiary} strokeWidth={2} />
                 </TouchableOpacity>
               </View>
-            </ScrollView>
+            </SheetScrollView>
 
             <TouchableOpacity
               style={[styles.generateBtn, blocked && styles.generateBtnDisabled]}
@@ -526,15 +533,13 @@ export function SharePanel({ visible, selectedObjects, collectionName, onClose, 
           { label: t('common.cancel'), cancel: true, onPress: () => {} },
         ]}
       />
-    </Modal>
+    </FormSheet>
   )
 }
 
 const styles = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.4)' },
   sheet: {
-    position: 'absolute',
-    bottom: 0, left: 0, right: 0,
     backgroundColor: Colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,

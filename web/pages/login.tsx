@@ -7,6 +7,9 @@ import { authHref, safeNext } from '../lib/authFlow'
 import { authErrorFromUrl, authErrorKey, suggestsSignup, type AccountErrorKey, type AuthErrorKey } from '../lib/authErrors'
 import { localePrefix } from '../lib/localeRouting'
 import { useCopy } from '../locales'
+import { useBillingCopy } from '../locales/billing'
+import OfferRecap from '../components/billing/OfferRecap'
+import { offerFromNext } from '../lib/subscribeFlow'
 
 export default function Login() {
   const router = useRouter()
@@ -19,6 +22,9 @@ export default function Login() {
   const [hint, setHint]         = useState<AuthErrorKey | null>(null)
   const [loading, setLoading]   = useState(false)
   const next = typeof router.query.next === 'string' ? safeNext(router.query.next) : null
+  // Venu du tunnel d'abonnement : l'offre choisie reste affichée à côté.
+  const offer = offerFromNext(next)
+  const { t: { subscribe: ts } } = useBillingCopy()
 
   // Le propriétaire de Torix choisit où aller ; les autres vont dans Tiroir.
   const [choice, setChoice]     = useState(false)
@@ -180,12 +186,13 @@ export default function Login() {
         </>
         )}
       </div>
+    {offer && <OfferRecap plan={offer.plan} changeHref={`${prefix}/pricing#formules`} />}
     </main>
   )
 }
 
 const s: Record<string, React.CSSProperties> = {
-  root:        { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FFF4E6', padding: 24 },
+  root:        { minHeight: '100vh', display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'center', justifyContent: 'center', background: '#FFF4E6', padding: 24 },
   card:        { width: '100%', maxWidth: 400, background: 'white', borderRadius: 20, padding: '40px 32px', boxShadow: '0 6px 24px rgba(0,0,0,0.08)' },
   logo:        { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 },
   logoText:    { fontSize: 20, fontWeight: 800, color: '#121212' },

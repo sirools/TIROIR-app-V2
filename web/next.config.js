@@ -7,6 +7,12 @@ const supaHost = SUPABASE_URL.replace(/^https?:\/\//, '').split('/')[0] // ex: w
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Taux de TVA affiché par les pages (tarifs, tunnel, accueil), calculé au
+  // build depuis BILLING_VAT_MODE : le même réglage que celui qui fait
+  // ajouter la TVA au Checkout (lib/stripeConfig.ts, vatRate).
+  env: {
+    DISPLAY_VAT_RATE: process.env.BILLING_VAT_MODE?.trim() === 'assujetti' ? '0.2' : '0',
+  },
   typescript: { ignoreBuildErrors: true },
   // Le lint reste dispo via `npm run lint` mais ne bloque pas le build de prod
   // (règles cosmétiques type react/no-unescaped-entities sur du texte FR).
@@ -24,13 +30,14 @@ const nextConfig = {
   },
 
   // i18n natif (Pages Router). FR = défaut sans préfixe (tiroir.app/...),
-  // les autres langues préfixées (tiroir.app/en/..., /da, /de, /es).
+  // les autres langues préfixées (tiroir.app/en/..., /de, /es).
   // Détection auto désactivée tant que toutes les pages publiques ne sont
   // pas traduites — les liens App Store pointent explicitement vers /en.
-  // Danois, allemand et espagnol : seule la homepage est traduite ; les
-  // autres pages renvoient vers leur version anglaise (lib/localeRouting.ts).
+  // Allemand et espagnol : les pages non traduites renvoient vers leur
+  // version anglaise (lib/localeRouting.ts). Langues de Tiroir : fr, en,
+  // es, de, pt (pt pas encore sur le site) ; voir locales/README.md.
   i18n: {
-    locales: ['fr', 'en', 'da', 'de', 'es'],
+    locales: ['fr', 'en', 'de', 'es'],
     defaultLocale: 'fr',
     localeDetection: false,
   },

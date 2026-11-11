@@ -74,33 +74,42 @@ const es: Copy = {
         valueLabel: 'Valor estimado',
       },
     },
-    how: {
-      eyebrow: 'Cómo funciona',
-      title: 'Tres gestos, nada que configurar.',
+    photo: {
+      title: 'Una foto y listo.',
+      sub: 'Torix, la IA de Tiroir, reconoce tu objeto y rellena su ficha. Tú solo eliges el cajón.',
       steps: [
         {
-          title: 'Haz la foto',
-          text: 'Un objeto, una foto. O cien de golpe, en modo ráfaga.',
+          title: 'Haces la foto',
+          text: 'Un objeto, una foto. Sin formularios que rellenar.',
         },
         {
-          title: 'La ficha se escribe sola',
-          text: 'Nombre, categoría, material, estado: todo relleno. Corrige si hace falta.',
+          title: 'Torix rellena la ficha',
+          text: 'Nombre, categoría, estado: todo se escribe solo. Corrígelo si quieres.',
         },
         {
-          title: 'Todo ordenado',
-          text: 'Colecciones, búsqueda, estado: lo encuentras todo, cuando quieras.',
+          title: 'Ya está guardado',
+          text: 'Eliges el cajón mientras Torix trabaja. Luego lo encuentras todo al instante.',
         },
       ],
       fiche: {
         name: 'Chaqueta vaquera',
         rows: [
           ['Categoría', 'Ropa'],
-          ['Material', 'Denim'],
           ['Estado', 'Bueno'],
         ],
+        estimate: 'Valor',
+        estimateCta: '✦ Estimar',
       },
-      collections: ['Armario', 'Para vender', 'Estudio'],
-      search: 'chaqueta azul',
+      drawer: 'Armario',
+      stored: 'Guardada',
+      video: {
+        label: 'Vídeo de demostración: la foto de un objeto se convierte en una ficha completa, guardada en un cajón.',
+        badge: '10 segundos',
+        play: 'Reproducir el vídeo',
+        pause: 'Pausar el vídeo',
+      },
+      reassure: 'Gratis, sin tarjeta. {n} acciones de IA al mes incluidas.',
+      cta: 'Pruébalo gratis',
     },
     pros: {
       eyebrow: 'Para creativos y profesionales',
@@ -189,7 +198,7 @@ const es: Copy = {
       perSeat: 'por usuario/mes',
       plans: {
         free: 'Objetos y colecciones ilimitados, {n} análisis al mes.',
-        premium: 'Para seguir el valor de tu colección.',
+        premium: 'Para seguir el valor de su colección.',
         pro: 'Para quienes viven de sus objetos.',
         business: 'Para gestionar un stock en equipo.',
       },
@@ -221,11 +230,23 @@ const es: Copy = {
       title: 'Tu primer objeto, ordenado con una foto.',
       sub: 'Gratis, sin tarjeta.',
     },
+    ululeInvite: {
+      label: 'Campaña en Ulule',
+      close: 'Cerrar',
+      title: 'Navidad antes de Navidad',
+      textBefore: 'El {date}, Tiroir de famille llega a Ulule: un mes antes de Navidad, para dar a Tiroir los medios para crecer.',
+      textLive: 'Hasta el 15 de diciembre, apoya a Tiroir en Ulule con una donación de la cantidad que quieras. Un empujón antes de Navidad.',
+      raised: '{amount} recaudados',
+      next: 'Próxima meta: {amount}',
+      allReached: 'Todas las metas alcanzadas. ¡Gracias!',
+      milestones: 'Metas',
+      cta: 'Ver la campaña',
+    },
   },
   pricing: {
     meta: {
       title: 'Precios — Tiroir',
-      description: 'Tiroir es gratis, con {free} acciones de IA al mes. Créditos de IA desde {pack}, Premium a {premium} al mes, Pro a {pro} al mes, Business a {business} por usuario.',
+      description: 'Tiroir es gratis, con {free} acciones de IA al mes. Créditos de IA desde {pack}, Premium a {premium} al mes, Pro a {pro} al mes, Business bajo presupuesto.',
     },
     badge: 'Precios',
     title: 'Ordénalo todo. Sabe lo que vale.',
@@ -243,17 +264,17 @@ const es: Copy = {
         'Créditos de IA extra, cuando quieras',
       ],
       start: 'Empieza gratis',
+      afterQuota: 'Cuota mensual de IA, luego compra de créditos',
     },
     premium: {
-      tagline: 'Para seguir el valor de tu colección.',
+      tagline: 'Para seguir el valor de su colección.',
       features: [
         'Estimación automática con cuota mensual',
         'Curva de evolución del valor y botón Actualizar',
         'Fuentes resumidas en una línea',
-        'Sugerencias de objetos de tus allegados',
         'Enlaces compartidos protegidos con contraseña',
       ],
-      cta: 'Pasar a Premium',
+      cta: 'Pase a Premium',
     },
     pro: {
       tagline: 'Para quienes viven de sus objetos.',
@@ -263,7 +284,7 @@ const es: Copy = {
         'Detalle de fuentes y comparación de mercado',
         'Exportación para el seguro',
       ],
-      cta: 'Pasar a Pro',
+      cta: 'Pase a Pro',
     },
     business: {
       tagline: 'Para gestionar un stock en equipo.',
@@ -272,7 +293,9 @@ const es: Copy = {
         'Roles y varias cuentas',
         'Facturación mensual, transferencia o domiciliación',
       ],
-      cta: 'Contáctanos',
+      cta: 'Contáctenos',
+      quote: 'Bajo presupuesto',
+      billing: 'Factura mensual',
     },
     note: 'IVA incluido. Business se paga con factura.',
     credits: {
@@ -299,13 +322,16 @@ const es: Copy = {
       },
       {
         q: '¿Puedo cancelar?',
-        a: 'Cuando quieras, desde el App Store, el Play Store o tu cuenta.',
+        a: 'Cuando quiera, desde el App Store, el Play Store o su cuenta.',
       },
     ],
     final: {
       title: 'Empieza gratis.',
       sub: 'Objetos y colecciones ilimitados, {n} acciones de IA al mes. Sin tarjeta.',
     },
+    twoMonthsFree: 'Dos meses gratis',
+    vatIncl: 'IVA incl.',
+    vatExcl: '{price} sin IVA',
   },
   errors: {
     notFoundTitle: 'Página no encontrada',

@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { supabase } from '@/lib/supabase'
-import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { FormScreen, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { GlobalMenu, BurgerIcon } from '@/components/GlobalMenu'
 import { SearchResult, TiroirObject } from '@/types/database'
 
@@ -224,7 +224,7 @@ export default function SearchScreen() {
   // ── JSX ────────────────────────────────────────────────────────────────────
 
   return (
-    <Screen edges={['top']}>
+    <FormScreen mode="fixed" edges={['top']}>
 
       {/* Header — style home */}
       <View style={styles.header}>
@@ -320,7 +320,7 @@ export default function SearchScreen() {
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       )}
-    </Screen>
+    </FormScreen>
   )
 }
 

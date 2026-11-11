@@ -19,6 +19,10 @@ export interface Profile {
   pro_expires_at: string | null
   pro_invoice_ref: string | null
   pro_company: string | null
+  /** Origine du palier payant : 'web' (Stripe, site), 'app' (stores), null (offert, sur facture ou ancien). */
+  plan_source?: 'web' | 'app' | null
+  /** Statut Stripe de l'abonnement du site (active, past_due, canceled…). */
+  subscription_status?: string | null
   created_at: string
   updated_at: string
 }

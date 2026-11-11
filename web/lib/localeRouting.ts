@@ -1,16 +1,16 @@
 // Langues du site et pages traduites.
 //
-// Le français et l'anglais couvrent tout le site public. Le danois,
-// l'allemand et l'espagnol ne couvrent que les pages de TRANSLATED_PATHS :
+// Le français et l'anglais couvrent tout le site public. L'allemand et
+// l'espagnol ne couvrent que les pages de TRANSLATED_PATHS :
 // toute autre page demandée dans ces langues renvoie vers sa version
 // anglaise (redirection temporaire, le temps de la traduire). Module sans
 // dépendance, appelé par middleware.ts, testé à part.
 
-export const LOCALES = ['fr', 'en', 'da', 'de', 'es'] as const
+export const LOCALES = ['fr', 'en', 'de', 'es'] as const
 export type Locale = (typeof LOCALES)[number]
 
 /** Langues où seules les pages de TRANSLATED_PATHS existent. */
-export const PARTIAL_LOCALES: readonly Locale[] = ['da', 'de', 'es']
+export const PARTIAL_LOCALES: readonly Locale[] = ['de', 'es']
 
 /** Pages traduites dans toutes les langues (textes dans web/locales). */
 export const TRANSLATED_PATHS: readonly string[] = [
@@ -49,6 +49,18 @@ export function untranslatedRedirect(locale: string | undefined, pathname: strin
   // Fichiers statiques (favicon, images, vidéos…) : servis tels quels.
   if (/\.[a-z0-9]+$/i.test(pathname)) return null
   return `/en${pathname}`
+}
+
+/**
+ * Le danois a été servi par erreur du 19/10 au 08/11/2026 (/da/…) : ce
+ * n'est pas une langue de Tiroir. Ses anciennes adresses renvoient vers
+ * l'anglais, langue par défaut hors de France. `pathname` est tel que le
+ * voit le middleware : sans langue reconnue, /da reste dans le chemin.
+ */
+export function retiredLocaleRedirect(pathname: string): string | null {
+  if (pathname === '/da') return '/en'
+  if (pathname.startsWith('/da/')) return `/en${pathname.slice(3)}`
+  return null
 }
 
 /** Préfixe d'URL publique d'une langue (« » pour le français). */

@@ -57,7 +57,19 @@ export type StoreEvent = {
   new_product_id?: unknown
   expiration_at_ms?: unknown
 }
-export type CurrentProfile = { plan: string; pro_since: string | null; pro_expires_at: string | null }
+export type CurrentProfile = {
+  plan: string
+  pro_since: string | null
+  pro_expires_at: string | null
+  /** Origine du palier payant : 'web' (Stripe, site) ou 'app' (stores). */
+  plan_source?: string | null
+  /** Statut Stripe de l'abonnement du site. */
+  subscription_status?: string | null
+}
+
+/** Abonnement du site (Stripe) en cours : son palier ne regarde que Stripe. */
+export const hasLiveWebSubscription = (p: CurrentProfile) =>
+  p.plan_source === 'web' && ['active', 'trialing', 'past_due'].includes(p.subscription_status ?? '')
 
 /** Pro sur facture encore en cours (posé et daté par le back-office). */
 const isInvoicedPro = (p: CurrentProfile, today: string) =>
@@ -69,6 +81,8 @@ const isInvoicedPro = (p: CurrentProfile, today: string) =>
  *
  * - Un client Pro sur facture en cours (pro_since posé par le back-office,
  *   période non échue) n'est jamais modifié par les stores.
+ * - Un abonné du site (Stripe) en cours non plus : son palier ne suit que
+ *   le webhook Stripe (apply_stripe_subscription).
  * - Changement de produit : c'est le nouveau produit qui compte.
  * - Fin de l'accès (endsAccess) : on ne retombe en gratuit que si c'est
  *   l'abonnement en cours qui s'arrête (la fin d'un Premium remplacé par un
@@ -80,6 +94,7 @@ export function nextPlan(
   today: string = new Date().toISOString().slice(0, 10),
 ): 'free' | StoreTier | null {
   if (isInvoicedPro(profile, today)) return null
+  if (hasLiveWebSubscription(profile)) return null
 
   if (ACTIVE_EVENTS.has(event.type)) {
     const product = event.type === 'PRODUCT_CHANGE' ? event.new_product_id ?? event.product_id : event.product_id
@@ -97,4 +112,59 @@ export function nextPlan(
   }
 
   return null
+}
+
+/**
+ * Achat ou renouvellement des stores pris alors que le compte est déjà
+ * payé ailleurs (abonnement du site en cours, Pro sur facture en cours) :
+ * nextPlan l'ignore, le client paie donc deux fois. Renvoie l'autre source
+ * pour le signaler dans activity_log (purchase.duplicate), sinon null.
+ */
+export function duplicateSubscription(
+  event: StoreEvent,
+  profile: CurrentProfile,
+  today: string = new Date().toISOString().slice(0, 10),
+): 'web' | 'invoice' | null {
+  if (!ACTIVE_EVENTS.has(event.type) || event.type === 'TRANSFER') return null
+  const product = event.type === 'PRODUCT_CHANGE' ? event.new_product_id ?? event.product_id : event.product_id
+  if (!tierForProduct(product)) return null
+  if (hasLiveWebSubscription(profile)) return 'web'
+  if (isInvoicedPro(profile, today)) return 'invoice'
+  return null
+}
+
+/** Ligne du journal public.subscriptions pour un événement RevenueCat, ou null. */
+export type StoreSubscriptionRow = {
+  source: 'apple' | 'google'
+  external_id: string
+  tier: StoreTier
+  period: 'monthly' | 'yearly'
+  status: 'active' | 'past_due' | 'expired'
+  period_end: string | null
+  cancel_at_period_end: boolean
+}
+
+export function storeSubscriptionRow(event: StoreEvent & {
+  store?: unknown; original_transaction_id?: unknown; transaction_id?: unknown
+}): StoreSubscriptionRow | null {
+  const source = event.store === 'APP_STORE' || event.store === 'MAC_APP_STORE' ? 'apple'
+    : event.store === 'PLAY_STORE' ? 'google' : null
+  const product = event.type === 'PRODUCT_CHANGE' ? event.new_product_id ?? event.product_id : event.product_id
+  const tier = tierForProduct(product)
+  const id = event.original_transaction_id ?? event.transaction_id
+  if (!source || !tier || (typeof id !== 'string' && typeof id !== 'number')) return null
+  const status = ACTIVE_EVENTS.has(event.type) || event.type === 'CANCELLATION' ? 'active'
+    : event.type === 'BILLING_ISSUE' ? 'past_due'
+    : event.type === 'EXPIRATION' ? 'expired' : null
+  if (!status) return null
+  const ms = typeof event.expiration_at_ms === 'number' ? event.expiration_at_ms : null
+  return {
+    source,
+    external_id: String(id),
+    tier,
+    period: /annual|yearly|year/.test(String(baseId(product))) ? 'yearly' : 'monthly',
+    status,
+    period_end: ms ? new Date(ms).toISOString() : null,
+    cancel_at_period_end: event.type === 'CANCELLATION',
+  }
 }

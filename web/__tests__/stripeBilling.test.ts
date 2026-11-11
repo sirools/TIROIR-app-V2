@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { OFFERS_V4 } from '../lib/offers'
-import { BUSINESS, CREDIT_PACKS, invoiceFooter, packByKey, prorationFor, stripeEnv, vatMode } from '../lib/stripeConfig'
+import { BUSINESS, CREDIT_PACKS, SUBSCRIPTION_PLANS, invoiceFooter, packByKey, prorationFor, stripeEnv, vatMode } from '../lib/stripeConfig'
 import { signPayload, verifyStripeSignature } from '../lib/stripe/signature'
 import { encodeForm, type StripeCall } from '../lib/stripe/api'
 import { accessUntil, invoiceRow, subscriptionSnapshot } from '../lib/stripe/business'
@@ -24,6 +24,7 @@ describe('config Stripe', () => {
     expect(PRODUCTS.map((p: { lookupKey: string; amount: number }) => [p.lookupKey, p.amount])).toEqual([
       ...CREDIT_PACKS.map(p => [p.lookupKey, p.amount]),
       [BUSINESS.lookupKey, BUSINESS.seatAmount],
+      ...SUBSCRIPTION_PLANS.map(p => [p.lookupKey, p.amount]),
     ])
   })
 
@@ -36,7 +37,7 @@ describe('config Stripe', () => {
   })
 
   test('aucune clé Stripe en dur dans le code', () => {
-    for (const file of ['web/lib/stripeConfig.ts', 'web/lib/stripe/api.ts', 'web/pages/api/stripe/webhook.ts', 'web/pages/api/stripe/checkout.ts', 'scripts/stripe-setup.mjs']) {
+    for (const file of ['web/lib/stripeConfig.ts', 'web/lib/stripe/api.ts', 'web/pages/api/stripe/webhook.ts', 'web/pages/api/stripe/checkout.ts', 'web/pages/api/stripe/subscription.ts', 'web/pages/api/stripe/portal.ts', 'web/lib/stripe/subscriptions.ts', 'scripts/stripe-setup.mjs']) {
       expect(readFileSync(path.join(root, file), 'utf8')).not.toMatch(/(sk|rk)_(test|live)_[A-Za-z0-9]{8,}|whsec_[A-Za-z0-9]{8,}/)
     }
   })
@@ -271,6 +272,20 @@ describe('revenus', () => {
     expect(p.total).toBe(p.business + p.credits + p.outstanding)
   })
 
+  test('projection : abonnements réels prolongés ; crédits jamais sur moins de 30 jours', () => {
+    // Trois achats ce jour-ci (12,97 €) : prolongés tels quels sur 30 jours,
+    // ils promettaient 389,10 € ; au rythme de 30 jours, 12,97 €.
+    const p = projectRevenue({
+      now, target: new Date('2026-12-01T00:00:00Z'), mrr: 0, subscriptionsMrr: 6500,
+      purchases: [purchase(now.toISOString(), 699), purchase(now.toISOString(), 299), purchase(now.toISOString(), 299)],
+      invoices: [],
+    })
+    expect(p.days).toBe(30)
+    expect(p.credits).toBe(Math.round(1297 / 30 * 30))
+    expect(p.subscriptions).toBe(Math.round(6500 * 30 / (365.25 / 12)))
+    expect(p.total).toBe(p.subscriptions + p.credits)
+  })
+
   test('qui facture qui : crédits nets et factures, le plus récent d’abord', () => {
     const lines = billingLines([purchase('2026-10-02T00:00:00Z', 699, 699)], [
       { org_name: 'Dupont', number: 'TIROIR-0002', status: 'paid', amount_due: 7800, amount_paid: 7800, amount_remaining: 0, seats: 2, created_at: '2026-10-01T00:00:00Z', due_date: null, paid_at: '2026-10-15T00:00:00Z', payment_method: 'customer_balance' },
@@ -281,5 +296,15 @@ describe('revenus', () => {
       ['a@x.fr', 0, 'remboursé'],
     ])
     expect(lines[0].what).toBe('Business · 2 sièges · TIROIR-0002')
+  })
+})
+
+describe('vente de crédits', () => {
+  test('fermée tant que STRIPE_CREDITS_OPEN=1 n’est pas posé, même avec Stripe configuré', async () => {
+    const { creditsSaleOpen } = await import('../lib/stripeConfig')
+    const stripe = { STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_MODE: 'test' }
+    expect(creditsSaleOpen(stripe)).toBe(false)
+    expect(creditsSaleOpen({ ...stripe, STRIPE_CREDITS_OPEN: '1' })).toBe(true)
+    expect(creditsSaleOpen({ STRIPE_CREDITS_OPEN: '1' })).toBe(false)
   })
 })

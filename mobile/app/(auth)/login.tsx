@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Linking } from 'react-native'
+import { View, Text, StyleSheet, Platform, TouchableOpacity, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import * as AppleAuthentication from 'expo-apple-authentication'
 import { supabase } from '@/lib/supabase'
 import { signInWithApple, signInWithGoogle } from '@/features/auth/socialAuth'
-import { Screen, Button, Input, GoogleButton, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { FormScreen, PRIMARY_BUTTON_SPACE, Button, Input, GoogleButton, Colors, Typography, Spacing, Radius } from '@/components/ui'
 
 export default function LoginScreen() {
   const router = useRouter()
@@ -69,11 +69,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <Screen>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.kav}
-      >
+    <FormScreen centered keepVisibleBelow={PRIMARY_BUTTON_SPACE}>
         <View style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.wordmark}>Tiroir</Text>
@@ -97,6 +93,8 @@ export default function LoginScreen() {
               secureTextEntry
               autoComplete="password"
               placeholder="••••••••"
+              returnKeyType="go"
+              onSubmitEditing={handleLogin}
               containerStyle={{ marginTop: Spacing.md }}
             />
 
@@ -165,13 +163,11 @@ export default function LoginScreen() {
             <Text style={styles.link}>{t('auth.login.noAccountQuestion')}<Text style={styles.linkBold}>{t('auth.login.createAccount')}</Text></Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </Screen>
+    </FormScreen>
   )
 }
 
 const styles = StyleSheet.create({
-  kav: { flex: 1 },
   container: {
     flex: 1,
     paddingHorizontal: Spacing.lg,

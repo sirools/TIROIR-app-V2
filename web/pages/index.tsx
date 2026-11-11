@@ -2,9 +2,9 @@ import { useRef } from 'react'
 import Head from 'next/head'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
-import SurveyInvite from '../components/SurveyInvite'
+import UluleInvite from '../components/UluleInvite'
 import Hero from '../components/home/Hero'
-import HowItWorks from '../components/home/HowItWorks'
+import PhotoSimple from '../components/home/PhotoSimple'
 import ForPros from '../components/home/ForPros'
 import ForEveryone from '../components/home/ForEveryone'
 import Value from '../components/home/Value'
@@ -35,7 +35,7 @@ export default function Landing() {
       <div ref={root} className={s.page} data-motion={motion}>
         <main>
           <Hero />
-          <HowItWorks />
+          <PhotoSimple />
           <ForPros />
           <ForEveryone />
           <Value />
@@ -47,7 +47,7 @@ export default function Landing() {
       <FooterTiroirWeb />
 
       {/* L'enquête n'existe qu'en français et en anglais. */}
-      {(locale === 'fr' || locale === 'en') && <SurveyInvite />}
+      {(locale === 'fr' || locale === 'en') && <UluleInvite />}
     </>
   )
 }

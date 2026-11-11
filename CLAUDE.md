@@ -29,6 +29,18 @@ des e-mails, liste des langues). Jamais de texte modifié dans
 `node design/generate.mjs` et `node scripts/i18n-check.mjs`. Voir
 `design/i18n/README.md`.
 
+## Langues et ton du site
+
+Langues de Tiroir : **fr, en, es, de, pt**. Le site (tiroir.app) sert fr,
+en, es et de ; le portugais n'existe encore que dans l'app. Aucune autre
+langue sans décision du fondateur.
+
+Ton : **tutoiement** pour tout ce qui s'adresse au grand public (offre
+gratuite) ; **vouvoiement** pour tout ce qui concerne Premium, Pro et
+Business. Vaut pour chaque langue qui distingue les deux (tu/vous, tú/usted,
+du/Sie, tu/o senhor). Classement texte par texte : `web/locales/README.md` (les textes eux-mêmes
+vivent dans `design/i18n/`).
+
 ## Documents de référence à lire avant de décider
 
 - `strategie/torix-et-tiroir.md` — relation Torix / Tiroir, coûts IA,

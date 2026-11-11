@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { FileText, Plus, Trash2, CalendarDays, Pencil, Camera, Image as LucideImage, File as FileIcon, Link2 } from 'lucide-react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
-import { Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { Colors, Typography, Spacing, Radius, focusNextField } from '@/components/ui'
 import { DocumentViewer } from './DocumentViewer'
 import { ObjectDocument } from './DocumentsSection'
 import { ObjectInsurance } from '@/types/database'
@@ -262,6 +262,7 @@ export function InsurancesSection({
           style={s.input} value={draft.label}
           onChangeText={v => setDraft(d => ({ ...d, label: v }))}
           placeholder={t('object.insurance.labelPlaceholder')} placeholderTextColor={Colors.textTertiary}
+          returnKeyType="next" submitBehavior="submit" onSubmitEditing={focusNextField}
         />
 
         <Text style={s.fieldLabel}>{t('object.insurance.recurrence')}</Text>

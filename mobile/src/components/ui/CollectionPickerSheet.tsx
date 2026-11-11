@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ActivityIndicator, FlatList, Modal, StyleSheet, Text, TouchableOpacity, View,
+  ActivityIndicator, StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
+import { FormSheet, SheetFlatList } from './keyboard'
 import { Inbox, Pin } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { fetchOwnDrawerId } from '@/features/collections/ownDrawer'
@@ -115,9 +116,8 @@ export function CollectionPickerSheet({
   const isEmpty = collections !== null && collections.length === 0
 
   return (
-    <Modal
+    <FormSheet
       visible={visible}
-      transparent
       animationType="slide"
       onRequestClose={() => onDismiss?.()}
     >
@@ -135,7 +135,8 @@ export function CollectionPickerSheet({
         {collections === null ? (
           <ActivityIndicator style={styles.loader} color={Colors.accent} />
         ) : (
-          <FlatList
+          <SheetFlatList
+            footerHoldsField
             data={ordered}
             keyExtractor={c => c.id}
             style={styles.list}
@@ -206,7 +207,7 @@ export function CollectionPickerSheet({
           </TouchableOpacity>
         )}
       </View>
-    </Modal>
+    </FormSheet>
   )
 }
 
@@ -217,8 +218,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(26, 22, 18, 0.35)',
   },
   sheet: {
-    position: 'absolute',
-    left: 0, right: 0, bottom: 0,
     maxHeight: '78%',
     backgroundColor: Colors.background,
     borderTopLeftRadius: Radius.xl,

@@ -1,6 +1,6 @@
 // Généré par design/generate.mjs depuis design/i18n/site/fr.json — ne pas modifier à la main.
 //
-// Textes legal en français — référence de structure pour en, da, de, es
+// Textes legal en français — référence de structure pour en, de, es
 // (type LegalCopy). Importé par ../fr.ts sous la clé « legal ».
 // Le corps des documents vit dans components/legal/{cgu,privacy}/.
 const legalFr = {

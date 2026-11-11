@@ -60,8 +60,8 @@
     "list": {
       "backToMyShares": "← Zurück zu meinen Freigaben",
       "notFoundTitle": "Link nicht gefunden",
-      "expiredSub": "Bitten Sie den Eigentümer um einen neuen Link.",
-      "notFoundSub": "Prüfen Sie die Adresse oder bitten Sie um einen neuen Link.",
+      "expiredSub": "Bitte den Eigentümer um einen neuen Link.",
+      "notFoundSub": "Prüfe die Adresse oder bitte um einen neuen Link.",
       "sharedVia": "Geteilt über TiROiR · {count}",
       "objectsOne": "{n} Objekt",
       "objectsOther": "{n} Objekte",
@@ -96,14 +96,14 @@
       "deselectAll": "Auswahl aufheben",
       "selectedOne": "{n} Objekt ausgewählt",
       "selectedOther": "{n} Objekte ausgewählt",
-      "ctaTitle": "Erstellen Sie Ihr eigenes Inventar",
+      "ctaTitle": "Erstelle dein eigenes Inventar",
       "ctaSub": "TiROiR — fotografieren, katalogisieren, wiederfinden."
     },
     "object": {
       "notFound": "Objekt nicht gefunden",
       "salePreview": "Als Verkaufsanzeige ansehen (Prototyp) →",
       "salePrice": "Verkaufspreis",
-      "yourEstimate": "Ihre Schätzung",
+      "yourEstimate": "Deine Schätzung",
       "estimatedMarketValue": "Geschätzter Marktwert",
       "lotTotal": "Summe für das Los: {amount}",
       "ownerEstimate": "Schätzung des Eigentümers",
@@ -350,9 +350,9 @@
     },
     "signup": {
       "metaTitle": "Konto erstellen — Tiroir",
-      "metaDescription": "Erstellen Sie kostenlos Ihr Tiroir-Konto und katalogisieren Sie Ihre Sachen.",
+      "metaDescription": "Erstelle kostenlos dein Tiroir-Konto und katalogisiere deine Sachen.",
       "title": "Konto erstellen",
-      "subtitle": "Kostenlos, ohne Kreditkarte. Beginnen Sie in wenigen Sekunden, Ihre Sachen zu katalogisieren.",
+      "subtitle": "Kostenlos, ohne Kreditkarte. Beginne in wenigen Sekunden, deine Sachen zu katalogisieren.",
       "passwordHint": "Mindestens 6 Zeichen.",
       "logMeIn": "Mich anmelden →",
       "sentBefore": "Fast geschafft: Öffne die E-Mail an ",
@@ -424,18 +424,14 @@
     "unsubscribe": {
       "metaTitle": "Abmeldung — Tiroir",
       "okTitle": "Erledigt.",
-      "okText": "Sie erhalten keine E-Mails mehr von Tiroir.",
-      "okDetail": "Ihr Konto und Ihre Gegenstände bleiben unberührt: Nur die Mailings werden eingestellt. Nachrichten zu Ihrem Konto — Zurücksetzen des Passworts, erhaltene Freigaben — kommen weiterhin an.",
-      "unknownTitle": "Sie sind abgemeldet",
+      "okText": "Du erhältst keine E-Mails mehr von Tiroir.",
+      "okDetail": "Dein Konto und deine Gegenstände bleiben unberührt: Nur die Mailings werden eingestellt. Nachrichten zu deinem Konto — Zurücksetzen des Passworts, erhaltene Freigaben — kommen weiterhin an.",
+      "unknownTitle": "Du bist abgemeldet",
       "unknownText": "Dieser Link wurde vielleicht schon verwendet oder ist unvollständig.",
-      "unknownDetail": "In jedem Fall verschicken wir nichts mehr. Sollte Sie trotzdem eine Nachricht erreichen, antworten Sie einfach darauf: Jemand wird sie lesen.",
+      "unknownDetail": "In jedem Fall verschicken wir nichts mehr. Sollte dich trotzdem eine Nachricht erreichen, antworte einfach darauf: Jemand wird sie lesen.",
       "back": "Zurück zu tiroir.app"
     },
     "myAccount": {
-      "billingTitle": "KI-Credits und Team",
-      "billingText": "Dein KI-Credit-Guthaben, der Verlauf und Credit-Pakete. Für ein Business-Team: Mitglieder und Rechnungen.",
-      "creditsLink": "Meine KI-Credits →",
-      "teamLink": "Mein Business-Team →",
       "metaTitle": "Mein Konto — Tiroir",
       "title": "Mein Konto",
       "signedInAs": "Angemeldet als ",
@@ -470,7 +466,11 @@
       "sendLink": "Link an mich senden",
       "footnoteBefore": "Um deinen Anzeigenamen zu ändern, geh zu ",
       "footnoteLink": "Mein Profil",
-      "footnoteAfter": "."
+      "footnoteAfter": ".",
+      "billingTitle": "KI-Credits und Team",
+      "billingText": "Dein KI-Credit-Guthaben, der Verlauf und Credit-Pakete. Für ein Business-Team: Mitglieder und Rechnungen.",
+      "creditsLink": "Meine KI-Credits →",
+      "teamLink": "Mein Business-Team →"
     },
     "profile": {
       "metaTitle": "Mein Profil — Tiroir",
@@ -547,30 +547,36 @@
       "linkingDisabled": "Die Kontoverknüpfung muss zuerst in Supabase aktiviert werden (Authentication → „Allow manual linking“).",
       "identityTaken": "Dieses Konto ist bereits mit einem anderen Tiroir-Konto verbunden. Melde dich damit an, lösche dieses zweite Konto oder schreib an support@tiroir.app.",
       "lastIdentity": "Deine letzte Anmeldemethode kann nicht entfernt werden: Füge zuerst eine andere hinzu."
+    },
+    "campaign": {
+      "metaTitle": "Tiroir de famille — Bald verfügbar",
+      "title": "Wir sehen uns am {date}",
+      "text": "Die Kampagne Tiroir de famille ist noch nicht geöffnet. Dieser Link bringt dich ab dem ersten Tag dorthin.",
+      "home": "Tiroir entdecken"
     }
   },
   "about": {
     "meta": {
       "title": "Über uns — Tiroir",
-      "description": "Wer hinter Tiroir steckt: Clément Ougier, Solo-Gründer. Das Projekt, was ich suche (Rat, Mitgründer, Tester) und wie Sie mich erreichen."
+      "description": "Wer hinter Tiroir steckt: Clément Ougier, Solo-Gründer. Das Projekt, was ich suche (Rat, Mitgründer, Tester) und wie du mich erreichst."
     },
     "agendaCta": "Termin buchen",
-    "agendaCtaMail": "Schreiben Sie mir für einen Termin",
+    "agendaCtaMail": "Schreib mir für einen Termin",
     "heroSubject": "Über Tiroir sprechen",
     "agendaSubject": "Ein Termin, um über Tiroir zu sprechen",
     "hero": {
       "badge": "Über uns",
       "title": "Hallo, ich bin Clément.",
-      "p1": "Ich bin Product Designer, und Tiroir ist mein Projekt — allein konzipiert, gestaltet und entwickelt. Die Idee ist einfach: Sie fotografieren einen Gegenstand, die KI schreibt den Eintrag, und Ihr Inventar hält sich endlich von selbst aktuell.",
+      "p1": "Ich bin Product Designer, und Tiroir ist mein Projekt — allein konzipiert, gestaltet und entwickelt. Die Idee ist einfach: Du fotografierst einen Gegenstand, die KI schreibt den Eintrag, und dein Inventar hält sich endlich von selbst aktuell.",
       "p2": "Ich baue öffentlich, ich irre mich öffentlich, und ich lerne viel schneller, wenn ich mit Menschen spreche, als wenn ich vor meinem Bildschirm sitze. Genau darum geht es auf dieser Seite.",
-      "linkedin": "Folgen Sie mir auf LinkedIn"
+      "linkedin": "Folge mir auf LinkedIn"
     },
     "role": "Senior Product Designer & Builder, Erfinder von Tiroir",
     "why": {
       "title": "Warum Tiroir",
       "paragraphs": [
         "Jeder besitzt Hunderte von Dingen, und niemand weiß wirklich, was er hat. Wir kaufen nach, was wir schon hatten, verschleudern, was etwas wert war, und finden die Rechnung nicht, wenn wir sie bräuchten. Ein Inventar ist für alle nützlich — und mühsam genug, dass es niemand macht.",
-        "Tiroir nimmt Ihnen den mühsamen Teil ab. Ein Foto, und der Eintrag steht: Kategorie, Material, Zustand, geschätzter Wert. Der Rest — Sammlungen, Teilen per Link, Überblick darüber, was verkauft oder verstaut ist — sorgt nur dafür, dass das Inventar über den Tag hinaus lebt, an dem Sie es angelegt haben.",
+        "Tiroir nimmt dir den mühsamen Teil ab. Ein Foto, und der Eintrag steht: Kategorie, Material, Zustand, geschätzter Wert. Der Rest — Sammlungen, Teilen per Link, Überblick darüber, was verkauft oder verstaut ist — sorgt nur dafür, dass das Inventar über den Tag hinaus lebt, an dem du es angelegt hast.",
         "Die App gibt es im App Store und bei Google Play. Sie wird jede Woche besser, dank des Feedbacks derer, die sie wirklich nutzen."
       ]
     },
@@ -584,7 +590,7 @@
         },
         {
           "title": "Menschen, die sich in der Praxis auskennen",
-          "body": "Secondhand, Vintage-Läden, Trödler, Versicherung, Umzug, Nachlass: Wenn Sie in einer dieser Welten zu Hause sind, ist Ihr Blick mehr wert als zehn Marktstudien."
+          "body": "Secondhand, Vintage-Läden, Trödler, Versicherung, Umzug, Nachlass: Wenn du in einer dieser Welten zu Hause bist, ist dein Blick mehr wert als zehn Marktstudien."
         },
         {
           "title": "Vielleicht ein Mitgründer oder eine Mitgründerin",
@@ -598,11 +604,11 @@
     },
     "agenda": {
       "title": "Mein Kalender ist offen",
-      "body": "30 Minuten per Video, ohne feste Agenda. Ob Sie einen Rat, eine Frage, Kritik oder einfach Neugier auf das Projekt mitbringen: Buchen Sie einen Termin, er gehört Ihnen.",
-      "mail": "oder schreiben Sie mir an {email}"
+      "body": "30 Minuten per Video, ohne feste Agenda. Ob du einen Rat, eine Frage, Kritik oder einfach Neugier auf das Projekt mitbringst: Buche einen Termin, er gehört dir.",
+      "mail": "oder schreib mir an {email}"
     },
     "contact": {
-      "title": "Wo Sie mich finden",
+      "title": "Wo du mich findest",
       "linkedin": "Das Logbuch des Projekts, Woche für Woche.",
       "blog": "cofondateurauchomage.fr — hinter den Kulissen, ungefiltert (auf Französisch).",
       "emailLabel": "E-Mail",
@@ -636,7 +642,7 @@
     "newHere": "Neu bei Tiroir?",
     "openMenu": "Menü öffnen",
     "closeMenu": "Menü schließen",
-    "footerTagline": "Fotografieren Sie Ihre Sachen, Tiroir schreibt den Eintrag. Ihr Inventar, endlich aktuell.",
+    "footerTagline": "Fotografiere deine Sachen, Tiroir schreibt den Eintrag. Dein Inventar, endlich aktuell.",
     "product": "Produkt",
     "project": "Das Projekt",
     "about": "Über uns",
@@ -652,21 +658,21 @@
   "home": {
     "meta": {
       "title": "Tiroir — ein Foto, und alles ist erfasst",
-      "description": "Fotografieren Sie einen Gegenstand: Tiroir schreibt den Eintrag, ordnet ihn ein und schätzt seinen Wert. Für Kreative, Profis und alle, die wissen wollen, was sie besitzen."
+      "description": "Fotografiere einen Gegenstand: Tiroir schreibt den Eintrag, ordnet ihn ein und schätzt seinen Wert. Für Kreative, Profis und alle, die wissen wollen, was sie besitzen."
     },
     "hero": {
       "badge": "Für iOS und Android",
       "variants": [
         {
-          "title": "Ein Foto – und alles, was Sie besitzen, ist erfasst.",
+          "title": "Ein Foto – und alles, was du besitzt, ist erfasst.",
           "sub": "Tiroir schreibt für jeden Gegenstand den Eintrag – mit Kategorie, Zustand und Wert."
         },
         {
-          "title": "Wissen, was Sie haben. Und was es wert ist.",
+          "title": "Wissen, was du hast. Und was es wert ist.",
           "sub": "Tiroir schreibt für jeden Gegenstand den Eintrag – mit Kategorie, Zustand und Wert."
         },
         {
-          "title": "Ihr Inventar erledigt sich von selbst.",
+          "title": "Dein Inventar erledigt sich von selbst.",
           "sub": "Ein Foto genügt, Tiroir kümmert sich um den Rest. Ganz ohne Technikkenntnisse."
         }
       ],
@@ -698,21 +704,21 @@
         "valueLabel": "Geschätzter Wert"
       }
     },
-    "how": {
-      "eyebrow": "So funktioniert’s",
-      "title": "Drei Schritte, nichts einzurichten.",
+    "photo": {
+      "title": "Ein Foto. Das war’s.",
+      "sub": "Torix, die KI von Tiroir, erkennt deinen Gegenstand und füllt seinen Eintrag aus. Du wählst nur die Schublade.",
       "steps": [
         {
-          "title": "Fotografieren",
-          "text": "Ein Gegenstand, ein Foto. Oder hundert auf einmal im Serienmodus."
+          "title": "Du machst das Foto",
+          "text": "Ein Gegenstand, ein Foto. Kein Formular."
         },
         {
-          "title": "Der Eintrag schreibt sich",
-          "text": "Name, Kategorie, Material, Zustand: alles ausgefüllt. Korrigieren Sie bei Bedarf."
+          "title": "Torix füllt den Eintrag aus",
+          "text": "Name, Kategorie, Zustand: Alles schreibt sich von selbst. Korrigiere, wenn du willst."
         },
         {
-          "title": "Alles erfasst",
-          "text": "Sammlungen, Suche, Status: Sie finden alles wieder, jederzeit."
+          "title": "Schon eingeräumt",
+          "text": "Du wählst die Schublade, während Torix arbeitet. Danach findest du alles sofort."
         }
       ],
       "fiche": {
@@ -723,35 +729,37 @@
             "Kleidung"
           ],
           [
-            "Material",
-            "Denim"
-          ],
-          [
             "Zustand",
             "Gut"
           ]
-        ]
+        ],
+        "estimate": "Wert",
+        "estimateCta": "✦ Schätzen"
       },
-      "collections": [
-        "Kleiderschrank",
-        "Zu verkaufen",
-        "Studio"
-      ],
-      "search": "blaue Jacke"
+      "drawer": "Garderobe",
+      "stored": "Eingeräumt",
+      "video": {
+        "label": "Demovideo: Aus dem Foto eines Gegenstands wird ein vollständiger Eintrag, eingeräumt in eine Schublade.",
+        "badge": "10 Sekunden",
+        "play": "Video abspielen",
+        "pause": "Video pausieren"
+      },
+      "reassure": "Kostenlos, ohne Kreditkarte. {n} KI-Aktionen pro Monat inklusive.",
+      "cta": "Kostenlos testen"
     },
     "pros": {
       "eyebrow": "Für Kreative und Profis",
-      "title": "Weniger Tipparbeit, mehr Zeit für Ihren Job.",
-      "sub": "Ihre Ausrüstung, Ihr Lager, Ihre Sammlungen: mit ein paar Fotos dokumentiert, während Sie arbeiten.",
+      "title": "Weniger Tipparbeit, mehr Zeit für deinen Job.",
+      "sub": "Deine Ausrüstung, dein Lager, deine Sammlungen: mit ein paar Fotos dokumentiert, während du arbeitest.",
       "personas": [
         {
           "who": "Stylistin",
-          "text": "Jedes Teil fotografiert und nach Shooting sortiert. Sie wissen, was rausging und was zurückkam.",
+          "text": "Jedes Teil fotografiert und nach Shooting sortiert. Du weißt, was rausging und was zurückkam.",
           "chip": "Verliehen · zurück am Freitag"
         },
         {
           "who": "Aufnahmeleiter",
-          "text": "Die Technik vor dem Dreh erfasst, nach der Rückgabe geprüft. Der ganze Bestand passt in Ihre Hosentasche.",
+          "text": "Die Technik vor dem Dreh erfasst, nach der Rückgabe geprüft. Der ganze Bestand passt in deine Hosentasche.",
           "chip": "42 Teile · 3 verliehen"
         },
         {
@@ -773,15 +781,15 @@
       "points": [
         {
           "title": "Keine Vorkenntnisse nötig",
-          "text": "Keine Tabellen, keine leeren Formulare. Sie fotografieren, Tiroir füllt aus."
+          "text": "Keine Tabellen, keine leeren Formulare. Du fotografierst, Tiroir füllt aus."
         },
         {
-          "title": "Ihre Daten gehören Ihnen",
+          "title": "Deine Daten gehören dir",
           "text": "Keine Werbung, kein Weiterverkauf, kein Training von Modellen. Wer sein Konto löscht, löscht alles – sofort."
         },
         {
           "title": "Teilen nur zum Ansehen",
-          "text": "Ein Link zu einer Sammlung: Andere sehen sie ohne Konto und ohne App. Sie deaktivieren den Link, wann Sie wollen."
+          "text": "Ein Link zu einer Sammlung: Andere sehen sie ohne Konto und ohne App. Du deaktivierst den Link, wann du willst."
         }
       ],
       "usesTitle": "Auch praktisch, um…",
@@ -791,10 +799,10 @@
         "Preise für den Flohmarkt festzulegen",
         "Den Kleiderschrank auszumisten"
       ],
-      "why": "Warum das funktioniert: Eine KI zur Bilderkennung beschreibt jedes Foto. Das Ergebnis bleibt ein Vorschlag – jedes Feld lässt sich ändern, und Ihre Korrekturen haben immer Vorrang."
+      "why": "Warum das funktioniert: Eine KI zur Bilderkennung beschreibt jedes Foto. Das Ergebnis bleibt ein Vorschlag – jedes Feld lässt sich ändern, und deine Korrekturen haben immer Vorrang."
     },
     "value": {
-      "eyebrow": "Der Wert Ihrer Sachen",
+      "eyebrow": "Der Wert deiner Sachen",
       "title": "Wissen, was es wert ist – und dranbleiben.",
       "sub": "Eine Schätzung auf Basis vergleichbarer Angebote, keine Zahl aus dem Hut.",
       "items": [
@@ -804,11 +812,11 @@
         },
         {
           "title": "Verfolgen",
-          "text": "Der Wert jedes Gegenstands und jeder Sammlung, aktualisiert, wann Sie wollen."
+          "text": "Der Wert jedes Gegenstands und jeder Sammlung, aktualisiert, wann du willst."
         },
         {
           "title": "Verkaufen",
-          "text": "Als „Verkauft“ markieren, mit dem echten Preis: Der Gegenstand bleibt in Ihrem Verlauf."
+          "text": "Als „Verkauft“ markieren, mit dem echten Preis: Der Gegenstand bleibt in deinem Verlauf."
         }
       ],
       "note": "Kein Gutachten: Bei seltenen Stücken ist es eine Größenordnung.",
@@ -821,7 +829,7 @@
     "pricing": {
       "eyebrow": "Preise",
       "title": "Kostenlos starten.",
-      "sub": "Wechseln Sie in einen höheren Tarif, wenn Sie ihn brauchen.",
+      "sub": "Wechsle in einen höheren Tarif, wenn du ihn brauchst.",
       "perMonth": "/Monat",
       "perSeat": "pro Platz/Monat",
       "plans": {
@@ -838,15 +846,15 @@
       "items": [
         {
           "q": "Muss ich mich mit Technik auskennen?",
-          "a": "Nein. Sie machen ein Foto, Tiroir füllt den Eintrag aus. Alles lässt sich mit einem Tippen ändern."
+          "a": "Nein. Du machst ein Foto, Tiroir füllt den Eintrag aus. Alles lässt sich mit einem Tippen ändern."
         },
         {
           "q": "Und wenn der Eintrag falsch ist?",
-          "a": "Jedes Feld ist bearbeitbar, und Ihre Korrekturen haben immer Vorrang. Die genaue Marke oder den Kaufpreis kennen nur Sie."
+          "a": "Jedes Feld ist bearbeitbar, und deine Korrekturen haben immer Vorrang. Die genaue Marke oder den Kaufpreis kennst nur du."
         },
         {
           "q": "Sind meine Fotos privat?",
-          "a": "Ja. Nichts ist öffentlich, solange Sie keinen Link teilen – und den können Sie jederzeit deaktivieren."
+          "a": "Ja. Nichts ist öffentlich, solange du keinen Link teilst – und den kannst du jederzeit deaktivieren."
         },
         {
           "q": "Wie zuverlässig ist die Schätzung?",
@@ -855,31 +863,44 @@
       ]
     },
     "final": {
-      "title": "Ihr erster Gegenstand, erfasst mit einem Foto.",
+      "title": "Dein erster Gegenstand, erfasst mit einem Foto.",
       "sub": "Kostenlos, ohne Kreditkarte."
+    },
+    "ululeInvite": {
+      "label": "Ulule-Kampagne",
+      "close": "Schließen",
+      "title": "Weihnachten kommt früher",
+      "textBefore": "Am {date} startet Tiroir de famille auf Ulule: einen Monat vor Weihnachten, damit Tiroir wachsen kann.",
+      "textLive": "Bis zum 15. Dezember kannst du Tiroir auf Ulule mit einer Spende in beliebiger Höhe unterstützen. Ein kleiner Schub vor Weihnachten.",
+      "raised": "{amount} gesammelt",
+      "next": "Nächstes Ziel: {amount}",
+      "allReached": "Alle Ziele erreicht. Danke!",
+      "milestones": "Ziele",
+      "cta": "Zur Kampagne"
     }
   },
   "pricing": {
     "meta": {
       "title": "Preise — Tiroir",
-      "description": "Tiroir ist kostenlos, mit {free} KI-Aktionen pro Monat. KI-Credits ab {pack}, Premium für {premium} pro Monat, Pro für {pro} pro Monat, Business für {business} pro Platz."
+      "description": "Tiroir ist kostenlos, mit {free} KI-Aktionen pro Monat. KI-Credits ab {pack}, Premium für {premium} pro Monat, Pro für {pro} pro Monat, Business auf Anfrage."
     },
     "badge": "Preise",
     "title": "Alles erfasst. Wissen, was es wert ist.",
-    "sub": "Tiroir ist für alle kostenlos. Sie zahlen nur, wenn Sie mehr wollen.",
+    "sub": "Tiroir ist für alle kostenlos. Du zahlst nur, wenn du mehr willst.",
     "perMonth": "/Monat",
     "perYear": "oder {price} pro Jahr",
     "perSeat": "pro Platz/Monat",
     "soon": "Demnächst verfügbar",
     "free": {
-      "tagline": "Um alles zu erfassen, was Sie besitzen.",
+      "tagline": "Um alles zu erfassen, was du besitzt.",
       "features": [
         "Unbegrenzt viele Gegenstände und Sammlungen",
         "{n} KI-Aktionen pro Monat (Erkennung, Schätzung)",
         "Sammlungen nur zum Ansehen teilen",
         "Zusätzliche KI-Credits bei Bedarf"
       ],
-      "start": "Kostenlos starten"
+      "start": "Kostenlos starten",
+      "afterQuota": "Monatliches KI-Kontingent, danach Credits kaufen"
     },
     "premium": {
       "tagline": "Um den Wert Ihrer Sammlung im Blick zu behalten.",
@@ -887,7 +908,6 @@
         "Automatische Schätzung mit Monatskontingent",
         "Wertverlauf als Kurve und Aktualisieren-Button",
         "Quellen in einer Zeile zusammengefasst",
-        "Vorschläge für Gegenstände von Ihren Liebsten",
         "Passwortgeschützte Freigabelinks"
       ],
       "cta": "Zu Premium wechseln"
@@ -909,12 +929,14 @@
         "Rollen und mehrere Konten",
         "Monatliche Rechnung, Überweisung oder Lastschrift"
       ],
-      "cta": "Kontakt aufnehmen"
+      "cta": "Kontakt aufnehmen",
+      "quote": "Auf Anfrage",
+      "billing": "Monatliche Rechnung"
     },
     "note": "Preise inkl. MwSt. Business wird per Rechnung bezahlt.",
     "credits": {
       "title": "KI-Credits",
-      "sub": "Mehr nötig? Laden Sie jederzeit auf, ohne Abo.",
+      "sub": "Mehr nötig? Lade jederzeit auf, ohne Abo.",
       "unit": "{n} Credits",
       "popular": "Am beliebtesten",
       "note": "Sichere Kartenzahlung. Credits verfallen nicht.",
@@ -942,13 +964,16 @@
     "final": {
       "title": "Kostenlos starten.",
       "sub": "Unbegrenzt viele Gegenstände und Sammlungen, {n} KI-Aktionen pro Monat. Keine Kreditkarte nötig."
-    }
+    },
+    "twoMonthsFree": "Zwei Monate geschenkt",
+    "vatIncl": "inkl. MwSt.",
+    "vatExcl": "{price} netto"
   },
   "errors": {
     "notFoundTitle": "Seite nicht gefunden",
     "notFoundText": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
     "serverTitle": "Serverfehler",
-    "serverText": "Bei uns ist ein Problem aufgetreten. Bitte versuchen Sie es gleich noch einmal.",
+    "serverText": "Bei uns ist ein Problem aufgetreten. Bitte versuch es gleich noch einmal.",
     "back": "Zur Startseite"
   }
 }

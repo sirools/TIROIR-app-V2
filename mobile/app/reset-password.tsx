@@ -10,12 +10,12 @@
 // main. Supabase renvoie soit un couple de jetons dans le fragment (#) en
 // flux implicite, soit un ?code= en flux PKCE : les deux sont gérés.
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 import * as Linking from 'expo-linking'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
-import { Screen, Button, Input, Colors, Typography, Spacing } from '@/components/ui'
+import { FormScreen, PRIMARY_BUTTON_SPACE, Button, Input, Colors, Typography, Spacing } from '@/components/ui'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -112,11 +112,7 @@ export default function ResetPasswordScreen() {
   }
 
   return (
-    <Screen>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.kav}
-      >
+    <FormScreen keepVisibleBelow={PRIMARY_BUTTON_SPACE}>
         <View style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.title}>{t('auth.reset.title')}</Text>
@@ -163,6 +159,8 @@ export default function ResetPasswordScreen() {
                 autoCapitalize="none"
                 autoComplete="new-password"
                 placeholder={t('auth.reset.confirmPlaceholder')}
+                returnKeyType="done"
+                onSubmitEditing={handleSubmit}
                 containerStyle={{ marginTop: Spacing.md }}
               />
               {error && <Text style={styles.error}>{error}</Text>}
@@ -188,13 +186,11 @@ export default function ResetPasswordScreen() {
             </View>
           )}
         </View>
-      </KeyboardAvoidingView>
-    </Screen>
+    </FormScreen>
   )
 }
 
 const styles = StyleSheet.create({
-  kav: { flex: 1 },
   container: {
     flex: 1,
     paddingHorizontal: Spacing.lg,

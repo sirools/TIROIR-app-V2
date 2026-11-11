@@ -331,6 +331,8 @@
     "monthly": "Monthly",
     "annual": "Annual",
     "unavailable": "Subscriptions unavailable right now.",
+    "alreadySubscribedTitle": "You’re already subscribed",
+    "alreadySubscribedBody": "Your account already has an active subscription. Nothing to buy again here: credit packs are still available below.",
     "freeTrial": "✦ 7-day free trial",
     "perYear": " / year",
     "perMonth": " / month",

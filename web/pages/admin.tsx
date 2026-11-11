@@ -5,6 +5,12 @@ import { serverSupabase, adminSupabase } from '../lib/supabase'
 import { isTorixOwner } from '../lib/torixOwner'
 import { adminNavFor } from '../lib/adminNav'
 import { computeTreasury, HYPOTHESES, type Treasury } from '../lib/treasury'
+import { loadRevenueReport } from '../lib/revenueLoad'
+import Link from 'next/link'
+import { loadPaymentHealth } from '../lib/stripe/healthLoad'
+import { AI_COST_ALERT_SHARE, creditPriceHtEur, type AiEconomics } from '../lib/aiEconomics'
+import { loadAiEconomics } from '../lib/aiEconomicsLoad'
+import { VAT_RATE } from '../lib/offers'
 import { isRestTime } from '../components/torix/commandments'
 
 interface AppSettings {
@@ -115,11 +121,15 @@ interface Props {
   settings: AppSettings
   aiSpend: AiSpend
   emails: EmailReport
-  /** Estimation : coûts du mois, revenus des abonnements, clients Pro nécessaires. */
-  treasury: Treasury & { premiumCount: number; proCount: number }
+  /** Coûts du mois, MRR réel des abonnements, clients Pro nécessaires. */
+  treasury: Treasury & { premiumCount: number; proCount: number; invoiceProCount: number }
   /** Lien vers Torix, envoyé par le serveur au seul propriétaire : son
    *  libellé n'est même pas dans le code du back-office. */
   torixLink: { href: string; label: string } | null
+  /** Santé des paiements, en résumé (détail dans Facturation). */
+  payments: { ok: boolean; webhooks: number; failed: number; openDisputes: number; overdue: number; doubles: number; stripeUnavailable: boolean }
+  /** Coût IA : gratuits contre payants, par action, part du chiffre d'affaires. */
+  aiEco: AiEconomics
 }
 
 // Bouton d'accès à Torix : noir et blanc, bien visible (demande du fondateur).
@@ -130,7 +140,7 @@ const TORIX_BUTTON: React.CSSProperties = {
   fontWeight: 700,
 }
 
-export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixLink, treasury }: Props) {
+export default function Admin({ kpis, settings: initialSettings, aiSpend, emails, torixLink, treasury, payments, aiEco }: Props) {
   const conversionPct = kpis.totalAccounts > 0
     ? ((kpis.accountsWithObjects / kpis.totalAccounts) * 100).toFixed(1)
     : '0'
@@ -262,25 +272,41 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
 
         {tab === 'dashboard' && (<>
         <SystemStatus showTorix={torixLink !== null} />
+        <p style={{ fontSize: 13, margin: '-8px 0 20px', color: payments.ok ? '#5b5b5b' : '#C0392B', fontWeight: payments.ok ? 400 : 700 }}>
+          {payments.ok
+            ? '✓ Paiements : aucun webhook en échec, aucun paiement refusé, aucun litige ouvert, aucune facture en retard.'
+            : <>⚠ Paiements :{' '}
+                {[
+                  payments.stripeUnavailable && 'Stripe illisible',
+                  payments.webhooks > 0 && `${payments.webhooks} webhook${payments.webhooks > 1 ? 's' : ''} en échec`,
+                  payments.failed > 0 && `${payments.failed} paiement${payments.failed > 1 ? 's' : ''} refusé${payments.failed > 1 ? 's' : ''} (30 j)`,
+                  payments.openDisputes > 0 && `${payments.openDisputes} litige${payments.openDisputes > 1 ? 's' : ''} ouvert${payments.openDisputes > 1 ? 's' : ''}`,
+                  payments.overdue > 0 && `${payments.overdue} facture${payments.overdue > 1 ? 's' : ''} en retard`,
+                  payments.doubles > 0 && `${payments.doubles} abonné${payments.doubles > 1 ? 's' : ''} deux fois (site + store)`,
+                ].filter(Boolean).join(' · ')}
+                {' — '}<Link href="/admin/facturation#sante">voir le détail</Link></>}
+        </p>
 
         {/* ── Trésorerie (estimation) ── */}
         <h2 style={s.sectionTitle}>Trésorerie de Tiroir — ce mois-ci</h2>
         <p style={{ fontSize: 13, color: '#5b5b5b', marginBottom: 16 }}>
-          <strong>Estimation.</strong> Hypothèses : 1 $ = {HYPOTHESES.usdToEur} €, TVA {HYPOTHESES.storeVat * 100} % retenue par les stores et
-          commission des stores {HYPOTHESES.storeCommission * 100} % sur le Premium, pas de TVA sur le Pro (franchise en base), Vercel {HYPOTHESES.vercelUsd} $/mois
-          (à ajuster), le Pro facturé en direct. L&apos;argent des stores arrive un à deux mois après la vente ; celui
-          d&apos;une facture Pro, dès son règlement.
+          Revenus : le MRR hors taxes des abonnements en cours (détail par canal dans{' '}
+          <Link href="/admin/facturation">Facturation</Link>). Le site est compté avant frais Stripe ; les stores au prix de la
+          grille, commission de {HYPOTHESES.storeCommission * 100} % déduite (estimation). La TVA n&apos;est pas un revenu.
+          {treasury.invoiceProCount > 0 && <> Les {treasury.invoiceProCount} Pro sur facture ne sont pas comptés (montant hors Stripe).</>}
+          {' '}Hypothèses de coûts : 1 $ = {HYPOTHESES.usdToEur} €, Vercel {HYPOTHESES.vercelUsd} $/mois (à ajuster).
+          L&apos;argent des stores arrive un à deux mois après la vente.
         </p>
         <div style={s.grid}>
           <Kpi label="Coûts du mois" value={`${treasury.costEur.toFixed(2)} €`} />
-          <Kpi label={`Revenus nets (${treasury.premiumCount} Premium, ${treasury.proCount} Pro)`} value={`${treasury.revenueEur.toFixed(2)} €`} />
+          <Kpi label={`Revenus du mois (${treasury.premiumCount} Premium, ${treasury.proCount} Pro)`} value={`${treasury.revenueEur.toFixed(2)} €`} />
           <Kpi label="Écart à combler" value={`${treasury.gapEur.toFixed(2)} €`} highlight={treasury.gapEur > 0} />
           <Kpi label="Clients Pro mensuels pour combler" value={treasury.proNeeded} highlight={treasury.proNeeded > 0} />
           <Kpi label="Un client Pro annuel apporte" value={`${treasury.proAnnualCashEur.toFixed(2)} €`} />
         </div>
         <p style={{ fontSize: 12, color: '#5b5b5b', margin: '8px 0 24px' }}>
           Détail des coûts : {treasury.costs.map(c => `${c.label} ${c.eur.toFixed(2)} €`).join(' · ')}.
-          Premium net ≈ {treasury.premiumNetEur.toFixed(2)} € par abonné, Pro net ≈ {treasury.proNetEur.toFixed(2)} €.
+          Un Pro mensuel du site rapporte {treasury.proNetEur.toFixed(2)} € HT.
         </p>
 
         {/* ── Site web ── */}
@@ -410,6 +436,62 @@ export default function Admin({ kpis, settings: initialSettings, aiSpend, emails
         </div>
 
         <SpendSparkline days={aiSpend.par_jour} />
+
+        <h3 style={s.subSectionTitle}>L&apos;IA face au chiffre d&apos;affaires (ce mois-ci)</h3>
+        <p style={{ ...s.tableIntro, color: aiEco.alert ? '#C0392B' : undefined, fontWeight: aiEco.alert ? 700 : undefined }}>
+          {aiEco.share === null
+            ? (aiEco.totalCostEur > 0
+              ? `⚠ ${aiEco.totalCostEur.toFixed(2)} € d’IA ce mois-ci, sans chiffre d’affaires en face.`
+              : 'Ni coût IA ni chiffre d’affaires ce mois-ci.')
+            : `${aiEco.alert ? '⚠ ' : ''}L’IA coûte ${aiEco.totalCostEur.toFixed(2)} €, soit ${(aiEco.share * 100).toFixed(1)} % du chiffre d’affaires HT du mois (${aiEco.revenueHtEur.toFixed(2)} € : abonnements et crédits). Alerte au-delà de ${AI_COST_ALERT_SHARE * 100} %.`}
+        </p>
+
+        <h3 style={s.subSectionTitle}>Gratuits contre payants (ce mois-ci)</h3>
+        <p style={s.tableIntro}>
+          Qui consomme l&apos;IA, selon le palier actuel du compte. Un gratuit qui paie en crédits reste compté parmi les gratuits.
+        </p>
+        <SpendTable
+          columns={[
+            { label: 'Palier', width: 3 },
+            { label: 'Comptes', width: 1 },
+            { label: 'Appels', width: 1 },
+            { label: 'Par compte', width: 1.4 },
+            { label: 'Total', width: 1.3 },
+          ]}
+          rows={aiEco.segments.map(g => ({
+            key: g.segment,
+            label: g.label,
+            cells: [fmtInt(g.users), fmtInt(g.calls), fmtEurFine(g.costPerUserEur), fmtEurFine(g.costEur)],
+            share: aiEco.totalCostEur > 0 ? (g.costEur / aiEco.totalCostEur) * 100 : 0,
+          }))}
+        />
+
+        <h3 style={s.subSectionTitle}>Coût et marge par action (ce mois-ci)</h3>
+        <p style={s.tableIntro}>
+          Prix d&apos;une action : son coût en crédits, au prix HT d&apos;un crédit du plus gros pack ({fmtEurFine(creditPriceHtEur())}), le moins cher pour le client.
+        </p>
+        <SpendTable
+          columns={[
+            { label: 'Action', width: 3 },
+            { label: 'Appels', width: 1 },
+            { label: 'Coût moyen', width: 1.3 },
+            { label: 'Crédits', width: 1 },
+            { label: 'Prix', width: 1.2 },
+            { label: 'Marge', width: 1.2 },
+          ]}
+          rows={aiEco.actions.map(a => ({
+            key: a.feature,
+            label: a.label,
+            cells: [
+              fmtInt(a.calls),
+              fmtEurFine(a.avgCostEur),
+              a.credits === null ? '—' : String(a.credits),
+              a.priceEur === null ? '—' : fmtEurFine(a.priceEur),
+              a.marginEur === null ? '—' : `${a.marginEur < 0 ? '⚠ ' : ''}${fmtEurFine(a.marginEur)}`,
+            ],
+            share: aiEco.totalCostEur > 0 ? ((a.avgCostEur * a.calls) / aiEco.totalCostEur) * 100 : 0,
+          }))}
+        />
 
         <h3 style={s.subSectionTitle}>Ce qui coûte le plus (30 jours)</h3>
         <p style={s.tableIntro}>
@@ -1302,9 +1384,18 @@ interface ProAccount {
   created_at: string
   objects_count: number
   ai_analyses_used: number
+  plan_source?: string | null
+  stripe_subscription_id?: string | null
+  subscription_status?: string | null
 }
 
 const EMPTY_PRO_FORM = { pro_expires_at: '', pro_invoice_ref: '', pro_company: '' }
+/** Facturation Stripe d'un Pro (abonnement sur facture) : champs du formulaire. */
+const EMPTY_STRIPE_FORM = {
+  period: 'monthly', business: false, name: '', line1: '', line2: '', postal_code: '', city: '', country: 'FR',
+  vat_number: '', billing_email: '', first_invoice_date: '',
+}
+const LIVE_SUB = ['active', 'trialing', 'past_due']
 
 type PlanKey = 'pro' | 'premium' | 'free'
 
@@ -1474,6 +1565,36 @@ function ProAccountsPanel({ settings }: { settings: AppSettings }) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_PRO_FORM)
   const [busy, setBusy] = useState(false)
+  const [stripeId, setStripeId] = useState<string | null>(null)
+  const [stripeForm, setStripeForm] = useState(EMPTY_STRIPE_FORM)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  function openStripeForm(a: ProAccount) {
+    setOpenId(null)
+    setNotice(null)
+    setStripeId(a.id)
+    setStripeForm({ ...EMPTY_STRIPE_FORM, name: a.pro_company ?? a.display_name ?? '', business: !!a.pro_company })
+  }
+
+  async function billWithStripe(a: ProAccount) {
+    const f = stripeForm
+    const what = `${f.period === 'yearly' ? '500 € HT par an' : '50 € HT par mois'} + TVA, sur facture à 15 jours`
+    const when = f.first_invoice_date ? `première facture le ${f.first_invoice_date}` : 'première facture envoyée tout de suite'
+    if (!window.confirm(`Créer l’abonnement Stripe Pro de ${a.email} : ${what}, ${when} ?`)) return
+    setBusy(true)
+    setError(null)
+    const res = await fetch('/api/admin/pro-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: a.id, ...f }),
+    })
+    const j = await res.json().catch(() => ({}))
+    setBusy(false)
+    if (!res.ok) { setError(j.error ?? 'Échec de la création'); return }
+    setStripeId(null)
+    setNotice(`${a.email} : abonnement ${j.subscription} créé (${j.status}) — ${j.outcome}.${j.vatWarning ? ` N° de TVA refusé par Stripe : ${j.vatWarning}` : ''}`)
+    load()
+  }
 
   const isSearch = submittedQuery.trim().length >= 2
 
@@ -1593,6 +1714,11 @@ function ProAccountsPanel({ settings }: { settings: AppSettings }) {
           <span style={s.alertText}>{error}</span>
         </div>
       )}
+      {notice && (
+        <div style={{ ...s.settingsCard, borderColor: '#2e7d32' }}>
+          <span style={{ fontSize: 14, color: '#2e7d32', fontWeight: 600 }}>✓ {notice}</span>
+        </div>
+      )}
 
       <h2 style={s.sectionTitle}>
         {isSearch ? `Résultats pour « ${submittedQuery} »` : PLAN_META[tab].label}
@@ -1630,7 +1756,16 @@ function ProAccountsPanel({ settings }: { settings: AppSettings }) {
                     {a.pro_since ? ` · Pro depuis le ${a.pro_since}` : ''}
                     {a.pro_expires_at ? ` · ${expired ? 'expiré le' : "jusqu'au"} ${a.pro_expires_at}` : ''}
                     {a.pro_invoice_ref ? ` · facture ${a.pro_invoice_ref}` : ''}
+                    {a.stripe_subscription_id && LIVE_SUB.includes(a.subscription_status ?? '')
+                      ? ` · abonnement Stripe ${a.subscription_status === 'past_due' ? 'en retard de paiement' : 'actif'}`
+                      : a.plan_source === 'app' ? ' · abonnement des stores' : ''}
                   </div>
+                  {a.effective_plan === 'pro' && a.plan_source !== 'app'
+                    && !(a.stripe_subscription_id && LIVE_SUB.includes(a.subscription_status ?? '')) && (
+                    <button style={{ ...s.scenarioBtn, marginTop: 6 }} disabled={busy} onClick={() => openStripeForm(a)}>
+                      Facturer par Stripe
+                    </button>
+                  )}
                 </div>
                 <div style={{ flex: 1.4, textAlign: 'right' }}>
                   <PlanBadge plan={a.effective_plan} />
@@ -1694,6 +1829,57 @@ function ProAccountsPanel({ settings }: { settings: AppSettings }) {
                     {busy ? 'Enregistrement…' : a.effective_plan === 'pro' ? 'Mettre à jour' : 'Activer le Professionnel'}
                   </button>
                   <button style={s.scenarioBtn} onClick={() => setOpenId(null)}>Annuler</button>
+                </div>
+              )}
+
+              {/* Pro sur facture → abonnement Stripe Pro (send_invoice). Le
+                  compte reste Pro pendant la bascule. */}
+              {stripeId === a.id && (
+                <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={s.settingsHint}>
+                    Tarif Pro standard, TVA 20 % ajoutée, facture envoyée par Stripe à 15 jours (carte ou virement).
+                    Le compte reste Pro ; ensuite, c&apos;est l&apos;abonnement qui pilote l&apos;accès.
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                    <label style={s.stripeField}>
+                      <span style={s.settingsHint}>Formule</span>
+                      <select value={stripeForm.period} onChange={e => setStripeForm(f => ({ ...f, period: e.target.value }))} style={s.stripeInput}>
+                        <option value="monthly">Mensuel — 50 € HT</option>
+                        <option value="yearly">Annuel — 500 € HT</option>
+                      </select>
+                    </label>
+                    <label style={s.stripeField}>
+                      <span style={s.settingsHint}>Première facture le (vide : tout de suite)</span>
+                      <input type="date" value={stripeForm.first_invoice_date} onChange={e => setStripeForm(f => ({ ...f, first_invoice_date: e.target.value }))} style={s.stripeInput} />
+                    </label>
+                    <label style={{ ...s.stripeField, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <input type="checkbox" checked={stripeForm.business} onChange={e => setStripeForm(f => ({ ...f, business: e.target.checked }))} style={{ width: 16, height: 16, appearance: 'auto', WebkitAppearance: 'checkbox', accentColor: '#E8702A', margin: 0 }} />
+                      <span style={{ fontSize: 13 }}>Professionnel</span>
+                    </label>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                    {([
+                      ['name', stripeForm.business ? 'Raison sociale *' : 'Nom *', 220],
+                      ['line1', 'Adresse *', 220],
+                      ['line2', 'Complément', 160],
+                      ['postal_code', 'Code postal *', 100],
+                      ['city', 'Ville *', 150],
+                      ['country', 'Pays', 60],
+                      ['billing_email', 'E-mail de facturation (sinon celui du compte)', 240],
+                      ...(stripeForm.business ? [['vat_number', 'N° de TVA intracom.', 160]] : []),
+                    ] as [keyof typeof EMPTY_STRIPE_FORM, string, number][]).map(([k, label, w]) => (
+                      <label key={k} style={s.stripeField}>
+                        <span style={s.settingsHint}>{label}</span>
+                        <input value={String(stripeForm[k])} onChange={e => setStripeForm(f => ({ ...f, [k]: e.target.value }))} style={{ ...s.stripeInput, width: w }} />
+                      </label>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button style={s.saveBtn} disabled={busy} onClick={() => billWithStripe(a)}>
+                      {busy ? 'Création…' : 'Créer l’abonnement Stripe'}
+                    </button>
+                    <button style={s.scenarioBtn} onClick={() => setStripeId(null)}>Annuler</button>
+                  </div>
                 </div>
               )}
             </div>
@@ -2145,6 +2331,16 @@ function fmtUsdFine(n: number) {
 function fmtInt(n: number) {
   return Math.round(n).toLocaleString('fr-FR')
 }
+/** Petits montants en euros : centimes visibles (0,0021 € → « 0,21 c »). */
+function fmtEurFine(n: number) {
+  if (!isFinite(n)) return '—'
+  if (n === 0) return '0 €'
+  const sign = n < 0 ? '−' : ''
+  const a = Math.abs(n)
+  if (a < 0.01) return `${sign}${(a * 100).toFixed(2).replace('.', ',')} c`
+  if (a < 1) return `${sign}${a.toFixed(3).replace('.', ',')} €`
+  return `${sign}${a.toFixed(2).replace('.', ',')} €`
+}
 function fmtMoney(n: number) {
   return `${n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
 }
@@ -2457,25 +2653,39 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     monthly_ai_spend_alert_usd: num('monthly_ai_spend_alert_usd', 50),
   }
 
-  // Abonnés payants, pour la trésorerie (estimation).
-  const [{ count: premiumCount }, { count: proCount }] = await Promise.all([
-    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('plan', 'premium'),
-    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('plan', 'pro'),
-  ])
+  // Abonnés et MRR réels, par canal (lib/subscriptionRevenue.ts).
+  const [revenue, health] = await Promise.all([loadRevenueReport(admin), loadPaymentHealth(admin)])
+  // Chiffre d'affaires HT du mois : MRR des abonnements + crédits vendus (TTC → HT).
+  const revenueHtEur = revenue.mrrHt / 100 + (revenue.credits.site.ttc + revenue.credits.app.ttc) / 100 / (1 + VAT_RATE)
+  const aiEco = await loadAiEconomics(admin, { usdToEur: HYPOTHESES.usdToEur, revenueHtEur })
+  const payments = {
+    ok: health.ok,
+    webhooks: health.webhooks.length,
+    failed: health.failedPayments.length,
+    openDisputes: health.openDisputes,
+    overdue: health.overdueInvoices.length,
+    doubles: health.doubles.length,
+    stripeUnavailable: health.stripeUnavailable,
+  }
+  const mrrOf = (pred: (c: string) => boolean) =>
+    revenue.channels.filter(l => pred(l.channel)).reduce((n, l) => n + (l.mrrHt ?? 0), 0) / 100
   const treasury = {
     ...computeTreasury({
       supabaseUsd: settings.supabase_plan_monthly_usd,
       aiMonthUsd: aiSpend.total.mois_usd,
-      premiumCount: premiumCount ?? 0,
-      proCount: proCount ?? 0,
+      siteMrrHtEur: mrrOf(c => c === 'site'),
+      storeMrrHtEur: mrrOf(c => c === 'ios' || c === 'android' || c === 'store'),
     }),
-    premiumCount: premiumCount ?? 0,
-    proCount: proCount ?? 0,
+    premiumCount: revenue.subscribers.premium,
+    proCount: revenue.subscribers.pro,
+    invoiceProCount: revenue.channels.find(l => l.channel === 'invoice')?.pro ?? 0,
   }
 
   return {
     props: {
       treasury,
+      payments,
+      aiEco,
       torixLink: isTorixOwner(session.user) ? { href: '/admin/torix-lab', label: 'Torix Lab' } : null,
       // Lu par le header du back-office (_app.tsx), pas par la page.
       adminNav: adminNavFor(session.user, true),
@@ -2541,6 +2751,8 @@ const s: Record<string, React.CSSProperties> = {
   settingsDivider:   { height: 1, background: 'rgba(0,0,0,0.04)', margin: '16px 0' },
   settingsLabel:     { fontSize: 15, fontWeight: 600, color: '#121212' },
   settingsHint:      { fontSize: 13, color: '#5b5b5b', marginTop: 2 },
+  stripeField:       { display: 'flex', flexDirection: 'column', gap: 4 },
+  stripeInput:       { padding: '8px 10px', borderRadius: 10, border: '1.5px solid #e0e0e0', fontSize: 14, outline: 'none', background: 'white', color: '#121212' },
   settingsInput:     { width: 110, padding: '8px 12px', borderRadius: 10, border: '1.5px solid #e0e0e0', fontSize: 16, fontWeight: 700, textAlign: 'right', outline: 'none' },
   settingsLocked:    { width: 80, padding: '8px 12px', fontSize: 16, fontWeight: 700, textAlign: 'right', color: '#999' },
   saveBtn:           { padding: '10px 24px', borderRadius: 10, background: '#F26900', color: 'white', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer' },

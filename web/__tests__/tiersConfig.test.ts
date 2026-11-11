@@ -12,9 +12,9 @@ const LANGS = ['fr', 'en', 'es', 'de', 'pt-BR', 'pt-PT']
 
 describe('config/tiers.json', () => {
   test('les prix sont ceux de la grille V4 du site', () => {
-    expect(tiers.tiers.premium.price.monthly).toBe(OFFERS_V4.premium.monthlyTtc)
-    expect(tiers.tiers.premium.price.yearly).toBe(OFFERS_V4.premium.yearlyTtc)
-    expect(tiers.tiers.pro.price.monthly).toBe(OFFERS_V4.pro.monthlyTtc)
+    expect(tiers.tiers.premium.price.monthly).toBe(OFFERS_V4.premium.monthlyHt)
+    expect(tiers.tiers.premium.price.yearly).toBe(OFFERS_V4.premium.yearlyHt)
+    expect(tiers.tiers.pro.price.monthly).toBe(OFFERS_V4.pro.monthlyHt)
     expect(tiers.tiers.business.price.seatMonthly).toBe(OFFERS_V4.business.seatMonthly)
     expect(tiers.tiers.free.quotas.aiActionsMonthly.value).toBe(OFFERS_V4.free.aiActionsPerMonth)
   })
@@ -51,7 +51,7 @@ describe('config/tiers.json', () => {
   })
 
   test('le coût des actions est celui que le serveur débite', () => {
-    const sql = readFileSync(path.join(root, 'supabase/drafts/ai_credits_spend.sql'), 'utf8')
+    const sql = readFileSync(path.join(root, 'supabase/migrations/20261108143238_ai_credits_spend.sql'), 'utf8')
     const cost = (kind: string) => Number(sql.match(new RegExp(`WHEN '${kind}' THEN (\\d+)`))?.[1])
     expect(tiers.creditCosts.photo).toBe(cost('photo'))
     expect(tiers.creditCosts.estimate).toBe(cost('estimate'))

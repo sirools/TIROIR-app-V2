@@ -12,8 +12,8 @@ fiches de Torix. Elle remplace la grille du 30 septembre ci-dessous
 | --- | --- | --- | --- |
 | **Free** | Objets et collections illimités, 20 unités IA par mois | 0 € | — |
 | **Packs de crédits** | 50 · 150 · 500 crédits, sans expiration | 2,99 € · 6,99 € · 19,99 € | App (achat intégré) |
-| **Premium** | Estimation, courbe de valeur, liens protégés… | 4,99 €/mois ou 39 €/an | App (abonnement) |
-| **Pro** | Tout le Premium, avec des quotas plus élevés | 14,99 €/mois | App (abonnement) ; plus tard site (Stripe) |
+| **Premium** | Estimation, courbe de valeur, liens protégés… | 15 €/mois ou 150 €/an (grille de lancement du 08/11/2026 ; avant : 4,99 € / 39 €) | App (abonnement) ; site (Stripe) |
+| **Pro** | Tout le Premium, avec des quotas plus élevés | 50 €/mois ou 500 €/an (grille du 08/11/2026 ; avant : 14,99 €/mois) | App (abonnement) ; site (Stripe) |
 | **Business** | Tout le Pro par membre, rôles, facture | 39 € par siège/mois | Sur facture ; plus tard site (Stripe) |
 
 ### Zoom et photos haute définition : abonnés seulement (décision du 3/11)

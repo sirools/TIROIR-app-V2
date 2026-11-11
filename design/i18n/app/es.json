@@ -331,6 +331,8 @@
     "monthly": "Mensual",
     "annual": "Anual",
     "unavailable": "Suscripciones no disponibles por ahora.",
+    "alreadySubscribedTitle": "Ya tiene una suscripción",
+    "alreadySubscribedBody": "Su cuenta ya tiene una suscripción activa. No hace falta volver a comprarla: los packs de créditos siguen disponibles abajo.",
     "freeTrial": "✦ 7 días de prueba gratis",
     "perYear": " / año",
     "perMonth": " / mes",
