@@ -229,6 +229,13 @@ const en: Copy = {
       title: 'Your first item, sorted in one photo.',
       sub: 'Free, no card needed.',
     },
+    ululeInvite: {
+      label: 'Ulule campaign',
+      close: 'Close',
+      title: 'Tiroir de famille, on Ulule',
+      text: 'Our crowdfunding campaign, to give Tiroir the means to grow.',
+      cta: 'See the campaign',
+    },
   },
   pricing: {
     meta: {

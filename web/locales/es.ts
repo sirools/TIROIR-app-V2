@@ -230,6 +230,13 @@ const es: Copy = {
       title: 'Tu primer objeto, ordenado con una foto.',
       sub: 'Gratis, sin tarjeta.',
     },
+    ululeInvite: {
+      label: 'Campaña en Ulule',
+      close: 'Cerrar',
+      title: 'Tiroir de famille, en Ulule',
+      text: 'Nuestra campaña de micromecenazgo, para dar a Tiroir los medios para crecer.',
+      cta: 'Ver la campaña',
+    },
   },
   pricing: {
     meta: {
