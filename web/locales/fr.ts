@@ -234,6 +234,13 @@ const fr = {
       title: 'Ton premier objet, rangé en une photo.',
       sub: 'Gratuit, sans carte bancaire.',
     },
+    ululeInvite: {
+      label: 'Campagne Ulule',
+      close: 'Fermer',
+      title: 'Tiroir de famille, sur Ulule',
+      text: 'Notre campagne de financement participatif, pour donner à Tiroir les moyens de grandir.',
+      cta: 'Voir la campagne',
+    },
   },
   pricing: {
     meta: {

@@ -230,6 +230,13 @@ const de: Copy = {
       title: 'Dein erster Gegenstand, erfasst mit einem Foto.',
       sub: 'Kostenlos, ohne Kreditkarte.',
     },
+    ululeInvite: {
+      label: 'Ulule-Kampagne',
+      close: 'Schließen',
+      title: 'Tiroir de famille, auf Ulule',
+      text: 'Unsere Crowdfunding-Kampagne, damit Tiroir wachsen kann.',
+      cta: 'Zur Kampagne',
+    },
   },
   pricing: {
     meta: {
