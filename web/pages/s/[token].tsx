@@ -14,6 +14,7 @@ import SuggestionTriage from '../../components/share/SuggestionTriage'
 import SuggestionsToggle from '../../components/share/SuggestionsToggle'
 import { hasSignedCookie } from '../../lib/shareCookieSignature'
 import { isLot, lotTotal } from '../../lib/quantity'
+import { canPrepareListing, MAX_LISTINGS } from '../../lib/listing'
 import { serverSupabase, supabase as browserSupabase } from '../../lib/supabase'
 import { loadShareSuggestions, type ShareCollection } from '../../lib/shareSuggestions'
 import {
@@ -72,6 +73,8 @@ interface SuggestionsProps {
   collection: ShareCollection | null
   wishes: Wish[]
   isOwner: boolean
+  /** Propriétaire au palier Pro ou Business : « Préparer des annonces ». */
+  canList: boolean
   isLoggedIn: boolean
   /** Lien protégé ouvert avec un ancien cookie non signé : mot de passe à confirmer pour écrire. */
   suggestLocked: boolean
@@ -268,10 +271,17 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     viewerId = null
   }
   const { collection, wishes } = await loadShareSuggestions(supabase, link, viewerId)
+  // Le palier n'est lu que pour le propriétaire : aucun autre visiteur n'en a l'usage.
+  let canList = false
+  if (viewerId !== null && viewerId === link.user_id) {
+    const { data: owner } = await supabase.from('profiles').select('plan, pro_expires_at').eq('id', viewerId).single()
+    canList = canPrepareListing(owner?.plan, owner?.pro_expires_at)
+  }
   const suggestions: SuggestionsProps = {
     collection,
     wishes,
     isOwner: viewerId !== null && viewerId === link.user_id,
+    canList,
     isLoggedIn: viewerId !== null,
     suggestLocked: Boolean(link.options?.password_protected) && !hasSignedCookie(token, ctx.req),
   }
@@ -461,6 +471,10 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
   const [sortKey, setSortKey] = useState<SortKey | null>(null)
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [exportMode, setExportMode] = useState(false)
+  const [listingMode, setListingMode] = useState(false)
+  const canList = (suggestions?.canList ?? false) && objects.length > 0
+  /** Cases à cocher du tableau : pour l'export comme pour les annonces. */
+  const selecting = exportMode || listingMode
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const pageTitle = error ? t.meta.linkNotFound : fill(t.meta.pageTitle, { title: shareTitle })
 
@@ -471,7 +485,16 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
 
   function startExportSelection() {
     setSelectedIds(new Set(objects.map(o => o.id)))
+    setListingMode(false)
     setExportMode(true)
+    setView('list')
+  }
+
+  /** Annonces : on part d'une sélection vide, on ne vend pas tout d'un coup. */
+  function startListingSelection() {
+    setSelectedIds(new Set())
+    setExportMode(false)
+    setListingMode(true)
     setView('list')
   }
 
@@ -736,7 +759,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                   <table className="table">
                     <thead>
                       <tr>
-                        {exportMode && (
+                        {selecting && (
                           <th className="th-check">
                             <input
                               type="checkbox"
@@ -779,9 +802,9 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                       {sortedObjects.map(obj => (
                         <tr
                           key={obj.id}
-                          onClick={() => exportMode ? toggleSelected(obj.id) : router.push(`/s/${token}/${obj.id}`)}
+                          onClick={() => selecting ? toggleSelected(obj.id) : router.push(`/s/${token}/${obj.id}`)}
                         >
-                          {exportMode && (
+                          {selecting && (
                             <td className="td-check" onClick={e => e.stopPropagation()}>
                               <input
                                 type="checkbox"
@@ -841,7 +864,7 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                       <tr className="total-row">
                         <td
                           colSpan={
-                            (exportMode ? 1 : 0) + 3
+                            (selecting ? 1 : 0) + 3
                             + (fields.location ? 1 : 0)
                             + attrKeys.length
                             + (fields.description ? 1 : 0)
@@ -861,6 +884,52 @@ export default function ShareV2Page({ token, title, objects, allowDownload, fiel
                       </tr>
                     </tfoot>
                   </table>
+                </div>
+              )}
+
+              {canList && (
+                <div className="download-row">
+                  {!listingMode ? (
+                    <button type="button" className="download-btn" onClick={startListingSelection}>
+                      {t.listing.entryMany}
+                    </button>
+                  ) : (
+                    <div className="export-panel">
+                      <div className="export-shortcuts">
+                        <button type="button" className="text-link" onClick={() => setSelectedIds(new Set(objects.map(o => o.id)))}>
+                          {tl.selectAll}
+                        </button>
+                        <span className="dot-sep">·</span>
+                        <button type="button" className="text-link" onClick={() => setSelectedIds(new Set())}>
+                          {tl.deselectAll}
+                        </button>
+                      </div>
+                      <div className="export-actions">
+                        <span className="export-count">
+                          {fill(selectedIds.size !== 1 ? tl.selectedOther : tl.selectedOne, { n: selectedIds.size })}
+                        </span>
+                        <a
+                          className={`download-btn ${selectedIds.size === 0 || selectedIds.size > MAX_LISTINGS ? 'btn-disabled' : ''}`}
+                          href={`/s/${encodeURIComponent(token)}/annonces?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}`}
+                          aria-disabled={selectedIds.size === 0 || selectedIds.size > MAX_LISTINGS}
+                          onClick={(e) => {
+                            // router.push garde la langue du site, qu'un lien brut perdrait.
+                            e.preventDefault()
+                            if (selectedIds.size === 0 || selectedIds.size > MAX_LISTINGS) return
+                            router.push(`/s/${encodeURIComponent(token)}/annonces?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}`)
+                          }}
+                        >
+                          {t.listing.prepareSelected}
+                        </a>
+                        <button type="button" className="text-link" onClick={() => setListingMode(false)}>
+                          {t.common.cancel}
+                        </button>
+                      </div>
+                      {selectedIds.size > MAX_LISTINGS && (
+                        <p className="export-count" role="status">{fill(t.listing.tooMany, { max: MAX_LISTINGS })}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

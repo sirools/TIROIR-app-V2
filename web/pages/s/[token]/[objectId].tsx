@@ -12,6 +12,7 @@ import { hasPhotoZoom, zoomPaths, zoomUrls } from '../../../lib/photoZoom'
 import { hasSignedCookie } from '../../../lib/shareCookieSignature'
 import { serverSupabase } from '../../../lib/supabase'
 import { isLot, lotTotal } from '../../../lib/quantity'
+import { canPrepareListing } from '../../../lib/listing'
 import type { Locale } from '../../../lib/localeRouting'
 import { fill, intlLocale, useCopy } from '../../../locales'
 
@@ -106,6 +107,8 @@ interface Props {
   gated?: boolean
   /** Le propriétaire regarde son propre partage : lien vers l'aperçu de vente. */
   isOwner?: boolean
+  /** Propriétaire au palier Pro ou Business : « Préparer une annonce ». */
+  canList?: boolean
 }
 
 // Libellés (statuts, types de document, confiance, périodicité) :
@@ -293,10 +296,12 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     isOwner = false
   }
 
-  return { props: { token, object, images, zoomImages, documents, insurances, fields, isOwner } }
+  const canList = isOwner && canPrepareListing(owner?.plan, owner?.pro_expires_at)
+
+  return { props: { token, object, images, zoomImages, documents, insurances, fields, isOwner, canList } }
 }
 
-export default function SharedObjectDetailPage({ token, object, images, zoomImages, documents, insurances, fields = ALL_FIELDS, error, gated, isOwner = false }: Props) {
+export default function SharedObjectDetailPage({ token, object, images, zoomImages, documents, insurances, fields = ALL_FIELDS, error, gated, isOwner = false, canList = false }: Props) {
   const { t: { share: t }, locale } = useCopy()
   const to = t.object
   const money = (amount: number, rawCurrency: string | null | undefined) => formatMoney(locale, amount, rawCurrency)
@@ -439,6 +444,12 @@ export default function SharedObjectDetailPage({ token, object, images, zoomImag
           {isOwner && (
             <Link href={`/s/${token}/${object.id}/vente`} legacyBehavior passHref>
               <a className="sale-preview">{to.salePreview}</a>
+            </Link>
+          )}
+
+          {canList && (
+            <Link href={`/s/${token}/annonces?ids=${encodeURIComponent(object.id)}`} legacyBehavior passHref>
+              <a className="sale-preview">{t.listing.entryOne}</a>
             </Link>
           )}
 
