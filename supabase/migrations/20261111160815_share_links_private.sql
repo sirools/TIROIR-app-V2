@@ -23,7 +23,10 @@
 --     tout le monde ; il ne compte plus que ceux du compte.
 --
 -- Aucune donnée modifiée. Rejouable. Retour arrière :
--- rollback/share_links_private.rollback.sql.
+-- supabase/drafts/rollback/share_links_private.rollback.sql.
+--
+-- En prod depuis le 11/11/2026 (éditeur SQL, version inscrite à la main :
+-- 20261111160815).
 
 BEGIN;
 

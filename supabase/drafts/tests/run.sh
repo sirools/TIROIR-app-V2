@@ -35,6 +35,6 @@ psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../../migrations/20261108143334_check
 psql "$DB" -q -f "$HERE/checkout_consents.test.sql" | tee /dev/stderr | tail -3 | grep -qE "^ +0$"
 echo "✓ checkout_consents : tous les tests passent"
 psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../../migrations/20260625173437_create_share_links.sql"
-psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../share_links_private.sql"
-psql "$DB" -q -v privatefile="$HERE/../share_links_private.sql" -f "$HERE/share_links_private.test.sql" | tee /dev/stderr | tail -3 | grep -qE "^ +0$"
+psql "$DB" -q -v ON_ERROR_STOP=1 -f "$HERE/../../migrations/20261111160815_share_links_private.sql"
+psql "$DB" -q -v privatefile="$HERE/../../migrations/20261111160815_share_links_private.sql" -f "$HERE/share_links_private.test.sql" | tee /dev/stderr | tail -3 | grep -qE "^ +0$"
 echo "✓ share_links_private : tous les tests passent"
