@@ -86,6 +86,11 @@ describe('lecture de l’export', () => {
     })
   })
 
+  test('un export de dons : intitulés « don » reconnus', () => {
+    const r = parseExport('ID du don;Email;Nom complet;Montant du don;Statut;Date du don\n7;a@b.fr;Ana B;10;payment-done;24/11/2026 08:15\n')
+    expect(r.ok && r.orders[0]).toMatchObject({ orderId: '7', amountCents: 1000, contributedAt: '2026-11-24T07:15:00.000Z' })
+  })
+
   test('une colonne indispensable absente : refus, avec les colonnes trouvées', () => {
     const r = parseExport('Nom;Montant\nMarie;25\n')
     expect(r.ok).toBe(false)
@@ -166,14 +171,21 @@ describe('e-mails de la campagne', () => {
     desinscription: 'https://tiroir.app/desinscription?t=abc', adresse: '',
   }
 
-  test('lancement : Noël avant Noël, premier palier, lien perso, désinscription', () => {
+  test('lancement : Noël avant Noël, collecte de dons, premier palier, lien perso, désinscription', () => {
     const m = renderCampaign('launch', base)
     expect(m.subject).toContain('Noël avant Noël')
-    expect(m.text).toContain('premier palier de 1\u00a0000\u00a0€')
+    expect(m.text).toContain('collecte de dons')
+    expect(m.text).toContain('Premier palier : 1\u00a0000\u00a0€')
     expect(m.text).toContain('https://tiroir.app/u/marie-dupont')
     expect(m.html).toContain('href="https://tiroir.app/desinscription?t=abc"')
     expect(m.html).not.toMatch(/\{\w+\}/)
     expect(m.text).not.toMatch(/\{\w+\}/)
+  })
+
+  test('collecte de dons : aucune contrepartie promise', () => {
+    for (const k of ['launch', 'reminder', 'last48h', 'recap'] as const) {
+      expect(renderCampaign(k, base).text).not.toMatch(/contreparties|cadeau|sous le sapin/i)
+    }
   })
 
   test('relance : la jauge quand Ulule répond, rien sinon', () => {

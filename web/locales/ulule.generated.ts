@@ -27,14 +27,14 @@ export const ULULE_EMAIL_TEXTS = {
     "greeting": "Salut {prenom},",
     "body": [
       "C’est aujourd’hui. La campagne Ulule de Tiroir est en ligne : un Noël avant Noël, un mois pile avant le 24 décembre.",
-      "Les premières heures comptent énormément. Si on atteint le premier palier de {premierPalier} dès ce matin, Ulule met le projet en avant."
+      "C’est une collecte de dons : tu donnes le montant que tu veux, sans contrepartie. Les premières heures comptent énormément : une collecte qui démarre fort donne envie aux autres de suivre. Premier palier : {premierPalier}, et j’aimerais l’atteindre dès ce matin."
     ],
     "list": [
       "Contribue dès maintenant, même un petit montant : {lien}",
       "Partage ce même lien autour de toi. C’est le tien : il me dit d’où vient chaque soutien."
     ],
     "closing": [
-      "Les contreparties s’offrent aussi : de quoi glisser un cadeau sous le sapin. La campagne se termine le 15 décembre.",
+      "La campagne se termine le 15 décembre.",
       "Merci du fond du cœur."
     ],
     "signature": "Clément"
@@ -61,7 +61,7 @@ export const ULULE_EMAIL_TEXTS = {
     "body": [
       "La campagne Tiroir de famille se termine mardi 15 décembre.",
       "{jauge}",
-      "C’est la dernière occasion d’offrir une contrepartie pour Noël, à tes parents, à tes grands-parents, ou à toi."
+      "Si tu voulais donner un coup de pouce à Tiroir avant Noël, c’est le moment. Même un petit don compte."
     ],
     "list": [
       "Ton lien : {lien}"
@@ -80,7 +80,7 @@ export const ULULE_EMAIL_TEXTS = {
     "body": [
       "La campagne Tiroir de famille s’est terminée hier.",
       "{jauge}",
-      "Rien de tout ça n’arrive sans toi. Je te tiens au courant de chaque étape, et les contreparties arrivent comme prévu sur la page Ulule.",
+      "Rien de tout ça n’arrive sans toi. Je te tiens au courant de chaque étape, ici et sur la page Ulule.",
       "Joyeux Noël, en avance ou pas."
     ],
     "list": [],
@@ -92,7 +92,7 @@ export const ULULE_EMAIL_TEXTS = {
     "greeting": "Salut {prenom},",
     "greetingAnonymous": "Salut,",
     "body": [
-      "Ta contribution à la campagne Tiroir de famille est bien arrivée.",
+      "Ton don à la campagne Tiroir de famille est bien arrivé.",
       "Merci de me faire confiance. Ça compte énormément pour moi.",
       "Si tu as la moindre question, réponds simplement à ce message : c’est moi qui lis."
     ],

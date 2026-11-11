@@ -235,7 +235,7 @@ const es: Copy = {
       close: 'Cerrar',
       title: 'Navidad antes de Navidad',
       textBefore: 'El {date}, Tiroir de famille llega a Ulule: un mes antes de Navidad, para dar a Tiroir los medios para crecer.',
-      textLive: 'Hasta el 15 de diciembre, apoya a Tiroir en Ulule. Las recompensas se pueden regalar: un regalo para dejar bajo el árbol.',
+      textLive: 'Hasta el 15 de diciembre, apoya a Tiroir en Ulule con una donación de la cantidad que quieras. Un empujón antes de Navidad.',
       raised: '{amount} recaudados',
       next: 'Próxima meta: {amount}',
       allReached: 'Todas las metas alcanzadas. ¡Gracias!',

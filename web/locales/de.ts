@@ -235,7 +235,7 @@ const de: Copy = {
       close: 'Schließen',
       title: 'Weihnachten kommt früher',
       textBefore: 'Am {date} startet Tiroir de famille auf Ulule: einen Monat vor Weihnachten, damit Tiroir wachsen kann.',
-      textLive: 'Bis zum 15. Dezember kannst du Tiroir auf Ulule unterstützen. Die Dankeschöns lassen sich verschenken: ein Geschenk für unter den Baum.',
+      textLive: 'Bis zum 15. Dezember kannst du Tiroir auf Ulule mit einer Spende in beliebiger Höhe unterstützen. Ein kleiner Schub vor Weihnachten.',
       raised: '{amount} gesammelt',
       next: 'Nächstes Ziel: {amount}',
       allReached: 'Alle Ziele erreicht. Danke!',

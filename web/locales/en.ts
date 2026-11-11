@@ -234,7 +234,7 @@ const en: Copy = {
       close: 'Close',
       title: 'Christmas comes early',
       textBefore: 'On {date}, Tiroir de famille launches on Ulule: one month before Christmas, to give Tiroir the means to grow.',
-      textLive: 'Until December 15, back Tiroir on Ulule. Rewards make great gifts to put under the tree.',
+      textLive: 'Until December 15, support Tiroir on Ulule with a donation of any amount. A little boost before Christmas.',
       raised: '{amount} raised',
       next: 'Next milestone: {amount}',
       allReached: 'Every milestone reached. Thank you!',

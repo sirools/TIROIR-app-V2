@@ -154,14 +154,14 @@ const normalizeHeader = (h: string) =>
 // L'intitulé exact des colonnes du fichier n'est pas documenté : noms de
 // l'API d'abord, puis libellés probables. Un manque est signalé, jamais deviné.
 const COLUMNS = {
-  orderId: ['order id', 'id commande', 'numero de commande', 'n commande', 'commande', 'id'],
+  orderId: ['order id', 'donation id', 'id commande', 'numero de commande', 'n commande', 'commande', 'id du don', 'numero du don', 'id'],
   email: ['user email', 'email', 'e mail', 'adresse email', 'adresse e mail', 'mail'],
   fullName: ['user full name', 'full name', 'nom complet', 'nom et prenom', 'contributeur'],
   firstName: ['user first name', 'first name', 'prenom'],
   lastName: ['user last name', 'last name', 'nom'],
-  amount: ['order total', 'total', 'montant total', 'montant', 'amount'],
+  amount: ['order total', 'donation amount', 'total', 'montant total', 'montant du don', 'montant', 'amount'],
   status: ['order status', 'status', 'statut de la commande', 'statut', 'etat'],
-  date: ['order created at', 'created at', 'date de la commande', 'date de commande', 'date de contribution', 'date'],
+  date: ['order created at', 'created at', 'date de la commande', 'date de commande', 'date de contribution', 'date du don', 'date'],
   utmSource: ['order tracking source', 'utm source'],
   utmMedium: ['order tracking medium', 'utm medium'],
 } as const
