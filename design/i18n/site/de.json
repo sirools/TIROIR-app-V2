@@ -682,7 +682,18 @@
     "privacy": "Datenschutz",
     "madeIn": "Made in France",
     "contact": "Kontakt",
-    "language": "Sprache"
+    "language": "Sprache",
+    "myTiroir": "Mein Tiroir",
+    "navHome": "Start",
+    "navCollections": "Sammlungen",
+    "navShares": "Freigaben",
+    "navSales": "Verkäufe",
+    "appNav": "Navigation deines Tiroir",
+    "accountMenu": "Kontomenü",
+    "menuProfile": "Profil",
+    "menuSubscription": "Abo",
+    "menuSettings": "Einstellungen",
+    "backToSite": "Tiroir-Website"
   },
   "home": {
     "meta": {
@@ -1094,6 +1105,34 @@
       "editInApp": "Um diesen Eintrag zu bearbeiten, öffne die App.",
       "statusLabel": "Status",
       "addedOn": "Hinzugefügt am {date}"
+    },
+    "home": {
+      "metaTitle": "Start — Tiroir",
+      "hello": "Hallo {name}",
+      "helloNoName": "Hallo",
+      "intro": "Dein Tiroir auf einen Blick.",
+      "goCollections": "Meine Sammlungen",
+      "goCollectionsText": "Deine Gegenstände finden und sortieren.",
+      "goShares": "Meine Freigaben",
+      "goSharesText": "Die verschickten Links verwalten.",
+      "goSales": "Meine Verkäufe",
+      "goSalesText": "Verfolgen, was zum Verkauf steht und was verkauft ist."
+    },
+    "sales": {
+      "metaTitle": "Verkäufe — Tiroir",
+      "title": "Verkäufe",
+      "intro": "Die Gegenstände, die du zum Verkauf angeboten hast, und die verkauften.",
+      "forSale": "Zu verkaufen",
+      "sold": "Verkauft",
+      "empty": "Noch kein Gegenstand zum Verkauf.",
+      "emptyHint": "Öffne eine Sammlung, wähle Gegenstände aus und nimm „Status ändern“ oder „Bei Leboncoin zum Verkauf anbieten“.",
+      "goCollections": "Meine Sammlungen ansehen",
+      "listedOn": "Zum Verkauf seit {date}",
+      "soldOn": "Verkauft am {date}",
+      "asking": "Verlangter Preis: {price}",
+      "soldFor": "Erzielter Preis: {price}",
+      "onPlatform": "bei {platform}",
+      "leboncoin": "Leboncoin"
     }
   }
 }

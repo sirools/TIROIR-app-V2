@@ -176,3 +176,46 @@ export async function loadObject({ admin, userId }: Owner, id: string): Promise<
     }),
   }
 }
+
+export type SaleRow = {
+  id: string
+  title: string
+  status: 'for_sale' | 'sold'
+  quantity: number | null
+  value_currency: string | null
+  sale_price: number | null
+  sale_price_lot: number | null
+  listing_platform: string | null
+  listed_at: string | null
+  sold_price: number | null
+  sold_at: string | null
+  thumb: string | null
+}
+
+/** Les objets du compte en vente ou vendus, les plus récents d'abord (onglet Ventes). */
+export async function loadSales({ admin, userId }: Owner): Promise<SaleRow[]> {
+  const { data } = await admin.from('objects')
+    .select('id, title, status, quantity, value_currency, sale_price, sale_price_lot, listing_platform, listed_at, sold_price, sold_at, updated_at')
+    .eq('user_id', userId)
+    .in('status', ['for_sale', 'sold'])
+    .order('updated_at', { ascending: false })
+    .limit(500)
+  const rows = (data ?? []) as unknown as (Omit<SaleRow, 'thumb'> & { updated_at: string })[]
+  const coverByObject = new Map<string, string>()
+  for (let i = 0; i < rows.length; i += 200) {
+    const { data: imgs } = await admin.from('object_images')
+      .select('object_id, storage_path')
+      .in('object_id', rows.slice(i, i + 200).map(o => o.id))
+      .eq('user_id', userId)
+      .eq('is_cover', true)
+    for (const img of imgs ?? []) coverByObject.set(img.object_id, img.storage_path)
+  }
+  const signed = await signAll(admin, Array.from(coverByObject.values()))
+  return rows.map(({ updated_at: _u, ...o }) => ({ ...o, thumb: signed.get(coverByObject.get(o.id) ?? '') ?? null }))
+}
+
+/** Le prénom ou le nom affiché du compte, pour saluer. */
+export async function loadDisplayName({ admin, userId }: Owner): Promise<string | null> {
+  const { data } = await admin.from('profiles').select('display_name').eq('id', userId).maybeSingle()
+  return data?.display_name?.trim() || null
+}

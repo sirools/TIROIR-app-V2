@@ -11,7 +11,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
-import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
+import HeaderApp from '../../components/layout/HeaderApp'
 import FooterTiroirWeb from '../../components/layout/FooterTiroirWeb'
 import ShareDialog from '../../components/inventory/ShareDialog'
 import { MAX_LISTINGS } from '../../lib/listing'
@@ -176,7 +176,7 @@ export default function CollectionPage({ view, routeId, canList }: Props) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <div className="root">
-        <HeaderTiroirWeb />
+        <HeaderApp />
         <main className={`main ${selecting && selected.size > 0 ? 'with-bar' : ''}`}>
           <Link href="/mes-collections" legacyBehavior passHref>
             <a className="back-link">{t.backToCollections}</a>

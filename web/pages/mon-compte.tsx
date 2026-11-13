@@ -8,7 +8,7 @@
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
 import type { GetServerSideProps } from 'next'
-import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
+import HeaderApp from '../components/layout/HeaderApp'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { supabase, serverSupabase, adminSupabase } from '../lib/supabase'
 import { providerRows, type IdentityLike, type Provider } from '../lib/identities'
@@ -143,7 +143,7 @@ export default function MonCompte({ subscription }: { subscription: Subscription
   return (
     <>
       <Head><title>{t.myAccount.metaTitle}</title></Head>
-      <HeaderTiroirWeb />
+      <HeaderApp />
 
       <main className="section">
         <div className="container" style={{ maxWidth: 640 }}>

@@ -7,7 +7,7 @@ import type { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useState } from 'react'
-import HeaderTiroirWeb from '../../../components/layout/HeaderTiroirWeb'
+import HeaderApp from '../../../components/layout/HeaderApp'
 import FooterTiroirWeb from '../../../components/layout/FooterTiroirWeb'
 import { NO_COLLECTION, normCurrency, STATUSES, STATUS_COLOR, type Status } from '../../../lib/inventory'
 import { loadObject, requireOwner, type ObjectDetail } from '../../../lib/inventoryServer'
@@ -79,7 +79,7 @@ export default function InventoryObjectPage({ object: o, canList }: Props) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <div className="root">
-        <HeaderTiroirWeb />
+        <HeaderApp />
         <main className="main">
           <Link href={back} legacyBehavior passHref>
             <a className="back-link">← {o.collection_name ?? ti.noCollection}</a>

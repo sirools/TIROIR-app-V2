@@ -10,7 +10,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { useState } from 'react'
-import HeaderTiroirWeb from '../layout/HeaderTiroirWeb'
+import HeaderApp from '../layout/HeaderApp'
 import FooterTiroirWeb from '../layout/FooterTiroirWeb'
 import {
   buildListing, buildLotListing, listingText, parsePrice, slug, withPractical, TITLE_MAX,
@@ -207,7 +207,7 @@ export default function ListingPanel({ items, shareUrl, saleReady, apiUrl, backH
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <div className="root">
-        <HeaderTiroirWeb />
+        <HeaderApp />
         <main className="main">
           <Link href={backHref} legacyBehavior passHref>
             <a className="back-link">{backLabel ?? tl.back}</a>

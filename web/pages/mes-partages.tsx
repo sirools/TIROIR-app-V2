@@ -2,7 +2,7 @@ import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import { useState } from 'react'
 import { supabase, serverSupabase, adminSupabase } from '../lib/supabase'
-import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
+import HeaderApp from '../components/layout/HeaderApp'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { asLocale, localePrefix } from '../lib/localeRouting'
 import { fill, intlLocale, useCopy } from '../locales'
@@ -227,7 +227,7 @@ export default function MesPartages({ shares: initialShares }: Props) {
         <meta name="robots" content="noindex,nofollow" />
       </Head>
 
-      <HeaderTiroirWeb />
+      <HeaderApp />
 
       <main className="main">
         <div className="page-hero">

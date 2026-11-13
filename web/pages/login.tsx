@@ -39,7 +39,7 @@ export default function Login() {
     }
     const r = await fetch('/api/torix/access').catch(() => null)
     if (r?.ok) setChoice(true)
-    else router.replace('/')
+    else router.replace('/accueil')
   }
 
   // Déjà connecté (retour d'un e-mail de confirmation, de Google, autre
@@ -102,7 +102,7 @@ export default function Login() {
           <>
             <h1 style={s.title}>{t.login.choiceTitle}</h1>
             <div style={s.choice}>
-              <a href={prefix || '/'} style={s.choiceTiroir}>Tiroir</a>
+              <a href={`${prefix}/accueil`} style={s.choiceTiroir}>Tiroir</a>
               <a href="/admin/torix-lab" style={s.choiceTorix}>Torix</a>
             </div>
           </>

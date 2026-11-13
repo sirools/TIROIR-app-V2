@@ -210,60 +210,11 @@ export default function HeaderTiroirWeb() {
           <nav className="ti-actions">
             {navItems}
             {isLoggedIn ? (
-              <div className="ti-user">
-                <button
-                  className="ti-user__chip"
-                  type="button"
-                  aria-haspopup="menu"
-                  aria-expanded={userMenuOpen}
-                  onClick={() => setUserMenuOpen(v => !v)}
-                >
-                  <UserIcon />
-                  <span className="ti-user__name">{userName}</span>
-                  <svg
-                    className={`ti-user__chevron ${userMenuOpen ? 'open' : ''}`}
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-                {userMenuOpen && (
-                  <div className="ti-user__dropdown" role="menu">
-                    {/* Admin en tête : c'est l'entrée la plus utilisée par les
-                        rares comptes qui y ont droit, et la seule qu'on ouvre
-                        plusieurs fois par jour. */}
-                    {isAdmin && (
-                      <a className="ti-user__item" href="/admin" role="menuitem">
-                        Admin
-                      </a>
-                    )}
-                    <a className="ti-user__item" href="/profil" role="menuitem">
-                      {t.myProfile}
-                    </a>
-                    <a className="ti-user__item" href="/mon-compte" role="menuitem">
-                      {t.myAccount}
-                    </a>
-                    <a className="ti-user__item" href="/mes-collections" role="menuitem">
-                      {t.myCollections}
-                    </a>
-                    <a className="ti-user__item" href="/mes-partages" role="menuitem">
-                      {t.myShares}
-                    </a>
-                    <button
-                      className="ti-user__item ti-user__item--danger"
-                      type="button"
-                      role="menuitem"
-                      onClick={handleAuthClick}
-                    >
-                      {t.signOut}
-                    </button>
-                  </div>
-                )}
-              </div>
+              // Connecté : une seule porte vers l'espace personnel (HeaderApp y
+              // porte le profil, l'abonnement, les réglages et la déconnexion).
+              <Link href="/accueil" legacyBehavior passHref>
+                <a className="btn btn-primary" style={{ textDecoration: 'none' }}>{t.myTiroir}</a>
+              </Link>
             ) : (
               <>
                 {/* Comme sur mobile : se connecter d'abord, créer un compte
@@ -328,43 +279,8 @@ export default function HeaderTiroirWeb() {
                   <UserIcon size={20} />
                   <span>{userName}</span>
                 </div>
-                {/* Même ordre que sur le bureau : Admin d'abord. */}
-                {isAdmin && (
-                  <button
-                    className="appstore-nav-btn"
-                    type="button"
-                    onClick={() => navigate('/admin')}
-                  >
-                    Admin
-                  </button>
-                )}
-                <button
-                  className="appstore-nav-btn"
-                  type="button"
-                  onClick={() => navigate('/profil')}
-                >
-                  {t.myProfile}
-                </button>
-                <button
-                  className="appstore-nav-btn"
-                  type="button"
-                  onClick={() => navigate('/mon-compte')}
-                >
-                  {t.myAccount}
-                </button>
-                <button
-                  className="appstore-nav-btn"
-                  type="button"
-                  onClick={() => navigate('/mes-collections')}
-                >
-                  {t.myCollections}
-                </button>
-                <button
-                  className="appstore-nav-btn"
-                  type="button"
-                  onClick={() => navigate('/mes-partages')}
-                >
-                  {t.myShares}
+                <button className="btn btn-primary" type="button" onClick={() => navigate('/accueil')}>
+                  {t.myTiroir}
                 </button>
                 <button
                   className="appstore-nav-btn ti-mobile-menu__logout"
