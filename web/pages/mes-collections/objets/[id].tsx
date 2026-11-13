@@ -11,22 +11,23 @@ import HeaderApp from '../../../components/layout/HeaderApp'
 import FooterTiroirWeb from '../../../components/layout/FooterTiroirWeb'
 import { NO_COLLECTION, normCurrency, STATUSES, STATUS_COLOR, type Status } from '../../../lib/inventory'
 import { loadObject, requireOwner, type ObjectDetail } from '../../../lib/inventoryServer'
+import { auctionsEnabled } from '../../../lib/auction'
 import { fill, intlLocale, useCopy } from '../../../locales'
 
-type Props = { object: ObjectDetail; canList: boolean }
+type Props = { object: ObjectDetail; canList: boolean; canAuction: boolean }
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const gate = await requireOwner(ctx)
   if ('redirect' in gate) return gate
   const object = await loadObject(gate.owner, String(ctx.params?.id ?? ''))
   if (!object) return { notFound: true as const }
-  return { props: { object, canList: gate.owner.canList } }
+  return { props: { object, canList: gate.owner.canList, canAuction: auctionsEnabled() } }
 }
 
 /** Attributs de service (prêt), montrés ailleurs ou pas du tout. */
 const HIDDEN_ATTRS = ['loaned_to', 'loan_return_date']
 
-export default function InventoryObjectPage({ object: o, canList }: Props) {
+export default function InventoryObjectPage({ object: o, canList, canAuction }: Props) {
   const { t: { inventory: ti, share }, locale } = useCopy()
   const t = ti.object
   const [status, setStatus] = useState<string | null>(o.status)
@@ -160,6 +161,15 @@ export default function InventoryObjectPage({ object: o, canList }: Props) {
                 </Link>
               )}
 
+              {canAuction && !['sold', 'given', 'lost'].includes(status ?? '') && (
+                <Link
+                  href={`/ventes/nouvelle?ids=${encodeURIComponent(o.id)}&from=${encodeURIComponent(`/mes-collections/objets/${o.id}`)}`}
+                  legacyBehavior passHref
+                >
+                  <a className="ghost-btn">{ti.auction.action}</a>
+                </Link>
+              )}
+
               {o.description && (
                 <div className="block">
                   <h2>{t.description}</h2>
@@ -215,6 +225,7 @@ export default function InventoryObjectPage({ object: o, canList }: Props) {
         .text { margin: 0; font-size: 15px; line-height: 1.55; white-space: pre-wrap; }
         .primary-btn { display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 18px; margin-bottom: 14px; border-radius: 12px; background: var(--orange); color: var(--white); font-size: 15px; font-weight: 700; text-decoration: none; }
         .primary-btn:hover { background: var(--orange-700); }
+        .ghost-btn { display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 18px; margin-bottom: 14px; border-radius: 12px; border: 1.5px solid var(--orange); color: var(--orange-700); font-size: 15px; font-weight: 700; text-decoration: none; }
         .foot { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
         select:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
         @media (max-width: 760px) {

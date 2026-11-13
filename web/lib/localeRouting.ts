@@ -33,7 +33,7 @@ export const TRANSLATED_PREFIXES: readonly string[] = ['/s/', '/share/o/']
  * de TRANSLATED_PREFIXES, qui désigne aussi les pages des destinataires
  * (servies dans la langue du navigateur) : ici la langue reste celle choisie.
  */
-export const OWNER_PREFIXES: readonly string[] = ['/mes-collections/']
+export const OWNER_PREFIXES: readonly string[] = ['/mes-collections/', '/ventes/']
 
 /** La page existe-t-elle dans cette langue ? */
 export function isTranslated(locale: Locale, pathname: string): boolean {
