@@ -9,18 +9,24 @@
 import type { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import HeaderApp from '../components/layout/HeaderApp'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { supabase } from '../lib/supabase'
 import { cardsFor, STAT_CARDS, type StatCard, type Stats } from '../lib/dashboard'
 import {
-  loadCollections, loadDashboard, loadDisplayName, requireOwner, type CollectionCard, type ShareSummary,
+  loadCollections, loadDashboard, loadProfile, requireOwner, type CollectionCard, type ShareSummary,
 } from '../lib/inventoryServer'
+import PersonaSelect from '../components/account/PersonaSelect'
+import { isPersona } from '../lib/personas'
 import { fill, intlLocale, useCopy } from '../locales'
 
 type Props = {
+  userId: string
   name: string | null
+  /** null : pas encore choisi — l'accueil le demande, sans insister. */
+  persona: string | null
   cards: StatCard[]
   stats: Stats
   collections: CollectionCard[]
@@ -32,8 +38,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const gate = await requireOwner(ctx)
   if ('redirect' in gate) return gate
   const { owner } = gate
-  const [name, dashboard, { collections }] = await Promise.all([
-    loadDisplayName(owner), loadDashboard(owner), loadCollections(owner),
+  const [profile, dashboard, { collections }] = await Promise.all([
+    loadProfile(owner), loadDashboard(owner), loadCollections(owner),
   ])
   // Les trois collections où il s'est passé quelque chose en dernier.
   const latest = [...collections]
@@ -41,15 +47,49 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     .slice(0, 3)
   return {
     props: {
-      name, cards: cardsFor({ plan: owner.plan }), stats: dashboard.stats,
+      userId: owner.userId, name: profile.name, persona: profile.persona,
+      cards: cardsFor({ plan: owner.plan, profile: profile.persona }), stats: dashboard.stats,
       collections: latest, collectionCount: collections.length, shares: dashboard.shares,
     },
   }
 }
 
-export default function HomePage({ name, cards, stats, collections, collectionCount, shares: initialShares }: Props) {
+const LATER_KEY = 'tiroir.persona.later'
+
+export default function HomePage({ userId, name, persona, cards, stats, collections, collectionCount, shares: initialShares }: Props) {
+  const router = useRouter()
   const { t: { inventory: ti }, locale } = useCopy()
   const t = ti.home
+  const tp = ti.persona
+  const [choice, setChoice] = useState('')
+  const [asking, setAsking] = useState(false)
+  const [savingPersona, setSavingPersona] = useState(false)
+  const [personaFailed, setPersonaFailed] = useState(false)
+
+  // « Plus tard » vaut pour la visite : la question revient à la prochaine connexion.
+  useEffect(() => {
+    if (persona) return
+    try { setAsking(window.sessionStorage.getItem(LATER_KEY) !== '1') } catch { setAsking(true) }
+  }, [persona])
+
+  function later() {
+    setAsking(false)
+    try { window.sessionStorage.setItem(LATER_KEY, '1') } catch { /* stockage indisponible */ }
+  }
+
+  async function savePersona() {
+    if (!isPersona(choice) || savingPersona) return
+    setSavingPersona(true)
+    setPersonaFailed(false)
+    const { error } = await supabase.from('profiles').update({ persona: choice }).eq('id', userId)
+    setSavingPersona(false)
+    if (error) {
+      setPersonaFailed(true)
+      return
+    }
+    // Les cartes dépendent du profil : la page se recharge avec les bonnes.
+    router.replace(router.asPath)
+  }
   const [shares, setShares] = useState(initialShares)
   const [busy, setBusy] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
@@ -84,6 +124,24 @@ export default function HomePage({ name, cards, stats, collections, collectionCo
         <main className="main">
           <h1 className="page-title">{name ? fill(t.hello, { name }) : t.helloNoName}</h1>
           <p className="intro">{t.intro}</p>
+
+          {!persona && asking && (
+            <div className="ask">
+              <h2>{tp.promptTitle}</h2>
+              <p>{tp.promptText}</p>
+              <label className="sr-only" htmlFor="home-persona">{tp.label}</label>
+              <div className="ask-row">
+                <PersonaSelect id="home-persona" value={choice} onChange={setChoice} className="ask-select" />
+              </div>
+              <div role="status" aria-live="polite">{personaFailed && <p className="alert">{tp.saveFailed}</p>}</div>
+              <div className="ask-actions">
+                <button type="button" className="ask-save" disabled={!isPersona(choice) || savingPersona} onClick={savePersona}>
+                  {savingPersona ? tp.saving : tp.save}
+                </button>
+                <button type="button" className="ask-later" onClick={later}>{tp.later}</button>
+              </div>
+            </div>
+          )}
 
           <div className="block" role="region" aria-label={t.statsTitle}>
             <dl className="stats">
@@ -181,6 +239,14 @@ export default function HomePage({ name, cards, stats, collections, collectionCo
         .main { flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 40px 16px 64px; }
         .page-title { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15; margin: 0 0 8px; overflow-wrap: anywhere; }
         .intro { font-size: 15px; color: var(--muted); margin: 0 0 28px; }
+        .ask { margin-bottom: 32px; padding: 20px; background: var(--white); border: 1.5px solid var(--orange); border-radius: var(--radius); }
+        .ask p { margin: 6px 0 14px; font-size: 14px; line-height: 1.45; color: var(--muted); max-width: 60ch; }
+        .ask-row { max-width: 360px; }
+        .ask :global(.ask-select) { width: 100%; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--white); color: var(--ink); font: inherit; font-size: 15px; }
+        .ask-actions { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
+        .ask-save { min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--orange); color: var(--white); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+        .ask-later { min-height: 44px; padding: 0 4px; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; }
+        .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
         .block { margin-bottom: 32px; }
         .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
         h2 { font-size: 17px; font-weight: 700; margin: 0; }

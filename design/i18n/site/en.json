@@ -1301,6 +1301,49 @@
       "soldFor": "Price obtained: {price}",
       "onPlatform": "on {platform}",
       "leboncoin": "Leboncoin"
+    },
+    "persona": {
+      "label": "Your profile",
+      "placeholder": "Choose your profile",
+      "optional": "optional",
+      "hint": "It decides which figures your home page shows. You can change it any time.",
+      "promptTitle": "Tell us how you use Tiroir",
+      "promptText": "We adapt the figures on your home page to your profile. You can change it in Profile.",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Profile saved.",
+      "saveFailed": "The profile could not be saved. Try again.",
+      "later": "Later",
+      "healthNote": "For a healthcare service, Tiroir is set up to measure, with the Business plan. No inventory linked to patients should be entered here.",
+      "healthContact": "Write to us about the Business plan",
+      "families": {
+        "home": "Home",
+        "creation": "Creative work",
+        "trades": "Equipment trades",
+        "commerce": "Trade",
+        "health": "Healthcare",
+        "other": "Other"
+      },
+      "names": {
+        "particulier": "Private individual",
+        "collectionneur": "Collector",
+        "famille": "Family passing things on",
+        "costumiere": "Costume designer",
+        "decoratrice": "Set decorator",
+        "videaste": "Videographer",
+        "photographe": "Photographer",
+        "musicien": "Musician",
+        "mecano": "Mechanic",
+        "artisan": "Craftsperson",
+        "cuisinier": "Cook",
+        "brocanteur": "Second-hand dealer",
+        "antiquaire": "Antique dealer",
+        "revendeur": "Reseller",
+        "infirmiere_coordinatrice": "Nurse coordinator",
+        "chirurgien": "Surgeon",
+        "service_hospitalier": "Hospital department",
+        "autre": "Other"
+      }
     }
   }
 }

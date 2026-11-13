@@ -5,6 +5,7 @@
 // dans web/__tests__/dashboard.test.ts.
 import { lotTotal } from './quantity'
 import { normCurrency } from './inventory'
+import { familyOf, type PersonaFamily } from './personas'
 
 export type StatRow = {
   status: string | null
@@ -83,16 +84,23 @@ export function effectivePlan(plan?: string | null, proExpiresAt?: string | null
 /** Cartes du profil de base, pour toutes les offres. */
 const BASE: StatCard[] = ['objects', 'value', 'shares']
 
-/**
- * Cartes par profil choisi à l'inscription. Vide pour l'instant : le choix
- * du profil arrive à l'étape suivante, il suffira de remplir cette table
- * (« brocanteur » : forSale, sold, salesTotal…).
- */
+/** Cartes par famille de profils (lib/personas.ts) ; une famille absente garde la base. */
+const FAMILY_CARDS: Partial<Record<PersonaFamily, StatCard[]>> = {
+  // Création : ce que vaut le matériel, ce qui est sorti (prêté), ce qui est partagé avec d'autres pros.
+  creation: ['value', 'loaned', 'shares', 'objects'],
+  // Métiers du matériel : le parc d'abord, puis ce qui est sorti.
+  trades: ['objects', 'value', 'loaned', 'shares'],
+  // Commerce : ce qui est en vente, ce qui est vendu, ce que ça a rapporté.
+  commerce: ['forSale', 'sold', 'salesTotal', 'value'],
+}
+
+/** Cartes propres à un profil précis, quand elles diffèrent de celles de sa famille. */
 export const PROFILE_CARDS: Record<string, StatCard[]> = {}
 
-/** Trois à quatre cartes : celles du profil s'il en a, sinon la base, enrichie avec l'offre. */
+/** Trois à quatre cartes : celles du profil ou de sa famille, sinon la base, enrichie avec l'offre. */
 export function cardsFor(opts: { plan: Plan; profile?: string | null }): StatCard[] {
-  const own = opts.profile ? PROFILE_CARDS[opts.profile] : undefined
+  const family = familyOf(opts.profile)
+  const own = (opts.profile ? PROFILE_CARDS[opts.profile] : undefined) ?? (family ? FAMILY_CARDS[family] : undefined)
   if (own?.length) return own.slice(0, 4)
   if (opts.plan === 'pro') return [...BASE, 'forSale']
   if (opts.plan === 'premium') return [...BASE, 'loaned']

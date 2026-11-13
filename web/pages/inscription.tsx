@@ -7,6 +7,8 @@ import { authHref, safeNext } from '../lib/authFlow'
 import { authErrorFromUrl, authErrorKey, suggestsLogin, type AccountErrorKey, type AuthErrorKey } from '../lib/authErrors'
 import { localePrefix } from '../lib/localeRouting'
 import { useCopy } from '../locales'
+import PersonaSelect from '../components/account/PersonaSelect'
+import { isPersona } from '../lib/personas'
 import { useBillingCopy } from '../locales/billing'
 import OfferRecap from '../components/billing/OfferRecap'
 import { offerFromNext } from '../lib/subscribeFlow'
@@ -14,11 +16,12 @@ import { firstTouch } from '../components/SiteVisitTracker'
 
 export default function Inscription() {
   const router = useRouter()
-  const { t: { account: t }, locale } = useCopy()
+  const { t: { account: t, inventory: { persona: tp } }, locale } = useCopy()
   // Préfixe de langue des liens <a> et des retours Supabase (« » en français).
   const prefix = localePrefix(locale)
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
+  const [persona, setPersona]   = useState('')
   const [error, setError]       = useState<AccountErrorKey | null>(null)
   const [hint, setHint]         = useState<AuthErrorKey | null>(null)
   const [loading, setLoading]   = useState(false)
@@ -57,7 +60,9 @@ export default function Inscription() {
       // devient celle du compte (lib/accountLocale.ts).
       options: {
         emailRedirectTo: `${window.location.origin}${prefix}${confirm}`,
-        data: { acq: firstTouch() ?? { source: 'direct' }, locale },
+        // Le profil choisi suit le compte : l'accueil le reprend à la première
+        // visite (lib/inventoryServer.ts), une fois l'e-mail confirmé.
+        data: { acq: firstTouch() ?? { source: 'direct' }, locale, ...(isPersona(persona) ? { persona } : {}) },
       },
     })
     if (error) {
@@ -157,6 +162,11 @@ export default function Inscription() {
             />
             <span style={s.hint}>{t.signup.passwordHint}</span>
 
+            <label style={s.label} htmlFor="signup-persona">
+              {tp.label} <span style={s.optional}>({tp.optional})</span>
+            </label>
+            <PersonaSelect id="signup-persona" value={persona} onChange={setPersona} style={{ ...s.input, background: 'white', color: '#121212', fontFamily: 'inherit', minHeight: 42 }} />
+
             {error && <p style={s.error}>{t.errors[error]}</p>}
             {hint && (
               <div style={s.error} role="alert">
@@ -209,6 +219,7 @@ const s: Record<string, React.CSSProperties> = {
   label:       { fontSize: 13, fontWeight: 600, color: '#555', marginTop: 8 },
   input:       { padding: '10px 14px', borderRadius: 10, border: '1px solid #e0e0e0', fontSize: 15, outline: 'none', transition: 'border-color 0.15s' },
   hint:        { fontSize: 12, color: '#999', marginTop: 2 },
+  optional:    { fontWeight: 400, color: '#999' },
   error:       { fontSize: 13, color: '#c0392b', background: '#fdf0ef', borderRadius: 8, padding: '8px 12px', marginTop: 4 },
   hintLink:    { display: 'inline-block', marginTop: 6, color: '#F26900', fontWeight: 700, textDecoration: 'none' },
   sent:        { fontSize: 13, color: 'var(--ink)', background: '#FFF4E6', borderRadius: 8, padding: '10px 12px', marginTop: 4, lineHeight: 1.5 },
