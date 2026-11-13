@@ -1,5 +1,7 @@
 import AppKit
 import SwiftUI
+import TorixCore
+import TorixUI
 import KeyboardShortcuts
 
 /// Assemble l'appli : archive, cerveau, conversation, barre flottante, fenêtre d'exploration.
@@ -85,7 +87,7 @@ final class AppController: NSObject, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.collectionBehavior = [.fullScreenPrimary]
         window.appearance = NSAppearance(named: .darkAqua)
-        window.backgroundColor = Theme.nightNS
+        window.backgroundColor = NSColor.torixNight
         window.contentViewController = NSHostingController(rootView: ExplorationView(store: store))
         window.setContentSize(NSSize(width: 1240, height: 780))
         window.center()

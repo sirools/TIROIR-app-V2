@@ -2,14 +2,17 @@
 # régénérer le projet avec XcodeGen :  brew install xcodegen && xcodegen
 name: Torix
 options:
-  bundleIdPrefix: app.tiroir
+  bundleIdPrefix: com.clementougier
   deploymentTarget:
     macOS: "27.0"
+    iOS: "26.0"
   developmentLanguage: fr
 packages:
   KeyboardShortcuts:
     url: https://github.com/sindresorhus/KeyboardShortcuts
     from: 2.0.0
+  TorixCore:
+    path: TorixCore
 targets:
   Torix:
     type: application
@@ -18,6 +21,10 @@ targets:
       - Torix
     dependencies:
       - package: KeyboardShortcuts
+      - package: TorixCore
+        product: TorixCore
+      - package: TorixCore
+        product: TorixUI
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.tiroir.torix.mac
@@ -30,5 +37,27 @@ targets:
         CODE_SIGN_STYLE: Automatic
         ENABLE_APP_SANDBOX: NO
         ENABLE_HARDENED_RUNTIME: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+  TorixiOS:
+    type: application
+    platform: iOS
+    sources:
+      - TorixiOS
+    dependencies:
+      - package: TorixCore
+        product: TorixCore
+      - package: TorixCore
+        product: TorixUI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.clementougier.torix
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: Config/Info-iOS.plist
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

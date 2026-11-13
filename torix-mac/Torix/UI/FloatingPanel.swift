@@ -1,5 +1,7 @@
 import AppKit
 import SwiftUI
+import TorixCore
+import TorixUI
 
 /// Panneau flottant non activant : il passe devant tout sans voler le premier plan à l'appli en cours,
 /// mais peut recevoir le clavier (champ de texte).

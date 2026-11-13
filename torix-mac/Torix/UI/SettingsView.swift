@@ -1,4 +1,6 @@
 import SwiftUI
+import TorixCore
+import TorixUI
 import AppKit
 import AVFoundation
 import KeyboardShortcuts

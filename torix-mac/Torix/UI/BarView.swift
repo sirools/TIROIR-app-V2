@@ -1,4 +1,6 @@
 import SwiftUI
+import TorixCore
+import TorixUI
 
 /// La barre flottante (mode rapide) : flamme, champ de texte, micro, bouton « agrandir »,
 /// et la réponse qui s'écrit dessous.

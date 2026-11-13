@@ -1,4 +1,6 @@
 import SwiftUI
+import TorixCore
+import TorixUI
 import AppKit
 
 /// Torix pour Mac — prototype 100 % local.
