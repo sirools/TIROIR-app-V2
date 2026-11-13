@@ -96,7 +96,7 @@ ajouter un drapeau à la RPC `get_feature_flags()` (`useFeatureFlags.ts`).
 | Prix | présent : `sale_price`, `sale_price_lot`, sinon `user_value`, `market_value` | montants unitaires, cf. `quantity.ts` |
 | Quantité | présent | `objects.quantity` |
 | Photos | présentes, ordonnées | `object_images.position`, `zoom_path` |
-| Statut « en vente » | **manquant** : seul `sold` existe | prévu par `vente.md` |
+| Statut « en vente » | **ajouté le 13 novembre 2026** : `for_sale`, avec `listing_platform`, `listed_at`, `sold_price`, `sold_at` ; posé par le site, affiché par l'app (pas encore dans ses sélecteurs de statut) | `supabase/migrations/20261113063854_object_for_sale.sql`, `web/pages/api/shares/[token]/listing.ts` |
 | Texte d'annonce retouché | **non conservé** : sur le site, les retouches se perdent en quittant la page | — |
 | Lieu de remise (ville) | manquant ; Leboncoin le demande à chaque annonce | — |
 

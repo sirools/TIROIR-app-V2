@@ -1,10 +1,14 @@
-// pages/s/[token]/annonces.tsx — « Préparer une annonce » : le texte d'une
-// ou de plusieurs annonces de vente (titre, description, prix, catégorie),
-// à copier dans Leboncoin, et les photos à télécharger en lot.
+// pages/s/[token]/annonces.tsx — « Mettre en vente sur Leboncoin » : le
+// texte d'une ou de plusieurs annonces (titre, description, prix conseillé
+// et fourchette, catégorie), à copier dans Leboncoin, et les photos à
+// télécharger dans l'ordre. Une série se prépare en une annonce par objet
+// ou en une seule pour le lot. Une fois l'annonce déposée, le propriétaire
+// déclare l'objet « en vente », puis « vendu » (api/shares/[token]/listing).
 //
 // Réservé au propriétaire du partage, aux paliers Pro et Business
-// (lib/listing.ts) : pour tout autre visiteur, la page n'existe pas (404).
-// Rien n'est publié ni envoyé à Leboncoin.
+// (lib/listing.ts) : pour tout autre visiteur, la page n'existe pas (404),
+// que le lien soit protégé par mot de passe ou non. Jamais l'emplacement ni
+// les notes privées dans l'annonce. Rien n'est publié ni envoyé à Leboncoin.
 import type { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -14,15 +18,32 @@ import HeaderTiroirWeb from '../../../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../../../components/layout/FooterTiroirWeb'
 import { serverSupabase } from '../../../lib/supabase'
 import {
-  buildListing, canPrepareListing, listingText, parseIds, slug,
-  type Listing, type ListingDraft, type ListingInput, type ListingLabels,
+  buildListing, buildLotListing, canPrepareListing, listingText, parseIds, parsePrice, slug, withPractical, TITLE_MAX,
+  type Listing, type ListingDraft, type ListingInput, type ListingLabels, type SaleAction,
 } from '../../../lib/listing'
 import { uniqueNames, zipStore, type ZipEntry } from '../../../lib/zipStore'
-import { fill, useCopy } from '../../../locales'
+import { fill, intlLocale, useCopy } from '../../../locales'
 
 type Photo = { thumb: string; full: string }
-type Item = ListingInput & { id: string; status: string | null; photos: Photo[] }
-type Props = { token: string; items: Item[] }
+/** Suivi de la vente d'une fiche (migration 20261113063854_object_for_sale). */
+type Sale = {
+  status: string | null
+  sale_price: number | null
+  sale_price_lot: number | null
+  listing_platform: string | null
+  listed_at: string | null
+  sold_price: number | null
+  sold_at: string | null
+}
+type Item = ListingInput & { id: string; status: string | null; photos: Photo[]; sale: Sale | null }
+type Props = {
+  token: string
+  items: Item[]
+  /** Adresse publique du partage, pour « Fiche complète : ». */
+  shareUrl: string
+  /** Faux tant que la base n'a pas les colonnes de mise en vente : on prépare, sans déclarer. */
+  saleReady: boolean
+}
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   ctx.res.setHeader('X-Robots-Tag', 'noindex, nofollow')
@@ -52,17 +73,27 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const { data: profile } = await admin.from('profiles').select('plan, pro_expires_at').eq('id', viewerId).single()
   if (!canPrepareListing(profile?.plan, profile?.pro_expires_at)) return { notFound: true as const }
 
+  const host = String(ctx.req.headers.host ?? 'tiroir.app')
+  const shareUrl = `${/^(localhost|127\.|\[::1\])/.test(host) ? 'http' : 'https'}://${host}/s/${encodeURIComponent(token)}`
+
   const shared = new Set<string>(Array.isArray(link.object_ids) ? link.object_ids : [])
   const ids = wanted.filter(id => shared.has(id))
-  if (ids.length === 0) return { props: { token, items: [] } }
+  if (ids.length === 0) return { props: { token, items: [], shareUrl, saleReady: false } }
 
-  const [{ data: rows }, { data: imgRows }] = await Promise.all([
+  // location_note et les notes ne sont pas chargés : ils n'ont rien à faire dans une annonce.
+  const [{ data: rows }, { data: imgRows }, { data: saleRows, error: saleError }] = await Promise.all([
     admin.from('objects')
-      .select('id, title, description, status, attributes, quantity, sale_price, sale_price_lot, user_value, market_value, value_currency')
+      .select('id, title, description, status, attributes, quantity, sale_price, sale_price_lot, user_value, market_value, value_currency, value_sources')
       .in('id', ids)
       .eq('user_id', viewerId),
     admin.from('object_images').select('object_id, storage_path, zoom_path').in('object_id', ids).order('position'),
+    // À part : ces colonnes n'existent qu'après la migration, la page doit s'ouvrir avant.
+    admin.from('objects')
+      .select('id, status, sale_price, sale_price_lot, listing_platform, listed_at, sold_price, sold_at')
+      .in('id', ids)
+      .eq('user_id', viewerId),
   ])
+  const saleById = new Map(((saleRows ?? []) as unknown as (Sale & { id: string })[]).map(({ id, ...sale }) => [id, sale]))
 
   // La copie haute définition, quand elle existe, est celle qu'on télécharge.
   const images = (imgRows ?? []) as { object_id: string; storage_path: string; zoom_path: string | null }[]
@@ -73,7 +104,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     for (const s of signed ?? []) if (s.path && s.signedUrl) urlByPath.set(s.path, s.signedUrl)
   }
 
-  const byId = new Map(((rows ?? []) as unknown as (Omit<Item, 'photos'>)[]).map(r => [r.id, r]))
+  const byId = new Map(((rows ?? []) as unknown as (Omit<Item, 'photos' | 'sale'>)[]).map(r => [r.id, r]))
   const items: Item[] = ids.flatMap(id => {
     const row = byId.get(id)
     if (!row) return []
@@ -82,10 +113,14 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
       if (!thumb) return []
       return [{ thumb, full: (r.zoom_path && urlByPath.get(r.zoom_path)) || thumb }]
     })
-    return [{ ...row, photos }]
+    // De value_sources, seule la fourchette part dans le navigateur.
+    const range = row.value_sources
+      ? { value_min: row.value_sources.value_min ?? null, value_max: row.value_sources.value_max ?? null }
+      : null
+    return [{ ...row, value_sources: range, photos, sale: saleById.get(id) ?? null }]
   })
 
-  return { props: { token, items } }
+  return { props: { token, items, shareUrl, saleReady: !saleError } }
 }
 
 const EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic' }
@@ -99,7 +134,8 @@ async function downloadPhotos(groups: { folder: string; photos: Photo[] }[], fil
       const res = await fetch(g.photos[i].full)
       if (!res.ok) throw new Error(`photo ${res.status}`)
       const blob = await res.blob()
-      const file = `photo-${i + 1}.${EXT[blob.type] ?? 'jpg'}`
+      // Numéro sur deux chiffres : l'ordre des photos tient au tri par nom.
+      const file = `photo-${String(i + 1).padStart(2, '0')}.${EXT[blob.type] ?? 'jpg'}`
       names.push(groups.length > 1 ? `${g.folder}/${file}` : file)
       blobs.push(new Uint8Array(await blob.arrayBuffer()))
     }
@@ -136,26 +172,57 @@ async function copyText(text: string): Promise<boolean> {
 }
 
 const LEBONCOIN_NEW = 'https://www.leboncoin.fr/deposer-une-annonce'
+const LOT = 'lot'
 
-export default function PrepareListingsPage({ token, items }: Props) {
-  const { t: { share: t } } = useCopy()
+type Card = { key: string; objs: Item[]; listing: Listing }
+
+export default function PrepareListingsPage({ token, items, shareUrl, saleReady }: Props) {
+  const { t: { share: t }, locale } = useCopy()
   const tl = t.listing
   const labels: ListingLabels = { attrs: { ...t.attrs, accessories: tl.accessories }, quantity: tl.quantity, lot: tl.lot }
 
   const [listings] = useState<Listing[]>(() => items.map(o => buildListing(o, labels)))
-  const [drafts, setDrafts] = useState<ListingDraft[]>(() => listings.map(l => ({
-    title: l.title,
-    price: l.price === null ? '' : String(l.price),
-    category: l.category ?? '',
-    description: l.description,
-  })))
+  const [lotListing] = useState<Listing>(() => buildLotListing(listings, tl.lotTitle))
+  const [mode, setMode] = useState<'each' | 'lot'>('each')
+  const [shipping, setShipping] = useState(false)
+  const [withLink, setWithLink] = useState(false)
+
+  // Lignes pratiques en fin de description ; « Fiche complète » n'y est que sur demande.
+  const practical = (key: string, ship: boolean, link: boolean) => [
+    ship ? tl.handoverOrShipping : tl.handoverOnly,
+    ...(link ? [`${tl.fullSheet} ${key === LOT ? shareUrl : `${shareUrl}/${key}`}`] : []),
+  ]
+  const applyPractical = (key: string, description: string, ship: boolean, link: boolean) =>
+    withPractical(description, practical(key, ship, link), [tl.handoverOnly, tl.handoverOrShipping], [tl.fullSheet])
+
+  const [drafts, setDrafts] = useState<Record<string, ListingDraft>>(() => {
+    const draftOf = (key: string, l: Listing): ListingDraft => ({
+      title: l.title,
+      price: l.price === null ? '' : String(l.price),
+      category: l.category ?? '',
+      description: applyPractical(key, l.description, false, false),
+    })
+    return Object.fromEntries([...items.map((o, i) => [o.id, draftOf(o.id, listings[i])]), [LOT, draftOf(LOT, lotListing)]])
+  })
+  const [sales, setSales] = useState<Record<string, Sale | null>>(() => Object.fromEntries(items.map(o => [o.id, o.sale])))
   const [copied, setCopied] = useState<string | null>(null)
   const [copyFailed, setCopyFailed] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [downloadFailed, setDownloadFailed] = useState(false)
+  const [saving, setSaving] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [soldForm, setSoldForm] = useState<string | null>(null)
+  const [soldPrice, setSoldPrice] = useState('')
 
-  const edit = (i: number, patch: Partial<ListingDraft>) =>
-    setDrafts(prev => prev.map((d, j) => (j === i ? { ...d, ...patch } : d)))
+  const edit = (key: string, patch: Partial<ListingDraft>) =>
+    setDrafts(prev => ({ ...prev, [key]: { ...prev[key], ...patch } }))
+
+  function setOptions(ship: boolean, link: boolean) {
+    setShipping(ship)
+    setWithLink(link)
+    setDrafts(prev => Object.fromEntries(Object.entries(prev).map(([key, d]) =>
+      [key, { ...d, description: applyPractical(key, d.description, ship, link) }])))
+  }
 
   async function copy(key: string, text: string) {
     const ok = await copyText(text)
@@ -177,11 +244,45 @@ export default function PrepareListingsPage({ token, items }: Props) {
     setBusy(null)
   }
 
-  const fieldNames = { title: tl.fieldTitle, price: tl.fieldPrice, category: tl.fieldCategory, description: tl.fieldDescription }
+  /** Déclare les objets d'une annonce en vente, vendus, ou les retire de la vente. */
+  async function declare(action: SaleAction, card: Card, priceText: string) {
+    if (saving) return
+    if (priceText.trim() && parsePrice(priceText) === null) {
+      setSaveError(tl.priceInvalid)
+      return
+    }
+    setSaving(card.key)
+    setSaveError(null)
+    try {
+      const res = await fetch(`/api/shares/${encodeURIComponent(token)}/listing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ids: card.objs.map(o => o.id), price: priceText.trim() || null, platform: 'leboncoin' }),
+      })
+      const data = await res.json().catch(() => ({}))
+      const rows = (data.objects ?? []) as (Sale & { id: string })[]
+      if (rows.length) setSales(prev => ({ ...prev, ...Object.fromEntries(rows.map(({ id, ...sale }) => [id, sale])) }))
+      if (!res.ok) setSaveError(tl.saveFailed)
+      else setSoldForm(null)
+    } catch {
+      setSaveError(tl.saveFailed)
+    }
+    setSaving(null)
+  }
+
+  const fieldNames = { title: tl.fieldTitle, price: tl.fieldPrice, description: tl.fieldDescription }
   const symbol = (currency: string) => (currency === 'EUR' ? '€' : currency)
-  const groupOf = (o: Item, i: number) => ({ folder: slug(drafts[i]?.title || o.title, `objet-${i + 1}`), photos: o.photos })
+  const money = (n: number, currency: string) =>
+    n.toLocaleString(intlLocale(locale), { style: 'currency', currency, maximumFractionDigits: n % 1 ? 2 : 0 })
+  const day = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+  const groupOf = (o: Item, i: number) => ({ folder: slug(drafts[o.id]?.title || o.title, `objet-${i + 1}`), photos: o.photos })
   const allPhotos = items.reduce((n, o) => n + o.photos.length, 0)
-  const heading = items.length > 1 ? fill(tl.titleOther, { n: items.length }) : tl.titleOne
+  const lotMode = mode === 'lot' && items.length > 1
+  const cards: Card[] = lotMode
+    ? [{ key: LOT, objs: items, listing: lotListing }]
+    : items.map((o, i) => ({ key: o.id, objs: [o], listing: listings[i] }))
+  const heading = cards.length > 1 ? fill(tl.titleOther, { n: cards.length }) : tl.titleOne
 
   const copyButton = (key: string, text: string, label = tl.copy) => (
     <button type="button" className="copy-btn" disabled={!text.trim()} onClick={() => copy(key, text)}>
@@ -205,9 +306,37 @@ export default function PrepareListingsPage({ token, items }: Props) {
           <h1 className="page-title">{heading}</h1>
           <p className="intro">{tl.intro}</p>
 
-          <div className="top-actions">
-            <a className="ghost-btn" href={LEBONCOIN_NEW} target="_blank" rel="noopener noreferrer">{tl.openLeboncoin}</a>
-            {items.length > 1 && allPhotos > 0 && (
+          {items.length > 0 && (
+            <div className="options">
+              {items.length > 1 && (
+                <fieldset>
+                  <legend>{tl.modeLabel}</legend>
+                  <label className="choice">
+                    <input type="radio" name="mode" checked={!lotMode} onChange={() => setMode('each')} />
+                    {tl.modeEach}
+                  </label>
+                  <label className="choice">
+                    <input type="radio" name="mode" checked={lotMode} onChange={() => setMode('lot')} />
+                    {tl.modeLot}
+                  </label>
+                </fieldset>
+              )}
+              <fieldset>
+                <legend>{tl.optionsLabel}</legend>
+                <label className="choice">
+                  <input type="checkbox" checked={shipping} onChange={e => setOptions(e.target.checked, withLink)} />
+                  {tl.optShipping}
+                </label>
+                <label className="choice">
+                  <input type="checkbox" checked={withLink} onChange={e => setOptions(shipping, e.target.checked)} />
+                  {tl.optLink}
+                </label>
+              </fieldset>
+            </div>
+          )}
+
+          {!lotMode && items.length > 1 && allPhotos > 0 && (
+            <div className="top-actions">
               <button
                 type="button"
                 className="ghost-btn"
@@ -216,84 +345,107 @@ export default function PrepareListingsPage({ token, items }: Props) {
               >
                 {busy === 'all' ? tl.downloading : fill(tl.downloadAll, { n: allPhotos })}
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
           <div role="status" aria-live="polite">
             {copyFailed && <p className="alert">{tl.copyFailed}</p>}
             {downloadFailed && <p className="alert">{tl.downloadFailed}</p>}
+            {saveError && <p className="alert">{saveError}</p>}
           </div>
 
           {items.length === 0 && <p className="empty">{tl.empty}</p>}
 
-          {items.map((o, i) => {
-            const l = listings[i]
-            const d = drafts[i]
+          {cards.map(card => {
+            const { key, objs, listing: l } = card
+            const d = drafts[key]
+            const single = objs.length === 1 ? objs[0] : null
             const priceText = d.price.trim() ? `${d.price.trim()} ${symbol(l.currency)}` : ''
             const priceHint = l.priceOrigin === 'seller' ? tl.priceSeller : l.priceOrigin === 'estimate' ? tl.priceEstimate : tl.priceNone
-            const lot = o.quantity && o.quantity > 1 ? o.quantity : null
+            const lot = single?.quantity && single.quantity > 1 ? single.quantity : null
             const missing = l.missing.map(k =>
               k === 'price' ? tl.fieldPrice : k === 'description' ? tl.fieldDescription : labels.attrs[k] ?? k)
+            const photos = objs.flatMap(o => o.photos.map(p => ({ ...p, title: o.title })))
+            const groups = objs.map(o => groupOf(o, items.indexOf(o)))
+            const zipName = single ? `${groups[0].folder}-photos` : 'lot-tiroir-photos'
+
+            const states = objs.map(o => sales[o.id])
+            const allSold = states.every(s => s?.status === 'sold')
+            const allListed = states.every(s => s?.status === 'for_sale')
+            const first = states[0]
+            const asked = single && first ? first.sale_price_lot ?? (first.sale_price !== null ? first.sale_price * (single.quantity ?? 1) : null) : null
+
             return (
-              <section key={o.id} className="card" aria-label={o.title}>
-                {o.status === 'sold' && <p className="sold">{tl.sold}</p>}
+              <section key={key} className="card" aria-label={d.title}>
+                {!saleReady && single?.status === 'sold' && <p className="sold">{tl.sold}</p>}
 
                 <div className="field">
-                  <label htmlFor={`title-${o.id}`}>{tl.fieldTitle}</label>
+                  <div className="label-row">
+                    <label htmlFor={`title-${key}`}>{tl.fieldTitle}</label>
+                    <span className="count">{fill(tl.titleCount, { n: d.title.length, max: TITLE_MAX })}</span>
+                  </div>
                   <div className="row">
-                    <input id={`title-${o.id}`} type="text" value={d.title} onChange={e => edit(i, { title: e.target.value })} />
-                    {copyButton(`title-${o.id}`, d.title)}
+                    <input
+                      id={`title-${key}`} type="text" maxLength={TITLE_MAX} value={d.title}
+                      onChange={e => edit(key, { title: e.target.value })}
+                    />
+                    {copyButton(`title-${key}`, d.title)}
                   </div>
                 </div>
 
                 <div className="field">
-                  <label htmlFor={`price-${o.id}`}>{tl.fieldPrice}</label>
+                  <label htmlFor={`price-${key}`}>{tl.fieldPrice}</label>
                   <div className="row">
                     <div className="price-input">
                       <input
-                        id={`price-${o.id}`} type="text" inputMode="decimal" value={d.price}
-                        onChange={e => edit(i, { price: e.target.value.replace(/[^\d.,\s]/g, '') })}
+                        id={`price-${key}`} type="text" inputMode="decimal" value={d.price}
+                        onChange={e => edit(key, { price: e.target.value.replace(/[^\d.,\s]/g, '') })}
                       />
                       <span aria-hidden="true">{symbol(l.currency)}</span>
                     </div>
-                    {copyButton(`price-${o.id}`, priceText)}
+                    {copyButton(`price-${key}`, priceText)}
                   </div>
-                  <p className="hint">{priceHint}{lot ? ` ${fill(tl.priceLot, { n: lot })}` : ''}</p>
+                  <p className="hint">
+                    {priceHint}
+                    {l.range ? ` ${fill(tl.priceRange, { min: money(l.range.min, l.currency), max: money(l.range.max, l.currency) })}` : ''}
+                    {lot ? ` ${fill(tl.priceLot, { n: lot })}` : ''}
+                    {!single && l.price !== null ? ` ${tl.lotPriceHint}` : ''}
+                  </p>
                 </div>
 
                 <div className="field">
-                  <label htmlFor={`category-${o.id}`}>{tl.fieldCategory}</label>
+                  <label htmlFor={`category-${key}`}>{tl.fieldCategory}</label>
                   <div className="row">
                     <input
-                      id={`category-${o.id}`} type="text" value={d.category} placeholder={tl.categoryNone}
-                      onChange={e => edit(i, { category: e.target.value })}
+                      id={`category-${key}`} type="text" value={d.category} placeholder={tl.categoryNone}
+                      onChange={e => edit(key, { category: e.target.value })}
                     />
-                    {copyButton(`category-${o.id}`, d.category)}
+                    {copyButton(`category-${key}`, d.category)}
                   </div>
                   <p className="hint">{tl.categoryHint}</p>
                 </div>
 
                 <div className="field">
-                  <label htmlFor={`description-${o.id}`}>{tl.fieldDescription}</label>
+                  <label htmlFor={`description-${key}`}>{tl.fieldDescription}</label>
                   <div className="row top">
                     <textarea
-                      id={`description-${o.id}`} rows={Math.min(14, Math.max(5, d.description.split('\n').length + 1))}
-                      value={d.description} onChange={e => edit(i, { description: e.target.value })}
+                      id={`description-${key}`} rows={Math.min(18, Math.max(5, d.description.split('\n').length + 1))}
+                      value={d.description} onChange={e => edit(key, { description: e.target.value })}
                     />
-                    {copyButton(`description-${o.id}`, d.description)}
+                    {copyButton(`description-${key}`, d.description)}
                   </div>
                   {missing.length > 0 && <p className="hint warn">{fill(tl.missing, { fields: missing.join(', ') })}</p>}
                 </div>
 
                 <div className="field">
                   <span className="label">{tl.photos}</span>
-                  {o.photos.length === 0 ? (
+                  {photos.length === 0 ? (
                     <p className="hint">{tl.noPhoto}</p>
                   ) : (
                     <div className="thumbs">
-                      {o.photos.map((p, n) => (
+                      {photos.map((p, n) => (
                         <a key={n} href={p.full} target="_blank" rel="noopener noreferrer">
-                          <img src={p.thumb} alt={fill(tl.photoAlt, { n: n + 1, title: o.title })} loading="lazy" />
+                          <img src={p.thumb} alt={fill(tl.photoAlt, { n: n + 1, title: p.title })} loading="lazy" />
                         </a>
                       ))}
                     </div>
@@ -303,19 +455,87 @@ export default function PrepareListingsPage({ token, items }: Props) {
                 <div className="card-actions">
                   <button
                     type="button" className="primary-btn"
-                    onClick={() => copy(`all-${o.id}`, listingText(d, fieldNames, l.currency))}
+                    onClick={() => copy(`all-${key}`, listingText(d, fieldNames, l.currency))}
                   >
-                    {copied === `all-${o.id}` ? tl.copied : tl.copyAll}
+                    {copied === `all-${key}` ? tl.copied : tl.copyAll}
                   </button>
-                  {o.photos.length > 0 && (
+                  {photos.length > 0 && (
                     <button
                       type="button" className="ghost-btn" disabled={busy !== null}
-                      onClick={() => download(o.id, [groupOf(o, i)], `${groupOf(o, i).folder}-photos`)}
+                      onClick={() => download(key, groups, zipName)}
                     >
-                      {busy === o.id ? tl.downloading : fill(tl.downloadPhotos, { n: o.photos.length })}
+                      {busy === key ? tl.downloading : fill(tl.downloadPhotos, { n: photos.length })}
                     </button>
                   )}
+                  <a className="ghost-btn" href={LEBONCOIN_NEW} target="_blank" rel="noopener noreferrer">{tl.openLeboncoin}</a>
                 </div>
+
+                {saleReady && (
+                  <div className="sale">
+                    {allSold ? (
+                      <p className="sale-state">
+                        {fill(tl.soldOn, { date: day(first?.sold_at ?? null) })}
+                        {single && first?.sold_price != null ? ` ${fill(tl.soldFor, { price: money(first.sold_price, l.currency) })}` : ''}
+                      </p>
+                    ) : allListed ? (
+                      <>
+                        <p className="sale-state">
+                          {fill(tl.listedSince, { date: day(first?.listed_at ?? null) })}
+                          {asked !== null ? ` ${fill(tl.listedPrice, { price: money(asked, l.currency) })}` : ''}
+                        </p>
+                        {soldForm === key ? (
+                          <>
+                            {single && (
+                              <div className="field sale-form">
+                                <label htmlFor={`sold-${key}`}>{tl.soldPriceLabel}</label>
+                                <div className="price-input">
+                                  <input
+                                    id={`sold-${key}`} type="text" inputMode="decimal" value={soldPrice}
+                                    onChange={e => setSoldPrice(e.target.value.replace(/[^\d.,\s]/g, ''))}
+                                  />
+                                  <span aria-hidden="true">{symbol(l.currency)}</span>
+                                </div>
+                              </div>
+                            )}
+                            <div className="card-actions">
+                              <button
+                                type="button" className="primary-btn" disabled={saving !== null}
+                                onClick={() => declare('sold', card, single ? soldPrice : '')}
+                              >
+                                {saving === key ? tl.saving : tl.confirmSold}
+                              </button>
+                              <button type="button" className="text-btn" onClick={() => setSoldForm(null)}>{t.common.cancel}</button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="card-actions">
+                            <button
+                              type="button" className="ghost-btn" disabled={saving !== null}
+                              onClick={() => { setSoldPrice(asked !== null ? String(asked) : d.price); setSoldForm(key); setSaveError(null) }}
+                            >
+                              {tl.markSold}
+                            </button>
+                            <button type="button" className="text-btn" disabled={saving !== null} onClick={() => declare('unlist', card, '')}>
+                              {saving === key ? tl.saving : tl.unlist}
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="hint">{tl.saleHint}{!single ? ` ${tl.lotPriceNotStored}` : ''}</p>
+                        <div className="card-actions">
+                          <button
+                            type="button" className="ghost-btn" disabled={saving !== null}
+                            onClick={() => declare('list', card, d.price)}
+                          >
+                            {saving === key ? tl.saving : tl.markListed}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </section>
             )
           })}
@@ -335,6 +555,17 @@ export default function PrepareListingsPage({ token, items }: Props) {
         .empty { color: var(--muted); font-size: 15px; }
         .card { background: var(--white); border-radius: var(--radius, 16px); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
         .sold { margin: 0 0 14px; font-size: 13px; font-weight: 700; color: var(--orange-700, var(--orange)); }
+        .options { background: var(--white); border-radius: var(--radius, 16px); padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow); display: flex; flex-wrap: wrap; gap: 16px 40px; }
+        fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+        legend { font-size: 13px; font-weight: 700; margin-bottom: 8px; padding: 0; }
+        .choice { display: flex; align-items: center; gap: 10px; min-height: 36px; font-size: 15px; font-weight: 400; margin: 0; cursor: pointer; }
+        .choice input { flex: none; width: 18px; height: 18px; padding: 0; accent-color: var(--orange); }
+        .label-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+        .count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .sale { margin-top: 16px; padding-top: 16px; border-top: 1.5px solid var(--beige); }
+        .sale-state { margin: 0 0 10px; font-size: 14px; font-weight: 700; }
+        .sale-form { margin-bottom: 12px; max-width: 280px; }
+        .text-btn { min-height: 44px; padding: 0 8px; border: 0; background: none; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: underline; }
         .field { margin-bottom: 16px; }
         label, .label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
         .row { display: flex; gap: 8px; align-items: center; }

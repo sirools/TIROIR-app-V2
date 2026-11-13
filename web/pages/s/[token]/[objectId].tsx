@@ -115,7 +115,7 @@ interface Props {
 // web/locales/share (status, object.docTypes, object.confidence, object.billing).
 const STATUS_COLOR: Record<string, string> = {
   owned: '#22C55E', stored: '#38BDF8', loaned: '#E879F9',
-  sold: '#FBBF24', given: '#FB7185', lost: '#9CA3AF',
+  for_sale: '#F97316', sold: '#FBBF24', given: '#FB7185', lost: '#9CA3AF',
 }
 const CONFIDENCE_COLOR: Record<string, string> = {
   low: 'var(--text-tertiary)', medium: '#EA580C', high: '#16A34A',

@@ -99,7 +99,7 @@ interface Props {
 // Libellés des statuts et des attributs : web/locales/share (status, attrs).
 const STATUS_COLOR: Record<string, string> = {
   owned: '#22C55E', stored: '#38BDF8', loaned: '#E879F9',
-  sold: '#FBBF24', given: '#FB7185', lost: '#9CA3AF',
+  for_sale: '#F97316', sold: '#FBBF24', given: '#FB7185', lost: '#9CA3AF',
 }
 
 // Ordre de priorité des attributs connus dans le tableau

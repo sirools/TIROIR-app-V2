@@ -309,6 +309,7 @@
     "owned": "Owned",
     "stored": "Stored",
     "loaned": "Loaned",
+    "for_sale": "For sale",
     "sold": "Sold",
     "given": "Given",
     "lost": "Lost"
@@ -536,6 +537,7 @@
       "stored": "Stored",
       "owned": "In use",
       "loaned": "Loaned",
+      "for_sale": "For sale",
       "lost": "Lost",
       "sold": "For sale",
       "given": "To toss"
