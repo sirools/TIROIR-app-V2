@@ -1327,6 +1327,50 @@
       "soldFor": "Prix obtenu : {price}",
       "onPlatform": "sur {platform}",
       "leboncoin": "Leboncoin"
+    },
+    "persona": {
+      "$comment": "Profil choisi à l'inscription (web/lib/personas.ts) : offre gratuite comprise — tutoiement.",
+      "label": "Ton profil",
+      "placeholder": "Choisis ton profil",
+      "optional": "facultatif",
+      "hint": "Il sert à choisir les chiffres de ton accueil. Tu peux le changer quand tu veux.",
+      "promptTitle": "Dis-nous comment tu utilises Tiroir",
+      "promptText": "On adapte les chiffres de ton accueil à ton profil. Tu pourras le changer dans Profil.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "saved": "Profil enregistré.",
+      "saveFailed": "Le profil n’a pas pu être enregistré. Réessaie.",
+      "later": "Plus tard",
+      "healthNote": "Pour un service de santé, Tiroir se prépare sur mesure, avec l’offre Business. Aucun inventaire lié à des patients ne doit être saisi ici.",
+      "healthContact": "Nous écrire pour l’offre Business",
+      "families": {
+        "home": "Maison",
+        "creation": "Création",
+        "trades": "Métiers du matériel",
+        "commerce": "Commerce",
+        "health": "Santé",
+        "other": "Autre"
+      },
+      "names": {
+        "particulier": "Particulier",
+        "collectionneur": "Collectionneur",
+        "famille": "Famille qui transmet",
+        "costumiere": "Costumière",
+        "decoratrice": "Décoratrice",
+        "videaste": "Vidéaste",
+        "photographe": "Photographe",
+        "musicien": "Musicien",
+        "mecano": "Mécano",
+        "artisan": "Artisan",
+        "cuisinier": "Cuisinier",
+        "brocanteur": "Brocanteur",
+        "antiquaire": "Antiquaire",
+        "revendeur": "Revendeur",
+        "infirmiere_coordinatrice": "Infirmière coordinatrice",
+        "chirurgien": "Chirurgien",
+        "service_hospitalier": "Service hospitalier",
+        "autre": "Autre"
+      }
     }
   }
 }

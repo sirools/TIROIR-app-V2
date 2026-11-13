@@ -9,9 +9,17 @@ import { adminSupabase, serverSupabase } from './supabase'
 import { asLocale, localePrefix } from './localeRouting'
 import { canPrepareListing } from './listing'
 import { NO_COLLECTION, type CollectionRow, type ObjectRow } from './inventory'
+import { isPersona } from './personas'
 import { computeStats, effectivePlan, type Plan, type StatRow, type Stats } from './dashboard'
 
-export type Owner = { userId: string; admin: SupabaseClient; canList: boolean; plan: Plan }
+export type Owner = {
+  userId: string
+  admin: SupabaseClient
+  canList: boolean
+  plan: Plan
+  /** Profil choisi dans le formulaire d'inscription, en attente d'être repris sur le compte. */
+  signupPersona: string | null
+}
 
 /** Le propriétaire connecté, ou la redirection vers la connexion. */
 export async function requireOwner(ctx: GetServerSidePropsContext): Promise<
@@ -28,6 +36,7 @@ export async function requireOwner(ctx: GetServerSidePropsContext): Promise<
       userId: user.id, admin,
       canList: canPrepareListing(profile?.plan, profile?.pro_expires_at),
       plan: effectivePlan(profile?.plan, profile?.pro_expires_at),
+      signupPersona: isPersona(user.user_metadata?.persona) ? user.user_metadata.persona : null,
     },
   }
 }
@@ -221,10 +230,18 @@ export async function loadSales({ admin, userId }: Owner): Promise<SaleRow[]> {
   return rows.map(({ updated_at: _u, ...o }) => ({ ...o, thumb: signed.get(coverByObject.get(o.id) ?? '') ?? null }))
 }
 
-/** Le prénom ou le nom affiché du compte, pour saluer. */
-export async function loadDisplayName({ admin, userId }: Owner): Promise<string | null> {
-  const { data } = await admin.from('profiles').select('display_name').eq('id', userId).maybeSingle()
-  return data?.display_name?.trim() || null
+/**
+ * Le nom affiché et le profil du compte. Un profil choisi à l'inscription
+ * et pas encore repris (profiles.persona vide) est enregistré au passage.
+ */
+export async function loadProfile({ admin, userId, signupPersona }: Owner): Promise<{ name: string | null; persona: string | null }> {
+  const { data } = await admin.from('profiles').select('display_name, persona').eq('id', userId).maybeSingle()
+  let persona: string | null = data?.persona ?? null
+  if (!persona && signupPersona) {
+    const { error } = await admin.from('profiles').update({ persona: signupPersona }).eq('id', userId)
+    if (!error) persona = signupPersona
+  }
+  return { name: data?.display_name?.trim() || null, persona }
 }
 
 export type ShareSummary = {
