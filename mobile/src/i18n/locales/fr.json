@@ -309,6 +309,7 @@
     "owned": "Possédé",
     "stored": "Rangé",
     "loaned": "Prêté",
+    "for_sale": "En vente",
     "sold": "Vendu",
     "given": "Donné",
     "lost": "Perdu"
@@ -536,6 +537,7 @@
       "stored": "Rangé",
       "owned": "Utilisé",
       "loaned": "Prêté",
+      "for_sale": "En vente",
       "lost": "Perdu",
       "sold": "À vendre",
       "given": "À jeter"

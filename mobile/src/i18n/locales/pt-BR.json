@@ -309,6 +309,7 @@
     "owned": "Meu",
     "stored": "Guardado",
     "loaned": "Emprestado",
+    "for_sale": "À venda",
     "sold": "Vendido",
     "given": "Doado",
     "lost": "Perdido"
@@ -536,6 +537,7 @@
       "stored": "Guardado",
       "owned": "Em uso",
       "loaned": "Emprestado",
+      "for_sale": "À venda",
       "lost": "Perdido",
       "sold": "À venda",
       "given": "Para descartar"

@@ -309,6 +309,7 @@
     "owned": "Besessen",
     "stored": "Eingelagert",
     "loaned": "Verliehen",
+    "for_sale": "Zu verkaufen",
     "sold": "Verkauft",
     "given": "Verschenkt",
     "lost": "Verloren"
@@ -536,6 +537,7 @@
       "stored": "Eingelagert",
       "owned": "In Gebrauch",
       "loaned": "Verliehen",
+      "for_sale": "Zu verkaufen",
       "lost": "Verloren",
       "sold": "Zu verkaufen",
       "given": "Zu entsorgen"

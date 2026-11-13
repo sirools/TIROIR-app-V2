@@ -65,6 +65,8 @@ const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = 
   owned:   { bg: '#F0F9FF', text: '#0284C7', dot: '#38BDF8' }, // bleu ciel
   loaned:  { bg: '#FDF2F8', text: '#C026D3', dot: '#E879F9' }, // rose
   lost:    { bg: '#F3F4F6', text: '#6B7280', dot: '#9CA3AF' }, // gris
+  // « En vente » : posé par le site (tiroir.app, « Mettre en vente sur Leboncoin »).
+  for_sale: { bg: '#FFF7ED', text: '#C2410C', dot: '#F97316' }, // orange
   sold:    { bg: '#FFFBEB', text: '#D97706', dot: '#FBBF24' }, // ambre
   given:   { bg: '#FFF1F2', text: '#E11D48', dot: '#FB7185' }, // rouge
 }

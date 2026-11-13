@@ -1,7 +1,7 @@
 // Types TypeScript alignés sur le schéma Supabase V2
 // Généré manuellement — tenir synchronisé avec les migrations
 
-export type ObjectStatus = 'owned' | 'stored' | 'loaned' | 'sold' | 'given' | 'lost'
+export type ObjectStatus = 'owned' | 'stored' | 'loaned' | 'for_sale' | 'sold' | 'given' | 'lost'
 export type DraftStatus = 'uploading' | 'pending' | 'confirmed' | 'rejected' | 'expired'
 export type MessageRole = 'user' | 'assistant' | 'tool_call' | 'tool_result'
 export type ProposalStatus = 'pending' | 'confirmed' | 'rejected'
