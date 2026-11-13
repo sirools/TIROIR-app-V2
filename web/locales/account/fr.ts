@@ -211,6 +211,15 @@ const accountFr = {
     save: 'Enregistrer',
     passwordRequired: 'Renseigne un mot de passe (4 caractères minimum) pour passer en privé.',
     saveError: 'Impossible d\'enregistrer les modifications. Réessaie.',
+    filterLabel: 'Afficher',
+    filterActive: 'Actifs ({n})',
+    filterHistory: 'Archivés et expirés ({n})',
+    noActive: 'Aucun partage actif. Les liens archivés ou expirés sont dans l’autre onglet.',
+    opensOne: '{n} ouverture',
+    opensOther: '{n} ouvertures',
+    expiresOn: 'Expire le {date}',
+    copyLink: 'Copier le lien',
+    copied: 'Lien copié',
   },
   // Erreurs affichées (Supabase Auth via lib/authErrors.ts, et contrôles du formulaire).
   errors: {

@@ -48,6 +48,11 @@ const nextConfig = {
     return [
       { source: '/concept', destination: '/', permanent: true },
       { source: '/concept-bento', destination: '/', permanent: true },
+      // Adresses de l'arborescence cible : elles mènent aux pages existantes,
+      // dont les liens (e-mails, app) restent valables.
+      { source: '/partages', destination: '/mes-partages', permanent: false },
+      { source: '/collections', destination: '/mes-collections', permanent: false },
+      { source: '/tarifs', destination: '/pricing', permanent: false },
     ]
   },
 
