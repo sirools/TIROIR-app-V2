@@ -247,6 +247,9 @@ export default function HeaderTiroirWeb() {
                     <a className="ti-user__item" href="/mon-compte" role="menuitem">
                       {t.myAccount}
                     </a>
+                    <a className="ti-user__item" href="/mes-collections" role="menuitem">
+                      {t.myCollections}
+                    </a>
                     <a className="ti-user__item" href="/mes-partages" role="menuitem">
                       {t.myShares}
                     </a>
@@ -348,6 +351,13 @@ export default function HeaderTiroirWeb() {
                   onClick={() => navigate('/mon-compte')}
                 >
                   {t.myAccount}
+                </button>
+                <button
+                  className="appstore-nav-btn"
+                  type="button"
+                  onClick={() => navigate('/mes-collections')}
+                >
+                  {t.myCollections}
                 </button>
                 <button
                   className="appstore-nav-btn"

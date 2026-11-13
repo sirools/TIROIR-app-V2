@@ -9,12 +9,12 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { adminSupabase } from '../../../../lib/supabase'
 import {
-  canPrepareListing, parseIds, parsePrice, saleUpdate, PLATFORMS,
+  canPrepareListing, parseIds, parsePrice, PLATFORMS,
   type Platform, type SaleAction,
 } from '../../../../lib/listing'
+import { declareSale } from '../../../../lib/listingServer'
 
 const ACTIONS: SaleAction[] = ['list', 'sold', 'unlist']
-const RETURNED = 'id, status, quantity, sale_price, sale_price_lot, listing_platform, listed_at, sold_price, sold_at'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -57,26 +57,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const shared = new Set<string>(Array.isArray(link.object_ids) ? link.object_ids : [])
   if (!ids.every(id => shared.has(id))) return res.status(400).json({ error: 'INVALID_INPUT' })
 
-  const { data: rows } = await admin.from('objects').select('id, quantity').in('id', ids).eq('user_id', user.id)
-  if (!rows || rows.length !== ids.length) return res.status(400).json({ error: 'INVALID_INPUT' })
-
-  const now = new Date().toISOString()
-  const updated: unknown[] = []
-  for (const row of rows) {
-    const patch = saleUpdate(action, row, { price, platform, shared: ids.length > 1, now })
-    const { data, error } = await admin
-      .from('objects')
-      .update(patch)
-      .eq('id', row.id)
-      .eq('user_id', user.id)
-      .select(RETURNED)
-      .single()
-    if (error || !data) {
-      // Avant la migration 20261113063854, la base refuse le statut et les colonnes.
-      console.error('listing', action, error?.message)
-      return res.status(500).json({ error: 'INTERNAL_ERROR', objects: updated })
-    }
-    updated.push(data)
+  const result = await declareSale(admin, user.id, ids, { action, price, platform })
+  if (!result.ok) {
+    return result.reason === 'NOT_OWNED'
+      ? res.status(400).json({ error: 'INVALID_INPUT' })
+      : res.status(500).json({ error: 'INTERNAL_ERROR', objects: result.objects })
   }
-  return res.status(200).json({ objects: updated })
+  return res.status(200).json({ objects: result.objects })
 }
