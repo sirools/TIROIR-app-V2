@@ -1,5 +1,5 @@
 -- ================================================================
--- 20261113160000_auctions.sql
+-- 20261113100144_auctions.sql
 -- La salle des ventes du site : enchères privées sur un objet ou un lot,
 -- ouvertes par un lien à des invités (v4/docs/vente.md, étape 2 — ici
 -- SANS paiement : Tiroir affiche le meilleur enchérisseur, vendeur et
