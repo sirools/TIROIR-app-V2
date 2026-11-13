@@ -1,0 +1,34 @@
+# Plan B : si Torix.xcodeproj (écrit à la main, sans Xcode) refuse de s'ouvrir,
+# régénérer le projet avec XcodeGen :  brew install xcodegen && xcodegen
+name: Torix
+options:
+  bundleIdPrefix: app.tiroir
+  deploymentTarget:
+    macOS: "27.0"
+  developmentLanguage: fr
+packages:
+  KeyboardShortcuts:
+    url: https://github.com/sindresorhus/KeyboardShortcuts
+    from: 2.0.0
+targets:
+  Torix:
+    type: application
+    platform: macOS
+    sources:
+      - Torix
+    dependencies:
+      - package: KeyboardShortcuts
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.tiroir.torix.mac
+        MARKETING_VERSION: "0.1"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: Config/Info.plist
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_HARDENED_RUNTIME: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
