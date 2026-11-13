@@ -1,5 +1,9 @@
 # Rapport — prototype Torix pour Mac
 
+> **Mise à jour.** Depuis l'ajout de la version iPhone, le code commun a quitté `Torix/` pour le
+> package `TorixCore/` : les chemins du tableau ci-dessous ont changé. La correspondance est dans
+> `RAPPORT-IOS.md`, « Ce qui a bougé pour le Mac ».
+
 ## L'essentiel
 
 Tout le prototype est écrit, mais **il n'a pas été compilé ni lancé** : la session tournait dans un

@@ -4,9 +4,10 @@ Monorepo : `mobile/` (app Expo, voir `mobile/CLAUDE.md`), `web/` (Next.js,
 Pages Router, déployé sur Vercel ; le back-office a son propre domaine,
 `backoffice.tiroir.app`, voir `web/BACKOFFICE.md`), `supabase/` (migrations et Edge
 Functions), `v4/` (prochaine version, qui porte aussi ce qui devait être
-la V5), `agents/`, `strategie/`, `torix-mac/` (prototype de Torix pour
-Mac, appli macOS native 100 % locale ; pas encore compilée, voir
-`torix-mac/RAPPORT.md` et `torix-mac/DECISIONS.md`).
+la V5), `agents/`, `strategie/`, `torix-mac/` (Torix pour Mac et
+pour iPhone, applis natives 100 % locales, cœur commun dans le package
+`TorixCore` ; pas encore compilées depuis ce dépôt, voir `torix-mac/RAPPORT.md`
+et `torix-mac/RAPPORT-IOS.md`).
 
 ## Adresses à donner au fondateur
 
