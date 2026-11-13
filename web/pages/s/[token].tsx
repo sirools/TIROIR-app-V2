@@ -173,10 +173,14 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
    * signifie que la page est réellement rendue — ni introuvable, ni expirée,
    * ni bloquée par le mot de passe.
    *
-   * Volontairement sans await : le compteur ne doit jamais retarder ni faire
-   * échouer l'affichage du partage.
+   * Attendue, mais jamais bloquante : une requête Supabase ne part qu'une
+   * fois attendue (sans await ni then, rien n'était envoyé et tous les
+   * partages restaient à « 0 vue »), et une erreur du compteur ne doit pas
+   * faire échouer l'affichage du partage.
    */
-  void supabase.rpc('increment_share_view', { p_token: token })
+  try {
+    await supabase.rpc('increment_share_view', { p_token: token })
+  } catch { /* le partage s'affiche quand même */ }
 
   const ids: string[] = Array.isArray(link.object_ids) ? link.object_ids : []
   const fields: ShareFields = { ...ALL_FIELDS, ...(link.options?.fields ?? {}) }
