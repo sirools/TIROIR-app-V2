@@ -556,7 +556,16 @@
       "saving": "Guardando...",
       "save": "Guardar",
       "passwordRequired": "Indica una contraseña (mínimo 4 caracteres) para hacerlo privado.",
-      "saveError": "No se han podido guardar los cambios. Inténtalo de nuevo."
+      "saveError": "No se han podido guardar los cambios. Inténtalo de nuevo.",
+      "filterLabel": "Mostrar",
+      "filterActive": "Activos ({n})",
+      "filterHistory": "Archivados y caducados ({n})",
+      "noActive": "Ningún enlace activo. Los archivados o caducados están en la otra pestaña.",
+      "opensOne": "{n} apertura",
+      "opensOther": "{n} aperturas",
+      "expiresOn": "Caduca el {date}",
+      "copyLink": "Copiar el enlace",
+      "copied": "Enlace copiado"
     },
     "errors": {
       "invalidCredentials": "Correo o contraseña incorrectos. ¿Aún no tienes cuenta de Tiroir? Se crea en un minuto.",
