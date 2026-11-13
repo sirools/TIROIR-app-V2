@@ -105,7 +105,8 @@ export default function SalesPage({ sales }: Props) {
         .group { margin-bottom: 28px; }
         h2 { font-size: 15px; font-weight: 700; margin: 0 0 12px; display: flex; align-items: baseline; gap: 8px; }
         h2 span { font-size: 13px; font-weight: 400; color: var(--muted); }
-        .list { list-style: none; margin: 0; padding: 0; background: var(--white); border: 1px solid var(--border-light); border-radius: var(--radius); overflow: hidden; }
+        /* display : la remise à zéro du site met les listes en ligne. */
+        .list { display: block; list-style: none; margin: 0; padding: 0; background: var(--white); border: 1px solid var(--border-light); border-radius: var(--radius); overflow: hidden; }
         .list li + li { border-top: 1px solid var(--border-light); }
         .row { display: flex; align-items: center; gap: 14px; padding: 10px 14px; text-decoration: none; color: inherit; }
         .row:hover { background: var(--surface-subtle); }

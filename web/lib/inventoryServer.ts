@@ -9,8 +9,9 @@ import { adminSupabase, serverSupabase } from './supabase'
 import { asLocale, localePrefix } from './localeRouting'
 import { canPrepareListing } from './listing'
 import { NO_COLLECTION, type CollectionRow, type ObjectRow } from './inventory'
+import { computeStats, effectivePlan, type Plan, type StatRow, type Stats } from './dashboard'
 
-export type Owner = { userId: string; admin: SupabaseClient; canList: boolean }
+export type Owner = { userId: string; admin: SupabaseClient; canList: boolean; plan: Plan }
 
 /** Le propriétaire connecté, ou la redirection vers la connexion. */
 export async function requireOwner(ctx: GetServerSidePropsContext): Promise<
@@ -22,7 +23,13 @@ export async function requireOwner(ctx: GetServerSidePropsContext): Promise<
   if (!user) return { redirect: { destination: `${localePrefix(asLocale(ctx.locale))}/login`, permanent: false } }
   const admin = adminSupabase()
   const { data: profile } = await admin.from('profiles').select('plan, pro_expires_at').eq('id', user.id).single()
-  return { owner: { userId: user.id, admin, canList: canPrepareListing(profile?.plan, profile?.pro_expires_at) } }
+  return {
+    owner: {
+      userId: user.id, admin,
+      canList: canPrepareListing(profile?.plan, profile?.pro_expires_at),
+      plan: effectivePlan(profile?.plan, profile?.pro_expires_at),
+    },
+  }
 }
 
 async function signAll(admin: SupabaseClient, paths: string[]): Promise<Map<string, string>> {
@@ -218,4 +225,45 @@ export async function loadSales({ admin, userId }: Owner): Promise<SaleRow[]> {
 export async function loadDisplayName({ admin, userId }: Owner): Promise<string | null> {
   const { data } = await admin.from('profiles').select('display_name').eq('id', userId).maybeSingle()
   return data?.display_name?.trim() || null
+}
+
+export type ShareSummary = {
+  id: string
+  token: string
+  title: string | null
+  /** Destinataire renseigné à la création du lien, s'il y en a un. */
+  recipient: string | null
+  objectCount: number
+  createdAt: string
+  expired: boolean
+  passwordProtected: boolean
+  views: number
+}
+
+/** Les chiffres personnels et les derniers partages actifs du compte, pour /accueil. */
+export async function loadDashboard(owner: Owner): Promise<{ stats: Stats; shares: ShareSummary[] }> {
+  const { admin, userId } = owner
+  const [rows, { count }, { data: links }] = await Promise.all([
+    allRows<StatRow>((from, to) =>
+      admin.from('objects').select('status, quantity, user_value, market_value, value_currency, sold_price')
+        .eq('user_id', userId).order('created_at').range(from, to)),
+    admin.from('share_links').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    admin.from('share_links')
+      .select('id, token, title, object_ids, options, created_at, expires_at, view_count')
+      .eq('user_id', userId).eq('is_archived', false)
+      .order('created_at', { ascending: false }).limit(5),
+  ])
+  const now = Date.now()
+  const shares: ShareSummary[] = (links ?? []).map(l => ({
+    id: l.id,
+    token: l.token,
+    title: l.title?.trim() || null,
+    recipient: l.options?.contact_name?.trim() || l.options?.contact_email?.trim() || null,
+    objectCount: Array.isArray(l.object_ids) ? l.object_ids.length : 0,
+    createdAt: l.created_at,
+    expired: !!l.expires_at && new Date(l.expires_at).getTime() < now,
+    passwordProtected: !!l.options?.password_protected,
+    views: l.view_count ?? 0,
+  }))
+  return { stats: computeStats(rows, count ?? 0), shares }
 }
