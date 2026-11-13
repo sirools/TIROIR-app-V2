@@ -84,6 +84,14 @@ function attributesOf(raw: Record<string, unknown> | null): Map<string, string> 
   return out
 }
 
+/**
+ * Les attributs d'une fiche qu'on peut montrer hors du compte (annonce,
+ * salle des ventes) : sans numéro de série, note, emplacement, prêt ni prix.
+ */
+export function publicAttributes(raw: Record<string, unknown> | null): Record<string, string> {
+  return Object.fromEntries(attributesOf(raw))
+}
+
 const positive = (n: unknown): number | null => {
   const v = typeof n === 'string' ? Number(n) : (n as number | null)
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null

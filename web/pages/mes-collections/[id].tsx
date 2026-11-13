@@ -15,6 +15,7 @@ import HeaderApp from '../../components/layout/HeaderApp'
 import FooterTiroirWeb from '../../components/layout/FooterTiroirWeb'
 import ShareDialog from '../../components/inventory/ShareDialog'
 import { MAX_LISTINGS } from '../../lib/listing'
+import { auctionsEnabled, MAX_LOT } from '../../lib/auction'
 import {
   attr, filterObjects, normCurrency, objectValue, sortObjects, toggleSelection,
   OBJECT_SORTS, STATUSES, STATUS_COLOR, type ObjectSort, type Status,
@@ -22,7 +23,7 @@ import {
 import { loadCollection, requireOwner, type CollectionView, type ObjectCard } from '../../lib/inventoryServer'
 import { fill, intlLocale, useCopy } from '../../locales'
 
-type Props = { view: CollectionView; routeId: string; canList: boolean }
+type Props = { view: CollectionView; routeId: string; canList: boolean; canAuction: boolean }
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const gate = await requireOwner(ctx)
@@ -30,15 +31,16 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const routeId = String(ctx.params?.id ?? '')
   const view = await loadCollection(gate.owner, routeId)
   if (!view) return { notFound: true as const }
-  return { props: { view, routeId, canList: gate.owner.canList } }
+  return { props: { view, routeId, canList: gate.owner.canList, canAuction: auctionsEnabled() } }
 }
 
 /** Statuts mis en avant par un badge sur la vignette. */
 const BADGED = ['for_sale', 'sold']
 
-export default function CollectionPage({ view, routeId, canList }: Props) {
+export default function CollectionPage({ view, routeId, canList, canAuction }: Props) {
   const router = useRouter()
   const { t: { inventory: t, share: { status: statusLabels } }, locale } = useCopy()
+  const ta = t.auction
   const labelOf = (status: string | null) => (status ? (statusLabels as Record<string, string>)[status] ?? status : '')
 
   const [objects, setObjects] = useState<ObjectCard[]>(view.objects)
@@ -100,6 +102,11 @@ export default function CollectionPage({ view, routeId, canList }: Props) {
   function sell() {
     if (picked.length === 0 || picked.length > MAX_LISTINGS) return
     router.push(`/mes-collections/annonces?ids=${encodeURIComponent(picked.map(o => o.id).join(','))}&from=${encodeURIComponent(`/mes-collections/${routeId}`)}`)
+  }
+
+  function auction() {
+    if (picked.length === 0 || picked.length > MAX_LOT) return
+    router.push(`/ventes/nouvelle?ids=${encodeURIComponent(picked.map(o => o.id).join(','))}&from=${encodeURIComponent(`/mes-collections/${routeId}`)}`)
   }
 
   async function changeStatus(next: Status) {
@@ -320,6 +327,9 @@ export default function CollectionPage({ view, routeId, canList }: Props) {
             <button type="button" className="bar-primary" disabled={picked.length > MAX_LISTINGS} onClick={sell}>
               {t.actionSell}
             </button>
+          )}
+          {canAuction && (
+            <button type="button" className="bar-btn" disabled={picked.length > MAX_LOT} onClick={auction}>{ta.action}</button>
           )}
           <button type="button" className="bar-btn" onClick={() => { setStatusMenu(false); setSharing(true) }}>{t.actionShare}</button>
           <div className="status-wrap">
