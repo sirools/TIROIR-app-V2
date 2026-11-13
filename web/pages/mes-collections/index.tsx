@@ -6,7 +6,7 @@ import type { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
+import HeaderApp from '../../components/layout/HeaderApp'
 import FooterTiroirWeb from '../../components/layout/FooterTiroirWeb'
 import { COLLECTION_SORTS, NO_COLLECTION, sortCollections, type CollectionSort } from '../../lib/inventory'
 import { loadCollections, requireOwner, type CollectionCard } from '../../lib/inventoryServer'
@@ -49,7 +49,7 @@ export default function MyCollectionsPage({ collections, unfiled }: Props) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <div className="root">
-        <HeaderTiroirWeb />
+        <HeaderApp />
         <main className="main">
           <div className="head">
             <div>

@@ -3,7 +3,7 @@ import Head from 'next/head'
 import { useEffect, useRef, useState } from 'react'
 import { supabase, serverSupabase, signOutEverywhere } from '../lib/supabase'
 import { uploadAvatar, removeAvatar } from '../lib/avatar'
-import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
+import HeaderApp from '../components/layout/HeaderApp'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { asLocale, localePrefix } from '../lib/localeRouting'
 import { intlLocale, useCopy } from '../locales'
@@ -124,7 +124,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
         <meta name="robots" content="noindex" />
       </Head>
 
-      <HeaderTiroirWeb />
+      <HeaderApp />
 
       <main className="main">
         <div className="page-hero">

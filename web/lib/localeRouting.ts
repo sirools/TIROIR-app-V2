@@ -20,7 +20,7 @@ export const TRANSLATED_PATHS: readonly string[] = [
   '/email-confirme', '/bienvenue', '/merci', '/desinscription',
   '/mon-compte', '/profil', '/mes-partages',
   // Inventaire du propriétaire connecté (inventory, dans web/locales)
-  '/mes-collections',
+  '/mes-collections', '/accueil', '/ventes',
   // À propos et pages juridiques (web/locales/about, web/locales/legal)
   '/about', '/cgu', '/privacy',
 ]
