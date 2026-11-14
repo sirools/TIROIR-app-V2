@@ -25,28 +25,62 @@ const ERROR_KEYS: Record<string, ErrorKey> = {
 /** Erreurs après lesquelles il ne reste qu'à créer un compte. */
 const FINAL: ErrorKey[] = ['noAttemptLeft', 'ipLimit', 'dailyCap', 'disabled']
 
+/** L'image décodée, avec sa taille. `close` libère ce qui doit l'être. */
+type Decoded = { source: CanvasImageSource; width: number; height: number; close: () => void }
+
+/**
+ * Deux façons de lire la photo. createImageBitmap d'abord ; sinon une
+ * balise <img>, que tous les navigateurs savent remplir — les Safari
+ * d'avant iOS 17 refusent l'option d'orientation de createImageBitmap, et
+ * une photo HEIC ne se lit que par <img>. Les deux respectent le sens de
+ * prise de vue (EXIF).
+ */
+async function decode(file: File): Promise<Decoded | null> {
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
+    return { source: bitmap, width: bitmap.width, height: bitmap.height, close: () => bitmap.close() }
+  } catch {
+    /* seconde méthode ci-dessous */
+  }
+  const url = URL.createObjectURL(file)
+  try {
+    const img = new Image()
+    img.src = url
+    await img.decode()
+    return img.naturalWidth > 0
+      ? { source: img, width: img.naturalWidth, height: img.naturalHeight, close: () => URL.revokeObjectURL(url) }
+      : (URL.revokeObjectURL(url), null)
+  } catch {
+    URL.revokeObjectURL(url)
+    return null
+  }
+}
+
 /**
  * Réduit la photo dans le navigateur et la réencode en JPEG : l'envoi est
  * léger (le visiteur est peut-être en 4G), l'analyse coûte moins, et les
  * données de prise de vue (lieu, appareil) ne quittent pas le téléphone.
  */
 async function toJpegDataUrl(file: File): Promise<string | null> {
+  const image = await decode(file)
+  if (!image) return null
   try {
-    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
-    const scale = Math.min(1, PHOTO_MAX_SIDE / Math.max(bitmap.width, bitmap.height))
+    const scale = Math.min(1, PHOTO_MAX_SIDE / Math.max(image.width, image.height))
     const canvas = document.createElement('canvas')
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale))
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+    canvas.width = Math.max(1, Math.round(image.width * scale))
+    canvas.height = Math.max(1, Math.round(image.height * scale))
     const context = canvas.getContext('2d')
     if (!context) return null
     // Fond blanc : un PNG transparent deviendrait noir en JPEG.
     context.fillStyle = '#fff'
     context.fillRect(0, 0, canvas.width, canvas.height)
-    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
-    bitmap.close()
-    return canvas.toDataURL('image/jpeg', 0.82)
+    context.drawImage(image.source, 0, 0, canvas.width, canvas.height)
+    const url = canvas.toDataURL('image/jpeg', 0.82)
+    return url.startsWith('data:image/jpeg') ? url : null
   } catch {
     return null
+  } finally {
+    image.close()
   }
 }
 
