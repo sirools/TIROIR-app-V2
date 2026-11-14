@@ -908,5 +908,37 @@
     "regionAutoHint": "Follows your device region ({{name}})",
     "regionHelp": "Your region is used to estimate the value of your items: currency and local listings. It doesn't change the language.",
     "systemSettings": "Open device settings"
+  },
+  "profileType": {
+    "title": "You use Tiroir…",
+    "subtitle": "One question, so Tiroir speaks to you the right way. You can change your mind in Settings.",
+    "personal": "For myself",
+    "personalHint": "My belongings, my home, my collections.",
+    "creative": "For my creative work",
+    "creativeHint": "Stylist, videographer, photographer: costumes, props, professional gear.",
+    "business": "For my company",
+    "businessHint": "The equipment and stock of a team or a company.",
+    "noPayment": "This choice does not change your plan and triggers no payment.",
+    "skip": "Later",
+    "saveFailed": "Your choice could not be saved. Try again.",
+    "settingsLabel": "Usage",
+    "notChosen": "Not chosen"
+  },
+  "formal": {
+    "home": {
+      "loading": "Loading your collections…",
+      "deleteCollectionWithObjects_one": "It contains {{count}} item. The items will stay in your Tiroir.",
+      "deleteCollectionWithObjects_other": "It contains {{count}} items. The items will stay in your Tiroir."
+    },
+    "preferences": {
+      "regionHelp": "Your region is used to estimate the value of your items: currency and local listings. It doesn't change the language."
+    },
+    "settings": {
+      "deleteHint": "Permanently deletes your account and all your data (objects, photos, collections). Irreversible."
+    },
+    "profileType": {
+      "noPayment": "This choice does not change your plan and triggers no payment.",
+      "saveFailed": "Your choice could not be saved. Try again."
+    }
   }
 }

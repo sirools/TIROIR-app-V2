@@ -19,6 +19,11 @@ export interface Profile {
   pro_expires_at: string | null
   pro_invoice_ref: string | null
   pro_company: string | null
+  /**
+   * Type de profil choisi à l'onboarding (features/profile/userProfile.ts).
+   * null : pas encore choisi ; absent : colonne pas encore en base.
+   */
+  user_profile?: 'personal' | 'creative' | 'business' | null
   /** Origine du palier payant : 'web' (Stripe, site), 'app' (stores), null (offert, sur facture ou ancien). */
   plan_source?: 'web' | 'app' | null
   /** Statut Stripe de l'abonnement du site (active, past_due, canceled…). */

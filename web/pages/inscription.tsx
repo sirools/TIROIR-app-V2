@@ -7,8 +7,7 @@ import { authHref, safeNext } from '../lib/authFlow'
 import { authErrorFromUrl, authErrorKey, suggestsLogin, type AccountErrorKey, type AuthErrorKey } from '../lib/authErrors'
 import { localePrefix } from '../lib/localeRouting'
 import { useCopy } from '../locales'
-import PersonaSelect from '../components/account/PersonaSelect'
-import { isPersona } from '../lib/personas'
+import { SAVE_PATH } from '../lib/trial'
 import { useBillingCopy } from '../locales/billing'
 import OfferRecap from '../components/billing/OfferRecap'
 import { offerFromNext } from '../lib/subscribeFlow'
@@ -16,12 +15,11 @@ import { firstTouch } from '../components/SiteVisitTracker'
 
 export default function Inscription() {
   const router = useRouter()
-  const { t: { account: t, inventory: { persona: tp } }, locale } = useCopy()
+  const { t: { account: t, trial: tt }, locale } = useCopy()
   // Préfixe de langue des liens <a> et des retours Supabase (« » en français).
   const prefix = localePrefix(locale)
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [persona, setPersona]   = useState('')
   const [error, setError]       = useState<AccountErrorKey | null>(null)
   const [hint, setHint]         = useState<AuthErrorKey | null>(null)
   const [loading, setLoading]   = useState(false)
@@ -29,6 +27,8 @@ export default function Inscription() {
   const next = typeof router.query.next === 'string' ? safeNext(router.query.next) : null
   // Venu du tunnel d'abonnement : l'offre choisie reste affichée à côté.
   const offer = offerFromNext(next)
+  // Venu de l'essai sans compte (/essai) : l'objet d'essai suivra le compte.
+  const fromTrial = next === SAVE_PATH
   const { t: { subscribe: ts } } = useBillingCopy()
   const [sentTo, setSentTo]     = useState<string | null>(null)
 
@@ -50,6 +50,20 @@ export default function Inscription() {
     setError(null)
     setHint(null)
 
+    // Le code de rattachement de l'essai voyage avec le compte : si l'e-mail
+    // est confirmé sur un autre appareil, l'objet est quand même retrouvé
+    // (pages/essai/sauvegarde.tsx). L'appel prolonge aussi l'essai le temps
+    // de la confirmation.
+    let trial: string | null = null
+    if (fromTrial) {
+      try {
+        const r = await fetch('/api/essai/inscription', { method: 'POST' })
+        trial = r.ok ? ((await r.json()) as { claim: string | null }).claim : null
+      } catch {
+        /* le cookie de l'essai suffit dans ce navigateur */
+      }
+    }
+
     const confirm = next ? `/email-confirme?next=${encodeURIComponent(next)}` : '/email-confirme'
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -60,9 +74,7 @@ export default function Inscription() {
       // devient celle du compte (lib/accountLocale.ts).
       options: {
         emailRedirectTo: `${window.location.origin}${prefix}${confirm}`,
-        // Le profil choisi suit le compte : l'accueil le reprend à la première
-        // visite (lib/inventoryServer.ts), une fois l'e-mail confirmé.
-        data: { acq: firstTouch() ?? { source: 'direct' }, locale, ...(isPersona(persona) ? { persona } : {}) },
+        data: { acq: firstTouch() ?? { source: 'direct' }, locale, ...(trial ? { trial } : {}) },
       },
     })
     if (error) {
@@ -109,7 +121,7 @@ export default function Inscription() {
             <strong style={s.logoText}>Tiroir</strong>
           </div>
           <h1 style={s.title}>{t.signup.title}</h1>
-          <p style={s.subtitle}>{offer ? ts.accountFirst : t.signup.subtitle}</p>
+          <p style={s.subtitle}>{fromTrial ? tt.signupSubtitle : offer ? ts.accountFirst : t.signup.subtitle}</p>
 
           <button type="button" style={s.googleBtn} onClick={() => handleOAuth('google')}>
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -161,11 +173,6 @@ export default function Inscription() {
               autoComplete="new-password"
             />
             <span style={s.hint}>{t.signup.passwordHint}</span>
-
-            <label style={s.label} htmlFor="signup-persona">
-              {tp.label} <span style={s.optional}>({tp.optional})</span>
-            </label>
-            <PersonaSelect id="signup-persona" value={persona} onChange={setPersona} style={{ ...s.input, background: 'white', color: '#121212', fontFamily: 'inherit', minHeight: 42 }} />
 
             {error && <p style={s.error}>{t.errors[error]}</p>}
             {hint && (

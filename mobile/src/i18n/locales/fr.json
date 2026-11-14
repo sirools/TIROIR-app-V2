@@ -908,5 +908,37 @@
     "regionAutoHint": "Suit la région de l'appareil ({{name}})",
     "regionHelp": "La région sert à estimer la valeur de tes objets : devise et annonces locales. Elle ne change pas la langue.",
     "systemSettings": "Ouvrir les réglages de l'appareil"
+  },
+  "profileType": {
+    "title": "Tu utilises Tiroir…",
+    "subtitle": "Une seule question, pour que Tiroir te parle comme il faut. Tu pourras changer d'avis dans Paramètres.",
+    "personal": "Pour moi",
+    "personalHint": "Mes affaires, ma maison, mes collections.",
+    "creative": "Pour mon activité de créatif",
+    "creativeHint": "Styliste, vidéaste, photographe : costumes, accessoires, matériel pro.",
+    "business": "Pour mon entreprise",
+    "businessHint": "Le matériel et les stocks d'une équipe ou d'une société.",
+    "noPayment": "Ce choix ne change pas ton offre et ne déclenche aucun paiement.",
+    "skip": "Plus tard",
+    "saveFailed": "Ton choix n'a pas pu être enregistré. Réessaie.",
+    "settingsLabel": "Utilisation",
+    "notChosen": "À choisir"
+  },
+  "formal": {
+    "home": {
+      "loading": "Chargement de vos collections…",
+      "deleteCollectionWithObjects_one": "Elle contient {{count}} objet. Les objets resteront dans votre Tiroir.",
+      "deleteCollectionWithObjects_other": "Elle contient {{count}} objets. Les objets resteront dans votre Tiroir."
+    },
+    "preferences": {
+      "regionHelp": "La région sert à estimer la valeur de vos objets : devise et annonces locales. Elle ne change pas la langue."
+    },
+    "settings": {
+      "deleteHint": "Supprime définitivement votre compte et toutes vos données (objets, photos, collections). Irréversible."
+    },
+    "profileType": {
+      "noPayment": "Ce choix ne change pas votre offre et ne déclenche aucun paiement.",
+      "saveFailed": "Votre choix n'a pas pu être enregistré. Réessayez."
+    }
   }
 }

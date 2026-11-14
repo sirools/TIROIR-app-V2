@@ -908,5 +908,37 @@
     "regionAutoHint": "Sigue la región del dispositivo ({{name}})",
     "regionHelp": "La región sirve para estimar el valor de tus objetos: moneda y anuncios locales. No cambia el idioma.",
     "systemSettings": "Abrir los ajustes del dispositivo"
+  },
+  "profileType": {
+    "title": "Usas Tiroir…",
+    "subtitle": "Una sola pregunta, para que Tiroir te hable como conviene. Podrás cambiarlo en Ajustes.",
+    "personal": "Para mí",
+    "personalHint": "Mis cosas, mi casa, mis colecciones.",
+    "creative": "Para mi actividad creativa",
+    "creativeHint": "Estilista, videógrafo, fotógrafo: vestuario, accesorios, material profesional.",
+    "business": "Para mi empresa",
+    "businessHint": "El material y las existencias de un equipo o de una empresa.",
+    "noPayment": "Esta elección no cambia tu plan ni genera ningún pago.",
+    "skip": "Más tarde",
+    "saveFailed": "No se ha podido guardar tu elección. Inténtalo de nuevo.",
+    "settingsLabel": "Uso",
+    "notChosen": "Por elegir"
+  },
+  "formal": {
+    "home": {
+      "loading": "Cargando sus colecciones…",
+      "deleteCollectionWithObjects_one": "Contiene {{count}} objeto. Los objetos permanecerán en su Tiroir.",
+      "deleteCollectionWithObjects_other": "Contiene {{count}} objetos. Los objetos permanecerán en su Tiroir."
+    },
+    "preferences": {
+      "regionHelp": "La región sirve para estimar el valor de sus objetos: moneda y anuncios locales. No cambia el idioma."
+    },
+    "settings": {
+      "deleteHint": "Elimina definitivamente su cuenta y todos sus datos (objetos, fotos, colecciones). Irreversible."
+    },
+    "profileType": {
+      "noPayment": "Esta elección no cambia su plan ni genera ningún pago.",
+      "saveFailed": "No se ha podido guardar su elección. Inténtelo de nuevo."
+    }
   }
 }

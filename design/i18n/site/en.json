@@ -751,7 +751,9 @@
           ]
         ],
         "valueLabel": "Estimated value"
-      }
+      },
+      "tryCta": "Put away your first item",
+      "tryHint": "No account, one minute, right here."
     },
     "photo": {
       "title": "One photo. That’s it.",
@@ -1293,7 +1295,13 @@
       "salesTitle": "Ongoing sales",
       "salesOne": "{n} item for sale",
       "salesOther": "{n} items for sale",
-      "seeSales": "See my sales"
+      "seeSales": "See my sales",
+      "$formal": "Formal dashboard texts (creative or company profile). English has a single form: same texts.",
+      "formal": {
+        "intro": "Your Tiroir at a glance.",
+        "statsTitle": "Your Tiroir in figures",
+        "noCollections": "No collection yet. Create one in the app and it will show up here."
+      }
     },
     "sales": {
       "metaTitle": "Sales — Tiroir",
@@ -1464,6 +1472,99 @@
       "manageFailed": "The action did not go through. Try again.",
       "notFoundTitle": "Sale not found",
       "notFoundText": "This link does not exist, or no longer does."
+    },
+    "profileType": {
+      "$comment": "Profile type (profiles.user_profile, web/lib/userProfile.ts): one question, one screen, one tap. English has a single form of address: “formal” repeats the same texts.",
+      "title": "You use Tiroir…",
+      "subtitle": "One question, so Tiroir speaks to you the right way. You can change your mind in Profile.",
+      "options": {
+        "personal": {
+          "label": "For myself",
+          "hint": "My belongings, my home, my collections."
+        },
+        "creative": {
+          "label": "For my creative work",
+          "hint": "Stylist, videographer, photographer: costumes, props, professional gear."
+        },
+        "business": {
+          "label": "For my company",
+          "hint": "The equipment and stock of a team or a company."
+        }
+      },
+      "noPayment": "This choice does not change your plan and triggers no payment.",
+      "skip": "Later",
+      "saving": "Saving…",
+      "saveFailed": "Your choice could not be saved. Try again.",
+      "settingsLabel": "You use Tiroir",
+      "settingsHint": "This choice adapts the tone, the examples and the suggested plans. It triggers no payment.",
+      "saved": "Saved.",
+      "offers": {
+        "creative": "For creative work, the Premium plan is designed for you: more items, photos and Torix estimates.",
+        "business": "For a company, the Pro and Business plans support your equipment and your team.",
+        "cta": "See the plans"
+      },
+      "formal": {
+        "noPayment": "This choice does not change your plan and triggers no payment.",
+        "saveFailed": "Your choice could not be saved. Try again.",
+        "settingsLabel": "You use Tiroir",
+        "settingsHint": "This choice adapts the tone, the examples and the suggested plans. It triggers no payment."
+      }
+    }
+  },
+  "trial": {
+    "$comment": "No-account trial (/essai, web/lib/trial.ts): free journey, before any sign-up.",
+    "metaTitle": "Put away your first item — Tiroir",
+    "metaDescription": "Take a photo of an item: Torix, Tiroir’s AI, values it in under a minute. No account, nothing to install.",
+    "title": "Put away your first item",
+    "intro": "Take a photo of an item. Torix, Tiroir’s AI, tells you what it is worth. No account, in under a minute.",
+    "takePhoto": "Take a photo",
+    "importPhoto": "Upload a photo",
+    "photoHint": "One item, fully in frame, well lit.",
+    "photoAlt": "Your photo",
+    "analysing": "Torix is looking at your photo…",
+    "analysingHint": "It only takes a few seconds.",
+    "estimateLabel": "Torix estimate",
+    "range": "Between {min} and {max}",
+    "confidence": {
+      "low": "A first idea, to refine",
+      "medium": "Reasonable estimate",
+      "high": "Solid estimate"
+    },
+    "estimateNote": "A first, indicative estimate based on your photo. With an account, Torix refines it using comparable listings.",
+    "locationLabel": "Where do you keep it?",
+    "locationPlaceholder": "Desk drawer",
+    "locationHint": "So you can find it later without searching.",
+    "save": "Save to my Tiroir",
+    "saving": "One moment…",
+    "saveHint": "Create your free account: the item, its photo and its estimate follow you, with nothing to retype.",
+    "haveAccount": "I already have an account",
+    "retentionBefore": "Without an account, your photo and this trial are deleted automatically within 48 hours. Your photo is used for the estimate and nothing else.",
+    "retention": "Without an account, this item and its photo will be deleted automatically on {date}.",
+    "privacyLink": "Privacy",
+    "oneObject": "The trial covers one item. To put away the next ones, create your free account.",
+    "retry": "Try another photo",
+    "createAccount": "Create my free account",
+    "signupSubtitle": "Create your free account to keep your item: its photo, estimate and location follow you.",
+    "errors": {
+      "invalidPhoto": "This photo could not be read. Try another one.",
+      "notObject": "Torix did not recognise an item in this photo. Try with a single, clearly visible item.",
+      "failed": "The estimate did not go through. Try again.",
+      "noAttemptLeft": "The trial did not work out this time. Create your free account to put away your first item.",
+      "ipLimit": "You have already run several trials today. Create your free account to continue.",
+      "dailyCap": "The no-account trial is full for today. Create your free account, or come back tomorrow.",
+      "disabled": "The no-account trial is closed for now. Create your free account to put away your first item."
+    },
+    "saved": {
+      "metaTitle": "Your item is put away — Tiroir",
+      "title": "All put away.",
+      "text": "Your item is in your Tiroir, with its photo, estimate and location.",
+      "seeObject": "See my item",
+      "quotaTitle": "Your Tiroir is full",
+      "quotaText": "Your plan has reached its item limit: this one could not be added.",
+      "seePricing": "See the plans",
+      "failedTitle": "The item could not be put away yet",
+      "failedText": "Nothing is lost: your trial is intact. Try again in a moment.",
+      "retry": "Try again"
     }
   }
 }

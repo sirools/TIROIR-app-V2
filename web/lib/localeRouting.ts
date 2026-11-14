@@ -15,6 +15,8 @@ export const PARTIAL_LOCALES: readonly Locale[] = ['de', 'es']
 /** Pages traduites dans toutes les langues (textes dans web/locales). */
 export const TRANSLATED_PATHS: readonly string[] = [
   '/', '/pricing',
+  // Essai sans compte (trial, dans web/locales)
+  '/essai', '/essai/sauvegarde',
   // Compte (web/locales/account)
   '/login', '/inscription', '/mot-de-passe-oublie', '/nouveau-mot-de-passe',
   '/email-confirme', '/bienvenue', '/merci', '/desinscription',

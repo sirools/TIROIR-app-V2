@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
+import { useToneT } from '@/i18n/tone'
 import { Image } from 'react-native'
 import { Pin, Search, X } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
@@ -43,6 +44,8 @@ function afterSheet(fn: () => void) {
 export default function HomeScreen() {
   const router = useRouter()
   const { t } = useTranslation()
+  // Textes qui existent aux deux tons (tu / vous, selon le profil).
+  const tt = useToneT()
   const { profile } = useAuth()
   const [collections, setCollections] = useState<CollectionWithCount[]>([])
   const [refreshing, setRefreshing] = useState(false)
@@ -168,7 +171,7 @@ export default function HomeScreen() {
 
   function handleDeleteCollection(col: CollectionWithCount) {
     const msg = col.object_count > 0
-      ? t('home.deleteCollectionWithObjects', { count: col.object_count })
+      ? tt('home.deleteCollectionWithObjects', { count: col.object_count })
       : t('home.deleteCollectionIrreversible')
 
     Alert.alert(t('home.deleteCollectionTitle', { name: col.name }), msg, [
@@ -255,7 +258,7 @@ export default function HomeScreen() {
               </View>
             )}
 
-            {loading && <TiroirLoader label={t('home.loading')} />}
+            {loading && <TiroirLoader label={tt('home.loading')} />}
           </>
         }
         renderItem={({ item: col, index }) => (

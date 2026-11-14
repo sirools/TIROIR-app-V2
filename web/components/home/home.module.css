@@ -149,6 +149,11 @@
 }
 .heroSub { margin: 0 0 20px; font-size: 17px; line-height: 1.5; color: var(--muted); max-width: 540px; }
 .heroFree { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.heroTry { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 18px; }
+.heroTryBtn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 24px; border-radius: 14px; background: var(--orange); color: var(--white); font-size: 16px; font-weight: 700; text-decoration: none; }
+.heroTryBtn:hover { background: var(--orange-700); }
+.heroTryBtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.heroTryHint { font-size: 14px; color: var(--muted); }
 
 /* Vidéo « trois tiroirs » (1080×1350, fond #FFF9EF ≈ beige-2) : le fond
    du hero est le même, le cadre ne se voit pas. Mobile : sous le texte,

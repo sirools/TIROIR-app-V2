@@ -18,15 +18,21 @@ import { cardsFor, STAT_CARDS, type StatCard, type Stats } from '../lib/dashboar
 import {
   loadCollections, loadDashboard, loadProfile, requireOwner, type CollectionCard, type ShareSummary,
 } from '../lib/inventoryServer'
-import PersonaSelect from '../components/account/PersonaSelect'
-import { isPersona } from '../lib/personas'
+import ProfileTypeChoice from '../components/account/ProfileTypeChoice'
+import { SAVE_PATH } from '../lib/trial'
+import { suggestedOffer, toned, toneOf, type UserProfile } from '../lib/userProfile'
+import { asLocale, localePrefix } from '../lib/localeRouting'
 import { fill, intlLocale, useCopy } from '../locales'
 
 type Props = {
   userId: string
   name: string | null
-  /** null : pas encore choisi — l'accueil le demande, sans insister. */
-  persona: string | null
+  /** Type de profil (lib/userProfile.ts). null : pas encore choisi — l'accueil le demande, sans insister. */
+  userProfile: UserProfile | null
+  /** La question du profil peut-elle être posée (colonne en base) ? */
+  canAskProfile: boolean
+  /** Offre à suggérer à un compte gratuit selon son profil, ou null. */
+  offer: 'creative' | 'business' | null
   cards: StatCard[]
   stats: Stats
   collections: CollectionCard[]
@@ -38,6 +44,11 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const gate = await requireOwner(ctx)
   if ('redirect' in gate) return gate
   const { owner } = gate
+  // Compte créé depuis l'essai sans compte, e-mail confirmé sur un autre
+  // appareil : l'objet d'essai est rattaché avant d'afficher l'accueil.
+  if (owner.pendingTrial && ctx.query.essai !== '0') {
+    return { redirect: { destination: `${localePrefix(asLocale(ctx.locale))}${SAVE_PATH}`, permanent: false } }
+  }
   const [profile, dashboard, { collections }] = await Promise.all([
     loadProfile(owner), loadDashboard(owner), loadCollections(owner),
   ])
@@ -47,48 +58,35 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     .slice(0, 3)
   return {
     props: {
-      userId: owner.userId, name: profile.name, persona: profile.persona,
-      cards: cardsFor({ plan: owner.plan, profile: profile.persona }), stats: dashboard.stats,
+      userId: owner.userId, name: profile.name,
+      userProfile: profile.userProfile, canAskProfile: profile.canAskProfile,
+      offer: suggestedOffer(profile.userProfile, owner.plan),
+      cards: cardsFor({ plan: owner.plan, profile: profile.persona, userProfile: profile.userProfile }), stats: dashboard.stats,
       collections: latest, collectionCount: collections.length, shares: dashboard.shares,
     },
   }
 }
 
-const LATER_KEY = 'tiroir.persona.later'
+const LATER_KEY = 'tiroir.profileType.later'
 
-export default function HomePage({ userId, name, persona, cards, stats, collections, collectionCount, shares: initialShares }: Props) {
+export default function HomePage({ userId, name, userProfile, canAskProfile, offer, cards, stats, collections, collectionCount, shares: initialShares }: Props) {
   const router = useRouter()
   const { t: { inventory: ti }, locale } = useCopy()
-  const t = ti.home
-  const tp = ti.persona
-  const [choice, setChoice] = useState('')
+  // Le ton suit le profil : tutoiement pour « Pour moi », vouvoiement pour
+  // une activité de créatif ou une entreprise (lib/userProfile.ts).
+  const t = toned(ti.home, toneOf(userProfile))
+  const tp = ti.profileType
   const [asking, setAsking] = useState(false)
-  const [savingPersona, setSavingPersona] = useState(false)
-  const [personaFailed, setPersonaFailed] = useState(false)
 
   // « Plus tard » vaut pour la visite : la question revient à la prochaine connexion.
   useEffect(() => {
-    if (persona) return
+    if (userProfile || !canAskProfile) return
     try { setAsking(window.sessionStorage.getItem(LATER_KEY) !== '1') } catch { setAsking(true) }
-  }, [persona])
+  }, [userProfile, canAskProfile])
 
   function later() {
     setAsking(false)
     try { window.sessionStorage.setItem(LATER_KEY, '1') } catch { /* stockage indisponible */ }
-  }
-
-  async function savePersona() {
-    if (!isPersona(choice) || savingPersona) return
-    setSavingPersona(true)
-    setPersonaFailed(false)
-    const { error } = await supabase.from('profiles').update({ persona: choice }).eq('id', userId)
-    setSavingPersona(false)
-    if (error) {
-      setPersonaFailed(true)
-      return
-    }
-    // Les cartes dépendent du profil : la page se recharge avec les bonnes.
-    router.replace(router.asPath)
   }
   const [shares, setShares] = useState(initialShares)
   const [busy, setBusy] = useState<string | null>(null)
@@ -125,22 +123,27 @@ export default function HomePage({ userId, name, persona, cards, stats, collecti
           <h1 className="page-title">{name ? fill(t.hello, { name }) : t.helloNoName}</h1>
           <p className="intro">{t.intro}</p>
 
-          {!persona && asking && (
+          {!userProfile && asking && (
             <div className="ask">
-              <h2>{tp.promptTitle}</h2>
-              <p>{tp.promptText}</p>
-              <label className="sr-only" htmlFor="home-persona">{tp.label}</label>
+              <h2>{tp.title}</h2>
+              <p>{tp.subtitle}</p>
               <div className="ask-row">
-                <PersonaSelect id="home-persona" value={choice} onChange={setChoice} className="ask-select" />
+                {/* Le ton et les cartes dépendent du profil : la page se recharge avec les bons. */}
+                <ProfileTypeChoice userId={userId} onSaved={() => router.replace('/accueil')} />
               </div>
-              <div role="status" aria-live="polite">{personaFailed && <p className="alert">{tp.saveFailed}</p>}</div>
               <div className="ask-actions">
-                <button type="button" className="ask-save" disabled={!isPersona(choice) || savingPersona} onClick={savePersona}>
-                  {savingPersona ? tp.saving : tp.save}
-                </button>
-                <button type="button" className="ask-later" onClick={later}>{tp.later}</button>
+                <button type="button" className="ask-later" onClick={later}>{tp.skip}</button>
               </div>
             </div>
+          )}
+
+          {offer && (
+            <Link href="/pricing" legacyBehavior passHref>
+              <a className="sales">
+                <span className="sales-count offer-text">{tp.offers[offer]}</span>
+                <span className="sales-go">{tp.offers.cta} →</span>
+              </a>
+            </Link>
           )}
 
           <div className="block" role="region" aria-label={t.statsTitle}>
@@ -241,10 +244,9 @@ export default function HomePage({ userId, name, persona, cards, stats, collecti
         .intro { font-size: 15px; color: var(--muted); margin: 0 0 28px; }
         .ask { margin-bottom: 32px; padding: 20px; background: var(--white); border: 1.5px solid var(--orange); border-radius: var(--radius); }
         .ask p { margin: 6px 0 14px; font-size: 14px; line-height: 1.45; color: var(--muted); max-width: 60ch; }
-        .ask-row { max-width: 360px; }
-        .ask :global(.ask-select) { width: 100%; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--white); color: var(--ink); font: inherit; font-size: 15px; }
-        .ask-actions { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
-        .ask-save { min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--orange); color: var(--white); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+        .ask-row { max-width: 460px; }
+        .ask-actions { display: flex; align-items: center; gap: 16px; margin-top: 6px; }
+        .offer-text { font-size: 15px; font-weight: 600; line-height: 1.45; flex: 1; min-width: 240px; }
         .ask-later { min-height: 44px; padding: 0 4px; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; }
         .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
         .block { margin-bottom: 32px; }

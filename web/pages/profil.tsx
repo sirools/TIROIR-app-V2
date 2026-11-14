@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase, serverSupabase, signOutEverywhere } from '../lib/supabase'
 import { uploadAvatar, removeAvatar } from '../lib/avatar'
 import PersonaSelect from '../components/account/PersonaSelect'
+import ProfileTypeChoice from '../components/account/ProfileTypeChoice'
+import { isUserProfile, toned, toneOf, type UserProfile } from '../lib/userProfile'
 import { isPersona } from '../lib/personas'
 import HeaderApp from '../components/layout/HeaderApp'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
@@ -21,11 +23,18 @@ interface Props {
   avatarPath: string | null
   /** Profil choisi à l'inscription (web/lib/personas.ts), ou null. */
   persona: string | null
+  /** Type de profil (lib/userProfile.ts) : règle le ton et les offres suggérées. */
+  userProfile: UserProfile | null
+  /** Faux tant que la colonne user_profile n'est pas en base. */
+  canAskProfile: boolean
   memberSince: string | null
 }
 
-export default function Profil({ userId, email, displayName, avatarUrl, avatarPath, memberSince, persona: initialPersona }: Props) {
-  const { t: { account: { profile: t }, inventory: { persona: tp } }, locale } = useCopy()
+export default function Profil({ userId, email, displayName, avatarUrl, avatarPath, memberSince, persona: initialPersona, userProfile: initialUserProfile, canAskProfile }: Props) {
+  const { t: { account: { profile: t }, inventory: { persona: tp, profileType } }, locale } = useCopy()
+  const [userProfile, setUserProfile] = useState(initialUserProfile)
+  const [userProfileSaved, setUserProfileSaved] = useState(false)
+  const tu = toned(profileType, toneOf(userProfile))
   const [name, setName] = useState(displayName)
   const [savedName, setSavedName] = useState(displayName)
   const [saving, setSaving] = useState(false)
@@ -232,6 +241,20 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
             {error && <p className="feedback feedback--error">{t[error]}</p>}
             {saved && !dirty && <p className="feedback feedback--ok">{t.nameSaved}</p>}
           </form>
+
+          {canAskProfile && (
+            <div className="form">
+              <p className="label">{tu.settingsLabel}</p>
+              <ProfileTypeChoice
+                userId={userId} value={userProfile}
+                onSaved={p => { setUserProfile(p); setUserProfileSaved(true) }}
+              />
+              <p className="feedback">{tu.settingsHint}</p>
+              <div role="status" aria-live="polite">
+                {userProfileSaved && <p className="feedback feedback--ok">{tu.saved}</p>}
+              </div>
+            </div>
+          )}
 
           <div className="form">
             <label className="label" htmlFor="profile-persona">{tp.label}</label>
@@ -535,6 +558,9 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     .eq('id', session.user.id)
     .single()
 
+  // À part : tant que la colonne n'est pas en base, la page s'affiche sans elle.
+  const usage = await sb.from('profiles').select('user_profile').eq('id', session.user.id).maybeSingle()
+
   // Bucket privé : la photo choisie s'affiche par URL signée, valable le
   // temps d'une visite de la page.
   let avatarUrl: string | null = profile?.avatar_url ?? null
@@ -554,6 +580,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       avatarPath: profile?.avatar_path ?? null,
       memberSince: profile?.created_at ?? null,
       persona: profile?.persona ?? null,
+      userProfile: isUserProfile(usage.data?.user_profile) ? usage.data.user_profile : null,
+      canAskProfile: !usage.error,
     },
   }
 }

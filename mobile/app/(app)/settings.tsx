@@ -5,7 +5,7 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, ChevronRight, Lock, FileText, Shield, Trash2, Languages, Globe } from 'lucide-react-native'
+import { ArrowLeft, ChevronRight, Lock, FileText, Shield, Trash2, Languages, Globe, UserRound } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import {
@@ -18,13 +18,17 @@ import {
 } from '@/i18n/region'
 import { Screen, FormSheet, Button, Input, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { saveAccountLocale } from '@/features/auth/accountLocale'
+import { PROFILE_KEYS, USER_PROFILES, isUserProfile, saveUserProfile, type UserProfile } from '@/features/profile/userProfile'
+import { useToneT } from '@/i18n/tone'
 
 const MIN_PASSWORD_LENGTH = 8
 
 export default function SettingsScreen() {
   const router = useRouter()
   const { t, i18n } = useTranslation()
-  const { signOut } = useAuth()
+  // Textes qui existent aux deux tons (tu / vous, selon le profil).
+  const tt = useToneT()
+  const { signOut, user, profile, refreshProfile } = useAuth()
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [passwordModalVisible, setPasswordModalVisible] = useState(false)
   const [newPassword, setNewPassword] = useState('')
@@ -36,6 +40,7 @@ export default function SettingsScreen() {
   const [regionPref, setRegionPref] = useState<RegionPreference>('auto')
   const [languageSheet, setLanguageSheet] = useState(false)
   const [regionSheet, setRegionSheet] = useState(false)
+  const [profileSheet, setProfileSheet] = useState(false)
 
   useEffect(() => {
     getLanguagePreference().then(setLanguagePref)
@@ -53,6 +58,15 @@ export default function SettingsScreen() {
   async function chooseRegion(pref: RegionPreference) {
     setRegionPref(pref)
     await setRegionPreference(pref)
+  }
+
+  // Type de profil : modifiable ici, à tout moment. undefined : la colonne
+  // n'est pas encore en base, la ligne ne s'affiche pas.
+  const userProfile = profile?.user_profile
+  async function chooseUserProfile(next: UserProfile) {
+    if (!user || next === userProfile) return
+    if (await saveUserProfile(user.id, next)) await refreshProfile()
+    else Alert.alert(t('common.error'), tt('profileType.saveFailed'))
   }
 
   const languageValue = languagePref === 'auto' ? t('preferences.auto') : LANGUAGE_LABELS[languagePref]
@@ -170,8 +184,19 @@ export default function SettingsScreen() {
             value={regionValue}
             onPress={() => setRegionSheet(true)}
           />
+          {userProfile !== undefined && (
+            <>
+              <View style={styles.separator} />
+              <SettingsRow
+                icon={<UserRound size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
+                label={t('profileType.settingsLabel')}
+                value={isUserProfile(userProfile) ? t(PROFILE_KEYS[userProfile].label) : t('profileType.notChosen')}
+                onPress={() => setProfileSheet(true)}
+              />
+            </>
+          )}
         </View>
-        <Text style={styles.deleteHint}>{t('preferences.regionHelp')}</Text>
+        <Text style={styles.deleteHint}>{tt('preferences.regionHelp')}</Text>
 
         {/* Section Compte */}
         <Text style={styles.sectionLabel}>{t('settings.sectionAccount')}</Text>
@@ -219,7 +244,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
         <Text style={styles.deleteHint}>
-          {t('settings.deleteHint')}
+          {tt('settings.deleteHint')}
         </Text>
 
       </ScrollView>
@@ -238,6 +263,20 @@ export default function SettingsScreen() {
             label: LANGUAGE_LABELS[lang],
             selected: languagePref === lang,
             onPress: () => chooseLanguage(lang),
+          })),
+          { label: t('common.cancel'), cancel: true, onPress: () => {} },
+        ]}
+      />
+
+      {/* Type de profil : ton, exemples et offres suggérées ; aucun paiement */}
+      <ActionSheet
+        visible={profileSheet}
+        onClose={() => setProfileSheet(false)}
+        options={[
+          ...USER_PROFILES.map(p => ({
+            label: t(PROFILE_KEYS[p].label),
+            selected: userProfile === p,
+            onPress: () => { void chooseUserProfile(p) },
           })),
           { label: t('common.cancel'), cancel: true, onPress: () => {} },
         ]}

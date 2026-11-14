@@ -772,7 +772,9 @@
           ]
         ],
         "valueLabel": "Valeur estimée"
-      }
+      },
+      "tryCta": "Range ton premier objet",
+      "tryHint": "Sans compte, en une minute, ici même."
     },
     "photo": {
       "title": "Une photo, c’est tout.",
@@ -1319,7 +1321,13 @@
       "salesTitle": "Ventes en cours",
       "salesOne": "{n} objet en vente",
       "salesOther": "{n} objets en vente",
-      "seeSales": "Voir mes ventes"
+      "seeSales": "Voir mes ventes",
+      "$formal": "Accueil au vouvoiement, pour un profil créatif ou entreprise (web/lib/userProfile.ts) : seules les clés qui changent de ton.",
+      "formal": {
+        "intro": "Votre Tiroir, d’un coup d’œil.",
+        "statsTitle": "Votre Tiroir en chiffres",
+        "noCollections": "Aucune collection pour l’instant. Créez-la dans l’app, elle apparaîtra ici."
+      }
     },
     "sales": {
       "metaTitle": "Ventes — Tiroir",
@@ -1492,6 +1500,99 @@
       "manageFailed": "L’action n’a pas abouti. Réessaie.",
       "notFoundTitle": "Vente introuvable",
       "notFoundText": "Ce lien n’existe pas ou plus."
+    },
+    "profileType": {
+      "$comment": "Type de profil (profiles.user_profile, web/lib/userProfile.ts) : une question, un écran, un tap. Posée avant tout choix : tutoiement. « formal » : les mêmes textes au vouvoiement, pour un profil créatif ou entreprise déjà choisi (page Profil).",
+      "title": "Tu utilises Tiroir…",
+      "subtitle": "Une seule question, pour que Tiroir te parle comme il faut. Tu pourras changer d’avis dans Profil.",
+      "options": {
+        "personal": {
+          "label": "Pour moi",
+          "hint": "Mes affaires, ma maison, mes collections."
+        },
+        "creative": {
+          "label": "Pour mon activité de créatif",
+          "hint": "Styliste, vidéaste, photographe : costumes, accessoires, matériel pro."
+        },
+        "business": {
+          "label": "Pour mon entreprise",
+          "hint": "Le matériel et les stocks d’une équipe ou d’une société."
+        }
+      },
+      "noPayment": "Ce choix ne change pas ton offre et ne déclenche aucun paiement.",
+      "skip": "Plus tard",
+      "saving": "Enregistrement…",
+      "saveFailed": "Ton choix n’a pas pu être enregistré. Réessaie.",
+      "settingsLabel": "Tu utilises Tiroir",
+      "settingsHint": "Ce choix adapte le ton, les exemples et les offres suggérées. Il ne déclenche aucun paiement.",
+      "saved": "Enregistré.",
+      "offers": {
+        "creative": "Pour une activité de créatif, la formule Premium est pensée pour vous : davantage d’objets, de photos et d’estimations Torix.",
+        "business": "Pour une entreprise, les formules Pro et Business accompagnent votre matériel et votre équipe.",
+        "cta": "Voir les formules"
+      },
+      "formal": {
+        "noPayment": "Ce choix ne change pas votre offre et ne déclenche aucun paiement.",
+        "saveFailed": "Votre choix n’a pas pu être enregistré. Réessayez.",
+        "settingsLabel": "Vous utilisez Tiroir",
+        "settingsHint": "Ce choix adapte le ton, les exemples et les offres suggérées. Il ne déclenche aucun paiement."
+      }
+    }
+  },
+  "trial": {
+    "$comment": "Essai sans compte (/essai, web/lib/trial.ts) : parcours gratuit, avant toute inscription — tutoiement.",
+    "metaTitle": "Range ton premier objet — Tiroir",
+    "metaDescription": "Prends un objet en photo : Torix, l’IA de Tiroir, l’estime en moins d’une minute. Sans compte, sans rien installer.",
+    "title": "Range ton premier objet",
+    "intro": "Prends un objet en photo. Torix, l’IA de Tiroir, te dit ce qu’il vaut. Sans compte, en moins d’une minute.",
+    "takePhoto": "Prendre une photo",
+    "importPhoto": "Importer une photo",
+    "photoHint": "Un seul objet, en entier, bien éclairé.",
+    "photoAlt": "Ta photo",
+    "analysing": "Torix regarde ta photo…",
+    "analysingHint": "Quelques secondes suffisent.",
+    "estimateLabel": "Estimation Torix",
+    "range": "Entre {min} et {max}",
+    "confidence": {
+      "low": "Première idée, à affiner",
+      "medium": "Estimation raisonnable",
+      "high": "Estimation solide"
+    },
+    "estimateNote": "Première estimation d’après ta photo, à titre indicatif. Avec un compte, Torix l’affine à partir d’annonces comparables.",
+    "locationLabel": "Où le ranges-tu ?",
+    "locationPlaceholder": "Tiroir du bureau",
+    "locationHint": "Pour le retrouver plus tard, sans chercher.",
+    "save": "Sauvegarder dans mon Tiroir",
+    "saving": "Un instant…",
+    "saveHint": "Crée ton compte gratuit : l’objet, sa photo et son estimation te suivent, sans rien ressaisir.",
+    "haveAccount": "J’ai déjà un compte",
+    "retentionBefore": "Sans compte, ta photo et cet essai sont supprimés automatiquement sous 48 heures. Ta photo sert à l’estimation, à rien d’autre.",
+    "retention": "Sans compte, cet objet et sa photo seront supprimés automatiquement le {date}.",
+    "privacyLink": "Confidentialité",
+    "oneObject": "L’essai, c’est un objet. Pour ranger les suivants, crée ton compte gratuit.",
+    "retry": "Essayer une autre photo",
+    "createAccount": "Créer mon compte gratuit",
+    "signupSubtitle": "Crée ton compte gratuit pour garder ton objet : sa photo, son estimation et son emplacement te suivent.",
+    "errors": {
+      "invalidPhoto": "Cette photo n’a pas pu être lue. Essaies-en une autre.",
+      "notObject": "Torix n’a pas reconnu d’objet sur cette photo. Essaie avec un seul objet, bien visible.",
+      "failed": "L’estimation n’a pas abouti. Réessaie.",
+      "noAttemptLeft": "L’essai n’a pas abouti cette fois. Crée ton compte gratuit pour ranger ton premier objet.",
+      "ipLimit": "Tu as déjà fait plusieurs essais aujourd’hui. Crée ton compte gratuit pour continuer.",
+      "dailyCap": "L’essai sans compte est complet pour aujourd’hui. Crée ton compte gratuit, ou reviens demain.",
+      "disabled": "L’essai sans compte est fermé pour le moment. Crée ton compte gratuit pour ranger ton premier objet."
+    },
+    "saved": {
+      "metaTitle": "Ton objet est rangé — Tiroir",
+      "title": "C’est rangé.",
+      "text": "Ton objet est dans ton Tiroir, avec sa photo, son estimation et son emplacement.",
+      "seeObject": "Voir mon objet",
+      "quotaTitle": "Ton Tiroir est plein",
+      "quotaText": "Ton offre a atteint sa limite d’objets : celui-ci n’a pas pu être ajouté.",
+      "seePricing": "Voir les offres",
+      "failedTitle": "L’objet n’a pas encore pu être rangé",
+      "failedText": "Rien n’est perdu : ton essai est intact. Réessaie dans un instant.",
+      "retry": "Réessayer"
     }
   }
 }

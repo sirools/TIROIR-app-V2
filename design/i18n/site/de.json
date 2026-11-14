@@ -751,7 +751,9 @@
           ]
         ],
         "valueLabel": "Geschätzter Wert"
-      }
+      },
+      "tryCta": "Räum deinen ersten Gegenstand ein",
+      "tryHint": "Ohne Konto, in einer Minute, gleich hier."
     },
     "photo": {
       "title": "Ein Foto. Das war’s.",
@@ -1151,7 +1153,13 @@
       "salesTitle": "Laufende Verkäufe",
       "salesOne": "{n} Gegenstand zum Verkauf",
       "salesOther": "{n} Gegenstände zum Verkauf",
-      "seeSales": "Meine Verkäufe ansehen"
+      "seeSales": "Meine Verkäufe ansehen",
+      "$formal": "Startseite in der Sie-Form, für ein Kreativ- oder Unternehmensprofil: nur die Schlüssel, deren Ton sich ändert.",
+      "formal": {
+        "intro": "Ihr Tiroir auf einen Blick.",
+        "statsTitle": "Ihr Tiroir in Zahlen",
+        "noCollections": "Noch keine Sammlung. Legen Sie sie in der App an, dann erscheint sie hier."
+      }
     },
     "sales": {
       "metaTitle": "Verkäufe — Tiroir",
@@ -1322,6 +1330,99 @@
       "manageFailed": "Die Aktion hat nicht geklappt. Versuch es erneut.",
       "notFoundTitle": "Verkauf nicht gefunden",
       "notFoundText": "Diesen Link gibt es nicht oder nicht mehr."
+    },
+    "profileType": {
+      "$comment": "Profiltyp (profiles.user_profile, web/lib/userProfile.ts): eine Frage, ein Bildschirm, ein Tipp. Vor der Wahl: Du-Form. „formal“: dieselben Texte in der Sie-Form, für ein Kreativ- oder Unternehmensprofil.",
+      "title": "Du nutzt Tiroir…",
+      "subtitle": "Nur eine Frage, damit Tiroir dich passend anspricht. Du kannst es im Profil jederzeit ändern.",
+      "options": {
+        "personal": {
+          "label": "Für mich",
+          "hint": "Meine Sachen, mein Zuhause, meine Sammlungen."
+        },
+        "creative": {
+          "label": "Für meine kreative Tätigkeit",
+          "hint": "Styling, Video, Fotografie: Kostüme, Requisiten, Profi-Ausrüstung."
+        },
+        "business": {
+          "label": "Für mein Unternehmen",
+          "hint": "Ausrüstung und Bestände eines Teams oder einer Firma."
+        }
+      },
+      "noPayment": "Diese Wahl ändert deinen Tarif nicht und löst keine Zahlung aus.",
+      "skip": "Später",
+      "saving": "Wird gespeichert…",
+      "saveFailed": "Deine Wahl konnte nicht gespeichert werden. Versuch es noch einmal.",
+      "settingsLabel": "Du nutzt Tiroir",
+      "settingsHint": "Diese Wahl passt Ton, Beispiele und vorgeschlagene Tarife an. Sie löst keine Zahlung aus.",
+      "saved": "Gespeichert.",
+      "offers": {
+        "creative": "Für eine kreative Tätigkeit ist der Premium-Tarif für Sie gedacht: mehr Gegenstände, Fotos und Torix-Schätzungen.",
+        "business": "Für ein Unternehmen begleiten die Tarife Pro und Business Ihre Ausrüstung und Ihr Team.",
+        "cta": "Tarife ansehen"
+      },
+      "formal": {
+        "noPayment": "Diese Wahl ändert Ihren Tarif nicht und löst keine Zahlung aus.",
+        "saveFailed": "Ihre Wahl konnte nicht gespeichert werden. Versuchen Sie es noch einmal.",
+        "settingsLabel": "Sie nutzen Tiroir",
+        "settingsHint": "Diese Wahl passt Ton, Beispiele und vorgeschlagene Tarife an. Sie löst keine Zahlung aus."
+      }
+    }
+  },
+  "trial": {
+    "$comment": "Test ohne Konto (/essai, web/lib/trial.ts): kostenloser Weg, vor jeder Registrierung — Du-Form.",
+    "metaTitle": "Räum deinen ersten Gegenstand ein — Tiroir",
+    "metaDescription": "Fotografiere einen Gegenstand: Torix, die KI von Tiroir, schätzt ihn in weniger als einer Minute. Ohne Konto, ohne Installation.",
+    "title": "Räum deinen ersten Gegenstand ein",
+    "intro": "Fotografiere einen Gegenstand. Torix, die KI von Tiroir, sagt dir, was er wert ist. Ohne Konto, in weniger als einer Minute.",
+    "takePhoto": "Foto aufnehmen",
+    "importPhoto": "Foto hochladen",
+    "photoHint": "Ein einzelner Gegenstand, vollständig und gut beleuchtet.",
+    "photoAlt": "Dein Foto",
+    "analysing": "Torix sieht sich dein Foto an…",
+    "analysingHint": "Das dauert nur ein paar Sekunden.",
+    "estimateLabel": "Torix-Schätzung",
+    "range": "Zwischen {min} und {max}",
+    "confidence": {
+      "low": "Erste Einschätzung, noch zu verfeinern",
+      "medium": "Plausible Schätzung",
+      "high": "Solide Schätzung"
+    },
+    "estimateNote": "Erste, unverbindliche Schätzung anhand deines Fotos. Mit einem Konto verfeinert Torix sie mit vergleichbaren Anzeigen.",
+    "locationLabel": "Wo bewahrst du ihn auf?",
+    "locationPlaceholder": "Schreibtischschublade",
+    "locationHint": "Damit du ihn später ohne Suchen wiederfindest.",
+    "save": "In meinem Tiroir speichern",
+    "saving": "Einen Moment…",
+    "saveHint": "Erstelle dein kostenloses Konto: Gegenstand, Foto und Schätzung kommen mit, ohne erneute Eingabe.",
+    "haveAccount": "Ich habe schon ein Konto",
+    "retentionBefore": "Ohne Konto werden dein Foto und dieser Test innerhalb von 48 Stunden automatisch gelöscht. Dein Foto dient nur der Schätzung.",
+    "retention": "Ohne Konto werden dieser Gegenstand und sein Foto am {date} automatisch gelöscht.",
+    "privacyLink": "Datenschutz",
+    "oneObject": "Der Test umfasst einen Gegenstand. Für die nächsten erstelle dein kostenloses Konto.",
+    "retry": "Anderes Foto versuchen",
+    "createAccount": "Mein kostenloses Konto erstellen",
+    "signupSubtitle": "Erstelle dein kostenloses Konto, um deinen Gegenstand zu behalten: Foto, Schätzung und Aufbewahrungsort kommen mit.",
+    "errors": {
+      "invalidPhoto": "Dieses Foto konnte nicht gelesen werden. Versuch ein anderes.",
+      "notObject": "Torix hat auf diesem Foto keinen Gegenstand erkannt. Versuch es mit einem einzelnen, gut sichtbaren Gegenstand.",
+      "failed": "Die Schätzung ist nicht durchgelaufen. Versuch es noch einmal.",
+      "noAttemptLeft": "Der Test hat diesmal nicht geklappt. Erstelle dein kostenloses Konto, um deinen ersten Gegenstand einzuräumen.",
+      "ipLimit": "Du hast heute schon mehrere Tests gemacht. Erstelle dein kostenloses Konto, um weiterzumachen.",
+      "dailyCap": "Der Test ohne Konto ist für heute ausgeschöpft. Erstelle dein kostenloses Konto oder komm morgen wieder.",
+      "disabled": "Der Test ohne Konto ist im Moment geschlossen. Erstelle dein kostenloses Konto, um deinen ersten Gegenstand einzuräumen."
+    },
+    "saved": {
+      "metaTitle": "Dein Gegenstand ist eingeräumt — Tiroir",
+      "title": "Eingeräumt.",
+      "text": "Dein Gegenstand liegt in deinem Tiroir, mit Foto, Schätzung und Aufbewahrungsort.",
+      "seeObject": "Meinen Gegenstand ansehen",
+      "quotaTitle": "Dein Tiroir ist voll",
+      "quotaText": "Dein Tarif hat sein Limit an Gegenständen erreicht: Dieser konnte nicht hinzugefügt werden.",
+      "seePricing": "Tarife ansehen",
+      "failedTitle": "Der Gegenstand konnte noch nicht eingeräumt werden",
+      "failedText": "Nichts ist verloren: Dein Test ist unverändert. Versuch es gleich noch einmal.",
+      "retry": "Erneut versuchen"
     }
   }
 }

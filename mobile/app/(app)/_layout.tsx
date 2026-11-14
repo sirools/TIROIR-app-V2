@@ -1,8 +1,11 @@
-import { Tabs } from 'expo-router'
+import { useEffect, useRef } from 'react'
+import { Tabs, useRouter, useSegments } from 'expo-router'
 import { View, TouchableOpacity, StyleSheet } from 'react-native'
 import { Archive, Camera, Search } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors, ToastProvider } from '@/components/ui'
+import { useAuth } from '@/features/auth/AuthContext'
+import { shouldAskProfile, wasProfileQuestionSkipped } from '@/features/profile/userProfile'
 
 const ICON_AREA_H = 64
 
@@ -13,6 +16,9 @@ interface TabBarProps {
 
 function CustomTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets()
+
+  // Question du profil (premier lancement) : plein écran, sans onglets.
+  if (state.routes[state.index]?.name === 'profile-type') return null
 
   // Les 3 onglets visibles sont index=0,1,2 dans state.routes
   const tabs = [
@@ -53,7 +59,34 @@ function CustomTabBar({ state, navigation }: TabBarProps) {
   )
 }
 
+/**
+ * Premier lancement : tant que le compte n'a pas dit comment il utilise
+ * Tiroir, la question est posée une fois (app/(app)/profile-type.tsx).
+ * « Plus tard » la range dans Paramètres pour cet appareil.
+ */
+function useProfileQuestion() {
+  const { user, profile } = useAuth()
+  const router = useRouter()
+  const segments = useSegments()
+  const asked = useRef<string | null>(null)
+  const onQuestion = (segments as string[]).includes('profile-type')
+
+  useEffect(() => {
+    if (!user || !profile || profile.id !== user.id) return
+    if (!shouldAskProfile(profile.user_profile) || onQuestion || asked.current === user.id) return
+    let cancelled = false
+    wasProfileQuestionSkipped(user.id).then(skipped => {
+      if (cancelled || asked.current === user.id) return
+      // Une seule fois par session, quoi qu'il arrive ensuite.
+      asked.current = user.id
+      if (!skipped) router.replace('/profile-type')
+    })
+    return () => { cancelled = true }
+  }, [user, profile, onQuestion, router])
+}
+
 export default function AppLayout() {
+  useProfileQuestion()
   return (
     <ToastProvider>
       <Tabs
@@ -64,6 +97,7 @@ export default function AppLayout() {
         <Tabs.Screen name="capture/index" />
         <Tabs.Screen name="search" />
         <Tabs.Screen name="onboarding"        options={{ href: null }} />
+        <Tabs.Screen name="profile-type"      options={{ href: null }} />
         <Tabs.Screen name="profile"           options={{ href: null }} />
         <Tabs.Screen name="shares"            options={{ href: null }} />
         <Tabs.Screen name="settings"          options={{ href: null }} />

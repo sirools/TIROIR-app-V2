@@ -53,6 +53,7 @@ export const TOPICS: Topic[] = [
       'Deux fournisseurs : Anthropic (Claude) pour le texte et la vision, Google (Gemini) pour les images.\n' +
       '• Haiku 4.5 : analyse de scène, fiches, brouillons, assistant.\n' +
       '• Sonnet 4.6 + recherche web : estimation de valeur.\n' +
+      '• Haiku 4.5, une image, sans recherche web : première estimation de l’essai sans compte du site (trial-estimate), une par essai, plafonnée par jour et par adresse IP.\n' +
       '• Sonnet 5 / Opus 5 : scènes des forfaits payants.\n' +
       '• Gemini 2.5 Flash Image : retouche photo et vignettes.\n' +
       'Ni Midjourney ni DALL·E.',

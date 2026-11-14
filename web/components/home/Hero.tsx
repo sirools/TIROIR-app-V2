@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import StoreButtons from '../StoreButtons'
+import { localePrefix } from '../../lib/localeRouting'
 import { HERO_VARIANT, useCopy } from '../../locales'
 import s from './home.module.css'
 
@@ -66,6 +67,11 @@ export default function Hero() {
           <span className={s.badge}>{t.badge}</span>
           <h1 id="home-title" className={s.heroTitle}>{title}</h1>
           <p className={s.heroSub}>{sub}</p>
+          {/* L'essai sans compte d'abord : la valeur avant l'installation. */}
+          <div className={s.heroTry}>
+            <a className={s.heroTryBtn} href={`${localePrefix(locale)}/essai`}>{t.tryCta}</a>
+            <span className={s.heroTryHint}>{t.tryHint}</span>
+          </div>
           <StoreButtons variant="dark" locale={locale} />
           <p className={s.heroFree}>{t.free}</p>
         </div>

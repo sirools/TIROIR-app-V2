@@ -18,3 +18,15 @@ verify_jwt = false
 # par secret partage, long et aleatoire (_shared/webhookAuth.ts).
 [functions.revenuecat-webhook]
 verify_jwt = false
+
+# Appelee par le serveur du site (web/pages/api/essai/estimer.ts) avec la
+# cle service, comparee dans la fonction : la cle anon et le jeton d'un
+# compte sont refuses. Sans portier JWT, pour ne pas dependre du format
+# de la cle service.
+[functions.trial-estimate]
+verify_jwt = false
+
+# L'appelant est pg_cron : secret partage, compare en base
+# (cron_secret_matches), comme send-lifecycle-emails.
+[functions.trial-cleanup]
+verify_jwt = false

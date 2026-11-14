@@ -10,6 +10,8 @@ import { asLocale, localePrefix } from './localeRouting'
 import { canPrepareListing } from './listing'
 import { NO_COLLECTION, type CollectionRow, type ObjectRow } from './inventory'
 import { isPersona } from './personas'
+import { isClaimCode } from './trial'
+import { isUserProfile, profileFromPersona, type UserProfile } from './userProfile'
 import { computeStats, effectivePlan, type Plan, type StatRow, type Stats } from './dashboard'
 
 export type Owner = {
@@ -19,6 +21,8 @@ export type Owner = {
   plan: Plan
   /** Profil choisi dans le formulaire d'inscription, en attente d'être repris sur le compte. */
   signupPersona: string | null
+  /** Un essai sans compte attend d'être rattaché (code posé à l'inscription, lib/trial.ts). */
+  pendingTrial: boolean
 }
 
 /** Le propriétaire connecté, ou la redirection vers la connexion. */
@@ -37,6 +41,7 @@ export async function requireOwner(ctx: GetServerSidePropsContext): Promise<
       canList: canPrepareListing(profile?.plan, profile?.pro_expires_at),
       plan: effectivePlan(profile?.plan, profile?.pro_expires_at),
       signupPersona: isPersona(user.user_metadata?.persona) ? user.user_metadata.persona : null,
+      pendingTrial: isClaimCode(user.user_metadata?.trial),
     },
   }
 }
@@ -234,14 +239,33 @@ export async function loadSales({ admin, userId }: Owner): Promise<SaleRow[]> {
  * Le nom affiché et le profil du compte. Un profil choisi à l'inscription
  * et pas encore repris (profiles.persona vide) est enregistré au passage.
  */
-export async function loadProfile({ admin, userId, signupPersona }: Owner): Promise<{ name: string | null; persona: string | null }> {
-  const { data } = await admin.from('profiles').select('display_name, persona').eq('id', userId).maybeSingle()
+export async function loadProfile({ admin, userId, signupPersona }: Owner): Promise<{
+  name: string | null
+  persona: string | null
+  /** Type de profil choisi à l'onboarding (lib/userProfile.ts) ; null : pas encore choisi. */
+  userProfile: UserProfile | null
+  /** Faux tant que la colonne user_profile n'est pas en base : la question ne se pose pas. */
+  canAskProfile: boolean
+}> {
+  type Row = { display_name: string | null; persona: string | null; user_profile?: string | null }
+  const full = await admin.from('profiles').select('display_name, persona, user_profile').eq('id', userId).maybeSingle()
+  const canAskProfile = !full.error
+  const data = (canAskProfile
+    ? full.data
+    : (await admin.from('profiles').select('display_name, persona').eq('id', userId).maybeSingle()).data) as Row | null
   let persona: string | null = data?.persona ?? null
   if (!persona && signupPersona) {
     const { error } = await admin.from('profiles').update({ persona: signupPersona }).eq('id', userId)
     if (!error) persona = signupPersona
   }
-  return { name: data?.display_name?.trim() || null, persona }
+  let userProfile = isUserProfile(data?.user_profile) ? data.user_profile : null
+  // Un métier déjà déclaré répond à la question : on ne la repose pas.
+  const derived = userProfile || !canAskProfile ? null : profileFromPersona(persona)
+  if (derived) {
+    const { error } = await admin.from('profiles').update({ user_profile: derived }).eq('id', userId)
+    if (!error) userProfile = derived
+  }
+  return { name: data?.display_name?.trim() || null, persona, userProfile, canAskProfile }
 }
 
 export type ShareSummary = {

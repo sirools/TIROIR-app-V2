@@ -283,5 +283,27 @@
     "languageAutoHint": "Segue o idioma do dispositivo ({{name}})",
     "regionAutoHint": "Segue a região do dispositivo ({{name}})",
     "systemSettings": "Abrir as definições do dispositivo"
+  },
+  "profileType": {
+    "title": "Utiliza o Tiroir…",
+    "subtitle": "Uma única pergunta, para o Tiroir falar consigo da forma certa. Pode alterar mais tarde nas Definições.",
+    "personalHint": "As minhas coisas, a minha casa, as minhas coleções.",
+    "creative": "Para a minha atividade criativa",
+    "creativeHint": "Estilista, videógrafo, fotógrafo: guarda-roupa, acessórios, equipamento profissional.",
+    "business": "Para a minha empresa",
+    "businessHint": "O equipamento e o stock de uma equipa ou de uma empresa.",
+    "noPayment": "Esta escolha não altera o seu plano nem gera qualquer pagamento.",
+    "saveFailed": "Não foi possível guardar a sua escolha. Tente novamente.",
+    "settingsLabel": "Utilização",
+    "notChosen": "Por escolher"
+  },
+  "formal": {
+    "settings": {
+      "deleteHint": "Elimina definitivamente a sua conta e todos os seus dados (objetos, fotografias, coleções). Irreversível."
+    },
+    "profileType": {
+      "noPayment": "Esta escolha não altera o seu plano nem gera qualquer pagamento.",
+      "saveFailed": "Não foi possível guardar a sua escolha. Tente novamente."
+    }
   }
 }

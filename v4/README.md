@@ -46,6 +46,7 @@ v4/
 │   │   └── 0003_collection_suggestions.sql  # idées et suggestions d'une collection partagée
 │   └── tests/                            # 45 tests 0001 + 42 tests 0003 (./run.sh URL_BASE_JETABLE)
 ├── e2e/suggestions/                      # banc e2e local des suggestions (Playwright)
+├── e2e/essai/                            # banc e2e local de l'essai sans compte (docs/essai-sans-compte.md)
 ├── domain/
 │   ├── serrure.ts                        # niveaux de serrure, rôles, droits
 │   ├── pret.ts                           # cycle de vie d'un prêt

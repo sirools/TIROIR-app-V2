@@ -6,6 +6,7 @@
 import { lotTotal } from './quantity'
 import { normCurrency } from './inventory'
 import { familyOf, type PersonaFamily } from './personas'
+import { isUserProfile, PROFILE_FAMILY } from './userProfile'
 
 export type StatRow = {
   status: string | null
@@ -97,9 +98,13 @@ const FAMILY_CARDS: Partial<Record<PersonaFamily, StatCard[]>> = {
 /** Cartes propres à un profil précis, quand elles diffèrent de celles de sa famille. */
 export const PROFILE_CARDS: Record<string, StatCard[]> = {}
 
-/** Trois à quatre cartes : celles du profil ou de sa famille, sinon la base, enrichie avec l'offre. */
-export function cardsFor(opts: { plan: Plan; profile?: string | null }): StatCard[] {
-  const family = familyOf(opts.profile)
+/**
+ * Trois à quatre cartes : celles du métier ou de sa famille ; à défaut,
+ * celles du type de profil (lib/userProfile.ts) ; sinon la base, enrichie
+ * avec l'offre.
+ */
+export function cardsFor(opts: { plan: Plan; profile?: string | null; userProfile?: string | null }): StatCard[] {
+  const family = familyOf(opts.profile) ?? (isUserProfile(opts.userProfile) ? PROFILE_FAMILY[opts.userProfile] : null)
   const own = (opts.profile ? PROFILE_CARDS[opts.profile] : undefined) ?? (family ? FAMILY_CARDS[family] : undefined)
   if (own?.length) return own.slice(0, 4)
   if (opts.plan === 'pro') return [...BASE, 'forSale']

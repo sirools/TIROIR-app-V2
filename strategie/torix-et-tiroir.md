@@ -60,6 +60,7 @@ décide, pour chaque demande, si elle mérite de coûter quelque chose.
 | `assistant-chat` — assistant | Claude Haiku 4.5 | ~0,1 c / message (*estimé*) |
 | **`estimate-value` — estimation de valeur** | **Claude Sonnet 4.6 + recherche web** | **~5 à 10 c (*estimé, non mesuré*)** |
 | **`enhance-object-photo`, `scene-thumbnail` — images** | **Gemini 2.5 Flash Image** | **3,9 c / image** |
+| `trial-estimate` — première estimation de l'essai sans compte du site (ajout du 2026-11-14, brouillon, pas encore en prod) | Claude Haiku 4.5, une image, sans recherche web | ~0,3 c (*estimé, à mesurer dans `trial_daily_stats`*) ; au plus 2 appels par essai, 300 essais par jour par défaut |
 
 Fournisseurs : **Anthropic (Claude) et Google (Gemini)**. Ni Midjourney ni
 DALL·E. Postes les plus chers : les images Gemini et l'estimation de

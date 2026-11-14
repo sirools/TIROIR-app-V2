@@ -908,5 +908,37 @@
     "regionAutoHint": "Folgt der Geräteregion ({{name}})",
     "regionHelp": "Die Region dient zur Wertschätzung deiner Objekte: Währung und lokale Angebote. Die Sprache bleibt unverändert.",
     "systemSettings": "Geräteeinstellungen öffnen"
+  },
+  "profileType": {
+    "title": "Du nutzt Tiroir…",
+    "subtitle": "Nur eine Frage, damit Tiroir dich passend anspricht. Du kannst es in den Einstellungen ändern.",
+    "personal": "Für mich",
+    "personalHint": "Meine Sachen, mein Zuhause, meine Sammlungen.",
+    "creative": "Für meine kreative Tätigkeit",
+    "creativeHint": "Styling, Video, Fotografie: Kostüme, Requisiten, Profi-Ausrüstung.",
+    "business": "Für mein Unternehmen",
+    "businessHint": "Ausrüstung und Bestände eines Teams oder einer Firma.",
+    "noPayment": "Diese Wahl ändert deinen Tarif nicht und löst keine Zahlung aus.",
+    "skip": "Später",
+    "saveFailed": "Deine Wahl konnte nicht gespeichert werden. Versuch es noch einmal.",
+    "settingsLabel": "Nutzung",
+    "notChosen": "Noch offen"
+  },
+  "formal": {
+    "home": {
+      "loading": "Sammlungen werden geladen…",
+      "deleteCollectionWithObjects_one": "Sie enthält {{count}} Objekt. Die Objekte bleiben in Ihrem Tiroir.",
+      "deleteCollectionWithObjects_other": "Sie enthält {{count}} Objekte. Die Objekte bleiben in Ihrem Tiroir."
+    },
+    "preferences": {
+      "regionHelp": "Die Region dient zur Wertschätzung Ihrer Objekte: Währung und lokale Angebote. Die Sprache bleibt unverändert."
+    },
+    "settings": {
+      "deleteHint": "Löscht Ihr Konto und alle Ihre Daten (Objekte, Fotos, Sammlungen) endgültig. Unwiderruflich."
+    },
+    "profileType": {
+      "noPayment": "Diese Wahl ändert Ihren Tarif nicht und löst keine Zahlung aus.",
+      "saveFailed": "Ihre Wahl konnte nicht gespeichert werden. Versuchen Sie es noch einmal."
+    }
   }
 }

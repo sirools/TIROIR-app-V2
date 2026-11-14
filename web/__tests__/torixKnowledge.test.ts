@@ -93,6 +93,9 @@ describe('les fiches suivent le code', () => {
     expect(model('estimate-value')).toBe('claude-sonnet-4-6')
     expect(model('enhance-object-photo')).toBe('gemini-2.5-flash-image')
     expect(byId('ia')).toContain('Sonnet 4.6 + recherche web')
+    // Essai sans compte : le modèle le moins cher, et la fiche le dit.
+    expect(model('trial-estimate')).toBe('claude-haiku-4-5')
+    expect(byId('ia')).toContain('essai sans compte')
   })
 
   test('prix des forfaits : une seule grille, la page la lit dans lib/offers.ts', () => {
