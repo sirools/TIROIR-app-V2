@@ -1,0 +1,124 @@
+{
+  "nom": "MOTION_V3_55s",
+  "largeur": 1920,
+  "hauteur": 1080,
+  "images_par_seconde": 25,
+  "duree": 55,
+  "conformer_la_cadence": true,
+
+  "dossiers": {
+    "plans": ["", "veo", "plans", "../../../motion-v3/veo"],
+    "ecrans": ["ecrans", "", "~/TORIX/motion-v3/ecrans"],
+    "assets": ["assets", ""],
+    "musique": ["", "assets", "~/TORIX/motion-v3"]
+  },
+
+  "couleurs": {
+    "orange": "#F26900",
+    "beige": "#FFF4E6",
+    "beige2": "#FFF8EF",
+    "ink": "#121212",
+    "muted": "#5B5B5B",
+    "white": "#FFFFFF"
+  },
+
+  "logo": { "fichier": "logo_tiroir.png", "flamme": "flamme_bleue.png" },
+
+  "musique": { "fichier": "musique.wav", "signature": 51, "drop_dans_le_fichier": null },
+
+  "ecran": { "largeur": 1170, "hauteur": 2532 },
+
+  "titre": { "x": 474, "y": 130 },
+  "sous_titres": { "largeur": 900, "taille": 40, "y": 940 },
+
+  "captures": {
+    "1": "01_capture_photo",
+    "2": "02_analyse_torix",
+    "3": "03_fiche_estimation",
+    "4": "04_collection_styliste",
+    "5": "05_partage_destinataire",
+    "6": "06_collection_videaste",
+    "7": "07_lien_mot_de_passe",
+    "8": "08_partage_protege",
+    "9": "09_collection_reparateur",
+    "10": "10_accueil"
+  },
+
+  "scenes": [
+    {
+      "id": "S01_chaos", "debut": 0, "fin": 4, "zoom": 3,
+      "elements": [
+        { "type": "plan", "id": "P01", "fichier": "P01_chaos.mp4", "debut": 0, "fin": 4, "entree": 0.5,
+          "ecrans": [ { "nom": "ECRAN_P01", "captures": [] } ] }
+      ]
+    },
+    {
+      "id": "S02_logo", "debut": 4, "fin": 8,
+      "elements": [
+        { "type": "logo", "debut": 4, "fin": 5.5 },
+        { "type": "plan", "id": "P02", "fichier": "P02_photo_rangee.mp4", "debut": 5.5, "fin": 8, "entree": 2.5,
+          "ecrans": [ { "nom": "ECRAN_P02", "captures": [1] } ] }
+      ]
+    },
+    {
+      "id": "S03_reparateur", "debut": 8, "fin": 18, "zoom": 3,
+      "elements": [
+        { "type": "plan", "id": "P03", "fichier": "P03_reparateur_photo.mp4", "debut": 8, "fin": 13, "entree": 0.5,
+          "ecrans": [ { "nom": "ECRAN_P03", "captures": [1] } ] },
+        { "type": "plan", "id": "P04", "fichier": "P04_reparateur_estimation.mp4", "debut": 13, "fin": 18, "entree": 0.5,
+          "ecrans": [ { "nom": "ECRAN_P04", "captures": [2, 3] } ] }
+      ]
+    },
+    {
+      "id": "S04_styliste", "debut": 18, "fin": 28, "zoom": 2,
+      "elements": [
+        { "type": "plan", "id": "P05", "fichier": "P05_styliste_portant.mp4", "debut": 18, "fin": 23, "entree": 0.5,
+          "ecrans": [ { "nom": "ECRAN_P05", "captures": [4] } ] },
+        { "type": "plan", "id": "P06", "fichier": "P06_production_valide.mp4", "debut": 23, "fin": 28, "entree": 0.5,
+          "ecrans": [ { "nom": "ECRAN_P06", "captures": [5] } ] }
+      ]
+    },
+    {
+      "id": "S05_videaste", "debut": 28, "fin": 36,
+      "elements": [
+        { "type": "plan", "id": "P07", "fichier": "P07_videaste.mp4", "debut": 28, "fin": 36, "entree": 0,
+          "ecrans": [ { "nom": "ECRAN_P07", "captures": [6, 7, 8] } ] }
+      ]
+    },
+    {
+      "id": "S06b_dialogue", "debut": 36, "fin": 46,
+      "elements": [
+        { "type": "plan", "id": "P08", "fichier": "P08_dialogue.mp4", "debut": 36, "fin": 43, "entree": 0.3 },
+        { "type": "plan", "id": "P09", "fichier": "P09_maintenant_tiroir.mp4", "debut": 43, "fin": 46, "entree": 2.5,
+          "ecrans": [
+            { "nom": "ECRAN_P09_reparateur", "captures": [9] },
+            { "nom": "ECRAN_P09_styliste", "captures": [4] },
+            { "nom": "ECRAN_P09_videaste", "captures": [6] }
+          ] }
+      ]
+    },
+    {
+      "id": "S06_trois_ecrans", "debut": 46, "fin": 51,
+      "elements": [
+        { "type": "plan", "id": "P10", "fichier": "P10_trois_telephones.mp4", "debut": 46, "fin": 51, "entree": 0.7,
+          "ecrans": [
+            { "nom": "ECRAN_P10_gauche", "captures": [9, 10] },
+            { "nom": "ECRAN_P10_centre", "captures": [4, 10] },
+            { "nom": "ECRAN_P10_droite", "captures": [6, 10] }
+          ] }
+      ]
+    },
+    {
+      "id": "S07_signature", "debut": 51, "fin": 55, "fondu": 0.3,
+      "elements": [
+        { "type": "signature", "debut": 51, "fin": 55 }
+      ]
+    }
+  ],
+
+  "rendus": {
+    "dossier": "rendus",
+    "principal": { "fichier": "tiroir-ulule-v3_1080p" },
+    "carre": { "nom": "MOTION_V3_carre_1080", "cote": 1080, "fichier": "tiroir-ulule-v3_carre" }
+  }
+}

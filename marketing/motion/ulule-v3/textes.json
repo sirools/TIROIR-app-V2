@@ -1,0 +1,41 @@
+{
+  "polices": { "titre": "Inter-Bold", "texte": "Inter-SemiBold" },
+
+  "titres": {
+    "S03_reparateur": "Le réparateur",
+    "S04_styliste": "La styliste",
+    "S05_videaste": "Le vidéaste"
+  },
+
+  "sous_titres": [
+    { "debut": 0.3, "fin": 3.7, "texte": "Vos infos sont partout." },
+    { "debut": 4.2, "fin": 7.8, "texte": "Tiroir : une photo par objet, et c'est rangé." },
+    { "debut": 8.3, "fin": 12.8, "texte": "Dans ces enceintes dorment des trésors." },
+    { "debut": 13.2, "fin": 17.7, "texte": "Torix les reconnaît et estime leur valeur." },
+    { "debut": 19.0, "fin": 23.0, "texte": "Une proposition impeccable," },
+    { "debut": 23.2, "fin": 27.5, "texte": "validée en un coup d'œil." },
+    { "debut": 28.5, "fin": 35.5, "texte": "Son matériel, ses devis, partagés en confiance." },
+    { "debut": 46.3, "fin": 50.7, "texte": "Trois métiers. Une seule app." },
+    { "debut": 51.3, "fin": 54.7, "texte": "Tiroir. Tout ce qui compte, dans une seule app. Soutenez-nous sur Ulule." }
+  ],
+
+  "bulles": [
+    { "scene": "S06b_dialogue", "qui": "reparateur", "debut": 0.3, "fin": 2.5,
+      "x": 450, "y": 640, "largeur": 420, "queue": "haut", "queue_x": 430,
+      "texte": "Mes pièces, c'était des cartons et des post-it." },
+    { "scene": "S06b_dialogue", "qui": "styliste", "debut": 2.5, "fin": 4.7,
+      "x": 960, "y": 640, "largeur": 420, "queue": "haut", "queue_x": 970,
+      "texte": "Moi, des photos perdues dans trois messageries." },
+    { "scene": "S06b_dialogue", "qui": "videaste", "debut": 4.7, "fin": 6.9,
+      "x": 1470, "y": 640, "largeur": 420, "queue": "haut", "queue_x": 1480,
+      "texte": "Et moi, un tableur que personne ne lit." },
+    { "scene": "S06b_dialogue", "qui": "tous", "debut": 7.2, "fin": 9.9,
+      "x": 960, "y": 900, "largeur": 640, "gras": true, "taille": 40,
+      "texte": "Maintenant, c'est dans Tiroir." }
+  ],
+
+  "signature": {
+    "ligne": "Tiroir. Tout ce qui compte, dans une seule app.",
+    "bouton": "Soutenez-nous sur Ulule"
+  }
+}
