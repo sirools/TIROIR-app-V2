@@ -1,6 +1,6 @@
 import { LOCALES, localeUrl, type Locale } from '../../lib/localeRouting'
 
-const SITE = 'https://tiroir.app'
+const SITE = 'https://www.tiroir.app'
 
 /**
  * Adresse canonique et balises hreflang d'une page traduite dans les cinq
