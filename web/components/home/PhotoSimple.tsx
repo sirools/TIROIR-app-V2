@@ -47,7 +47,7 @@ export default function PhotoSimple() {
 
   const visuals = [
     <div className={s.psShot} key="shot">
-      <Image src={PHOTO} alt="" width={112} height={112} sizes="112px" />
+      <Image src={PHOTO} alt={t.shotAlt} width={112} height={112} sizes="112px" />
       <div className={s.psFinder}><i /><i /><i /><i /></div>
       <span className={s.psShutter} />
       <span className={s.psFlash} />

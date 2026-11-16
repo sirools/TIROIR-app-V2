@@ -21,7 +21,7 @@ export default function ForPros() {
           items={t.personas.map((p, i) => (
             <article className={`${s.card} ${s.persona}`}>
               <div className={s.vis}>
-                <Image className={s.personaImg} src={`/screens/chain/${IMAGES[i]}.png`} alt="" width={136} height={136} sizes="136px" />
+                <Image className={s.personaImg} src={`/screens/chain/${IMAGES[i]}.png`} alt={p.alt} width={136} height={136} sizes="136px" />
                 <span className={s.personaChip}>{fill(p.chip, { price: formatEur(1200, locale) })}</span>
               </div>
               <div className={s.cardBody}>

@@ -85,6 +85,7 @@ const de: Copy = {
         ],
         valueLabel: 'Geschätzter Wert',
       },
+      mediaAlt: 'Ein Smartphone in Form einer Kommode, deren Schubladen sich nacheinander öffnen',
     },
     photo: {
       title: 'Ein Foto. Das war’s.',
@@ -122,6 +123,7 @@ const de: Copy = {
       },
       reassure: 'Kostenlos, ohne Kreditkarte. {n} KI-Aktionen pro Monat inklusive.',
       cta: 'Kostenlos testen',
+      shotAlt: 'Foto einer Jeansjacke, aufgenommen mit Tiroir',
     },
     pros: {
       eyebrow: 'Für Kreative und Profis',
@@ -132,21 +134,25 @@ const de: Copy = {
           who: 'Stylistin',
           text: 'Jedes Teil fotografiert und nach Shooting sortiert. Du weißt, was rausging und was zurückkam.',
           chip: 'Verliehen · zurück am Freitag',
+          alt: 'Gefaltete Jeansjacke',
         },
         {
           who: 'Aufnahmeleiter',
           text: 'Die Technik vor dem Dreh erfasst, nach der Rückgabe geprüft. Der ganze Bestand passt in deine Hosentasche.',
           chip: '42 Teile · 3 verliehen',
+          alt: 'Analoge Kamera',
         },
         {
           who: 'Trödelhändler',
           text: 'Ein ganzer Stand in einer Sitzung erfasst, dank Serienmodus – mit Startpreis für jedes Stück.',
           chip: 'Serie · 60 Objekte',
+          alt: 'Armbanduhr mit Lederarmband',
         },
         {
           who: 'Musiker',
           text: 'Instrumente und Zubehör dokumentiert, Rechnungen angehängt: bereit für Versicherung oder Verkauf.',
           chip: 'Wert ≈ {price}',
+          alt: 'Cremefarbene E-Gitarre',
         },
       ],
     },

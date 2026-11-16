@@ -1,0 +1,20 @@
+# Tiroir
+
+> Tiroir is an iOS and Android app that uses AI to identify, describe, organize, and estimate the value of photographed belongings. Learn how it works, who it serves, how estimates are produced, and what the plans include.
+
+Tiroir turns a photo into an editable object record with a name, category, condition, and estimated value. Users organize objects into collections, track their value, and share collections through read-only links. AI-generated details are suggestions; users’ corrections take precedence.
+
+## Core Content
+
+- [Tiroir — product overview](https://tiroir.app/): How photo-based object cataloging, AI-generated records, organization, and value estimates work.
+- [Pricing and plans](https://tiroir.app/pricing): Free, Premium, Pro, and Business plans, including their stated prices and features.
+
+## Apps
+
+- [Tiroir on the App Store](https://apps.apple.com/fr/app/tiroir/id6751784101): Download the iOS app.
+- [Tiroir on Google Play](https://play.google.com/store/apps/details?id=com.tiroir.app&hl=fr): Download the Android app.
+
+## Optional
+
+- [Home page FAQ](https://tiroir.app/): Answers questions about ease of use, correcting AI-generated records, photo privacy, and the limits of value estimates.
+- [Home page use cases](https://tiroir.app/): Examples for stylists, production managers, secondhand sellers, musicians, and personal household organization.
