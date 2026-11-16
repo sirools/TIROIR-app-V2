@@ -54,6 +54,7 @@ const de: Copy = {
     meta: {
       title: 'Tiroir — ein Foto, und alles ist erfasst',
       description: 'Fotografiere einen Gegenstand: Tiroir schreibt den Eintrag, ordnet ihn ein und schätzt seinen Wert. Für Kreative, Profis und alle, die wissen wollen, was sie besitzen.',
+      siteDescription: 'Fotografiere deine Gegenstände und lass Tiroir die Einträge schreiben, sie einordnen und ihren Wert schätzen.',
     },
     hero: {
       badge: 'Für iOS und Android',
