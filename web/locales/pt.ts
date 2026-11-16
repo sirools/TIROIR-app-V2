@@ -11,6 +11,7 @@ const pt: Copy = {
     download: 'Baixar o app',
     myProfile: 'Meu perfil',
     myAccount: 'Minha conta',
+    myCollections: 'Minhas coleções',
     myShares: 'Meus compartilhamentos',
     signOut: 'Sair',
     signUp: 'Criar conta',
@@ -30,6 +31,17 @@ const pt: Copy = {
     madeIn: 'Feito na França',
     contact: 'Contato',
     language: 'Idioma',
+    myTiroir: 'Meu Tiroir',
+    navHome: 'Início',
+    navCollections: 'Coleções',
+    navShares: 'Compartilhamentos',
+    navSales: 'Vendas',
+    appNav: 'Navegação do seu Tiroir',
+    accountMenu: 'Menu da conta',
+    menuProfile: 'Perfil',
+    menuSubscription: 'Assinatura',
+    menuSettings: 'Configurações',
+    backToSite: 'Site do Tiroir',
   },
   home: {
     meta: {
@@ -66,6 +78,7 @@ const pt: Copy = {
         ],
         valueLabel: 'Valor estimado',
       },
+      mediaAlt: 'Um celular em forma de cômoda, com as gavetas se abrindo uma após a outra',
     },
     photo: {
       title: 'Uma foto. Só isso.',
@@ -103,6 +116,7 @@ const pt: Copy = {
       },
       reassure: 'Grátis, sem cartão de crédito. {n} ações de IA por mês incluídas.',
       cta: 'Experimentar grátis',
+      shotAlt: 'Foto de uma jaqueta jeans tirada com o Tiroir',
     },
     creatives: {
       eyebrow: 'Para criativos',
@@ -273,6 +287,18 @@ const pt: Copy = {
     final: {
       title: 'Seu primeiro objeto, guardado com uma foto.',
       sub: 'Grátis, sem cartão de crédito.',
+    },
+    ululeInvite: {
+      label: 'Campanha no Ulule',
+      close: 'Fechar',
+      title: 'O Natal chega mais cedo',
+      textBefore: 'Em {date}, o Tiroir de famille estreia no Ulule: um mês antes do Natal, para dar ao Tiroir os meios de crescer.',
+      textLive: 'Até 15 de dezembro, apoie o Tiroir no Ulule com uma doação de qualquer valor. Um empurrãozinho antes do Natal.',
+      raised: '{amount} arrecadados',
+      next: 'Próxima meta: {amount}',
+      allReached: 'Todas as metas foram alcançadas. Obrigado!',
+      milestones: 'Metas',
+      cta: 'Ver a campanha',
     },
   },
   errors: {

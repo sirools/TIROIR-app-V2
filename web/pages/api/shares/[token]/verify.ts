@@ -34,9 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const isProd = process.env.NODE_ENV === 'production'
   const cookieName = makeCookieName(token)
-  const setAuthCookie = () => {
-    // Signé : exigé pour suggérer (écriture). Reste lisible par hasValidCookie.
-    res.setHeader('Set-Cookie', serialize(cookieName, signedCookieValue(token), {
+  const setAuthCookie = (passwordHash = '') => {
+    // Signé, et lié au mot de passe : en changer ferme les sessions ouvertes.
+    res.setHeader('Set-Cookie', serialize(cookieName, signedCookieValue(token, Date.now(), passwordHash), {
       httpOnly: true,
       sameSite: 'lax',
       secure: isProd,
@@ -59,6 +59,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Invalid password' })
   }
 
-  setAuthCookie()
+  setAuthCookie(validHash)
   return res.status(200).json({ ok: true })
 }

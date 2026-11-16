@@ -309,6 +309,7 @@
     "owned": "Owned",
     "stored": "Stored",
     "loaned": "Loaned",
+    "for_sale": "For sale",
     "sold": "Sold",
     "given": "Given",
     "lost": "Lost"
@@ -331,6 +332,8 @@
     "monthly": "Monthly",
     "annual": "Annual",
     "unavailable": "Subscriptions unavailable right now.",
+    "alreadySubscribedTitle": "You’re already subscribed",
+    "alreadySubscribedBody": "Your account already has an active subscription. Nothing to buy again here: credit packs are still available below.",
     "freeTrial": "✦ 7-day free trial",
     "perYear": " / year",
     "perMonth": " / month",
@@ -534,6 +537,7 @@
       "stored": "Stored",
       "owned": "In use",
       "loaned": "Loaned",
+      "for_sale": "For sale",
       "lost": "Lost",
       "sold": "For sale",
       "given": "To toss"

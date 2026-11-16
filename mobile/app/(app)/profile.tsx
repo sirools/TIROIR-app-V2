@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, ScrollView, AppState,
+  Alert, ActivityIndicator, AppState,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -13,7 +13,7 @@ import Purchases from 'react-native-purchases'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan, isProPlan, planLabelKey } from '@/lib/plan'
-import { Screen, Input, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { Screen, FormScrollView, Input, ActionSheet, Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { UserAvatar } from '@/components/ui/UserAvatar'
 import { AvatarViewer } from '@/components/ui/AvatarViewer'
 import { sumLots } from '@/features/objects/quantity'
@@ -242,7 +242,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <FormScrollView contentContainerStyle={styles.content}>
 
         {/* Avatar + nom + badge plan */}
         <View style={styles.avatarWrap}>
@@ -446,7 +446,7 @@ export default function ProfileScreen() {
             <Text style={styles.manageSubText}>{t('profile.manageSubscription')}</Text>
           </TouchableOpacity>
         ) : null}
-      </ScrollView>
+      </FormScrollView>
 
       <AvatarViewer
         visible={avatarViewer}

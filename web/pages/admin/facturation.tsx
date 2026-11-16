@@ -1,5 +1,8 @@
-// Back-office › Facturation : ce que Stripe encaisse (crédits du site,
-// factures Business), le MRR Business, une projection à date, et la
+// Back-office › Facturation : la santé des paiements (webhooks en échec,
+// paiements refusés, litiges : lib/stripe/health.ts), les abonnements réels par canal (site, iOS,
+// Play Store, Pro sur facture : lib/subscriptionRevenue.ts), ce que Stripe
+// encaisse (crédits du site, factures Business), le MRR Business, une
+// projection à date, et la
 // gestion des clients Business (création, démarrage de l'abonnement,
 // resynchronisation des sièges).
 //
@@ -19,6 +22,13 @@ import {
   billingLines, businessMrr, eurosFromCents, monthlyCollected, nextChristmas, projectRevenue,
   type BillingLine, type CreditPurchaseRow, type InvoiceRevenueRow, type Projection,
 } from '../../lib/revenue'
+import type { RevenueReport } from '../../lib/subscriptionRevenue'
+import { loadRevenueReport } from '../../lib/revenueLoad'
+import { disputeStatusLabel, type PaymentHealth } from '../../lib/stripe/health'
+import { loadPaymentHealth } from '../../lib/stripe/healthLoad'
+import { lastMonths, monthRange, vatByMonth, type VatMonth } from '../../lib/stripe/vatExport'
+import { fetchPaidInvoices } from '../../lib/stripe/vatLoad'
+import { stripeClient } from '../../lib/stripe/api'
 
 type OrgLine = {
   id: string; name: string; billing_email: string; subscription_status: string | null
@@ -33,11 +43,15 @@ type Props = {
   lines: BillingLine[]
   orgs: OrgLine[]
   thisMonth: number
+  revenue: RevenueReport
+  health: PaymentHealth
+  /** TVA collectée des 6 derniers mois (null : Stripe illisible ou non configuré). */
+  vat: VatMonth[] | null
 }
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 
-export default function Facturation({ stripeMode, mrr, months, projection, lines, orgs, thisMonth }: Props) {
+export default function Facturation({ stripeMode, mrr, months, projection, lines, orgs, thisMonth, revenue, health, vat }: Props) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
@@ -67,13 +81,125 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
         <h1 style={s.h1}>Facturation</h1>
         <p style={s.muted}>
           Stripe : <strong>{stripeMode === 'live' ? 'mode réel' : stripeMode === 'test' ? 'mode test' : 'non configuré'}</strong>.
-          Montants TTC, bruts (avant frais Stripe). Les achats faits dans l’app (stores) ne sont pas ici.
+          Abonnements : MRR hors taxes, tous canaux (site et stores). Business et encaissements : montants TTC
+          encaissés par Stripe, avant frais ; les achats faits dans l’app n’y sont pas.
         </p>
 
+        <h2 id="sante" style={s.h2}>Santé des paiements</h2>
+        {health.ok ? (
+          <p style={s.healthOk}>✓ Rien à signaler : aucun webhook en échec, aucun paiement refusé sur 30 jours, aucun litige ouvert, aucune facture en retard.</p>
+        ) : (
+          <>
+            {health.stripeUnavailable && <p style={s.healthKo}>Stripe n’a pas pu être lu : paiements refusés et litiges inconnus.</p>}
+            <section style={s.tiles}>
+              <Tile label="Webhooks en échec" value={String(health.webhooks.length)} hint="30 derniers jours" />
+              <Tile label="Paiements refusés" value={String(health.failedPayments.length)} hint="30 derniers jours" />
+              <Tile label="Litiges ouverts" value={String(health.openDisputes)} hint={`${health.disputes.length} sur 90 jours`} />
+              <Tile label="Factures en retard" value={String(health.overdueInvoices.length)} hint="paiement sur facture, échéance passée" />
+              {health.doubles.length > 0 && <Tile label="Abonnés deux fois" value={String(health.doubles.length)} hint="site et store en même temps" />}
+            </section>
+            {health.overdueInvoices.length > 0 && (
+              <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+                <table style={s.table}>
+                  <thead><tr><th style={s.th}>Facture</th><th style={s.th}>Client</th><th style={s.thR}>Reste dû</th><th style={s.th}>Échéance</th><th style={s.thR}>Retard</th></tr></thead>
+                  <tbody>
+                    {health.overdueInvoices.slice(0, 20).map(i => (
+                      <tr key={i.id}>
+                        <td style={s.td}>{i.url ? <a href={i.url} target="_blank" rel="noreferrer">{i.number ?? i.id}</a> : (i.number ?? i.id)}</td>
+                        <td style={s.td}>{i.email ?? '—'}</td>
+                        <td style={s.tdR}>{eurosFromCents(i.amount)}</td>
+                        <td style={s.td}>{fmtDate(i.dueAt)}</td>
+                        <td style={s.tdR}>{i.daysLate} j</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {health.doubles.length > 0 && (
+              <p style={s.healthKo}>
+                {health.doubles.length} compte{health.doubles.length > 1 ? 's' : ''} abonné{health.doubles.length > 1 ? 's' : ''} à la fois sur le site et dans un store : à rembourser ou résilier d’un côté.
+                {' '}({health.doubles.map(d => `${d.userId.slice(0, 8)}… : ${d.sources.join(' + ')}`).join(' ; ')})
+              </p>
+            )}
+            {health.webhooks.length > 0 && (
+              <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+                <table style={s.table}>
+                  <thead><tr><th style={s.th}>Reçu</th><th style={s.th}>Événement</th><th style={s.th}>Problème</th></tr></thead>
+                  <tbody>
+                    {health.webhooks.slice(0, 20).map(w => (
+                      <tr key={w.id}><td style={s.td}>{fmtDate(w.at)}</td><td style={s.td}>{w.type}<br /><code style={s.code}>{w.id}</code></td><td style={s.td}>{w.problem}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {health.failedPayments.length > 0 && (
+              <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+                <table style={s.table}>
+                  <thead><tr><th style={s.th}>Date</th><th style={s.th}>Client</th><th style={s.thR}>Montant</th><th style={s.th}>Raison</th></tr></thead>
+                  <tbody>
+                    {health.failedPayments.slice(0, 20).map(f => (
+                      <tr key={f.id}><td style={s.td}>{fmtDate(f.at)}</td><td style={s.td}>{f.email ?? '—'}</td><td style={s.tdR}>{eurosFromCents(f.amount)}</td><td style={s.td}>{f.reason}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {health.disputes.length > 0 && (
+              <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+                <table style={s.table}>
+                  <thead><tr><th style={s.th}>Ouvert le</th><th style={s.thR}>Montant</th><th style={s.th}>Motif</th><th style={s.th}>Statut</th><th style={s.th}>Répondre avant</th></tr></thead>
+                  <tbody>
+                    {health.disputes.slice(0, 20).map(d => (
+                      <tr key={d.id}><td style={s.td}>{fmtDate(d.at)}</td><td style={s.tdR}>{eurosFromCents(d.amount)}</td><td style={s.td}>{d.reason}</td><td style={s.td}>{disputeStatusLabel(d.status)}</td><td style={s.td}>{d.dueBy ? fmtDate(d.dueBy) : '—'}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <p style={s.muted}>Litiges et paiements refusés : à traiter dans le tableau de bord Stripe. Un webhook en échec se rejoue depuis Stripe (Développeurs › Webhooks).</p>
+          </>
+        )}
+
+        <h2 style={s.h2}>Abonnements</h2>
+        <section style={s.tiles}>
+          <Tile label="MRR abonnements (HT)" value={eurosFromCents(revenue.mrrHt)}
+            hint={revenue.mrrHtEstimated > 0 ? `dont ${eurosFromCents(revenue.mrrHtEstimated)} estimés (stores)` : undefined} />
+          <Tile label="Abonnés payants" value={String(revenue.subscribers.total)}
+            hint={`${revenue.subscribers.premium} Premium · ${revenue.subscribers.pro} Pro`} />
+          <Tile label="Résiliations" value={String(revenue.churn.ended30d)}
+            hint={`terminées sur 30 j · ${revenue.churn.scheduled} programmée${revenue.churn.scheduled > 1 ? 's' : ''}`} />
+          <Tile label={`Crédits vendus (${revenue.credits.month})`} value={eurosFromCents(revenue.credits.site.ttc + revenue.credits.app.ttc)}
+            hint={`site ${revenue.credits.site.count} achat${revenue.credits.site.count > 1 ? 's' : ''} · ${eurosFromCents(revenue.credits.site.ttc)} — app ${revenue.credits.app.count} · ≈ ${eurosFromCents(revenue.credits.app.ttc)} (TTC)`} />
+        </section>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={s.table}>
+            <thead><tr><th style={s.th}>Canal</th><th style={s.thR}>Premium</th><th style={s.thR}>Pro</th><th style={s.thR}>MRR HT</th></tr></thead>
+            <tbody>
+              {revenue.channels.length === 0 && <tr><td style={s.td} colSpan={4}>Aucun abonné payant.</td></tr>}
+              {revenue.channels.map(c => (
+                <tr key={c.channel}>
+                  <td style={s.td}>{c.label}</td>
+                  <td style={s.tdR}>{c.premium}</td>
+                  <td style={s.tdR}>{c.pro}</td>
+                  <td style={s.tdR}>{c.mrrHt === null ? 'hors Stripe' : `${c.estimated ? '≈ ' : ''}${eurosFromCents(c.mrrHt)}`}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p style={s.muted}>
+          MRR hors taxes à la grille du site (annuel ramené au mois). Stores : estimation avant commission d’Apple / Google ;
+          le magasin exact n’est connu que pour les abonnements enregistrés depuis le 08/11/2026.
+          Les crédits de l’app sont estimés au prix des packs.
+        </p>
+
+        <h2 style={s.h2}>Business et encaissements</h2>
         <section style={s.tiles}>
           <Tile label="MRR Business" value={eurosFromCents(mrr)} />
           <Tile label={`Projection d’ici le ${fmtDate(projection.target)}`} value={eurosFromCents(projection.total)}
-            hint={`Business ${eurosFromCents(projection.business)} · crédits ${eurosFromCents(projection.credits)} · à encaisser ${eurosFromCents(projection.outstanding)} · ${projection.days} j`} />
+            hint={`abonnements ${eurosFromCents(projection.subscriptions)} HT · Business ${eurosFromCents(projection.business)} · crédits ${eurosFromCents(projection.credits)} · à encaisser ${eurosFromCents(projection.outstanding)} · ${projection.days} j`} />
           <Tile label="Encaissé ce mois-ci" value={eurosFromCents(thisMonth)} />
         </section>
         <form style={s.inline} onSubmit={e => { e.preventDefault(); const v = (e.currentTarget.elements.namedItem('jusqua') as HTMLInputElement).value; router.push({ query: v ? { jusqua: v } : {} }) }}>
@@ -81,7 +207,7 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
           <input type="date" name="jusqua" defaultValue={projection.target} style={s.input} />
           <button type="submit" style={s.btnGhost}>Recalculer</button>
         </form>
-        <p style={s.muted}>Projection sans croissance : MRR actuel prolongé, crédits au rythme moyen des 90 derniers jours, factures ouvertes encaissées.</p>
+        <p style={s.muted}>Projection sans croissance : MRR des abonnements (HT, stores estimés) et MRR Business prolongés ; crédits du site au rythme moyen des 90 derniers jours, jamais calculé sur moins de 30 jours ; factures ouvertes encaissées.</p>
 
         <h2 style={s.h2}>Par mois</h2>
         <table style={s.table}>
@@ -94,11 +220,33 @@ export default function Facturation({ stripeMode, mrr, months, projection, lines
           </tbody>
         </table>
 
-        <h2 style={s.h2}>Export TVA</h2>
+        <h2 style={s.h2}>TVA collectée</h2>
         <p style={s.muted}>
-          Factures Stripe payées dans le mois (abonnements, crédits, Business) avec HT, TVA et TTC, pour la déclaration.
+          Factures Stripe payées dans le mois (abonnements, crédits, Business) : la TVA est due à l’encaissement.
           Les ventes des stores n’y sont pas : Apple et Google reversent eux-mêmes la TVA.
         </p>
+        {vat === null ? (
+          <p style={s.healthKo}>Stripe n’a pas pu être lu : la TVA du mois n’est pas affichée (l’export reste possible).</p>
+        ) : (
+          <div style={{ overflowX: 'auto', margin: '8px 0 12px' }}>
+            <table style={s.table}>
+              <thead><tr><th style={s.th}>Mois</th><th style={s.thR}>Factures</th><th style={s.thR}>HT</th><th style={s.thR}>TVA</th><th style={s.thR}>TTC</th><th style={s.th}>Export</th></tr></thead>
+              <tbody>
+                {vat.map(m => (
+                  <tr key={m.month}>
+                    <td style={s.td}>{m.month}</td>
+                    <td style={s.tdR}>{m.invoices}</td>
+                    <td style={s.tdR}>{eurosFromCents(Math.round(m.ht * 100))}</td>
+                    <td style={{ ...s.tdR, fontWeight: 700 }}>{eurosFromCents(Math.round(m.vat * 100))}</td>
+                    <td style={s.tdR}>{eurosFromCents(Math.round(m.ttc * 100))}</td>
+                    <td style={s.td}>{m.invoices > 0 ? <a href={`/api/admin/vat-export?month=${m.month}`}>CSV</a> : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p style={s.muted}>Autre mois :</p>
         <form method="get" action="/api/admin/vat-export" style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '8px 0 24px' }}>
           <input type="month" name="month" required defaultValue={new Date().toISOString().slice(0, 7)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.15)' }} />
           <button type="submit" style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: 'var(--orange)', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Télécharger le CSV</button>
@@ -183,6 +331,21 @@ function Tile({ label, value, hint }: { label: string; value: string; hint?: str
   )
 }
 
+/** TVA collectée des 6 derniers mois, lue chez Stripe ; null si Stripe est illisible. */
+async function loadVat(now: Date): Promise<VatMonth[] | null> {
+  const env = stripeEnv()
+  if (!env) return null
+  const months = lastMonths(now, 6)
+  const from = monthRange(months[months.length - 1])!.start
+  const to = monthRange(months[0])!.end
+  try {
+    return vatByMonth(await fetchPaidInvoices(stripeClient(env), from, to, 20), months)
+  } catch (e) {
+    console.error('[facturation] TVA', (e as Error).message)
+    return null
+  }
+}
+
 export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
   const guard = await requireAdminPage(ctx)
   if (!guard.ok) return guard.result
@@ -212,15 +375,19 @@ export const getServerSideProps: GetServerSideProps<Props> = async ctx => {
   const asked = typeof ctx.query.jusqua === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ctx.query.jusqua) ? new Date(`${ctx.query.jusqua}T00:00:00Z`) : null
   const mrr = businessMrr(orgRows)
   const months = monthlyCollected(creditRows, invoiceRows)
+  const [revenue, health, vat] = await Promise.all([loadRevenueReport(db, now), loadPaymentHealth(db, now), loadVat(now)])
 
   return {
     props: {
       adminNav: adminNavFor(guard.user, guard.isAdmin),
       stripeMode: stripeEnv()?.mode ?? null,
+      revenue,
+      health,
+      vat,
       mrr,
       months,
       thisMonth: months.find(m => m.month === now.toISOString().slice(0, 7))?.total ?? 0,
-      projection: projectRevenue({ now, target: asked ?? nextChristmas(now), mrr, purchases: creditRows, invoices: invoiceRows }),
+      projection: projectRevenue({ now, target: asked ?? nextChristmas(now), mrr, subscriptionsMrr: revenue.mrrHt, purchases: creditRows, invoices: invoiceRows }),
       lines: billingLines(creditRows, invoiceRows).slice(0, 300),
       orgs: orgRows.map(o => ({
         id: o.id, name: o.name, billing_email: o.billing_email, subscription_status: o.subscription_status,
@@ -237,6 +404,9 @@ const s: Record<string, React.CSSProperties> = {
   h2:        { fontSize: 20, fontWeight: 800, color: 'var(--ink)', margin: '32px 0 12px' },
   h3:        { fontSize: 16, fontWeight: 700, color: 'var(--ink)', margin: '24px 0 10px' },
   muted:     { fontSize: 13, color: 'var(--muted)' },
+  healthOk:  { fontSize: 14, color: 'var(--ink)', background: 'var(--white)', border: '1px solid var(--border-light)', borderRadius: 10, padding: '10px 14px' },
+  healthKo:  { fontSize: 14, fontWeight: 700, color: '#C0392B', margin: '0 0 12px' },
+  code:      { fontSize: 11, color: 'var(--muted)' },
   tiles:     { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, margin: '20px 0 12px' },
   tile:      { background: 'var(--white)', border: '1px solid var(--border-light)', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 4 },
   tileLabel: { fontSize: 12, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' },

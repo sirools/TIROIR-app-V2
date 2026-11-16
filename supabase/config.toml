@@ -11,3 +11,10 @@ verify_jwt = false
 # se fait par signature Svix, verifiee dans la fonction.
 [functions.resend-webhook]
 verify_jwt = false
+
+# RevenueCat n'envoie pas de JWT Supabase. Avec la verification JWT, il
+# fallait mettre un JWT (la cle anon, publique) comme secret du webhook :
+# n'importe qui pouvait alors forger un achat. L'authentification se fait
+# par secret partage, long et aleatoire (_shared/webhookAuth.ts).
+[functions.revenuecat-webhook]
+verify_jwt = false

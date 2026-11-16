@@ -1,0 +1,62 @@
+-- Retour arrière de stripe_end_keeps_store.sql : remet apply_stripe_subscription
+-- exactement comme en prod le 09/11/2026 avant le script (définition relue en
+-- prod par pg_get_functiondef, md5 31a5bb8994e715da76c9872f4361372e ; seuls
+-- les commentaires diffèrent de supabase/migrations/20261108130727_stripe_subscriptions.sql).
+-- Non destructif, rejouable. À n'exécuter qu'en cas de problème après le script.
+CREATE OR REPLACE FUNCTION public.apply_stripe_subscription(p_user_id uuid, p_customer_id text, p_subscription_id text, p_plan text, p_status text, p_period_end timestamp with time zone, p_cancel_at_period_end boolean, p_livemode boolean, p_period text DEFAULT NULL::text)
+ RETURNS text
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'pg_catalog', 'public'
+AS $function$
+DECLARE
+  p        public.profiles%ROWTYPE;
+  v_live   BOOLEAN := p_status IN ('active', 'trialing', 'past_due');
+  v_kept   BOOLEAN;
+BEGIN
+  IF p_plan NOT IN ('premium', 'pro') THEN RAISE EXCEPTION 'Palier invalide : %', p_plan; END IF;
+  SELECT * INTO p FROM public.profiles WHERE id = p_user_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN 'ignoré (compte inconnu)'; END IF;
+
+  INSERT INTO public.subscriptions (user_id, source, external_id, tier, period, status, current_period_end, cancel_at_period_end)
+  VALUES (p_user_id, 'stripe', p_subscription_id, p_plan, p_period, p_status, p_period_end, COALESCE(p_cancel_at_period_end, false))
+  ON CONFLICT (source, external_id) DO UPDATE SET
+    tier = EXCLUDED.tier, period = COALESCE(EXCLUDED.period, subscriptions.period), status = EXCLUDED.status,
+    current_period_end = EXCLUDED.current_period_end, cancel_at_period_end = EXCLUDED.cancel_at_period_end,
+    user_id = EXCLUDED.user_id, updated_at = now();
+
+  IF NOT v_live AND p.stripe_subscription_id IS NOT NULL AND p.stripe_subscription_id <> p_subscription_id
+     AND p.subscription_status IN ('active', 'trialing', 'past_due') THEN
+    RETURN 'ignoré (ancien abonnement)';
+  END IF;
+
+  v_kept := p.pro_invoice_ref IS NOT NULL AND public.effective_plan(p.plan, p.pro_expires_at) = 'pro';
+
+  UPDATE public.profiles SET
+    stripe_customer_id                = COALESCE(p_customer_id, stripe_customer_id),
+    stripe_livemode                   = p_livemode,
+    stripe_subscription_id            = p_subscription_id,
+    subscription_status               = p_status,
+    subscription_period_end           = p_period_end,
+    subscription_cancel_at_period_end = COALESCE(p_cancel_at_period_end, false)
+  WHERE id = p_user_id;
+
+  IF v_live THEN
+    IF v_kept THEN RETURN 'abonnement noté, Pro existant gardé'; END IF;
+    UPDATE public.profiles SET
+      plan = p_plan, plan_source = 'web',
+      pro_since = NULL, pro_expires_at = NULL, pro_invoice_ref = NULL, pro_company = NULL
+    WHERE id = p_user_id
+      AND (plan IS DISTINCT FROM p_plan OR plan_source IS DISTINCT FROM 'web' OR pro_expires_at IS NOT NULL OR pro_invoice_ref IS NOT NULL);
+    RETURN p_plan || ' (' || p_status || ')';
+  END IF;
+
+  IF p.plan_source = 'web' AND NOT v_kept THEN
+    UPDATE public.profiles SET plan = 'free', plan_source = NULL WHERE id = p_user_id;
+    RETURN 'gratuit (' || p_status || ')';
+  END IF;
+  RETURN 'abonnement ' || p_status || ', palier inchangé';
+END;
+$function$;
+REVOKE EXECUTE ON FUNCTION public.apply_stripe_subscription(UUID, TEXT, TEXT, TEXT, TEXT, TIMESTAMPTZ, BOOLEAN, BOOLEAN, TEXT)
+  FROM PUBLIC, anon, authenticated;

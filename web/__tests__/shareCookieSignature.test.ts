@@ -23,6 +23,24 @@ describe('cookie de partage signé', () => {
     expect(isSignedCookieValid('abc123', signedCookieValue('abc123', old))).toBe(false)
   })
 
+  test('changer le mot de passe ferme les sessions ouvertes avec l’ancien', () => {
+    const avant = signedCookieValue('abc123', Date.now(), 'empreinte-1')
+    expect(isSignedCookieValid('abc123', avant, Date.now(), 'empreinte-1')).toBe(true)
+    expect(isSignedCookieValid('abc123', avant, Date.now(), 'empreinte-2')).toBe(false)
+  })
+
+  test('un cookie posé sans mot de passe n’ouvre pas un partage qui en a reçu un', () => {
+    const sans = signedCookieValue('abc123')
+    expect(isSignedCookieValid('abc123', sans, Date.now(), 'empreinte-1')).toBe(false)
+    expect(isSignedCookieValid('abc123', signedCookieValue('abc123', Date.now(), 'empreinte-1'))).toBe(false)
+  })
+
+  test('sans mot de passe, la signature est celle d’avant', () => {
+    const now = Date.now()
+    expect(signedCookieValue('abc123', now, null)).toBe(signedCookieValue('abc123', now))
+    expect(signedCookieValue('abc123', now, '')).toBe(signedCookieValue('abc123', now))
+  })
+
   test('le nouveau format reste lisible par la vérification de lecture', () => {
     const ctx = { req: { headers: { cookie: `tiroir_share_abc123=${signedCookieValue('abc123')}` } } }
     expect(hasValidCookie('abc123', ctx as any)).toBe(true)

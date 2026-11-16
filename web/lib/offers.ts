@@ -7,7 +7,7 @@
 // Les packs doivent rester ceux que l'app vend et que le webhook crédite
 // (`mobile/src/lib/creditPacks.ts`, `supabase/functions/_shared/
 // storeProducts.ts`), et le coût d'un crédit celui de `ai_credit_cost`
-// (`supabase/drafts/ai_credits_spend.sql`) : des tests le vérifient.
+// (`supabase/migrations/20261108143238_ai_credits_spend.sql`) : des tests le vérifient.
 
 // Le site vend ces packs et le siège Business par Stripe à partir de cette
 // grille (lib/stripeConfig.ts) ; paiement fermé tant que STRIPE_MODE et la

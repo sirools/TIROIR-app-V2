@@ -315,6 +315,11 @@ export interface CheckoutConsentTexts {
 export const CHECKOUT_TEXTS: Partial<Record<string, CheckoutConsentTexts>> = ${JSON.stringify(checkout, null, 2)}
 `])
 
+  // Campagne Ulule : e-mails envoyés par le site, en français seulement.
+  out.push(['web/locales/ulule.generated.ts', `// ${header('email/ (section ulule)')}
+export const ULULE_EMAIL_TEXTS = ${JSON.stringify(all.fr.ulule, null, 2)} as const
+`])
+
   // Présentation : gabarit sans texte + textes de chaque langue.
   const layoutFile = 'marketing/emails/gabarits/presentation.html'
   const layout = readFileSync(join(root, layoutFile), 'utf8')

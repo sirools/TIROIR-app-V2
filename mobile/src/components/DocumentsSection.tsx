@@ -10,7 +10,7 @@ import { decode } from 'base64-arraybuffer'
 import { useTranslation } from 'react-i18next'
 import { FileText, Plus, Trash2 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
-import { Colors, Typography, Spacing, Radius, ActionSheet } from '@/components/ui'
+import { Colors, Typography, Spacing, Radius, ActionSheet, FormSheet } from '@/components/ui'
 import { DocumentViewer } from './DocumentViewer'
 
 export interface ObjectDocument {
@@ -256,47 +256,45 @@ export function DocumentsSection({ objectId, documents, onDocumentsChange }: Doc
       />
 
       {/* Choix du type — apparaît juste après l'upload */}
-      <Modal visible={!!pendingDoc} transparent animationType="fade">
-        <View style={s.typeBackdrop}>
-          <View style={s.typeSheet}>
-            <Text style={s.typeTitle}>{t('documents.typeTitle')}</Text>
-            <View style={s.typeChips}>
-              {DOC_TYPES.map(dt => (
-                <TouchableOpacity
-                  key={dt.key}
-                  style={[s.typeChip, dt.key === 'autre' && customMode && s.typeChipActive]}
-                  onPress={() => dt.key === 'autre' ? setCustomMode(true) : confirmType(dt.key)}
-                  activeOpacity={0.75}
-                >
-                  <Text style={[s.typeChipText, dt.key === 'autre' && customMode && s.typeChipTextActive]}>{t(dt.labelKey)}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            {customMode && (
-              <>
-                <TextInput
-                  style={s.typeInput}
-                  placeholder={t('documents.customLabel')}
-                  placeholderTextColor={Colors.textTertiary}
-                  value={pendingLabel}
-                  onChangeText={setPendingLabel}
-                  autoFocus
-                  returnKeyType="done"
-                  onSubmitEditing={() => confirmType('autre')}
-                />
-                <TouchableOpacity
-                  style={[s.typeConfirm, !pendingLabel.trim() && s.typeConfirmDisabled]}
-                  onPress={() => confirmType('autre')}
-                  disabled={!pendingLabel.trim()}
-                  activeOpacity={0.85}
-                >
-                  <Text style={s.typeConfirmText}>{t('documents.validate')}</Text>
-                </TouchableOpacity>
-              </>
-            )}
+      <FormSheet visible={!!pendingDoc} animationType="fade" placement="center" containerStyle={s.typeBackdrop}>
+        <View style={s.typeSheet}>
+          <Text style={s.typeTitle}>{t('documents.typeTitle')}</Text>
+          <View style={s.typeChips}>
+            {DOC_TYPES.map(dt => (
+              <TouchableOpacity
+                key={dt.key}
+                style={[s.typeChip, dt.key === 'autre' && customMode && s.typeChipActive]}
+                onPress={() => dt.key === 'autre' ? setCustomMode(true) : confirmType(dt.key)}
+                activeOpacity={0.75}
+              >
+                <Text style={[s.typeChipText, dt.key === 'autre' && customMode && s.typeChipTextActive]}>{t(dt.labelKey)}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
+          {customMode && (
+            <>
+              <TextInput
+                style={s.typeInput}
+                placeholder={t('documents.customLabel')}
+                placeholderTextColor={Colors.textTertiary}
+                value={pendingLabel}
+                onChangeText={setPendingLabel}
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={() => confirmType('autre')}
+              />
+              <TouchableOpacity
+                style={[s.typeConfirm, !pendingLabel.trim() && s.typeConfirmDisabled]}
+                onPress={() => confirmType('autre')}
+                disabled={!pendingLabel.trim()}
+                activeOpacity={0.85}
+              >
+                <Text style={s.typeConfirmText}>{t('documents.validate')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
-      </Modal>
+      </FormSheet>
 
       {/* Confirm suppression */}
       <Modal visible={!!deleteTarget} transparent animationType="fade" onRequestClose={() => setDeleteTarget(null)}>
@@ -370,9 +368,8 @@ const s = StyleSheet.create({
   },
   addCtaText: { fontSize: Typography.sm, color: Colors.accent, fontWeight: Typography.semibold },
 
-  typeBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.4)' },
+  typeBackdrop: { backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: Spacing.lg },
   typeSheet: {
-    position: 'absolute', left: Spacing.lg, right: Spacing.lg, top: '30%',
     backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.lg, gap: Spacing.md,
   },
   typeTitle: { fontSize: Typography.md, fontWeight: Typography.bold, color: Colors.textPrimary },

@@ -114,6 +114,25 @@ export function nextPlan(
   return null
 }
 
+/**
+ * Achat ou renouvellement des stores pris alors que le compte est déjà
+ * payé ailleurs (abonnement du site en cours, Pro sur facture en cours) :
+ * nextPlan l'ignore, le client paie donc deux fois. Renvoie l'autre source
+ * pour le signaler dans activity_log (purchase.duplicate), sinon null.
+ */
+export function duplicateSubscription(
+  event: StoreEvent,
+  profile: CurrentProfile,
+  today: string = new Date().toISOString().slice(0, 10),
+): 'web' | 'invoice' | null {
+  if (!ACTIVE_EVENTS.has(event.type) || event.type === 'TRANSFER') return null
+  const product = event.type === 'PRODUCT_CHANGE' ? event.new_product_id ?? event.product_id : event.product_id
+  if (!tierForProduct(product)) return null
+  if (hasLiveWebSubscription(profile)) return 'web'
+  if (isInvoicedPro(profile, today)) return 'invoice'
+  return null
+}
+
 /** Ligne du journal public.subscriptions pour un événement RevenueCat, ou null. */
 export type StoreSubscriptionRow = {
   source: 'apple' | 'google'

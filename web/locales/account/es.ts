@@ -205,6 +205,15 @@ const accountEs: AccountCopy = {
     save: 'Guardar',
     passwordRequired: 'Indica una contraseña (mínimo 4 caracteres) para hacerlo privado.',
     saveError: 'No se han podido guardar los cambios. Inténtalo de nuevo.',
+    filterLabel: 'Mostrar',
+    filterActive: 'Activos ({n})',
+    filterHistory: 'Archivados y caducados ({n})',
+    noActive: 'Ningún enlace activo. Los archivados o caducados están en la otra pestaña.',
+    opensOne: '{n} apertura',
+    opensOther: '{n} aperturas',
+    expiresOn: 'Caduca el {date}',
+    copyLink: 'Copiar el enlace',
+    copied: 'Enlace copiado',
   },
   errors: {
     invalidCredentials: 'Correo o contraseña incorrectos. ¿Aún no tienes cuenta de Tiroir? Se crea en un minuto.',
@@ -223,6 +232,12 @@ const accountEs: AccountCopy = {
     linkingDisabled: 'Primero hay que activar la vinculación de cuentas en Supabase (Authentication → «Allow manual linking»).',
     identityTaken: 'Esta cuenta ya está vinculada a otra cuenta de Tiroir. Inicia sesión con ella, elimina esa segunda cuenta o escribe a support@tiroir.app.',
     lastIdentity: 'No puedes desvincular tu último método de inicio de sesión: añade otro primero.',
+  },
+  campaign: {
+    metaTitle: 'Tiroir de famille — Próximamente',
+    title: 'Nos vemos el {date}',
+    text: 'La campaña Tiroir de famille aún no está abierta. Este enlace te llevará allí desde el primer día.',
+    home: 'Descubrir Tiroir',
   },
 }
 

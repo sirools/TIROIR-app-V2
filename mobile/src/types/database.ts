@@ -1,7 +1,7 @@
 // Types TypeScript alignés sur le schéma Supabase V2
 // Généré manuellement — tenir synchronisé avec les migrations
 
-export type ObjectStatus = 'owned' | 'stored' | 'loaned' | 'sold' | 'given' | 'lost'
+export type ObjectStatus = 'owned' | 'stored' | 'loaned' | 'for_sale' | 'sold' | 'given' | 'lost'
 export type DraftStatus = 'uploading' | 'pending' | 'confirmed' | 'rejected' | 'expired'
 export type MessageRole = 'user' | 'assistant' | 'tool_call' | 'tool_result'
 export type ProposalStatus = 'pending' | 'confirmed' | 'rejected'
@@ -19,6 +19,10 @@ export interface Profile {
   pro_expires_at: string | null
   pro_invoice_ref: string | null
   pro_company: string | null
+  /** Origine du palier payant : 'web' (Stripe, site), 'app' (stores), null (offert, sur facture ou ancien). */
+  plan_source?: 'web' | 'app' | null
+  /** Statut Stripe de l'abonnement du site (active, past_due, canceled…). */
+  subscription_status?: string | null
   created_at: string
   updated_at: string
 }

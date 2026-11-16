@@ -3,7 +3,9 @@ import Head from 'next/head'
 import { useEffect, useRef, useState } from 'react'
 import { supabase, serverSupabase, signOutEverywhere } from '../lib/supabase'
 import { uploadAvatar, removeAvatar } from '../lib/avatar'
-import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
+import PersonaSelect from '../components/account/PersonaSelect'
+import { isPersona } from '../lib/personas'
+import HeaderApp from '../components/layout/HeaderApp'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { asLocale, localePrefix } from '../lib/localeRouting'
 import { intlLocale, useCopy } from '../locales'
@@ -17,11 +19,13 @@ interface Props {
   avatarUrl: string | null
   /** Photo choisie par l'utilisateur, chemin dans object-images. */
   avatarPath: string | null
+  /** Profil choisi à l'inscription (web/lib/personas.ts), ou null. */
+  persona: string | null
   memberSince: string | null
 }
 
-export default function Profil({ userId, email, displayName, avatarUrl, avatarPath, memberSince }: Props) {
-  const { t: { account: { profile: t } }, locale } = useCopy()
+export default function Profil({ userId, email, displayName, avatarUrl, avatarPath, memberSince, persona: initialPersona }: Props) {
+  const { t: { account: { profile: t }, inventory: { persona: tp } }, locale } = useCopy()
   const [name, setName] = useState(displayName)
   const [savedName, setSavedName] = useState(displayName)
   const [saving, setSaving] = useState(false)
@@ -29,6 +33,10 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
   const [error, setError] = useState<ProfileError | null>(null)
   const [photoUrl, setPhotoUrl] = useState(avatarUrl)
   const [photoPath, setPhotoPath] = useState(avatarPath)
+  const [persona, setPersona] = useState(initialPersona ?? '')
+  const [savedPersona, setSavedPersona] = useState(initialPersona ?? '')
+  const [personaSaving, setPersonaSaving] = useState(false)
+  const [personaState, setPersonaState] = useState<'saved' | 'failed' | null>(null)
   const [photoBusy, setPhotoBusy] = useState(false)
   const [photoError, setPhotoError] = useState<ProfileError | null>(null)
   const [viewerOpen, setViewerOpen] = useState(false)
@@ -79,6 +87,20 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
     )
   }
 
+  async function handlePersona() {
+    if (!isPersona(persona) || personaSaving) return
+    setPersonaSaving(true)
+    setPersonaState(null)
+    const { error: updateError } = await supabase.from('profiles').update({ persona }).eq('id', userId)
+    setPersonaSaving(false)
+    if (updateError) {
+      setPersonaState('failed')
+      return
+    }
+    setSavedPersona(persona)
+    setPersonaState('saved')
+  }
+
   async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ''
@@ -124,7 +146,7 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
         <meta name="robots" content="noindex" />
       </Head>
 
-      <HeaderTiroirWeb />
+      <HeaderApp />
 
       <main className="main">
         <div className="page-hero">
@@ -210,6 +232,22 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
             {error && <p className="feedback feedback--error">{t[error]}</p>}
             {saved && !dirty && <p className="feedback feedback--ok">{t.nameSaved}</p>}
           </form>
+
+          <div className="form">
+            <label className="label" htmlFor="profile-persona">{tp.label}</label>
+            <div className="row">
+              <PersonaSelect id="profile-persona" value={persona} onChange={v => { setPersona(v); setPersonaState(null) }} className="input" />
+              <button
+                className="save-btn" type="button" onClick={handlePersona}
+                disabled={personaSaving || !isPersona(persona) || persona === savedPersona}
+              >
+                {personaSaving ? tp.saving : tp.save}
+              </button>
+            </div>
+            <p className="feedback">{tp.hint}</p>
+            {personaState === 'failed' && <p className="feedback feedback--error">{tp.saveFailed}</p>}
+            {personaState === 'saved' && <p className="feedback feedback--ok">{tp.saved}</p>}
+          </div>
 
           <dl className="meta">
             <div className="meta-row">
@@ -493,7 +531,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   const { data: profile } = await sb
     .from('profiles')
-    .select('display_name, avatar_url, avatar_path, created_at')
+    .select('display_name, avatar_url, avatar_path, created_at, persona')
     .eq('id', session.user.id)
     .single()
 
@@ -515,6 +553,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       avatarUrl,
       avatarPath: profile?.avatar_path ?? null,
       memberSince: profile?.created_at ?? null,
+      persona: profile?.persona ?? null,
     },
   }
 }

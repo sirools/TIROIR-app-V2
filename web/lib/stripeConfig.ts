@@ -48,7 +48,7 @@ export function packByKey(key: unknown): CreditPack | null {
  * (price_…, différent en test et en réel), sinon le prix actif qui porte
  * la `lookup_key` (créé par scripts/stripe-setup.mjs).
  */
-type Env = Record<string, string | undefined>
+export type Env = Record<string, string | undefined>
 
 export type PlanTier = 'premium' | 'pro'
 export type BillingPeriod = 'monthly' | 'yearly'
@@ -247,7 +247,7 @@ export function amountWithVat(plan: SubscriptionPlan, rate: number): number {
  * Mentions de bas de facture (Business), lues dans l'environnement : ce
  * sont les coordonnées de l'EI du fondateur, pas du code.
  */
-export function invoiceFooter(env: Env = process.env): string {
+export function invoiceFooter(env: Env = process.env, daysUntilDue = 30): string {
   const lines: string[] = []
   const issuer = [env.BILLING_LEGAL_NAME, env.BILLING_SIRET && `SIRET ${env.BILLING_SIRET}`, env.BILLING_ADDRESS]
     .map(s => s?.trim()).filter(Boolean)
@@ -256,7 +256,7 @@ export function invoiceFooter(env: Env = process.env): string {
   else if (env.BILLING_VAT_NUMBER?.trim()) lines.push(`N° de TVA intracommunautaire : ${env.BILLING_VAT_NUMBER.trim()}`)
   lines.push(
     'Nature des opérations : prestations de services.',
-    'Paiement à 30 jours. Pas d’escompte pour paiement anticipé.',
+    `Paiement à ${daysUntilDue} jours. Pas d’escompte pour paiement anticipé.`,
     'En cas de retard : pénalités au taux d’intérêt de la BCE majoré de 10 points, et indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 et D441-5 du Code de commerce).',
   )
   return lines.join('\n')

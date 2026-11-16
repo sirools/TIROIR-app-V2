@@ -309,6 +309,7 @@
     "owned": "En posesión",
     "stored": "Guardado",
     "loaned": "Prestado",
+    "for_sale": "En venta",
     "sold": "Vendido",
     "given": "Regalado",
     "lost": "Perdido"
@@ -331,6 +332,8 @@
     "monthly": "Mensual",
     "annual": "Anual",
     "unavailable": "Suscripciones no disponibles por ahora.",
+    "alreadySubscribedTitle": "Ya tiene una suscripción",
+    "alreadySubscribedBody": "Su cuenta ya tiene una suscripción activa. No hace falta volver a comprarla: los packs de créditos siguen disponibles abajo.",
     "freeTrial": "✦ 7 días de prueba gratis",
     "perYear": " / año",
     "perMonth": " / mes",
@@ -534,6 +537,7 @@
       "stored": "Guardado",
       "owned": "En uso",
       "loaned": "Prestado",
+      "for_sale": "En venta",
       "lost": "Perdido",
       "sold": "En venta",
       "given": "Para tirar"

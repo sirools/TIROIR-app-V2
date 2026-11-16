@@ -71,7 +71,7 @@ export default function Hero() {
         </div>
 
         <div className={s.heroMedia} aria-hidden="true">
-          <Image src={POSTER} alt="" width={1080} height={1350} sizes="(min-width: 700px) 64vh, 100vw" loading="eager" />
+          <Image src={POSTER} alt={t.mediaAlt} width={1080} height={1350} sizes="(min-width: 700px) 64vh, 100vw" loading="eager" />
           {withVideo && (
             <video
               ref={videoRef}

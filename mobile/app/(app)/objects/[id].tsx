@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   Dimensions,
   TextInput,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   Animated,
@@ -35,7 +34,8 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { hasPhotoZoom, isPaidPlan } from '@/lib/plan'
 import { STANDARD_WIDTH, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
 import {
-  Screen, Colors, Typography, Spacing, Radius, ActionSheet, Checkbox, useToast,
+  Screen, FormScreen, FormScrollView, FormSheet, SheetScrollView, focusNextField,
+  Colors, Typography, Spacing, Radius, ActionSheet, Checkbox, useToast,
   CollectionPickerSheet, PickedCollection, TorixMark,
 } from '@/components/ui'
 import { SharePanel } from '@/components/SharePanel'
@@ -65,6 +65,8 @@ const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = 
   owned:   { bg: '#F0F9FF', text: '#0284C7', dot: '#38BDF8' }, // bleu ciel
   loaned:  { bg: '#FDF2F8', text: '#C026D3', dot: '#E879F9' }, // rose
   lost:    { bg: '#F3F4F6', text: '#6B7280', dot: '#9CA3AF' }, // gris
+  // « En vente » : posé par le site (tiroir.app, « Mettre en vente sur Leboncoin »).
+  for_sale: { bg: '#FFF7ED', text: '#C2410C', dot: '#F97316' }, // orange
   sold:    { bg: '#FFFBEB', text: '#D97706', dot: '#FBBF24' }, // ambre
   given:   { bg: '#FFF1F2', text: '#E11D48', dot: '#FB7185' }, // rouge
 }
@@ -970,9 +972,9 @@ function AttributesSection({ attributes: initialAttrs, onSave }: AttributesSecti
         </View>
 
       {/* Sheet ajout */}
-      <Modal visible={adding} transparent animationType="slide" onRequestClose={() => setAdding(false)}>
+      <FormSheet visible={adding} animationType="slide" onRequestClose={() => setAdding(false)}>
         <TouchableOpacity style={s.attrBackdrop} activeOpacity={1} onPress={() => setAdding(false)} />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={s.attrSheet}>
+        <View style={s.attrSheet}>
           <View style={s.attrSheetHandle} />
           <Text style={s.attrSheetTitle}>{t('object.attrs.sheetTitle')}</Text>
 
@@ -1005,7 +1007,8 @@ function AttributesSection({ attributes: initialAttrs, onSave }: AttributesSecti
             placeholder={t('object.attrs.namePlaceholder')}
             placeholderTextColor={Colors.textTertiary}
             returnKeyType="next"
-            onSubmitEditing={() => {}}
+            submitBehavior="submit"
+            onSubmitEditing={focusNextField}
           />
 
           {/* Valeur */}
@@ -1027,8 +1030,8 @@ function AttributesSection({ attributes: initialAttrs, onSave }: AttributesSecti
           >
             <Text style={s.attrSheetBtnText}>{t('object.attrs.addBtn')}</Text>
           </TouchableOpacity>
-        </KeyboardAvoidingView>
-      </Modal>
+        </View>
+      </FormSheet>
     </View>
   )
 }
@@ -1168,83 +1171,79 @@ function LocationEditorSheet({ visible, initial, onCancel, onSave }: LocationEdi
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
+    <FormSheet visible={visible} animationType="slide" onRequestClose={onCancel}>
       <TouchableOpacity style={les.backdrop} activeOpacity={1} onPress={onCancel} />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={les.sheetWrap}
-      >
-        <View style={les.sheet}>
-          <View style={les.handle} />
-          <Text style={les.title}>{t('object.locationSheet.title')}</Text>
-          <Text style={les.help}>{t('object.locationSheet.help')}</Text>
+      <View style={les.sheet}>
+        <View style={les.handle} />
+        <Text style={les.title}>{t('object.locationSheet.title')}</Text>
+        <Text style={les.help}>{t('object.locationSheet.help')}</Text>
 
-          <ScrollView style={les.list} keyboardShouldPersistTaps="handled">
-            {items.map((item, i) => (
-              <View key={i} style={les.row}>
-                <Text style={les.rank}>{i + 1}</Text>
-                <TextInput
-                  style={les.input}
-                  value={item}
-                  onChangeText={v => update(i, v)}
-                  placeholder={t('object.locationSheet.placeholder')}
-                  placeholderTextColor={Colors.textTertiary}
-                  returnKeyType="done"
-                />
-                <View style={les.arrows}>
-                  <TouchableOpacity
-                    onPress={() => move(i, -1)}
-                    disabled={i === 0}
-                    hitSlop={{ top: 6, bottom: 2, left: 6, right: 6 }}
-                  >
-                    <ChevronUp size={16} color={i === 0 ? Colors.borderLight : Colors.textSecondary} strokeWidth={2.2} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => move(i, 1)}
-                    disabled={i === items.length - 1}
-                    hitSlop={{ top: 2, bottom: 6, left: 6, right: 6 }}
-                  >
-                    <ChevronDown size={16} color={i === items.length - 1 ? Colors.borderLight : Colors.textSecondary} strokeWidth={2.2} />
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity onPress={() => remove(i)} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
-                  <Trash2 size={15} color={Colors.textTertiary} strokeWidth={1.8} />
+        <SheetScrollView style={les.list}>
+          {items.map((item, i) => (
+            <View key={i} style={les.row}>
+              <Text style={les.rank}>{i + 1}</Text>
+              <TextInput
+                style={les.input}
+                value={item}
+                onChangeText={v => update(i, v)}
+                placeholder={t('object.locationSheet.placeholder')}
+                placeholderTextColor={Colors.textTertiary}
+                returnKeyType={i < items.length - 1 ? 'next' : 'done'}
+                submitBehavior={i < items.length - 1 ? 'submit' : undefined}
+                onSubmitEditing={i < items.length - 1 ? focusNextField : save}
+              />
+              <View style={les.arrows}>
+                <TouchableOpacity
+                  onPress={() => move(i, -1)}
+                  disabled={i === 0}
+                  hitSlop={{ top: 6, bottom: 2, left: 6, right: 6 }}
+                >
+                  <ChevronUp size={16} color={i === 0 ? Colors.borderLight : Colors.textSecondary} strokeWidth={2.2} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => move(i, 1)}
+                  disabled={i === items.length - 1}
+                  hitSlop={{ top: 2, bottom: 6, left: 6, right: 6 }}
+                >
+                  <ChevronDown size={16} color={i === items.length - 1 ? Colors.borderLight : Colors.textSecondary} strokeWidth={2.2} />
                 </TouchableOpacity>
               </View>
-            ))}
+              <TouchableOpacity onPress={() => remove(i)} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                <Trash2 size={15} color={Colors.textTertiary} strokeWidth={1.8} />
+              </TouchableOpacity>
+            </View>
+          ))}
 
-            <TouchableOpacity
-              style={[les.addRow, items.length >= LOCATION_MAX && les.addRowOff]}
-              onPress={add}
-              disabled={items.length >= LOCATION_MAX}
-              activeOpacity={0.7}
-            >
-              <Plus size={14} color={items.length >= LOCATION_MAX ? Colors.textTertiary : Colors.accent} strokeWidth={2.4} />
-              <Text style={[les.addText, items.length >= LOCATION_MAX && les.addTextOff]}>
-                {items.length >= LOCATION_MAX
-                  ? t('object.locationSheet.full', { max: LOCATION_MAX })
-                  : t('object.locationSheet.add')}
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
+          <TouchableOpacity
+            style={[les.addRow, items.length >= LOCATION_MAX && les.addRowOff]}
+            onPress={add}
+            disabled={items.length >= LOCATION_MAX}
+            activeOpacity={0.7}
+          >
+            <Plus size={14} color={items.length >= LOCATION_MAX ? Colors.textTertiary : Colors.accent} strokeWidth={2.4} />
+            <Text style={[les.addText, items.length >= LOCATION_MAX && les.addTextOff]}>
+              {items.length >= LOCATION_MAX
+                ? t('object.locationSheet.full', { max: LOCATION_MAX })
+                : t('object.locationSheet.add')}
+            </Text>
+          </TouchableOpacity>
+        </SheetScrollView>
 
-          <View style={les.footer}>
-            <TouchableOpacity style={les.btnGhost} onPress={onCancel} activeOpacity={0.8}>
-              <Text style={les.btnGhostText}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={les.btnPrimary} onPress={save} activeOpacity={0.85}>
-              <Text style={les.btnPrimaryText}>{t('common.validate')}</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={les.footer}>
+          <TouchableOpacity style={les.btnGhost} onPress={onCancel} activeOpacity={0.8}>
+            <Text style={les.btnGhostText}>{t('common.cancel')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={les.btnPrimary} onPress={save} activeOpacity={0.85}>
+            <Text style={les.btnPrimaryText}>{t('common.validate')}</Text>
+          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      </View>
+    </FormSheet>
   )
 }
 
 const les = StyleSheet.create({
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(26, 22, 18, 0.4)' },
-  sheetWrap: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
     maxHeight: '82%',
     backgroundColor: Colors.background,
@@ -2882,401 +2881,395 @@ export default function ObjectScreen() {
   // Pas de zone sûre basse : la barre d'onglets applique déjà l'inset, et
   // l'ajouter ici figeait une bande beige qui rognait le défilement.
   return (
-    <Screen edges={['top']}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
-        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+    <FormScreen mode="list" edges={['top']}>
+      <FormScrollView style={{ flex: 1 }}>
 
-          {/* ── Hero + overlay header ── */}
-          <View style={{ position: 'relative' }}>
-            <ImageSlider
-              images={images}
-              objectId={id!}
-              onImagesChange={setImages}
-            />
-            <View style={s.heroOverlay}>
-              <TouchableOpacity
-                onPress={() => {
-                  if (object.collection_id) {
-                    router.replace({ pathname: '/collections/[id]', params: { id: object.collection_id } })
-                  } else {
-                    router.back()
-                  }
-                }}
-                style={s.circleBtn}
-              >
-                <ArrowLeft size={18} color={Colors.textPrimary} strokeWidth={2} />
+        {/* ── Hero + overlay header ── */}
+        <View style={{ position: 'relative' }}>
+          <ImageSlider
+            images={images}
+            objectId={id!}
+            onImagesChange={setImages}
+          />
+          <View style={s.heroOverlay}>
+            <TouchableOpacity
+              onPress={() => {
+                if (object.collection_id) {
+                  router.replace({ pathname: '/collections/[id]', params: { id: object.collection_id } })
+                } else {
+                  router.back()
+                }
+              }}
+              style={s.circleBtn}
+            >
+              <ArrowLeft size={18} color={Colors.textPrimary} strokeWidth={2} />
+            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+              {saving && <ActivityIndicator color={Colors.accent} size="small" />}
+              <TouchableOpacity onPress={handleMoreMenu} style={s.circleBtn}>
+                <MoreHorizontal size={18} color={Colors.textPrimary} strokeWidth={2} />
               </TouchableOpacity>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-                {saving && <ActivityIndicator color={Colors.accent} size="small" />}
-                <TouchableOpacity onPress={handleMoreMenu} style={s.circleBtn}>
-                  <MoreHorizontal size={18} color={Colors.textPrimary} strokeWidth={2} />
-                </TouchableOpacity>
-              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={s.body}>
+
+          {/* ── Titre + méta ── */}
+          <View style={s.titleBlock}>
+            {editingTitle ? (
+              <TextInput
+                style={s.titleInput}
+                value={titleDraft}
+                onChangeText={setTitleDraft}
+                onBlur={commitTitle}
+                onSubmitEditing={commitTitle}
+                autoFocus
+                multiline
+                returnKeyType="done"
+                blurOnSubmit
+                placeholder={t('objectEdit.titlePlaceholder')}
+                placeholderTextColor={Colors.textTertiary}
+              />
+            ) : (
+              <TouchableOpacity onPress={() => startEditTitle()} activeOpacity={0.6}>
+                <Text style={s.title}>{object.title}</Text>
+              </TouchableOpacity>
+            )}
+            <View style={s.metaRow}>
+              {category ? (
+                <View style={s.badgeCat}>
+                  <Text style={s.badgeCatText}>{category}</Text>
+                </View>
+              ) : null}
+              <Text style={s.metaDate}>{t('object.addedOn', { date: formatDate(object.created_at, i18n.language) })}</Text>
             </View>
           </View>
 
-          <View style={s.body}>
+          {/* ── Grille d'informations ──
+              Résumé, Statut/Collection, Emplacement/Quantité forment une
+              seule grille : même gouttière horizontale et verticale, pour
+              qu'on lise un bloc et non quatre cartes posées à la suite. */}
+          <View style={s.infoGrid}>
 
-            {/* ── Titre + méta ── */}
-            <View style={s.titleBlock}>
-              {editingTitle ? (
-                <TextInput
-                  style={s.titleInput}
-                  value={titleDraft}
-                  onChangeText={setTitleDraft}
-                  onBlur={commitTitle}
-                  onSubmitEditing={commitTitle}
-                  autoFocus
-                  multiline
-                  returnKeyType="done"
-                  blurOnSubmit
-                  placeholder={t('objectEdit.titlePlaceholder')}
-                  placeholderTextColor={Colors.textTertiary}
-                />
-              ) : (
-                <TouchableOpacity onPress={() => startEditTitle()} activeOpacity={0.6}>
-                  <Text style={s.title}>{object.title}</Text>
-                </TouchableOpacity>
-              )}
-              <View style={s.metaRow}>
-                {category ? (
-                  <View style={s.badgeCat}>
-                    <Text style={s.badgeCatText}>{category}</Text>
-                  </View>
-                ) : null}
-                <Text style={s.metaDate}>{t('object.addedOn', { date: formatDate(object.created_at, i18n.language) })}</Text>
-              </View>
-            </View>
-
-            {/* ── Grille d'informations ──
-                Résumé, Statut/Collection, Emplacement/Quantité forment une
-                seule grille : même gouttière horizontale et verticale, pour
-                qu'on lise un bloc et non quatre cartes posées à la suite. */}
-            <View style={s.infoGrid}>
-
-            {/* ── Résumé IA ── */}
-            <View style={s.card}>
-              <View style={s.cardHead}>
-                {/* Le ✦ dit ce qu'est le bloc, il ne fait rien. Toutes les
-                    actions passent par le ••• : un seul point d'entrée, et
-                    plus deux crayons côte à côte qui se ressemblaient sans
-                    faire la même chose. */}
-                <TorixMark label={t('object.aiSummary')} textStyle={s.cardLabel} style={{ flex: 1 }} />
-                <TouchableOpacity
-                  onPress={() => setSummaryMenuVisible(true)}
-                  disabled={describing}
-                  style={[s.summaryMenuBtn, describing && s.summaryMenuBtnOff]}
-                  hitSlop={8}
-                >
-                  <MoreHorizontal size={16} color={Colors.textTertiary} strokeWidth={2} />
-                </TouchableOpacity>
-              </View>
-              {describing ? (
-                /* La rédaction prend trois secondes : le dire là où le texte
-                   va apparaître, pas dans un coin de l'en-tête. */
-                <View style={s.summaryWriting}>
-                  <ActivityIndicator size="small" color={Colors.accent} />
-                  <Text style={s.summaryWritingText}>{t('object.summaryWriting')}</Text>
-                </View>
-              ) : editingDesc ? (
-                <TextInput
-                  style={s.descInput}
-                  value={descDraft}
-                  onChangeText={setDescDraft}
-                  onBlur={commitDesc}
-                  multiline
-                  autoFocus
-                  placeholder={t('object.descriptionPlaceholder')}
-                  placeholderTextColor={Colors.textTertiary}
-                  returnKeyType="done"
-                  blurOnSubmit
-                />
-              ) : (
-                <DescriptionBlock
-                  text={object.description}
-                  onEdit={startEditDesc}
-                />
-              )}
-            </View>
-
-
-            {/* ── Statut + Collection côte à côte avec dropdowns ── */}
-            <View
-              style={[s.metricsRow, { zIndex: 10 }]}
-              onLayout={e => setMetricsRowHeight(e.nativeEvent.layout.height)}
-            >
-              {/* Statut */}
+          {/* ── Résumé IA ── */}
+          <View style={s.card}>
+            <View style={s.cardHead}>
+              {/* Le ✦ dit ce qu'est le bloc, il ne fait rien. Toutes les
+                  actions passent par le ••• : un seul point d'entrée, et
+                  plus deux crayons côte à côte qui se ressemblaient sans
+                  faire la même chose. */}
+              <TorixMark label={t('object.aiSummary')} textStyle={s.cardLabel} style={{ flex: 1 }} />
               <TouchableOpacity
-                style={[
-                  s.metricCard,
-                  { flex: 1, backgroundColor: STATUS_COLOR[object.status]?.bg ?? Colors.surface },
-                  // Statut « prêté » : la carte se prolonge dans le bloc de prêt juste dessous.
-                  object.status === 'loaned' && s.metricCardConnected,
-                ]}
-                onPress={toggleStatusPicker}
-                activeOpacity={0.7}
+                onPress={() => setSummaryMenuVisible(true)}
+                disabled={describing}
+                style={[s.summaryMenuBtn, describing && s.summaryMenuBtnOff]}
+                hitSlop={8}
               >
-                <Text style={s.metricLabel}>{t('object.statusLabel')}</Text>
-                <View style={s.statusValueRow}>
-                  <View style={[s.statusDot, { backgroundColor: STATUS_COLOR[object.status]?.dot ?? Colors.accent }]} />
-                  <Text style={[s.metricValue, { color: STATUS_COLOR[object.status]?.text ?? Colors.accent, flex: 1 }]}>
-                    {t(`object.statusOptions.${object.status}`, { defaultValue: object.status })}
-                  </Text>
-                  {/* Le chevron prend la couleur du statut, comme la pastille
-                      et le libellé : les trois disent la même chose. */}
-                  {showStatusPicker
-                    ? <ChevronUp size={16} color={STATUS_COLOR[object.status]?.text ?? Colors.accent} strokeWidth={2} />
-                    : <ChevronDown size={16} color={STATUS_COLOR[object.status]?.text ?? Colors.accent} strokeWidth={2} />}
-                </View>
+                <MoreHorizontal size={16} color={Colors.textTertiary} strokeWidth={2} />
               </TouchableOpacity>
-
-              {/* Collection */}
-              <TouchableOpacity
-                style={[
-                  s.metricCard,
-                  { flex: 1 },
-                  // Le bloc de prêt remonte sous le Statut sur toute la largeur :
-                  // sans ce retrait, il viendrait coller le bas de cette carte.
-                  object.status === 'loaned' && s.metricCardDetached,
-                ]}
-                onPress={() => setCollectionSheetOpen(true)}
-                activeOpacity={0.8}
-              >
-                <Text style={s.metricLabel}>{t('object.collectionLabel')}</Text>
-                <View style={s.statusValueRow}>
-                  <Text style={[s.metricValue, { flex: 1 }]} numberOfLines={1}>
-                    {currentCollection?.name ?? '—'}
-                  </Text>
-                  {/* La feuille couvre l'écran : le chevron ne bascule plus,
-                      il n'y a rien à replier derrière elle. */}
-                  <ChevronDown size={16} color={Colors.textPrimary} strokeWidth={2} />
-                </View>
-              </TouchableOpacity>
-
-              {/* Dropdown statut — absolu pleine largeur, monté seulement le temps de l'ouverture */}
-              {statusPickerMounted && (
-              <Animated.View
-                pointerEvents={showStatusPicker ? 'auto' : 'none'}
-                style={[s.dropdownAbsolute, {
-                  top: metricsRowHeight,
-                  opacity: statusPickerAnim,
-                  transform: [{ translateY: statusPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) }],
-                }]}>
-                <View style={s.chipRow}>
-                  {STATUS_OPTIONS.map(opt => {
-                    const c = STATUS_COLOR[opt.value]
-                    const isActive = object.status === opt.value
-                    return (
-                      <TouchableOpacity
-                        key={opt.value}
-                        style={[s.chip, isActive && { borderColor: c?.text, backgroundColor: c?.bg }]}
-                        onPress={() => { handleStatusChange(opt.value); toggleStatusPicker() }}
-                        activeOpacity={0.7}
-                      >
-                        {c && <View style={[s.chipDot, { backgroundColor: c.dot }]} />}
-                        <Text style={[s.chipText, isActive && { color: c?.text, fontWeight: Typography.semibold }]}>
-                          {t(opt.labelKey)}
-                        </Text>
-                      </TouchableOpacity>
-                    )
-                  })}
-                </View>
-              </Animated.View>
-              )}
-
             </View>
-
-            {/* ── Prêt (statut « prêté ») ── */}
-            {object.status === 'loaned' && (
-              <LoanCard
-                loanedTo={String(object.attributes?.loaned_to ?? '')}
-                returnDate={String(object.attributes?.loan_return_date ?? '')}
-                onSave={patch => {
-                  const attrs = { ...(object.attributes ?? {}) }
-                  if (patch.loanedTo !== undefined) {
-                    if (patch.loanedTo) attrs.loaned_to = patch.loanedTo
-                    else delete attrs.loaned_to
-                  }
-                  if (patch.returnDate !== undefined) {
-                    if (patch.returnDate) attrs.loan_return_date = patch.returnDate
-                    else delete attrs.loan_return_date
-                  }
-                  saveField({ attributes: attrs })
-                }}
+            {describing ? (
+              /* La rédaction prend trois secondes : le dire là où le texte
+                 va apparaître, pas dans un coin de l'en-tête. */
+              <View style={s.summaryWriting}>
+                <ActivityIndicator size="small" color={Colors.accent} />
+                <Text style={s.summaryWritingText}>{t('object.summaryWriting')}</Text>
+              </View>
+            ) : editingDesc ? (
+              <TextInput
+                style={s.descInput}
+                value={descDraft}
+                onChangeText={setDescDraft}
+                onBlur={commitDesc}
+                multiline
+                autoFocus
+                placeholder={t('object.descriptionPlaceholder')}
+                placeholderTextColor={Colors.textTertiary}
+                returnKeyType="done"
+                blurOnSubmit
+              />
+            ) : (
+              <DescriptionBlock
+                text={object.description}
+                onEdit={startEditDesc}
               />
             )}
+          </View>
 
-            {/* ── Quantité (1/3) + Emplacement (2/3) ── */}
-            <View style={s.metricsRow}>
-              <QuantityCard quantity={object.quantity ?? 1} onChange={updateQuantity} />
 
-              {/* Pas de tap sur la carte : il avalait le défilement
-                  horizontal des puces. Seul le badge ouvre le tiroir. */}
-              <View style={[s.metricCard, { flex: 2 }]}>
-                <Text style={s.metricLabel}>
-                  {t('object.locationLabel', { count: locationBricks.length, max: LOCATION_MAX })}
+          {/* ── Statut + Collection côte à côte avec dropdowns ── */}
+          <View
+            style={[s.metricsRow, { zIndex: 10 }]}
+            onLayout={e => setMetricsRowHeight(e.nativeEvent.layout.height)}
+          >
+            {/* Statut */}
+            <TouchableOpacity
+              style={[
+                s.metricCard,
+                { flex: 1, backgroundColor: STATUS_COLOR[object.status]?.bg ?? Colors.surface },
+                // Statut « prêté » : la carte se prolonge dans le bloc de prêt juste dessous.
+                object.status === 'loaned' && s.metricCardConnected,
+              ]}
+              onPress={toggleStatusPicker}
+              activeOpacity={0.7}
+            >
+              <Text style={s.metricLabel}>{t('object.statusLabel')}</Text>
+              <View style={s.statusValueRow}>
+                <View style={[s.statusDot, { backgroundColor: STATUS_COLOR[object.status]?.dot ?? Colors.accent }]} />
+                <Text style={[s.metricValue, { color: STATUS_COLOR[object.status]?.text ?? Colors.accent, flex: 1 }]}>
+                  {t(`object.statusOptions.${object.status}`, { defaultValue: object.status })}
                 </Text>
-                <LocationBricks
-                  bricks={locationBricks}
-                  onEdit={() => setLocationSheetOpen(true)}
-                />
+                {/* Le chevron prend la couleur du statut, comme la pastille
+                    et le libellé : les trois disent la même chose. */}
+                {showStatusPicker
+                  ? <ChevronUp size={16} color={STATUS_COLOR[object.status]?.text ?? Colors.accent} strokeWidth={2} />
+                  : <ChevronDown size={16} color={STATUS_COLOR[object.status]?.text ?? Colors.accent} strokeWidth={2} />}
               </View>
-            </View>
+            </TouchableOpacity>
 
-            </View>{/* fin de la grille d'informations */}
+            {/* Collection */}
+            <TouchableOpacity
+              style={[
+                s.metricCard,
+                { flex: 1 },
+                // Le bloc de prêt remonte sous le Statut sur toute la largeur :
+                // sans ce retrait, il viendrait coller le bas de cette carte.
+                object.status === 'loaned' && s.metricCardDetached,
+              ]}
+              onPress={() => setCollectionSheetOpen(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={s.metricLabel}>{t('object.collectionLabel')}</Text>
+              <View style={s.statusValueRow}>
+                <Text style={[s.metricValue, { flex: 1 }]} numberOfLines={1}>
+                  {currentCollection?.name ?? '—'}
+                </Text>
+                {/* La feuille couvre l'écran : le chevron ne bascule plus,
+                    il n'y a rien à replier derrière elle. */}
+                <ChevronDown size={16} color={Colors.textPrimary} strokeWidth={2} />
+              </View>
+            </TouchableOpacity>
 
-            {/* ── Caractéristiques ── */}
-            <AttributesSection
-              attributes={Object.entries(object.attributes ?? {}).filter(
-                ([k, v]) => v !== null && v !== '' && !LOAN_ATTR_KEYS.includes(k as typeof LOAN_ATTR_KEYS[number])
-              )}
-              // Les clés de prêt sont pilotées par LoanCard : on les réinjecte pour ne pas les perdre.
-              onSave={attrs => {
-                const preserved: Record<string, string | number | boolean | null> = {}
-                for (const k of LOAN_ATTR_KEYS) {
-                  const v = object.attributes?.[k]
-                  if (v !== undefined && v !== null && v !== '') preserved[k] = v
+            {/* Dropdown statut — absolu pleine largeur, monté seulement le temps de l'ouverture */}
+            {statusPickerMounted && (
+            <Animated.View
+              pointerEvents={showStatusPicker ? 'auto' : 'none'}
+              style={[s.dropdownAbsolute, {
+                top: metricsRowHeight,
+                opacity: statusPickerAnim,
+                transform: [{ translateY: statusPickerAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) }],
+              }]}>
+              <View style={s.chipRow}>
+                {STATUS_OPTIONS.map(opt => {
+                  const c = STATUS_COLOR[opt.value]
+                  const isActive = object.status === opt.value
+                  return (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[s.chip, isActive && { borderColor: c?.text, backgroundColor: c?.bg }]}
+                      onPress={() => { handleStatusChange(opt.value); toggleStatusPicker() }}
+                      activeOpacity={0.7}
+                    >
+                      {c && <View style={[s.chipDot, { backgroundColor: c.dot }]} />}
+                      <Text style={[s.chipText, isActive && { color: c?.text, fontWeight: Typography.semibold }]}>
+                        {t(opt.labelKey)}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            </Animated.View>
+            )}
+
+          </View>
+
+          {/* ── Prêt (statut « prêté ») ── */}
+          {object.status === 'loaned' && (
+            <LoanCard
+              loanedTo={String(object.attributes?.loaned_to ?? '')}
+              returnDate={String(object.attributes?.loan_return_date ?? '')}
+              onSave={patch => {
+                const attrs = { ...(object.attributes ?? {}) }
+                if (patch.loanedTo !== undefined) {
+                  if (patch.loanedTo) attrs.loaned_to = patch.loanedTo
+                  else delete attrs.loaned_to
                 }
-                saveField({ attributes: { ...attrs, ...preserved } })
+                if (patch.returnDate !== undefined) {
+                  if (patch.returnDate) attrs.loan_return_date = patch.returnDate
+                  else delete attrs.loan_return_date
+                }
+                saveField({ attributes: attrs })
               }}
             />
+          )}
 
-            {/* ── Valeur ── */}
-            <View>
-              <SectionTitle label={t('object.value.sectionTitle')} />
-              <ValeurCard
-                object={object}
-                estimating={estimating}
-                editingUserValue={editingUserValue}
-                userValueDraft={userValueDraft}
-                onEstimate={requestEstimate}
-                onEditUserValue={() => {
-                  setUserValueDraft(String(object.user_value ?? object.market_value ?? ''))
-                  setEditingUserValue(true)
-                }}
-                onUserValueChange={setUserValueDraft}
-                onUserValueCommit={commitUserValue}
-                onClearMarketValue={clearMarketValue}
-                onUpdateMarketValue={updateMarketValue}
-                onUpdatePurchasePrice={updatePurchasePrice}
-                onUpdateSalePrice={updateSalePrice}
-                onUpdateDeposit={updateDeposit}
-                onUpdateSalePriceLot={updateSalePriceLot}
-                onUpdatePurchaseDate={updatePurchaseDate}
+          {/* ── Quantité (1/3) + Emplacement (2/3) ── */}
+          <View style={s.metricsRow}>
+            <QuantityCard quantity={object.quantity ?? 1} onChange={updateQuantity} />
+
+            {/* Pas de tap sur la carte : il avalait le défilement
+                horizontal des puces. Seul le badge ouvre le tiroir. */}
+            <View style={[s.metricCard, { flex: 2 }]}>
+              <Text style={s.metricLabel}>
+                {t('object.locationLabel', { count: locationBricks.length, max: LOCATION_MAX })}
+              </Text>
+              <LocationBricks
+                bricks={locationBricks}
+                onEdit={() => setLocationSheetOpen(true)}
               />
             </View>
+          </View>
 
-            {/* ── Documents ── */}
-            <DocumentsSection
+          </View>{/* fin de la grille d'informations */}
+
+          {/* ── Caractéristiques ── */}
+          <AttributesSection
+            attributes={Object.entries(object.attributes ?? {}).filter(
+              ([k, v]) => v !== null && v !== '' && !LOAN_ATTR_KEYS.includes(k as typeof LOAN_ATTR_KEYS[number])
+            )}
+            // Les clés de prêt sont pilotées par LoanCard : on les réinjecte pour ne pas les perdre.
+            onSave={attrs => {
+              const preserved: Record<string, string | number | boolean | null> = {}
+              for (const k of LOAN_ATTR_KEYS) {
+                const v = object.attributes?.[k]
+                if (v !== undefined && v !== null && v !== '') preserved[k] = v
+              }
+              saveField({ attributes: { ...attrs, ...preserved } })
+            }}
+          />
+
+          {/* ── Valeur ── */}
+          <View>
+            <SectionTitle label={t('object.value.sectionTitle')} />
+            <ValeurCard
+              object={object}
+              estimating={estimating}
+              editingUserValue={editingUserValue}
+              userValueDraft={userValueDraft}
+              onEstimate={requestEstimate}
+              onEditUserValue={() => {
+                setUserValueDraft(String(object.user_value ?? object.market_value ?? ''))
+                setEditingUserValue(true)
+              }}
+              onUserValueChange={setUserValueDraft}
+              onUserValueCommit={commitUserValue}
+              onClearMarketValue={clearMarketValue}
+              onUpdateMarketValue={updateMarketValue}
+              onUpdatePurchasePrice={updatePurchasePrice}
+              onUpdateSalePrice={updateSalePrice}
+              onUpdateDeposit={updateDeposit}
+              onUpdateSalePriceLot={updateSalePriceLot}
+              onUpdatePurchaseDate={updatePurchaseDate}
+            />
+          </View>
+
+          {/* ── Documents ── */}
+          <DocumentsSection
+            objectId={object.id}
+            documents={documents}
+            onDocumentsChange={setDocuments}
+          />
+
+          {/* ── Assurances ──
+              Sortie de la carte Performances : une assurance n'est pas une
+              valeur de l'objet, c'est un contrat qui s'y rattache. */}
+          <View>
+            <SectionTitle label={t('object.insurance.sectionTitle')} />
+            <InsurancesSection
               objectId={object.id}
+              currencySymbol={(object.value_currency ?? 'EUR') === 'EUR' ? '€' : (object.value_currency ?? 'EUR')}
               documents={documents}
               onDocumentsChange={setDocuments}
             />
-
-            {/* ── Assurances ──
-                Sortie de la carte Performances : une assurance n'est pas une
-                valeur de l'objet, c'est un contrat qui s'y rattache. */}
-            <View>
-              <SectionTitle label={t('object.insurance.sectionTitle')} />
-              <InsurancesSection
-                objectId={object.id}
-                currencySymbol={(object.value_currency ?? 'EUR') === 'EUR' ? '€' : (object.value_currency ?? 'EUR')}
-                documents={documents}
-                onDocumentsChange={setDocuments}
-              />
-            </View>
-
-            {/* ── Actions bas de page ── */}
-            <View style={s.bottomActions}>
-              <View style={s.bottomDivider} />
-              <View style={s.bottomRow}>
-                <TouchableOpacity style={s.bottomLink} onPress={() => setSharePanelVisible(true)} activeOpacity={0.7}>
-                  <Share2 size={15} color={Colors.textSecondary} strokeWidth={1.8} />
-                  <Text style={s.bottomLinkText}>{t('object.share')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={s.bottomLink} onPress={confirmDelete} activeOpacity={0.7}>
-                  <Trash2 size={15} color={Colors.error} strokeWidth={1.8} />
-                  <Text style={[s.bottomLinkText, { color: Colors.error }]}>{t('common.delete')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={{ height: Spacing.xl }} />
           </View>
-        </ScrollView>
 
-        {/* ── Menu ··· ActionSheet ── */}
-        <ActionSheet
-          visible={menuVisible}
-          onClose={() => setMenuVisible(false)}
-          options={[
-            { label: t('object.editTitle'), onPress: () => router.push(`/objects/edit/${id}`) },
-            { label: t('object.share'), onPress: () => setSharePanelVisible(true) },
-            { label: t('common.delete'), onPress: confirmDelete, destructive: true },
-            { label: t('common.cancel'), onPress: () => {}, cancel: true },
-          ]}
-        />
-
-        {/* ── Choix de collection ── */}
-        <CollectionPickerSheet
-          visible={collectionSheetOpen}
-          title={t('collectionPicker.title')}
-          helper={t('collectionPicker.helperManual')}
-          onSelect={handleCollectionChange}
-          onDismiss={() => setCollectionSheetOpen(false)}
-        />
-
-        {/* ── Menu du bloc Résumé IA ── */}
-        <ActionSheet
-          visible={summaryMenuVisible}
-          onClose={() => setSummaryMenuVisible(false)}
-          options={summaryMenuOptions()}
-        />
-
-        {/* ── Emplacement ── */}
-        <LocationEditorSheet
-          visible={locationSheetOpen}
-          initial={locationBricks}
-          onCancel={() => setLocationSheetOpen(false)}
-          onSave={saveLocation}
-        />
-
-        {/* ── Partage ── */}
-        {object && (
-          <SharePanel
-            visible={sharePanelVisible}
-            selectedObjects={[object]}
-            collectionName={object.title}
-            onClose={() => setSharePanelVisible(false)}
-            onDone={() => setSharePanelVisible(false)}
-          />
-        )}
-
-        {/* ── Confirmation suppression ── */}
-        {deleteConfirmVisible && (
-          <View style={s.deleteOverlay}>
-            <TouchableOpacity style={s.deleteOverlayBg} activeOpacity={1} onPress={() => setDeleteConfirmVisible(false)} />
-            <View style={s.deleteSheet}>
-              <Text style={s.deleteSheetTitle}>{t('object.deleteObjectTitle')}</Text>
-              <Text style={s.deleteSheetBody}>{t('object.irreversible')}</Text>
-              <View style={s.deleteSheetActions}>
-                <TouchableOpacity style={s.deleteSheetCancel} onPress={() => setDeleteConfirmVisible(false)}>
-                  <Text style={s.deleteSheetCancelText}>{t('common.cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={s.deleteSheetConfirm} onPress={executeDelete}>
-                  <Text style={s.deleteSheetConfirmText}>{t('common.delete')}</Text>
-                </TouchableOpacity>
-              </View>
+          {/* ── Actions bas de page ── */}
+          <View style={s.bottomActions}>
+            <View style={s.bottomDivider} />
+            <View style={s.bottomRow}>
+              <TouchableOpacity style={s.bottomLink} onPress={() => setSharePanelVisible(true)} activeOpacity={0.7}>
+                <Share2 size={15} color={Colors.textSecondary} strokeWidth={1.8} />
+                <Text style={s.bottomLinkText}>{t('object.share')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.bottomLink} onPress={confirmDelete} activeOpacity={0.7}>
+                <Trash2 size={15} color={Colors.error} strokeWidth={1.8} />
+                <Text style={[s.bottomLinkText, { color: Colors.error }]}>{t('common.delete')}</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        )}
 
-      </KeyboardAvoidingView>
-    </Screen>
+          <View style={{ height: Spacing.xl }} />
+        </View>
+      </FormScrollView>
+
+      {/* ── Menu ··· ActionSheet ── */}
+      <ActionSheet
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        options={[
+          { label: t('object.editTitle'), onPress: () => router.push(`/objects/edit/${id}`) },
+          { label: t('object.share'), onPress: () => setSharePanelVisible(true) },
+          { label: t('common.delete'), onPress: confirmDelete, destructive: true },
+          { label: t('common.cancel'), onPress: () => {}, cancel: true },
+        ]}
+      />
+
+      {/* ── Choix de collection ── */}
+      <CollectionPickerSheet
+        visible={collectionSheetOpen}
+        title={t('collectionPicker.title')}
+        helper={t('collectionPicker.helperManual')}
+        onSelect={handleCollectionChange}
+        onDismiss={() => setCollectionSheetOpen(false)}
+      />
+
+      {/* ── Menu du bloc Résumé IA ── */}
+      <ActionSheet
+        visible={summaryMenuVisible}
+        onClose={() => setSummaryMenuVisible(false)}
+        options={summaryMenuOptions()}
+      />
+
+      {/* ── Emplacement ── */}
+      <LocationEditorSheet
+        visible={locationSheetOpen}
+        initial={locationBricks}
+        onCancel={() => setLocationSheetOpen(false)}
+        onSave={saveLocation}
+      />
+
+      {/* ── Partage ── */}
+      {object && (
+        <SharePanel
+          visible={sharePanelVisible}
+          selectedObjects={[object]}
+          collectionName={object.title}
+          onClose={() => setSharePanelVisible(false)}
+          onDone={() => setSharePanelVisible(false)}
+        />
+      )}
+
+      {/* ── Confirmation suppression ── */}
+      {deleteConfirmVisible && (
+        <View style={s.deleteOverlay}>
+          <TouchableOpacity style={s.deleteOverlayBg} activeOpacity={1} onPress={() => setDeleteConfirmVisible(false)} />
+          <View style={s.deleteSheet}>
+            <Text style={s.deleteSheetTitle}>{t('object.deleteObjectTitle')}</Text>
+            <Text style={s.deleteSheetBody}>{t('object.irreversible')}</Text>
+            <View style={s.deleteSheetActions}>
+              <TouchableOpacity style={s.deleteSheetCancel} onPress={() => setDeleteConfirmVisible(false)}>
+                <Text style={s.deleteSheetCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.deleteSheetConfirm} onPress={executeDelete}>
+                <Text style={s.deleteSheetConfirmText}>{t('common.delete')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
+    </FormScreen>
   )
 }
 

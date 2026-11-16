@@ -11,13 +11,17 @@ import Purchases, { PurchasesPackage } from 'react-native-purchases'
 import { Colors, Typography, Spacing, Radius } from '@/components/ui'
 import { supabase } from '@/lib/supabase'
 import { CREDITS_OFFERING, creditsForProduct } from '@/lib/creditPacks'
-import { isProProduct } from '@/lib/plan'
+import { isProProduct, storeSubscribeGate } from '@/lib/plan'
+import { useAuth } from '@/features/auth/AuthContext'
 
+// Maquettes pour le rendu web seulement (aucun achat possible) : prix TTC de
+// la grille du 08/11/2026 (web/lib/offers.ts). Sur iOS et Android, les prix
+// viennent toujours du store.
 const MOCK_PACKAGES: PurchasesPackage[] = Platform.OS === 'web' ? [
-  { identifier: '$rc_monthly', packageType: 'MONTHLY', product: { identifier: 'tiroir_premium_monthly', price: 6.99, priceString: '6,99 €', introPrice: { price: 0, priceString: '0 €', periodNumberOfUnits: 7, periodUnit: 'DAY' } } } as any,
-  { identifier: '$rc_annual',  packageType: 'ANNUAL',  product: { identifier: 'tiroir_premium_annual',  price: 59.99, priceString: '59,99 €', introPrice: { price: 0, priceString: '0 €', periodNumberOfUnits: 7, periodUnit: 'DAY' } } } as any,
-  { identifier: 'pro_monthly', packageType: 'CUSTOM',  product: { identifier: 'tiroir_pro_monthly',     price: 14.99, priceString: '14,99 €', introPrice: null } } as any,
-  { identifier: 'pro_annual',  packageType: 'CUSTOM',  product: { identifier: 'tiroir_pro_annual',      price: 149.99, priceString: '149,99 €', introPrice: null } } as any,
+  { identifier: '$rc_monthly', packageType: 'MONTHLY', product: { identifier: 'tiroir_premium_monthly', price: 18, priceString: '18,00 €', introPrice: null } } as any,
+  { identifier: '$rc_annual',  packageType: 'ANNUAL',  product: { identifier: 'tiroir_premium_annual',  price: 180, priceString: '180,00 €', introPrice: null } } as any,
+  { identifier: 'pro_monthly', packageType: 'CUSTOM',  product: { identifier: 'tiroir_pro_monthly',     price: 60, priceString: '60,00 €', introPrice: null } } as any,
+  { identifier: 'pro_annual',  packageType: 'CUSTOM',  product: { identifier: 'tiroir_pro_annual',      price: 600, priceString: '600,00 €', introPrice: null } } as any,
 ] : []
 
 const FEATURES = [
@@ -35,6 +39,11 @@ export default function PaywallScreen() {
   const scrollRef = useRef<ScrollView>(null)
   const insets = useSafeAreaInsets()
   const { t } = useTranslation()
+  const { profile, refreshProfile } = useAuth()
+  // Jamais deux abonnements payés : un compte déjà payé ailleurs (site,
+  // facture, offert) ne voit pas d'abonnement ; un Premium de l'app ne voit
+  // que Pro (lib/plan.ts, storeSubscribeGate).
+  const gate = storeSubscribeGate(profile)
 
   const [monthly, setMonthly]     = useState<PurchasesPackage | null>(null)
   const [annual, setAnnual]       = useState<PurchasesPackage | null>(null)
@@ -123,7 +132,10 @@ export default function PaywallScreen() {
   }, [refreshCredits])
 
   const hasPro = !!proMonthly || !!proAnnual
-  const isPro = tier === 'pro' && hasPro
+  // Premium de l'app : seule la montée en Pro est proposée ; sans produit
+  // Pro dans l'offre, rien à vendre.
+  const canSubscribe = gate === 'all' || (gate === 'pro_only' && hasPro)
+  const isPro = (tier === 'pro' || gate === 'pro_only') && hasPro
   // Mensuel et annuel du palier choisi (Premium ou Pro).
   const tierMonthly = isPro ? proMonthly : monthly
   const tierAnnual = isPro ? proAnnual : annual
@@ -142,12 +154,15 @@ export default function PaywallScreen() {
   const hasBothPlans = !!tierMonthly && !!tierAnnual
 
   const handlePurchase = useCallback(async () => {
-    if (!selected) return
+    if (!selected || !canSubscribe) return
     setPurchasing(true)
     try {
       await Purchases.purchasePackage(selected)
+      // Le webhook RevenueCat pose le palier en quelques secondes : on relit
+      // le profil pour que l'app passe Premium ou Pro sans redémarrage.
+      setTimeout(() => { void refreshProfile() }, 4000)
       Alert.alert(t(isPro ? 'paywall.welcomeProTitle' : 'paywall.welcomeTitle'), t('paywall.welcomeMessage'), [
-        { text: t('paywall.welcomeCta'), onPress: () => router.back() },
+        { text: t('paywall.welcomeCta'), onPress: () => { void refreshProfile(); router.back() } },
       ])
     } catch (e: any) {
       if (!e.userCancelled) {
@@ -156,7 +171,7 @@ export default function PaywallScreen() {
     } finally {
       setPurchasing(false)
     }
-  }, [selected, isPro])
+  }, [selected, isPro, canSubscribe, refreshProfile])
 
   const handleRestore = useCallback(async () => {
     setPurchasing(true)
@@ -164,6 +179,7 @@ export default function PaywallScreen() {
       const info = await Purchases.restorePurchases()
       const active = Object.values(info.entitlements.active)
       if (active.length > 0) {
+        void refreshProfile()
         Alert.alert(t('paywall.restoredTitle'), '', [{ text: 'OK', onPress: () => router.back() }])
       } else {
         Alert.alert(t('paywall.noSubTitle'), t('paywall.noSubMessage'))
@@ -207,8 +223,17 @@ export default function PaywallScreen() {
           ))}
         </View>
 
+        {/* Déjà abonné (site, facture, offert, ou Pro) : rien à racheter */}
+        {!loading && !canSubscribe && (
+          <View style={s.subscribedCard}>
+            <Text style={s.subscribedTitle}>{t('paywall.alreadySubscribedTitle')}</Text>
+            <Text style={s.subscribedBody}>{t('paywall.alreadySubscribedBody')}</Text>
+          </View>
+        )}
+
+        {canSubscribe && (<>
         {/* Premium ou Pro (Pro : mêmes fonctions, quotas plus élevés) */}
-        {hasPro && (
+        {hasPro && gate === 'all' && (
           <View style={s.tiers} accessibilityRole="tablist">
             {(['premium', 'pro'] as const).map(key => (
               <TouchableOpacity
@@ -296,6 +321,7 @@ export default function PaywallScreen() {
               </Text>
           }
         </TouchableOpacity>
+        </>)}
 
         {/* ── Packs de crédits : l'IA à l'unité, sans abonnement ── */}
         {packs.length > 0 && (
@@ -422,6 +448,13 @@ const s = StyleSheet.create({
   priceEquivBold: { fontWeight: Typography.semibold, color: Colors.textSecondary },
 
   unavailable: { fontSize: Typography.sm, color: Colors.textTertiary, textAlign: 'center', paddingVertical: 24 },
+
+  subscribedCard: {
+    backgroundColor: Colors.accentLight, borderRadius: Radius.lg,
+    padding: Spacing.lg, gap: 6, alignItems: 'center',
+  },
+  subscribedTitle: { fontSize: Typography.base, fontWeight: Typography.bold, color: Colors.textPrimary, textAlign: 'center' },
+  subscribedBody:  { fontSize: Typography.sm, color: Colors.textSecondary, textAlign: 'center', lineHeight: 20 },
 
   cta:         { backgroundColor: Colors.accent, borderRadius: Radius.md, paddingVertical: 15, alignItems: 'center' },
   ctaDisabled: { opacity: 0.5 },

@@ -309,6 +309,7 @@
     "owned": "Besessen",
     "stored": "Eingelagert",
     "loaned": "Verliehen",
+    "for_sale": "Zu verkaufen",
     "sold": "Verkauft",
     "given": "Verschenkt",
     "lost": "Verloren"
@@ -331,6 +332,8 @@
     "monthly": "Monatlich",
     "annual": "Jährlich",
     "unavailable": "Abos derzeit nicht verfügbar.",
+    "alreadySubscribedTitle": "Sie haben bereits ein Abo",
+    "alreadySubscribedBody": "Ihr Konto hat bereits ein aktives Abo. Hier müssen Sie nichts erneut kaufen: Die Credit-Pakete finden Sie weiter unten.",
     "freeTrial": "✦ 7 Tage kostenlos testen",
     "perYear": " / Jahr",
     "perMonth": " / Monat",
@@ -534,6 +537,7 @@
       "stored": "Eingelagert",
       "owned": "In Gebrauch",
       "loaned": "Verliehen",
+      "for_sale": "Zu verkaufen",
       "lost": "Verloren",
       "sold": "Zu verkaufen",
       "given": "Zu entsorgen"

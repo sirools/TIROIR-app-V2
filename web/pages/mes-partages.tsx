@@ -2,7 +2,7 @@ import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import { useState } from 'react'
 import { supabase, serverSupabase, adminSupabase } from '../lib/supabase'
-import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
+import HeaderApp from '../components/layout/HeaderApp'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { asLocale, localePrefix } from '../lib/localeRouting'
 import { fill, intlLocale, useCopy } from '../locales'
@@ -27,6 +27,8 @@ interface ShareLinkCard {
   expiresAt: string | null
   options: ShareOptions
   isArchived: boolean
+  /** Ouvertures du lien (share_links.view_count). */
+  views: number
 }
 
 interface Props {
@@ -212,8 +214,24 @@ export default function MesPartages({ shares: initialShares }: Props) {
   const [sortAsc, setSortAsc] = useState(false)
   const [shares, setShares] = useState(initialShares)
   const [editingToken, setEditingToken] = useState<string | null>(null)
+  /** Actifs d'abord ; l'historique (archivés, expirés) reste consultable et réactivable. */
+  const [filter, setFilter] = useState<'active' | 'history'>('active')
+  const [copiedToken, setCopiedToken] = useState<string | null>(null)
 
-  const sorted = [...shares].sort((a, b) => {
+  const isOver = (s: ShareLinkCard) => s.isArchived || (s.expiresAt ? new Date(s.expiresAt).getTime() < now : false)
+  const activeCount = shares.filter(s => !isOver(s)).length
+  const historyCount = shares.length - activeCount
+  const day = (iso: string) => new Date(iso).toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' })
+
+  async function copyLink(token: string) {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${localePrefix(locale)}/s/${token}`)
+      setCopiedToken(token)
+      setTimeout(() => setCopiedToken(c => (c === token ? null : c)), 1800)
+    } catch { /* presse-papiers refusé : le lien s'ouvre toujours d'un clic */ }
+  }
+
+  const sorted = shares.filter(s => (filter === 'active') !== isOver(s)).sort((a, b) => {
     const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     return sortAsc ? diff : -diff
   })
@@ -227,14 +245,14 @@ export default function MesPartages({ shares: initialShares }: Props) {
         <meta name="robots" content="noindex,nofollow" />
       </Head>
 
-      <HeaderTiroirWeb />
+      <HeaderApp />
 
       <main className="main">
         <div className="page-hero">
           <div>
             <h1 className="page-title">{t.title}</h1>
             <p className="page-sub">
-              {fill(shares.length !== 1 ? t.countMany : t.countOne, { n: shares.length })}
+              {fill(activeCount !== 1 ? t.countMany : t.countOne, { n: activeCount })}
             </p>
           </div>
           {shares.length > 1 && (
@@ -244,6 +262,19 @@ export default function MesPartages({ shares: initialShares }: Props) {
             </button>
           )}
         </div>
+
+        {historyCount > 0 && (
+          <div className="filter" role="group" aria-label={t.filterLabel}>
+            <button type="button" aria-pressed={filter === 'active'} onClick={() => setFilter('active')}>
+              {fill(t.filterActive, { n: activeCount })}
+            </button>
+            <button type="button" aria-pressed={filter === 'history'} onClick={() => setFilter('history')}>
+              {fill(t.filterHistory, { n: historyCount })}
+            </button>
+          </div>
+        )}
+
+        {shares.length > 0 && sorted.length === 0 && <p className="none">{t.noActive}</p>}
 
         {shares.length === 0 ? (
           <div className="empty-state">
@@ -270,8 +301,10 @@ export default function MesPartages({ shares: initialShares }: Props) {
                       {share.options.password_protected && ` · ${t.private}`}
                     </p>
                     <p className="card-date">
-                      {fill(t.createdOn, { date: new Date(share.createdAt).toLocaleDateString(intlLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' }) })}
+                      {fill(t.createdOn, { date: day(share.createdAt) })}
+                      {share.expiresAt && !isUnavailable ? ` · ${fill(t.expiresOn, { date: day(share.expiresAt) })}` : ''}
                     </p>
+                    <p className="card-date">{fill(share.views === 1 ? t.opensOne : t.opensOther, { n: share.views })}</p>
                     {(share.options.contact_name || share.options.contact_email) && (
                       <p className="card-contact">
                         👤 {[share.options.contact_name, share.options.contact_email].filter(Boolean).join(' · ')}
@@ -282,6 +315,17 @@ export default function MesPartages({ shares: initialShares }: Props) {
                       : isExpired && <span className="badge-expired">{t.expired}</span>
                     }
                   </div>
+                  {!isUnavailable && (
+                    <button
+                      type="button"
+                      className="settings-btn copy-btn"
+                      aria-label={t.copyLink}
+                      title={copiedToken === share.token ? t.copied : t.copyLink}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); copyLink(share.token) }}
+                    >
+                      {copiedToken === share.token ? '✓' : '📋'}
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="settings-btn"
@@ -362,7 +406,7 @@ export default function MesPartages({ shares: initialShares }: Props) {
           background: #FFF4E6; display: grid; place-items: center;
           font-size: 18px; flex-shrink: 0;
         }
-        .card-body { min-width: 0; flex: 1; padding-right: 24px; }
+        .card-body { min-width: 0; flex: 1; padding-right: 64px; }
         .card-title {
           font-size: 15px; font-weight: 700; color: var(--ink);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -388,6 +432,12 @@ export default function MesPartages({ shares: initialShares }: Props) {
           transition: background 0.15s;
         }
         .settings-btn:hover { background: var(--border-light); }
+        .copy-btn { right: 52px; }
+        .filter { display: inline-flex; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.1); border-radius: 999px; overflow: hidden; background: #fff; }
+        .filter button { padding: 9px 16px; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; color: #4A443E; cursor: pointer; }
+        .filter button[aria-pressed='true'] { background: var(--beige); color: var(--ink); }
+        .filter button:focus-visible, .settings-btn:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+        .none { margin: 0 0 20px; font-size: 15px; color: var(--muted); }
 
         .empty-state {
           display: flex; flex-direction: column; align-items: center;
@@ -417,7 +467,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const admin = adminSupabase()
   const { data: links } = await admin
     .from('share_links')
-    .select('id, token, title, object_ids, options, created_at, expires_at, is_archived')
+    .select('id, token, title, object_ids, options, created_at, expires_at, is_archived, view_count')
     .eq('user_id', session.user.id)
     .order('created_at', { ascending: false })
 
@@ -430,6 +480,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     expiresAt: l.expires_at,
     options: l.options ?? {},
     isArchived: !!l.is_archived,
+    views: l.view_count ?? 0,
   }))
 
   return { props: { shares } }

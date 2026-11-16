@@ -309,6 +309,7 @@
     "owned": "Meu",
     "stored": "Guardado",
     "loaned": "Emprestado",
+    "for_sale": "À venda",
     "sold": "Vendido",
     "given": "Doado",
     "lost": "Perdido"
@@ -331,6 +332,8 @@
     "monthly": "Mensal",
     "annual": "Anual",
     "unavailable": "Assinaturas indisponíveis no momento.",
+    "alreadySubscribedTitle": "Você já é assinante",
+    "alreadySubscribedBody": "Sua conta já tem uma assinatura ativa. Não é preciso comprar de novo: os pacotes de créditos continuam disponíveis abaixo.",
     "freeTrial": "✦ 7 dias de teste grátis",
     "perYear": " / ano",
     "perMonth": " / mês",
@@ -534,6 +537,7 @@
       "stored": "Guardado",
       "owned": "Em uso",
       "loaned": "Emprestado",
+      "for_sale": "À venda",
       "lost": "Perdido",
       "sold": "À venda",
       "given": "Para descartar"

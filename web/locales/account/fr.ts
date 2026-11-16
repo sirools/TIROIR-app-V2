@@ -211,6 +211,15 @@ const accountFr = {
     save: 'Enregistrer',
     passwordRequired: 'Renseigne un mot de passe (4 caractères minimum) pour passer en privé.',
     saveError: 'Impossible d\'enregistrer les modifications. Réessaie.',
+    filterLabel: 'Afficher',
+    filterActive: 'Actifs ({n})',
+    filterHistory: 'Archivés et expirés ({n})',
+    noActive: 'Aucun partage actif. Les liens archivés ou expirés sont dans l’autre onglet.',
+    opensOne: '{n} ouverture',
+    opensOther: '{n} ouvertures',
+    expiresOn: 'Expire le {date}',
+    copyLink: 'Copier le lien',
+    copied: 'Lien copié',
   },
   // Erreurs affichées (Supabase Auth via lib/authErrors.ts, et contrôles du formulaire).
   errors: {
@@ -230,6 +239,12 @@ const accountFr = {
     linkingDisabled: 'La liaison de comptes doit d’abord être activée dans Supabase (Authentication → « Allow manual linking »).',
     identityTaken: 'Ce compte est déjà rattaché à un autre compte Tiroir. Connecte-toi avec lui, supprime ce second compte ou écris à support@tiroir.app.',
     lastIdentity: 'Impossible de délier ton dernier moyen de connexion : ajoute-en un autre d’abord.',
+  },
+  campaign: {
+    metaTitle: 'Tiroir de famille — Rendez-vous',
+    title: 'Rendez-vous le {date}',
+    text: 'La campagne Tiroir de famille n’est pas encore ouverte. Ce lien t’y emmènera dès le premier jour.',
+    home: 'Découvrir Tiroir',
   },
 }
 

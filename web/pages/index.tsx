@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import Head from 'next/head'
 import HeaderTiroirWeb from '../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
-import SurveyInvite from '../components/SurveyInvite'
+import UluleInvite from '../components/UluleInvite'
 import Hero from '../components/home/Hero'
 import PhotoSimple from '../components/home/PhotoSimple'
 import Creatives from '../components/home/Creatives'
@@ -12,6 +12,7 @@ import Value from '../components/home/Value'
 import PricingFaq from '../components/home/PricingFaq'
 import FinalCta from '../components/home/FinalCta'
 import { useMotion } from '../components/home/useMotion'
+import { useHomeJsonLd } from '../components/home/HomeJsonLd'
 import { useCopy } from '../locales'
 import { localeLinks } from '../components/layout/LocaleLinks'
 import s from '../components/home/home.module.css'
@@ -22,6 +23,7 @@ export default function Landing() {
   const { t: { home: t }, locale } = useCopy()
   const root = useRef<HTMLDivElement>(null)
   const motion = useMotion(root)
+  const jsonLd = useHomeJsonLd()
 
   return (
     <>
@@ -29,6 +31,7 @@ export default function Landing() {
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
         {localeLinks(locale, '/')}
+        {jsonLd}
       </Head>
 
       <HeaderTiroirWeb />
@@ -49,7 +52,7 @@ export default function Landing() {
       <FooterTiroirWeb />
 
       {/* L'enquête n'existe qu'en français et en anglais. */}
-      {(locale === 'fr' || locale === 'en') && <SurveyInvite />}
+      {(locale === 'fr' || locale === 'en') && <UluleInvite />}
     </>
   )
 }

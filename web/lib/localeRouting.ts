@@ -26,12 +26,21 @@ export const TRANSLATED_PATHS: readonly string[] = [
   '/login', '/inscription', '/mot-de-passe-oublie', '/nouveau-mot-de-passe',
   '/email-confirme', '/bienvenue', '/merci', '/desinscription',
   '/mon-compte', '/profil', '/mes-partages',
+  // Inventaire du propriétaire connecté (inventory, dans web/locales)
+  '/mes-collections', '/accueil', '/ventes',
   // À propos et pages juridiques (web/locales/about, web/locales/legal)
   '/about', '/cgu', '/privacy',
 ]
 
 /** Familles de pages traduites (pages de partage, web/locales/share). */
 export const TRANSLATED_PREFIXES: readonly string[] = ['/s/', '/share/o/']
+
+/**
+ * Familles de pages traduites réservées au propriétaire connecté. À part
+ * de TRANSLATED_PREFIXES, qui désigne aussi les pages des destinataires
+ * (servies dans la langue du navigateur) : ici la langue reste celle choisie.
+ */
+export const OWNER_PREFIXES: readonly string[] = ['/mes-collections/', '/ventes/']
 
 /** La page existe-t-elle dans cette langue ? */
 export function isTranslated(locale: Locale, pathname: string): boolean {
@@ -41,6 +50,7 @@ export function isTranslated(locale: Locale, pathname: string): boolean {
   return !PARTIAL_LOCALES.includes(locale)
     || TRANSLATED_PATHS.includes(path)
     || TRANSLATED_PREFIXES.some(prefix => path.startsWith(prefix))
+    || OWNER_PREFIXES.some(prefix => path.startsWith(prefix))
 }
 
 export function asLocale(raw: string | undefined | null): Locale {
