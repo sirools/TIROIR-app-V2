@@ -39,6 +39,7 @@ export function useHomeJsonLd() {
       '@id': `${SITE}/#website`,
       url: SITE,
       name: 'Tiroir',
+      description: t.meta.siteDescription,
       publisher: { '@id': `${SITE}/#organization` },
       inLanguage: Object.values(IN_LANGUAGE),
     },

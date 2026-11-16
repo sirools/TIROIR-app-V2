@@ -57,6 +57,8 @@ const fr = {
     meta: {
       title: 'Tiroir — une photo, et tes objets sont rangés',
       description: 'Photographie un objet : Tiroir rédige sa fiche, le range et estime sa valeur. Pour les créatifs, les pros et tous ceux qui veulent savoir ce qu’ils possèdent.',
+      // Description du site entier (JSON-LD, objet WebSite) — pas celle de la page d'accueil.
+      siteDescription: 'Photographie tes objets et laisse Tiroir rédiger leur fiche, les classer et estimer leur valeur.',
     },
     hero: {
       badge: 'Disponible sur iOS et Android',

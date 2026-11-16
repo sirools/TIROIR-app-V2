@@ -54,6 +54,7 @@ const es: Copy = {
     meta: {
       title: 'Tiroir — una foto y tus cosas quedan ordenadas',
       description: 'Fotografía un objeto: Tiroir redacta su ficha, lo ordena y estima su valor. Para creativos, profesionales y cualquiera que quiera saber lo que tiene.',
+      siteDescription: 'Fotografía tus objetos y deja que Tiroir redacte su ficha, los ordene y estime su valor.',
     },
     hero: {
       badge: 'Disponible en iOS y Android',

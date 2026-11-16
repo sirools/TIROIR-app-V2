@@ -707,7 +707,8 @@
   "home": {
     "meta": {
       "title": "Tiroir — one photo, and your things are sorted",
-      "description": "Snap an item: Tiroir writes its entry, files it and estimates what it’s worth. For creatives, pros and anyone who wants to know what they own."
+      "description": "Snap an item: Tiroir writes its entry, files it and estimates what it’s worth. For creatives, pros and anyone who wants to know what they own.",
+      "siteDescription": "Snap your items and let Tiroir write their entries, file them and estimate what they’re worth."
     },
     "hero": {
       "badge": "Available on iOS and Android",
