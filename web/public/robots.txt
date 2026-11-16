@@ -1,8 +1,8 @@
-# Site public de Tiroir. Le back-office (backoffice.tiroir.app) est exclu
+# Site public de Tiroir (adresse principale : www.tiroir.app). Le back-office (backoffice.tiroir.app) est exclu
 # par ses en-têtes X-Robots-Tag (middleware.ts), pas par ce fichier.
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin
 
-Sitemap: https://tiroir.app/sitemap.xml
+Sitemap: https://www.tiroir.app/sitemap.xml

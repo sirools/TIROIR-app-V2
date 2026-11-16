@@ -3,163 +3,163 @@
      À tenir à jour avec lib/localeRouting.ts (TRANSLATED_PATHS). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://tiroir.app/</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/"/>
+    <loc>https://www.tiroir.app/</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/"/>
   </url>
   <url>
-    <loc>https://tiroir.app/en</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/"/>
+    <loc>https://www.tiroir.app/en</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/"/>
   </url>
   <url>
-    <loc>https://tiroir.app/de</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/"/>
+    <loc>https://www.tiroir.app/de</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/"/>
   </url>
   <url>
-    <loc>https://tiroir.app/es</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/"/>
+    <loc>https://www.tiroir.app/es</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/"/>
   </url>
   <url>
-    <loc>https://tiroir.app/pricing</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/pricing"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/pricing"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/pricing"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/pricing"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/pricing"/>
+    <loc>https://www.tiroir.app/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/pricing"/>
   </url>
   <url>
-    <loc>https://tiroir.app/en/pricing</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/pricing"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/pricing"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/pricing"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/pricing"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/pricing"/>
+    <loc>https://www.tiroir.app/en/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/pricing"/>
   </url>
   <url>
-    <loc>https://tiroir.app/de/pricing</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/pricing"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/pricing"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/pricing"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/pricing"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/pricing"/>
+    <loc>https://www.tiroir.app/de/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/pricing"/>
   </url>
   <url>
-    <loc>https://tiroir.app/es/pricing</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/pricing"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/pricing"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/pricing"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/pricing"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/pricing"/>
+    <loc>https://www.tiroir.app/es/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/pricing"/>
   </url>
   <url>
-    <loc>https://tiroir.app/about</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/about"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/about"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/about"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/about"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/about"/>
+    <loc>https://www.tiroir.app/about</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/about"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/about"/>
   </url>
   <url>
-    <loc>https://tiroir.app/en/about</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/about"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/about"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/about"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/about"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/about"/>
+    <loc>https://www.tiroir.app/en/about</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/about"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/about"/>
   </url>
   <url>
-    <loc>https://tiroir.app/de/about</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/about"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/about"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/about"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/about"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/about"/>
+    <loc>https://www.tiroir.app/de/about</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/about"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/about"/>
   </url>
   <url>
-    <loc>https://tiroir.app/es/about</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/about"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/about"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/about"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/about"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/about"/>
+    <loc>https://www.tiroir.app/es/about</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/about"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/about"/>
   </url>
   <url>
-    <loc>https://tiroir.app/cgu</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/cgu"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/cgu"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/cgu"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/cgu"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/cgu"/>
+    <loc>https://www.tiroir.app/cgu</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/cgu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/cgu"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/cgu"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/cgu"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/cgu"/>
   </url>
   <url>
-    <loc>https://tiroir.app/en/cgu</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/cgu"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/cgu"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/cgu"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/cgu"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/cgu"/>
+    <loc>https://www.tiroir.app/en/cgu</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/cgu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/cgu"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/cgu"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/cgu"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/cgu"/>
   </url>
   <url>
-    <loc>https://tiroir.app/de/cgu</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/cgu"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/cgu"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/cgu"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/cgu"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/cgu"/>
+    <loc>https://www.tiroir.app/de/cgu</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/cgu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/cgu"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/cgu"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/cgu"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/cgu"/>
   </url>
   <url>
-    <loc>https://tiroir.app/es/cgu</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/cgu"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/cgu"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/cgu"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/cgu"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/cgu"/>
+    <loc>https://www.tiroir.app/es/cgu</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/cgu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/cgu"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/cgu"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/cgu"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/cgu"/>
   </url>
   <url>
-    <loc>https://tiroir.app/privacy</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/privacy"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/privacy"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/privacy"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/privacy"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/privacy"/>
+    <loc>https://www.tiroir.app/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/privacy"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/privacy"/>
   </url>
   <url>
-    <loc>https://tiroir.app/en/privacy</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/privacy"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/privacy"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/privacy"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/privacy"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/privacy"/>
+    <loc>https://www.tiroir.app/en/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/privacy"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/privacy"/>
   </url>
   <url>
-    <loc>https://tiroir.app/de/privacy</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/privacy"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/privacy"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/privacy"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/privacy"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/privacy"/>
+    <loc>https://www.tiroir.app/de/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/privacy"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/privacy"/>
   </url>
   <url>
-    <loc>https://tiroir.app/es/privacy</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://tiroir.app/privacy"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tiroir.app/en/privacy"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://tiroir.app/de/privacy"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://tiroir.app/es/privacy"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tiroir.app/privacy"/>
+    <loc>https://www.tiroir.app/es/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.tiroir.app/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.tiroir.app/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.tiroir.app/de/privacy"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.tiroir.app/es/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.tiroir.app/privacy"/>
   </url>
 </urlset>

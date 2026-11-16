@@ -3,7 +3,7 @@ import { localeUrl } from '../../lib/localeRouting'
 import { APP_STORE_URL_FR, PLAY_STORE_URL } from '../../lib/appLinks'
 import { OFFERS_V4 } from '../../lib/offers'
 
-const SITE = 'https://tiroir.app'
+const SITE = 'https://www.tiroir.app'
 const IN_LANGUAGE = { fr: 'fr-FR', en: 'en', de: 'de-DE', es: 'es-ES' } as const
 
 /**
