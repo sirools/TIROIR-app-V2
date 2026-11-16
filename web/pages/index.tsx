@@ -11,6 +11,7 @@ import Value from '../components/home/Value'
 import PricingFaq from '../components/home/PricingFaq'
 import FinalCta from '../components/home/FinalCta'
 import { useMotion } from '../components/home/useMotion'
+import { useHomeJsonLd } from '../components/home/HomeJsonLd'
 import { useCopy } from '../locales'
 import { localeLinks } from '../components/layout/LocaleLinks'
 import s from '../components/home/home.module.css'
@@ -21,6 +22,7 @@ export default function Landing() {
   const { t: { home: t }, locale } = useCopy()
   const root = useRef<HTMLDivElement>(null)
   const motion = useMotion(root)
+  const jsonLd = useHomeJsonLd()
 
   return (
     <>
@@ -28,6 +30,7 @@ export default function Landing() {
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
         {localeLinks(locale, '/')}
+        {jsonLd}
       </Head>
 
       <HeaderTiroirWeb />

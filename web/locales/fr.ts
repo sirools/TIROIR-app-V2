@@ -89,6 +89,7 @@ const fr = {
         ],
         valueLabel: 'Valeur estimée',
       },
+      mediaAlt: 'Un téléphone en forme de commode, dont les tiroirs s’ouvrent l’un après l’autre',
     },
     photo: {
       title: 'Une photo, c’est tout.',
@@ -126,6 +127,7 @@ const fr = {
       },
       reassure: 'Gratuit, sans carte bancaire. {n} actions IA par mois incluses.',
       cta: 'Essayer gratuitement',
+      shotAlt: 'Photo d’une veste en jean prise avec Tiroir',
     },
     pros: {
       eyebrow: 'Pour les créatifs et les pros',
@@ -136,21 +138,25 @@ const fr = {
           who: 'Styliste',
           text: 'Chaque pièce photographiée, rangée par shooting. Tu sais ce qui est sorti et ce qui est revenu.',
           chip: 'Prêtée · retour vendredi',
+          alt: 'Veste en jean pliée',
         },
         {
           who: 'Régisseur',
           text: 'Le matériel inventorié avant le tournage, vérifié au retour. Tout le parc tient dans ta poche.',
           chip: '42 pièces · 3 prêtées',
+          alt: 'Appareil photo argentique',
         },
         {
           who: 'Brocanteur',
           text: 'Un déballage entier en une session grâce au mode rafale, avec un prix de départ pour chaque pièce.',
           chip: 'Rafale · 60 objets',
+          alt: 'Montre à bracelet en cuir',
         },
         {
           who: 'Musicien',
           text: 'Instruments et accessoires documentés, factures jointes : prêts pour l’assurance ou la revente.',
           chip: 'Valeur ≈ {price}',
+          alt: 'Guitare électrique crème',
         },
       ],
     },

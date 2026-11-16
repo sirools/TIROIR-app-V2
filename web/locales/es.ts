@@ -85,6 +85,7 @@ const es: Copy = {
         ],
         valueLabel: 'Valor estimado',
       },
+      mediaAlt: 'Un teléfono con forma de cómoda cuyos cajones se abren uno tras otro',
     },
     photo: {
       title: 'Una foto y listo.',
@@ -122,6 +123,7 @@ const es: Copy = {
       },
       reassure: 'Gratis, sin tarjeta. {n} acciones de IA al mes incluidas.',
       cta: 'Pruébalo gratis',
+      shotAlt: 'Foto de una chaqueta vaquera tomada con Tiroir',
     },
     pros: {
       eyebrow: 'Para creativos y profesionales',
@@ -132,21 +134,25 @@ const es: Copy = {
           who: 'Estilista',
           text: 'Cada prenda fotografiada y ordenada por sesión. Sabes qué ha salido y qué ha vuelto.',
           chip: 'Prestada · vuelve el viernes',
+          alt: 'Chaqueta vaquera doblada',
         },
         {
           who: 'Jefe de producción',
           text: 'El material inventariado antes del rodaje y revisado a la vuelta. Todo el equipo, en tu bolsillo.',
           chip: '42 piezas · 3 prestadas',
+          alt: 'Cámara analógica',
         },
         {
           who: 'Anticuario',
           text: 'Un puesto entero en una sola sesión gracias al modo ráfaga, con un precio de salida para cada pieza.',
           chip: 'Ráfaga · 60 objetos',
+          alt: 'Reloj con correa de cuero',
         },
         {
           who: 'Músico',
           text: 'Instrumentos y accesorios documentados, facturas adjuntas: listos para el seguro o la reventa.',
           chip: 'Valor ≈ {price}',
+          alt: 'Guitarra eléctrica color crema',
         },
       ],
     },

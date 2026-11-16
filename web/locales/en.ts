@@ -84,6 +84,7 @@ const en: Copy = {
         ],
         valueLabel: 'Estimated value',
       },
+      mediaAlt: 'A phone shaped like a chest of drawers, its drawers opening one after another',
     },
     photo: {
       title: 'One photo. That’s it.',
@@ -121,6 +122,7 @@ const en: Copy = {
       },
       reassure: 'Free, no credit card. {n} AI actions a month included.',
       cta: 'Try it free',
+      shotAlt: 'Photo of a denim jacket taken with Tiroir',
     },
     pros: {
       eyebrow: 'For creatives and pros',
@@ -131,21 +133,25 @@ const en: Copy = {
           who: 'Stylist',
           text: 'Every piece photographed and filed by shoot. You know what went out and what came back.',
           chip: 'On loan · back Friday',
+          alt: 'Folded denim jacket',
         },
         {
           who: 'Production manager',
           text: 'Kit logged before the shoot, checked on return. Your whole inventory fits in your pocket.',
           chip: '42 items · 3 on loan',
+          alt: 'Film camera',
         },
         {
           who: 'Second-hand dealer',
           text: 'A full stall catalogued in one session with burst mode, with a starting price for every piece.',
           chip: 'Burst · 60 items',
+          alt: 'Watch with a leather strap',
         },
         {
           who: 'Musician',
           text: 'Instruments and gear documented, receipts attached: ready for insurance or resale.',
           chip: 'Value ≈ {price}',
+          alt: 'Cream electric guitar',
         },
       ],
     },
