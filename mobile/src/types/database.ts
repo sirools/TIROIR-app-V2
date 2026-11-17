@@ -23,6 +23,17 @@ export interface Profile {
   plan_source?: 'web' | 'app' | null
   /** Statut Stripe de l'abonnement du site (active, past_due, canceled…). */
   subscription_status?: string | null
+  /** Profil choisi sur le site (web/lib/personas.ts). */
+  persona?: string | null
+  /** Onboarding (src/features/onboarding) : usage déclaré, métier, métier écrit à la main. */
+  usage?: 'perso' | 'creatif' | 'business' | null
+  metier?: string | null
+  metier_autre?: string | null
+  /**
+   * Moment où l'onboarding a été terminé ou passé ; null = jamais présenté.
+   * Absent (undefined) tant que la base n'a pas la colonne.
+   */
+  onboarding_completed_at?: string | null
   created_at: string
   updated_at: string
 }

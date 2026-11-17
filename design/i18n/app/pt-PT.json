@@ -62,7 +62,52 @@
     "deleteFailed": "Não foi possível eliminar. Tente novamente ou contacte o suporte.",
     "newPasswordLabel": "Nova palavra-passe",
     "savePassword": "Guardar",
-    "passwordMismatch": "As duas palavras-passe não coincidem."
+    "passwordMismatch": "As duas palavras-passe não coincidem.",
+    "onboarding": "A sua utilização do Tiroir"
+  },
+  "onboarding": {
+    "skip": "Saltar",
+    "progress": "Passo {{step}} de {{total}}",
+    "usage": {
+      "title": "Para que usa o Tiroir?",
+      "subtitle": "Ajuda-nos a sugerir um Tiroir à sua medida.",
+      "persoHint": "As minhas coisas, a minha casa, as minhas coleções",
+      "creatifHint": "O meu equipamento, os meus figurinos, os meus cenários",
+      "business": "Negócio",
+      "businessHint": "O meu stock, os meus equipamentos, a minha atividade"
+    },
+    "metier": {
+      "title": "A sua profissão",
+      "titlePerso": "O seu perfil",
+      "subtitle": "Escolha o que mais se parece consigo.",
+      "otherLabel": "Diga-nos mais, se quiser",
+      "names": {
+        "famille": "Família que transmite",
+        "videaste": "Videógrafo",
+        "brocanteur": "Vendedor de velharias",
+        "loueur_materiel": "Aluguer de equipamento"
+      }
+    },
+    "collection": {
+      "title": "A sua primeira coleção",
+      "subtitle": "Uma coleção reúne os objetos que pertencem ao mesmo conjunto. Sugerimos esta para começar: pode mudar o nome.",
+      "suggestions": {
+        "maison": "A minha casa",
+        "collection": "A minha coleção",
+        "famille": "Recordações de família",
+        "video": "O meu equipamento de vídeo",
+        "photo": "O meu equipamento de fotografia",
+        "vestiaire": "O meu acervo",
+        "costumes": "Os meus figurinos",
+        "accessoires": "Os meus adereços",
+        "instruments": "Os meus instrumentos",
+        "stock": "O meu stock",
+        "parc": "O meu equipamento de aluguer",
+        "atelier": "A minha oficina",
+        "cuisine": "A minha cozinha",
+        "materiel": "O meu equipamento"
+      }
+    }
   },
   "language": {
     "title": "Idioma da aplicação",

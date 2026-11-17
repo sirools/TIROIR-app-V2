@@ -108,7 +108,8 @@
     "newPasswordLabel": "Neues Passwort",
     "confirmPasswordLabel": "Bestätigen",
     "savePassword": "Speichern",
-    "passwordMismatch": "Die beiden Passwörter stimmen nicht überein."
+    "passwordMismatch": "Die beiden Passwörter stimmen nicht überein.",
+    "onboarding": "Wofür du Tiroir nutzt"
   },
   "language": {
     "title": "App-Sprache",
@@ -193,13 +194,68 @@
     "passwordHint": "Für ein neues Passwort muss ein neuer Link erstellt werden."
   },
   "onboarding": {
-    "tagline": "Finde alles,\nwas du besitzt.",
-    "subtitle": "Fotografiere deine Objekte, Torix erstellt die Einträge automatisch. Finde alles in Sekunden.",
-    "point1": "Foto → automatischer Objekteintrag",
-    "point2": "Nach Sammlungen organisieren",
-    "point3": "Finde es per Suche in natürlicher Sprache",
-    "ctaPrimary": "Mein erstes Objekt hinzufügen →",
-    "ctaSecondary": "Zuerst erkunden"
+    "skip": "Überspringen",
+    "continue": "Weiter",
+    "progress": "Schritt {{step}} von {{total}}",
+    "usage": {
+      "title": "Wofür nutzt du Tiroir?",
+      "subtitle": "So können wir dir ein Tiroir vorschlagen, das zu dir passt.",
+      "perso": "Privat",
+      "persoHint": "Meine Sachen, mein Zuhause, meine Sammlungen",
+      "creatif": "Kreativ",
+      "creatifHint": "Mein Equipment, meine Kostüme, meine Kulissen",
+      "business": "Business",
+      "businessHint": "Mein Lager, meine Geräte, mein Geschäft"
+    },
+    "metier": {
+      "title": "Dein Beruf",
+      "titlePerso": "Dein Profil",
+      "subtitle": "Wähle, was am besten zu dir passt.",
+      "other": "Sonstiges",
+      "otherLabel": "Erzähl uns mehr, wenn du magst",
+      "otherPlaceholder": "Z. B. Inspizient, Geigenbauerin …",
+      "names": {
+        "particulier": "Privatperson",
+        "collectionneur": "Sammler",
+        "famille": "Familie, die weitergibt",
+        "videaste": "Videograf",
+        "photographe": "Fotograf",
+        "styliste": "Stylist",
+        "costumiere": "Kostümbildnerin",
+        "decoratrice": "Dekorateurin",
+        "musicien": "Musiker",
+        "brocanteur": "Trödler",
+        "antiquaire": "Antiquitätenhändler",
+        "revendeur": "Wiederverkäufer",
+        "loueur_materiel": "Geräteverleih",
+        "artisan": "Handwerker",
+        "mecano": "Mechaniker",
+        "cuisinier": "Koch"
+      }
+    },
+    "collection": {
+      "title": "Deine erste Sammlung",
+      "subtitle": "Eine Sammlung bündelt, was zusammengehört. Für den Start schlagen wir dir diese vor: Den Namen kannst du ändern.",
+      "nameLabel": "Name der Sammlung",
+      "create": "Erstellen",
+      "later": "Später",
+      "suggestions": {
+        "maison": "Mein Zuhause",
+        "collection": "Meine Sammlung",
+        "famille": "Familienerbstücke",
+        "video": "Mein Videoequipment",
+        "photo": "Mein Fotoequipment",
+        "vestiaire": "Mein Fundus",
+        "costumes": "Meine Kostüme",
+        "accessoires": "Meine Requisiten",
+        "instruments": "Meine Instrumente",
+        "stock": "Mein Lager",
+        "parc": "Mein Mietpark",
+        "atelier": "Meine Werkstatt",
+        "cuisine": "Meine Küche",
+        "materiel": "Mein Equipment"
+      }
+    }
   },
   "collections": {
     "title": "Sammlungen",
