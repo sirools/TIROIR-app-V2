@@ -5,7 +5,7 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, ChevronRight, Lock, FileText, Shield, Trash2, Languages, Globe } from 'lucide-react-native'
+import { ArrowLeft, ChevronRight, Lock, FileText, Shield, Trash2, Languages, Globe, Compass } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthContext'
 import {
@@ -24,7 +24,7 @@ const MIN_PASSWORD_LENGTH = 8
 export default function SettingsScreen() {
   const router = useRouter()
   const { t, i18n } = useTranslation()
-  const { signOut } = useAuth()
+  const { signOut, profile } = useAuth()
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [passwordModalVisible, setPasswordModalVisible] = useState(false)
   const [newPassword, setNewPassword] = useState('')
@@ -180,6 +180,14 @@ export default function SettingsScreen() {
             icon={<Lock size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
             label={t('settings.changePassword')}
             onPress={() => setPasswordModalVisible(true)}
+          />
+          <View style={styles.separator} />
+          {/* L'onboarding, passé ou non, se rouvre ici. */}
+          <SettingsRow
+            icon={<Compass size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
+            label={t('settings.onboarding')}
+            value={profile?.usage ? t(`onboarding.usage.${profile.usage}`) : undefined}
+            onPress={() => router.push('/onboarding?from=settings')}
           />
         </View>
 

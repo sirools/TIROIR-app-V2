@@ -1,8 +1,11 @@
-import { Tabs } from 'expo-router'
+import { useEffect, useState } from 'react'
+import { Tabs, useRouter, useSegments } from 'expo-router'
 import { View, TouchableOpacity, StyleSheet } from 'react-native'
 import { Archive, Camera, Search } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors, ToastProvider } from '@/components/ui'
+import { useAuth } from '@/features/auth/AuthContext'
+import { needsOnboarding, wasOnboardingSeen } from '@/features/onboarding/onboardingState'
 
 const ICON_AREA_H = 64
 
@@ -13,6 +16,9 @@ interface TabBarProps {
 
 function CustomTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets()
+
+  // L'onboarding occupe tout l'écran : pas d'onglets pour en sortir de côté.
+  if (state.routes[state.index]?.name === 'onboarding') return null
 
   // Les 3 onglets visibles sont index=0,1,2 dans state.routes
   const tabs = [
@@ -53,7 +59,37 @@ function CustomTabBar({ state, navigation }: TabBarProps) {
   )
 }
 
+/**
+ * Ouvre l'onboarding quand le profil dit qu'il n'a jamais été présenté
+ * (nouveau compte). Rend `true` le temps de décider, pour que l'accueil
+ * n'apparaisse pas une fraction de seconde avant lui.
+ */
+function useOnboardingGate(): boolean {
+  const { user, profile } = useAuth()
+  const router = useRouter()
+  const segments = useSegments() as string[]
+  const onOnboarding = segments.includes('onboarding')
+  const userId = user?.id ?? null
+  const pending = !!userId && needsOnboarding(profile)
+  /** Compte pour lequel l'appareil se souvient d'un onboarding terminé ou passé. */
+  const [clearedFor, setClearedFor] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!pending || !userId || onOnboarding || clearedFor === userId) return
+    let cancelled = false
+    wasOnboardingSeen(userId).then(seen => {
+      if (cancelled) return
+      if (seen) setClearedFor(userId)
+      else router.replace('/onboarding')
+    })
+    return () => { cancelled = true }
+  }, [pending, userId, onOnboarding, clearedFor, router])
+
+  return pending && !onOnboarding && clearedFor !== userId
+}
+
 export default function AppLayout() {
+  const deciding = useOnboardingGate()
   return (
     <ToastProvider>
       <Tabs
@@ -74,11 +110,17 @@ export default function AppLayout() {
         <Tabs.Screen name="collections/index" options={{ href: null }} />
         <Tabs.Screen name="collections/[id]"  options={{ href: null }} />
       </Tabs>
+      {deciding ? <View style={styles.gate} /> : null}
     </ToastProvider>
   )
 }
 
 const styles = StyleSheet.create({
+  gate: {
+    position: 'absolute',
+    top: 0, right: 0, bottom: 0, left: 0,
+    backgroundColor: Colors.background,
+  },
   bar: {
     backgroundColor: Colors.surface,
     borderTopWidth: 1,

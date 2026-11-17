@@ -40,6 +40,7 @@ yarn-error.*
 /ios
 /android
 .env
+.env.preprod
 node_modules/
 
 # Google Play service account key (secret — ne jamais committer)

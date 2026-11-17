@@ -108,7 +108,8 @@
     "newPasswordLabel": "Nova senha",
     "confirmPasswordLabel": "Confirmar",
     "savePassword": "Salvar",
-    "passwordMismatch": "As duas senhas não coincidem."
+    "passwordMismatch": "As duas senhas não coincidem.",
+    "onboarding": "Seu uso do Tiroir"
   },
   "language": {
     "title": "Idioma do app",
@@ -193,13 +194,68 @@
     "passwordHint": "Para definir uma nova senha, é preciso criar um novo link."
   },
   "onboarding": {
-    "tagline": "Encontre o que\nvocê tem.",
-    "subtitle": "Fotografe seus objetos e o Torix cria as fichas automaticamente. Encontre qualquer coisa em segundos.",
-    "point1": "Foto → ficha do objeto automática",
-    "point2": "Organize por coleções",
-    "point3": "Encontre buscando com suas palavras",
-    "ctaPrimary": "Adicionar meu primeiro objeto →",
-    "ctaSecondary": "Explorar primeiro"
+    "skip": "Pular",
+    "continue": "Continuar",
+    "progress": "Etapa {{step}} de {{total}}",
+    "usage": {
+      "title": "Para que você usa o Tiroir?",
+      "subtitle": "Isso nos ajuda a sugerir um Tiroir com a sua cara.",
+      "perso": "Pessoal",
+      "persoHint": "Minhas coisas, minha casa, minhas coleções",
+      "creatif": "Criativo",
+      "creatifHint": "Meu equipamento, meus figurinos, meus cenários",
+      "business": "Negócios",
+      "businessHint": "Meu estoque, meus equipamentos, minha atividade"
+    },
+    "metier": {
+      "title": "Sua profissão",
+      "titlePerso": "Seu perfil",
+      "subtitle": "Escolha o que mais combina com você.",
+      "other": "Outro",
+      "otherLabel": "Conte mais, se quiser",
+      "otherPlaceholder": "Ex.: contrarregra, luthier…",
+      "names": {
+        "particulier": "Particular",
+        "collectionneur": "Colecionador",
+        "famille": "Família que passa adiante",
+        "videaste": "Videomaker",
+        "photographe": "Fotógrafo",
+        "styliste": "Estilista",
+        "costumiere": "Figurinista",
+        "decoratrice": "Decoradora",
+        "musicien": "Músico",
+        "brocanteur": "Vendedor de usados",
+        "antiquaire": "Antiquário",
+        "revendeur": "Revendedor",
+        "loueur_materiel": "Locação de equipamentos",
+        "artisan": "Artesão",
+        "mecano": "Mecânico",
+        "cuisinier": "Cozinheiro"
+      }
+    },
+    "collection": {
+      "title": "Sua primeira coleção",
+      "subtitle": "Uma coleção reúne os objetos que combinam entre si. Sugerimos esta para começar: você pode mudar o nome.",
+      "nameLabel": "Nome da coleção",
+      "create": "Criar",
+      "later": "Mais tarde",
+      "suggestions": {
+        "maison": "Minha casa",
+        "collection": "Minha coleção",
+        "famille": "Lembranças de família",
+        "video": "Meu equipamento de vídeo",
+        "photo": "Meu equipamento de fotografia",
+        "vestiaire": "Meu acervo",
+        "costumes": "Meus figurinos",
+        "accessoires": "Meus objetos de cena",
+        "instruments": "Meus instrumentos",
+        "stock": "Meu estoque",
+        "parc": "Meus equipamentos de locação",
+        "atelier": "Minha oficina",
+        "cuisine": "Minha cozinha",
+        "materiel": "Meu equipamento"
+      }
+    }
   },
   "collections": {
     "title": "Coleções",

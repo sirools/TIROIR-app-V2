@@ -108,7 +108,8 @@
     "newPasswordLabel": "New password",
     "confirmPasswordLabel": "Confirm",
     "savePassword": "Save",
-    "passwordMismatch": "The two passwords don't match."
+    "passwordMismatch": "The two passwords don't match.",
+    "onboarding": "How you use Tiroir"
   },
   "language": {
     "title": "App language",
@@ -193,13 +194,68 @@
     "passwordHint": "To set a new password, create a new link."
   },
   "onboarding": {
-    "tagline": "Find everything\nyou own.",
-    "subtitle": "Photograph your items, Torix creates the entries automatically. Find anything in seconds.",
-    "point1": "Photo → automatic item entry",
-    "point2": "Organise by collections",
-    "point3": "Find it by searching in plain language",
-    "ctaPrimary": "Add my first item →",
-    "ctaSecondary": "Explore first"
+    "skip": "Skip",
+    "continue": "Continue",
+    "progress": "Step {{step}} of {{total}}",
+    "usage": {
+      "title": "What do you use Tiroir for?",
+      "subtitle": "It helps us suggest a Tiroir that fits you.",
+      "perso": "Personal",
+      "persoHint": "My things, my home, my collections",
+      "creatif": "Creative",
+      "creatifHint": "My gear, my costumes, my sets",
+      "business": "Business",
+      "businessHint": "My stock, my equipment, my trade"
+    },
+    "metier": {
+      "title": "Your line of work",
+      "titlePerso": "Your profile",
+      "subtitle": "Pick the one closest to you.",
+      "other": "Other",
+      "otherLabel": "Tell us more, if you like",
+      "otherPlaceholder": "E.g. stage manager, luthier…",
+      "names": {
+        "particulier": "Private individual",
+        "collectionneur": "Collector",
+        "famille": "Family passing things on",
+        "videaste": "Videographer",
+        "photographe": "Photographer",
+        "styliste": "Stylist",
+        "costumiere": "Costume designer",
+        "decoratrice": "Set decorator",
+        "musicien": "Musician",
+        "brocanteur": "Second-hand dealer",
+        "antiquaire": "Antique dealer",
+        "revendeur": "Reseller",
+        "loueur_materiel": "Equipment rental",
+        "artisan": "Craftsperson",
+        "mecano": "Mechanic",
+        "cuisinier": "Cook"
+      }
+    },
+    "collection": {
+      "title": "Your first collection",
+      "subtitle": "A collection groups the things that belong together. Here is one to get you started: you can change its name.",
+      "nameLabel": "Collection name",
+      "create": "Create",
+      "later": "Later",
+      "suggestions": {
+        "maison": "My home",
+        "collection": "My collection",
+        "famille": "Family keepsakes",
+        "video": "My video gear",
+        "photo": "My photo gear",
+        "vestiaire": "My wardrobe",
+        "costumes": "My costumes",
+        "accessoires": "My props",
+        "instruments": "My instruments",
+        "stock": "My stock",
+        "parc": "My rental gear",
+        "atelier": "My workshop",
+        "cuisine": "My kitchen",
+        "materiel": "My gear"
+      }
+    }
   },
   "collections": {
     "title": "Collections",
