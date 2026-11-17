@@ -493,7 +493,8 @@
     "inviteLibrary": "Aus der Galerie",
     "inviteLibraryHint": "Wähle ein vorhandenes Foto",
     "inviteBatch": "Mehrere auf einmal",
-    "inviteBatchHint": "Ein Foto = ein Gegenstand"
+    "inviteBatchHint": "Ein Foto = ein Gegenstand",
+    "addObjects": "Objekte hinzufügen"
   },
   "iconPicker": {
     "preview": "Vorschau",
@@ -886,6 +887,24 @@
     "cancelNo": "Weiter importieren",
     "alreadyRunning": "Es läuft bereits ein Import.",
     "close": "Schließen"
+  },
+  "burst": {
+    "entryTitle": "Serienaufnahme",
+    "entrySub": "Mehrere Fotos nacheinander · bis zu {{max}}",
+    "counter": "{{taken}} / {{max}}",
+    "finish": "Fertig",
+    "hint": "Ein Foto pro Objekt",
+    "nearLimit_one": "Noch {{count}} Foto möglich",
+    "nearLimit_other": "Noch {{count}} Fotos möglich",
+    "limitReached": "Limit erreicht: {{max}} Fotos pro Stapel",
+    "removePhoto": "Foto {{index}} entfernen",
+    "permissionTitle": "Kamerazugriff",
+    "permissionCta": "Kamera erlauben",
+    "discardTitle": "Serienaufnahme verlassen?",
+    "discardMessage_one": "{{count}} Foto geht verloren.",
+    "discardMessage_other": "{{count}} Fotos gehen verloren.",
+    "discardYes": "Verlassen",
+    "discardNo": "Weitermachen"
   },
   "collectionComposer": {
     "inviteTitle": "Erstelle deine erste Sammlung",

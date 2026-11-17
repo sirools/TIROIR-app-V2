@@ -493,7 +493,8 @@
     "inviteLibrary": "Desde la galería",
     "inviteLibraryHint": "Elige una foto que ya tengas",
     "inviteBatch": "Varios objetos a la vez",
-    "inviteBatchHint": "Una foto = un objeto"
+    "inviteBatchHint": "Una foto = un objeto",
+    "addObjects": "Añadir objetos"
   },
   "iconPicker": {
     "preview": "Vista previa",
@@ -886,6 +887,24 @@
     "cancelNo": "Seguir importando",
     "alreadyRunning": "Ya hay una importación en curso.",
     "close": "Cerrar"
+  },
+  "burst": {
+    "entryTitle": "Ráfaga",
+    "entrySub": "Varias fotos seguidas · hasta {{max}}",
+    "counter": "{{taken}} / {{max}}",
+    "finish": "Terminar",
+    "hint": "Una foto por objeto",
+    "nearLimit_one": "Queda {{count}} foto posible",
+    "nearLimit_other": "Quedan {{count}} fotos posibles",
+    "limitReached": "Límite alcanzado: {{max}} fotos por lote",
+    "removePhoto": "Quitar la foto {{index}}",
+    "permissionTitle": "Acceso a la cámara",
+    "permissionCta": "Permitir la cámara",
+    "discardTitle": "¿Salir de la ráfaga?",
+    "discardMessage_one": "Se perderá {{count}} foto.",
+    "discardMessage_other": "Se perderán {{count}} fotos.",
+    "discardYes": "Salir",
+    "discardNo": "Continuar"
   },
   "collectionComposer": {
     "inviteTitle": "Crea tu primera colección",

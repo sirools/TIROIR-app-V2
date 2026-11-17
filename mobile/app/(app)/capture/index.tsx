@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, Image, TouchableOpacity,
   ScrollView, Alert, Animated, ActivityIndicator, Platform,
 } from 'react-native'
-import { Camera, Images, Layers, ChevronRight } from 'lucide-react-native'
+import { Camera, Images, Layers, ChevronRight, Zap } from 'lucide-react-native'
 import * as ImagePicker from 'expo-image-picker'
 import * as ImageManipulator from 'expo-image-manipulator'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -240,6 +240,19 @@ export default function CaptureScreen() {
     // Aucune compression ici : les vignettes locales suffisent à afficher
     // le lot tout de suite.
     goToBatchReview(result.assets.map(a => ({ uri: a.uri, width: a.width, height: a.height })))
+  }
+
+  /** Rafale : l'appareil photo reste ouvert, chaque photo devient un objet. */
+  function openBurst() {
+    if (isBatchActive()) {
+      showToast(t('batch.alreadyRunning'))
+      router.push('/capture/review')
+      return
+    }
+    router.push({
+      pathname: '/capture/burst',
+      params: { batchMax: String(batchMax), ...(collectionId ? { collectionId } : {}) },
+    })
   }
 
   /** Bascule la sélection courante en lot : une photo = un objet. */
@@ -480,6 +493,14 @@ export default function CaptureScreen() {
               onPress={batchAvailable ? pickMultipleObjects : explainBatchBlocked}
             />
 
+            <BatchEntry
+              title={t('burst.entryTitle')}
+              subtitle={batchAvailable ? t('burst.entrySub', { max: batchMax }) : t('batch.entryBlocked')}
+              enabled={batchAvailable}
+              onPress={batchAvailable ? openBurst : explainBatchBlocked}
+              icon={Zap}
+            />
+
             {/* Détection de scène — derrière le drapeau serveur. Le point
                 d'entrée est explicite pendant le POC : le banc doit mesurer
                 la détection, pas la capacité de l'utilisateur à la trouver. */}
@@ -572,12 +593,13 @@ export default function CaptureScreen() {
 // disparaître.
 
 function BatchEntry({
-  title, subtitle, enabled, onPress,
+  title, subtitle, enabled, onPress, icon: Icon = Layers,
 }: {
   title: string
   subtitle: string
   enabled: boolean
   onPress: () => void
+  icon?: typeof Layers
 }) {
   return (
     <TouchableOpacity
@@ -585,7 +607,7 @@ function BatchEntry({
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Layers
+      <Icon
         size={20}
         color={enabled ? Colors.accent : Colors.textTertiary}
         strokeWidth={1.6}

@@ -493,7 +493,8 @@
     "inviteLibrary": "Depuis la pellicule",
     "inviteLibraryHint": "Choisis une photo déjà prise",
     "inviteBatch": "Plusieurs objets d'un coup",
-    "inviteBatchHint": "Une photo = un objet"
+    "inviteBatchHint": "Une photo = un objet",
+    "addObjects": "Ajouter des objets"
   },
   "iconPicker": {
     "preview": "Aperçu",
@@ -886,6 +887,24 @@
     "cancelNo": "Continuer l'import",
     "alreadyRunning": "Un import est déjà en cours.",
     "close": "Fermer"
+  },
+  "burst": {
+    "entryTitle": "Rafale",
+    "entrySub": "Plusieurs photos à la suite · jusqu'à {{max}}",
+    "counter": "{{taken}} / {{max}}",
+    "finish": "Terminer",
+    "hint": "Une photo par objet",
+    "nearLimit_one": "Encore {{count}} photo possible",
+    "nearLimit_other": "Encore {{count}} photos possibles",
+    "limitReached": "Limite atteinte : {{max}} photos par lot",
+    "removePhoto": "Retirer la photo {{index}}",
+    "permissionTitle": "Accès à l'appareil photo",
+    "permissionCta": "Autoriser l'appareil photo",
+    "discardTitle": "Quitter la rafale ?",
+    "discardMessage_one": "{{count}} photo sera perdue.",
+    "discardMessage_other": "{{count}} photos seront perdues.",
+    "discardYes": "Quitter",
+    "discardNo": "Continuer"
   },
   "collectionComposer": {
     "inviteTitle": "Crée ta première collection",

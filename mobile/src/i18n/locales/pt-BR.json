@@ -493,7 +493,8 @@
     "inviteLibrary": "Da galeria",
     "inviteLibraryHint": "Escolha uma foto já tirada",
     "inviteBatch": "Vários objetos de uma vez",
-    "inviteBatchHint": "Uma foto = um objeto"
+    "inviteBatchHint": "Uma foto = um objeto",
+    "addObjects": "Adicionar objetos"
   },
   "iconPicker": {
     "preview": "Prévia",
@@ -886,6 +887,24 @@
     "cancelNo": "Continuar importando",
     "alreadyRunning": "Já existe uma importação em andamento.",
     "close": "Fechar"
+  },
+  "burst": {
+    "entryTitle": "Rajada",
+    "entrySub": "Várias fotos em sequência · até {{max}}",
+    "counter": "{{taken}} / {{max}}",
+    "finish": "Concluir",
+    "hint": "Uma foto por objeto",
+    "nearLimit_one": "Ainda cabe {{count}} foto",
+    "nearLimit_other": "Ainda cabem {{count}} fotos",
+    "limitReached": "Limite atingido: {{max}} fotos por lote",
+    "removePhoto": "Remover a foto {{index}}",
+    "permissionTitle": "Acesso à câmera",
+    "permissionCta": "Permitir a câmera",
+    "discardTitle": "Sair da rajada?",
+    "discardMessage_one": "{{count}} foto será perdida.",
+    "discardMessage_other": "{{count}} fotos serão perdidas.",
+    "discardYes": "Sair",
+    "discardNo": "Continuar"
   },
   "collectionComposer": {
     "inviteTitle": "Crie sua primeira coleção",

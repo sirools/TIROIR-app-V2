@@ -493,7 +493,8 @@
     "inviteLibrary": "From your library",
     "inviteLibraryHint": "Pick a photo you already took",
     "inviteBatch": "Several items at once",
-    "inviteBatchHint": "One photo = one item"
+    "inviteBatchHint": "One photo = one item",
+    "addObjects": "Add items"
   },
   "iconPicker": {
     "preview": "Preview",
@@ -886,6 +887,24 @@
     "cancelNo": "Keep importing",
     "alreadyRunning": "An import is already in progress.",
     "close": "Close"
+  },
+  "burst": {
+    "entryTitle": "Burst",
+    "entrySub": "Several photos in a row · up to {{max}}",
+    "counter": "{{taken}} / {{max}}",
+    "finish": "Done",
+    "hint": "One photo per item",
+    "nearLimit_one": "{{count}} more photo possible",
+    "nearLimit_other": "{{count}} more photos possible",
+    "limitReached": "Limit reached: {{max}} photos per batch",
+    "removePhoto": "Remove photo {{index}}",
+    "permissionTitle": "Camera access",
+    "permissionCta": "Allow camera",
+    "discardTitle": "Leave burst mode?",
+    "discardMessage_one": "{{count}} photo will be lost.",
+    "discardMessage_other": "{{count}} photos will be lost.",
+    "discardYes": "Leave",
+    "discardNo": "Keep going"
   },
   "collectionComposer": {
     "inviteTitle": "Create your first collection",

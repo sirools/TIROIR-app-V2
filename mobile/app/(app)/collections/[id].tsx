@@ -309,7 +309,7 @@ const cardStyles = StyleSheet.create({
 /** Une ligne de la liste : en-tête de groupe, rangée de cartes, ou filet. */
 type GridRow =
   | { type: 'group'; key: string; group: ObjectGroup; count: number; collapsed: boolean }
-  | { type: 'items'; key: string; items: TiroirObject[] }
+  | { type: 'items'; key: string; items: TiroirObject[]; withAdd?: boolean }
   | { type: 'divider'; key: string }
   | { type: 'loose'; key: string }
 
@@ -820,6 +820,15 @@ export default function CollectionDetailScreen() {
   }
   chunk(loose, cols).forEach((r, i) => rows.push({ type: 'items', key: `loose-${i}`, items: r }))
 
+  // Carte « + » : toujours la dernière de la grille, pour continuer à
+  // remplir la collection sans repasser par le menu. Pas pendant une
+  // recherche — on y lit des résultats, on n'y ajoute rien.
+  if (!filter.trim()) {
+    const last = rows[rows.length - 1]
+    if (last?.type === 'items' && last.items.length < cols && last.key.startsWith('loose-')) last.withAdd = true
+    else rows.push({ type: 'items', key: 'add-card', items: [], withAdd: true })
+  }
+
   function toggleGroup(groupId: string) {
     setCollapsed(prev => {
       const next = new Set(prev)
@@ -1226,12 +1235,17 @@ export default function CollectionDetailScreen() {
             : null
         }
         ListEmptyComponent={
-          pendingItems.length > 0 ? null : filter.trim()
-            ? <EmptyState
-                title={t('collectionDetail.emptyTitle')}
-                subtitle={t('collectionDetail.emptyNoResults')}
-              />
-            : <FirstObjectInvite collectionId={collection.id} collectionName={collection.name} />
+          <EmptyState
+            title={t('collectionDetail.emptyTitle')}
+            subtitle={t('collectionDetail.emptyNoResults')}
+          />
+        }
+        ListFooterComponent={
+          // Collection vide : la carte « + » ouvre la grille, les trois
+          // raccourcis (photo, photothèque, plusieurs objets) restent dessous.
+          objects.length === 0 && pendingItems.length === 0 && !filter.trim()
+            ? <FirstObjectInvite collectionId={collection.id} collectionName={collection.name} />
+            : null
         }
         renderItem={({ item: row }) => {
           if (row.type === 'divider') return <View style={styles.groupDivider} />
@@ -1275,6 +1289,24 @@ export default function CollectionDetailScreen() {
                   isSelected={selectedIds.has(item.id)}
                 />
               ))}
+              {row.withAdd && (
+                <TouchableOpacity
+                  // Visible en mode sélection, mais ce n'est pas un objet : inerte.
+                  disabled={isSelectMode}
+                  onPress={() => router.push({ pathname: '/capture', params: { collectionId: collection.id } })}
+                  activeOpacity={0.7}
+                  style={{ width: cardSize(cols), opacity: isSelectMode ? 0.4 : 1 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('collectionDetail.addObjects')}
+                >
+                  <View style={[styles.addCard, { width: cardSize(cols), height: cardSize(cols) }]}>
+                    <Plus size={cols >= 4 ? 20 : 26} color={Colors.accent} strokeWidth={1.8} />
+                  </View>
+                  {cols <= 4 && (
+                    <Text style={styles.addCardLabel} numberOfLines={1}>{t('collectionDetail.addObjects')}</Text>
+                  )}
+                </TouchableOpacity>
+              )}
             </View>
           )
         }}
@@ -1675,6 +1707,11 @@ const styles = StyleSheet.create({
 
   grid: { flexGrow: 1, paddingTop: Spacing.sm },
   gridRow: { flexDirection: 'row', paddingHorizontal: GRID_PADDING },
+  addCard: {
+    borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  addCardLabel: { fontSize: Typography.xs, color: Colors.accent, marginTop: 4, fontWeight: Typography.medium },
   pendingThumb: { borderRadius: Radius.md, overflow: 'hidden', backgroundColor: Colors.surfaceWarm },
   pendingImg: { width: '100%', height: '100%' },
   pendingVeil: {
