@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors, ToastProvider } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthContext'
 import { needsOnboarding, wasOnboardingSeen } from '@/features/onboarding/onboardingState'
+import { BatchIndicator } from '@/features/batch/BatchIndicator'
+import { restoreBatch, suspendBatch } from '@/features/batch/batchStore'
 
 const ICON_AREA_H = 64
 
@@ -29,6 +31,8 @@ function CustomTabBar({ state, navigation }: TabBarProps) {
 
   return (
     <View style={[styles.bar, { paddingBottom: insets.bottom }]}>
+      {/* Import multiple en cours : visible depuis tous les écrans. */}
+      <BatchIndicator />
       <View style={styles.row}>
         {tabs.map(tab => {
           const routeIndex = state.routes.findIndex((r: { name: string }) => r.name === tab.name)
@@ -90,6 +94,15 @@ function useOnboardingGate(): boolean {
 
 export default function AppLayout() {
   const deciding = useOnboardingGate()
+  const { user } = useAuth()
+  const userId = user?.id ?? null
+
+  // Un import interrompu (app fermée, réseau perdu) reprend à l'ouverture.
+  useEffect(() => {
+    if (userId) void restoreBatch(userId)
+    else suspendBatch()
+  }, [userId])
+
   return (
     <ToastProvider>
       <Tabs
@@ -104,6 +117,7 @@ export default function AppLayout() {
         <Tabs.Screen name="shares"            options={{ href: null }} />
         <Tabs.Screen name="settings"          options={{ href: null }} />
         <Tabs.Screen name="capture/uploading" options={{ href: null }} />
+        <Tabs.Screen name="capture/review"    options={{ href: null }} />
         <Tabs.Screen name="capture/scene"     options={{ href: null }} />
         <Tabs.Screen name="objects/[id]"      options={{ href: null }} />
         <Tabs.Screen name="objects/edit/[id]" options={{ href: null }} />

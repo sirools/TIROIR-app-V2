@@ -1,393 +1,239 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   View, Text, StyleSheet, Image, TextInput,
   TouchableOpacity, ActivityIndicator, Alert, Animated,
 } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { X, Trash2, RotateCw, Plus } from 'lucide-react-native'
+import { X, Trash2, RotateCw, Plus, Check, WifiOff } from 'lucide-react-native'
 import * as ImagePicker from 'expo-image-picker'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/features/auth/AuthContext'
-import { hasPhotoZoom } from '@/lib/plan'
 import { Screen, FormScreen, FormFlatList, focusNextField, Colors, Typography, Spacing, Radius, CollectionPickerSheet } from '@/components/ui'
 import {
-  beginBatch, extendBatch, runBatch, retryItem, confirmBatch,
-  applyEditedTitles, compressImages,
-  type BatchImage, type BatchItem,
-} from '@/services/batchCapture'
+  useBatchJob, batchStats, extendBatch, retryBatchItem, removeBatchItem,
+  setBatchTitle, commitBatchTitle, setBatchDestination, abandonBatch, dismissBatch,
+  BATCH_STAGES, type BatchItem, type BatchItemStatus,
+} from '@/features/batch/batchStore'
 
 // ================================================================
-// Écran de review d'un lot — « le ticket de caisse ».
+// Suivi d'un import multiple — « le ticket de caisse ».
 //
-// Une ligne = un objet. Les lignes se remplissent au fil des
-// analyses, dans un ordre stable (ordre de saisie), pendant que
-// l'utilisateur peut déjà corriger les titres du haut de liste.
+// Une ligne = un objet, avec sa photo locale dès la première image.
+// L'écran ne fait que montrer la file (features/batch/batchStore) :
+// le quitter n'arrête rien, y revenir retrouve le lot où il en est.
 // ================================================================
 
-type Phase = 'preparing' | 'running' | 'settled' | 'confirming' | 'failed'
+/** Part du chemin parcourue par une photo, pour une barre qui avance sans à-coups. */
+const WEIGHT: Record<BatchItemStatus, number> = {
+  queued: 0, waiting: 0.1, preparing: 0.1, uploading: 0.3, analyzing: 0.6,
+  done: 0.9, added: 1, error: 1,
+}
 
 export default function BatchReviewScreen() {
-  const {
-    images: imagesParam,
-    runId,
-    batchMax: batchMaxParam,
-    collectionId: presetCollectionId,
-  } = useLocalSearchParams<{
-    images: string
-    runId?: string
-    batchMax?: string
-    /** Lot lancé depuis une collection : la destination est déjà connue. */
-    collectionId?: string
-  }>()
-  const batchMax = Number(batchMaxParam ?? 10)
   const { t } = useTranslation()
-  const { user, profile } = useAuth()
   const router = useRouter()
-
-  const [phase, setPhase] = useState<Phase>('preparing')
-  const [batchId, setBatchId] = useState<string | null>(null)
-  const [items, setItems] = useState<BatchItem[]>([])
-  const [titles, setTitles] = useState<Record<number, string>>({})
-  const [removed, setRemoved] = useState<Set<number>>(new Set())
-  const [fatalError, setFatalError] = useState<string | null>(null)
+  const job = useBatchJob()
 
   const [pickerVisible, setPickerVisible] = useState(false)
-
   const progressAnim = useRef(new Animated.Value(0)).current
 
-  /**
-   * Jeton du lot en cours. Chaque nouveau lot l'incrémente : les
-   * callbacks du lot précédent se voient périmés et cessent d'écrire
-   * dans l'état. Un simple booléen « annulé » ne suffit pas — le
-   * remettre à false pour le nouveau lot ressusciterait l'ancien.
-   */
-  const runToken = useRef(0)
-  const runFor = useRef<string | null>(null)
-
-  // ── Démarrage du lot ───────────────────────────────────────────
-
-  useEffect(() => {
-    if (!imagesParam || !user) return
-
-    const key = runId ?? imagesParam
-    if (runFor.current === key) return
-    runFor.current = key
-
-    const token = ++runToken.current
-    const isStale = () => token !== runToken.current
-
-    // Nouveau lot = état vierge. Sans cette remise à zéro, l'écran
-    // réaffiche le lot précédent, déjà confirmé.
-    setBatchId(null)
-    setItems([])
-    setTitles({})
-    setRemoved(new Set())
-    setFatalError(null)
-    setPhase('preparing')
-    progressAnim.setValue(0)
-
-    const images: BatchImage[] = JSON.parse(imagesParam)
-
-    ;(async () => {
-      try {
-        const { batchId: id, items: created } = await beginBatch(images)
-        if (isStale()) return
-
-        setBatchId(id)
-        setItems(created)
-        setPhase('running')
-
-        await runBatch(
-          created,
-          user.id,
-          (position, patch) => {
-            if (isStale()) return
-            setItems(prev =>
-              prev.map(it => (it.position === position ? { ...it, ...patch } : it)),
-            )
-          },
-          isStale,
-        )
-
-        if (!isStale()) setPhase('settled')
-      } catch (e: unknown) {
-        if (isStale()) return
-        const message = e instanceof Error ? e.message : String(e)
-        // Le lot est refusé AVANT la moindre analyse quand la place
-        // manque : on annonce ce qui reste plutôt qu'un code SQL.
-        setFatalError(
-          message.includes('OBJECT_QUOTA_EXCEEDED')
-            ? t('capture.objectQuotaBody')
-            : message,
-        )
-        setPhase('failed')
-      }
-    })()
-
-    // Au démontage, on périme le lot courant sans en démarrer d'autre.
-    return () => { runToken.current++ }
-  }, [imagesParam, runId, user])
-
-  // ── Progression ────────────────────────────────────────────────
-
-  const settledCount = useMemo(
-    () => items.filter(i => i.status === 'done' || i.status === 'error').length,
-    [items],
-  )
-
-  const visibleItems = useMemo(
-    () => items.filter(i => !removed.has(i.position)),
-    [items, removed],
-  )
-
-  const readyCount = useMemo(
-    () => visibleItems.filter(i => i.status === 'done').length,
-    [visibleItems],
-  )
-
-  const isBusy = phase === 'preparing' || phase === 'running' || phase === 'confirming'
+  const stats = job ? batchStats(job) : null
+  const fraction = job && job.items.length
+    ? job.items.reduce((sum, it) => sum + (job.destinationChosen || it.status !== 'done' ? WEIGHT[it.status] : 1), 0) / job.items.length
+    : 0
 
   useEffect(() => {
     Animated.timing(progressAnim, {
-      toValue: items.length ? settledCount / items.length : 0,
-      duration: 300,
-      useNativeDriver: false,
+      toValue: fraction, duration: 300, useNativeDriver: false,
     }).start()
-  }, [settledCount, items.length])
+  }, [fraction])
 
-  // ── Actions de ligne ───────────────────────────────────────────
+  // Plus de lot (refermé, ou écran rouvert par l'historique) : rien à montrer.
+  useEffect(() => {
+    if (!job) router.replace('/(app)')
+  }, [job === null])
 
-  function displayTitle(item: BatchItem): string {
-    if (titles[item.position] !== undefined) return titles[item.position]
-    return item.data?.title ?? ''
-  }
-
-  const handleRemove = useCallback(async (item: BatchItem) => {
-    setRemoved(prev => new Set(prev).add(item.position))
-    await supabase.rpc('discard_draft', { p_draft_id: item.draftId })
-  }, [])
-
-  const handleRetry = useCallback(async (item: BatchItem) => {
-    if (!user) return
-    await retryItem(item, user.id, (position, patch) => {
-      setItems(prev =>
-        prev.map(it => (it.position === position ? { ...it, ...patch } : it)),
-      )
-    })
-  }, [user])
+  const leave = useCallback(() => {
+    router.replace(
+      job?.collectionId
+        ? { pathname: '/collections/[id]', params: { id: job.collectionId } }
+        : '/(app)',
+    )
+  }, [job?.collectionId, router])
 
   // ── Allonger le lot ────────────────────────────────────────────
 
-  /**
-   * Places restantes dans le lot. Les lignes retirées comptent quand
-   * même : leur analyse a déjà consommé du quota.
-   */
-  const remainingSlots = Math.max(0, batchMax - items.length)
+  const remainingSlots = job ? Math.max(0, job.batchMax - job.items.length) : 0
+  const canExtend = !!job?.batchId && (job.phase === 'running' || job.phase === 'ready')
 
   async function handleAddMore() {
-    if (remainingSlots === 0 || !batchId || !user) return
-
+    if (remainingSlots === 0 || !canExtend) return
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
       Alert.alert(t('capture.permissionDeniedTitle'), t('capture.permissionLibrary'))
       return
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsMultipleSelection: true,
-      quality: 0.9,
+      quality: 1,
       selectionLimit: remainingSlots,
     })
     if (result.canceled) return
-
-    const token = runToken.current
-    const isStale = () => token !== runToken.current
-
     try {
-      setPhase('running')
-      const picked = await compressImages(result.assets, hasPhotoZoom(profile?.plan))
-      const added = await extendBatch(batchId, picked)
-      if (isStale()) return
-
-      setItems(prev => [...prev, ...added])
-
-      await runBatch(
-        added,
-        user.id,
-        (position, patch) => {
-          if (isStale()) return
-          setItems(prev =>
-            prev.map(it => (it.position === position ? { ...it, ...patch } : it)),
-          )
-        },
-        isStale,
-      )
-      if (!isStale()) setPhase('settled')
+      // Les vignettes apparaissent tout de suite ; la compression suit, photo par photo.
+      await extendBatch(result.assets.map(a => ({ uri: a.uri, width: a.width, height: a.height })))
     } catch (e: unknown) {
-      if (isStale()) return
-      setPhase('settled')
       Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e))
     }
   }
 
   // ── Sortie ─────────────────────────────────────────────────────
 
-  function handleAbandon() {
-    Alert.alert(
-      t('batch.abandonTitle'),
-      t('batch.abandonMessage', { count: visibleItems.length }),
-      [
-        { text: t('batch.abandonNo'), style: 'cancel' },
-        {
-          text: t('batch.abandonYes'),
-          style: 'destructive',
-          onPress: () => {
-            // Périme le lot en cours : les analyses encore en vol
-            // cesseront d'écrire dans l'état.
-            runToken.current++
-            router.replace('/(app)')
-          },
-        },
-      ],
-    )
+  function handleCancelImport() {
+    Alert.alert(t('batch.cancelTitle'), t('batch.cancelMessage'), [
+      { text: t('batch.cancelNo'), style: 'cancel' },
+      {
+        text: t('batch.cancelYes'),
+        style: 'destructive',
+        onPress: () => { abandonBatch(); router.replace('/(app)') },
+      },
+    ])
   }
 
-  // ── Validation ─────────────────────────────────────────────────
-
-  /**
-   * La destination est demandée ici, juste avant la création : à ce
-   * stade l'utilisateur vient de voir ce qu'il ajoute, et le choix de
-   * la collection est la dernière décision qui reste.
-   */
-  async function runConfirm(collectionId: string | null) {
-    if (!batchId) return
-    setPickerVisible(false)
-    setPhase('confirming')
-    try {
-      const rows = await confirmBatch(batchId, collectionId)
-
-      const created = rows.filter(r => r.object_id)
-      const failed = rows.filter(r => !r.object_id)
-
-      // Report des titres corrigés à la main sur les objets créés
-      const edits = created
-        .map(row => {
-          const item = items.find(i => i.draftId === row.draft_id)
-          if (!item) return null
-          const edited = titles[item.position]
-          if (edited === undefined || edited.trim() === '') return null
-          if (edited === item.data?.title) return null
-          return { objectId: row.object_id as string, title: edited.trim() }
-        })
-        .filter((e): e is { objectId: string; title: string } => e !== null)
-
-      if (edits.length) await applyEditedTitles(edits)
-
-      if (failed.length) {
-        Alert.alert(
-          t('batch.partialTitle'),
-          t('batch.partialMessage', {
-            created: created.length,
-            failed: failed.length,
-          }),
-        )
-      }
-
-      router.replace(
-        collectionId
-          ? { pathname: '/collections/[id]', params: { id: collectionId } }
-          : '/(app)',
-      )
-    } catch (e: unknown) {
-      setPhase('settled')
-      Alert.alert(
-        t('common.error'),
-        e instanceof Error ? e.message : String(e),
-      )
-    }
+  function handleFinish() {
+    const collectionId = job?.collectionId
+    dismissBatch()
+    router.replace(
+      collectionId ? { pathname: '/collections/[id]', params: { id: collectionId } } : '/(app)',
+    )
   }
 
   // ── Rendu d'une ligne ──────────────────────────────────────────
 
   const renderItem = useCallback(({ item }: { item: BatchItem }) => {
-    const isLoading = item.status !== 'done' && item.status !== 'error'
     const attrs = item.data?.attributes
+    const analysed = item.status === 'done' || item.status === 'added'
+    const failed = item.status === 'error' || (item.status === 'done' && item.addFailed)
+    const loadingLabel =
+      item.status === 'uploading' ? t('batch.statusUploading')
+      : item.status === 'analyzing' ? t('batch.statusAnalyzing')
+      : item.status === 'preparing' ? t('batch.statusPreparing')
+      : item.status === 'waiting' ? t('batch.statusWaiting')
+      : t('batch.statusQueued')
 
     return (
       <View style={styles.row}>
-        <Image source={{ uri: item.image.uri }} style={styles.thumb} resizeMode="cover" />
+        <View>
+          <Image source={{ uri: item.thumbUri }} style={styles.thumb} resizeMode="cover" />
+          {item.status === 'added' && (
+            <View style={styles.thumbBadge}>
+              <Check size={11} color={Colors.textInverse} strokeWidth={3} />
+            </View>
+          )}
+        </View>
 
         <View style={styles.rowBody}>
-          {isLoading && (
+          {!analysed && item.status !== 'error' && (
             <>
               <View style={[styles.skeleton, styles.skeletonTitle]} />
-              <Text style={styles.rowStatus}>
-                {item.status === 'uploading' ? t('batch.statusUploading') : t('batch.statusAnalyzing')}
-              </Text>
+              <Text style={styles.rowStatus}>{loadingLabel}</Text>
             </>
           )}
 
           {item.status === 'error' && (
-            <>
-              <Text style={styles.rowError} numberOfLines={2}>
-                {t('batch.rowFailed')}
-              </Text>
-              <TouchableOpacity style={styles.retryBtn} onPress={() => handleRetry(item)}>
-                <RotateCw size={13} color={Colors.accent} strokeWidth={2} />
-                <Text style={styles.retryText}>{t('batch.retry')}</Text>
-              </TouchableOpacity>
-            </>
+            <Text style={styles.rowError} numberOfLines={2}>{t('batch.rowFailed')}</Text>
           )}
 
-          {item.status === 'done' && (
+          {analysed && (
             <>
               <TextInput
                 style={styles.titleInput}
-                value={displayTitle(item)}
-                onChangeText={text =>
-                  setTitles(prev => ({ ...prev, [item.position]: text }))
-                }
+                value={item.title ?? item.data?.title ?? ''}
+                onChangeText={text => setBatchTitle(item.key, text)}
+                onEndEditing={() => commitBatchTitle(item.key)}
                 placeholder={t('batch.titlePlaceholder')}
                 placeholderTextColor={Colors.textTertiary}
                 returnKeyType="next"
                 submitBehavior="submit"
                 onSubmitEditing={focusNextField}
               />
-              <Text style={styles.rowMeta} numberOfLines={1}>
-                {[attrs?.category, attrs?.brand].filter(Boolean).join(' · ') || t('batch.noMeta')}
-              </Text>
+              {item.addFailed
+                ? <Text style={styles.rowError} numberOfLines={2}>{t('batch.rowAddFailed')}</Text>
+                : <Text style={styles.rowMeta} numberOfLines={1}>
+                    {item.status === 'added'
+                      ? t('batch.statusAdded')
+                      : [attrs?.category, attrs?.brand].filter(Boolean).join(' · ') || t('batch.noMeta')}
+                  </Text>}
             </>
+          )}
+
+          {failed && (
+            <TouchableOpacity style={styles.retryBtn} onPress={() => retryBatchItem(item.key)} hitSlop={8}>
+              <RotateCw size={13} color={Colors.accent} strokeWidth={2} />
+              <Text style={styles.retryText}>{t('batch.retry')}</Text>
+            </TouchableOpacity>
           )}
         </View>
 
-        <TouchableOpacity
-          onPress={() => handleRemove(item)}
-          style={styles.removeBtn}
-          hitSlop={8}
-        >
-          <Trash2 size={17} color={Colors.textTertiary} strokeWidth={1.6} />
-        </TouchableOpacity>
+        {item.status !== 'added' && (
+          <TouchableOpacity onPress={() => removeBatchItem(item.key)} style={styles.removeBtn} hitSlop={8}>
+            <Trash2 size={17} color={Colors.textTertiary} strokeWidth={1.6} />
+          </TouchableOpacity>
+        )}
       </View>
     )
-  }, [titles, t, handleRemove, handleRetry])
+  }, [t])
 
   // ── Écran ──────────────────────────────────────────────────────
 
-  if (phase === 'failed') {
+  if (!job || !stats) return <Screen edges={['top', 'bottom']}><View /></Screen>
+
+  if (job.phase === 'failed') {
     return (
       <Screen edges={['top', 'bottom']}>
         <View style={styles.center}>
           <Text style={styles.errorTitle}>{t('batch.fatalTitle')}</Text>
-          <Text style={styles.errorBody}>{fatalError}</Text>
-          <TouchableOpacity style={styles.btnPrimary} onPress={() => router.replace('/(app)')}>
+          <Text style={styles.errorBody}>
+            {job.fatal === 'OBJECT_QUOTA' ? t('capture.objectQuotaBody') : job.fatal}
+          </Text>
+          <TouchableOpacity style={styles.btnPrimary} onPress={() => { dismissBatch(); router.replace('/(app)') }}>
             <Text style={styles.btnPrimaryText}>{t('common.back')}</Text>
           </TouchableOpacity>
         </View>
       </Screen>
     )
   }
+
+  const finished = job.phase === 'finished'
+  const stageIndex = BATCH_STAGES.indexOf(stats.stage as typeof BATCH_STAGES[number])
+  const doneCount = job.destinationChosen ? stats.added : stats.settled
+
+  const title = finished
+    ? (job.collectionName
+        ? t('batch.doneIn', { count: stats.added, name: job.collectionName })
+        : t('batch.done', { count: stats.added }))
+    : t('batch.importTitle')
+  const subtitle = finished
+    ? (stats.failed > 0 ? t('batch.doneWithErrors', { count: stats.failed }) : t('batch.doneSaved'))
+    : job.phase === 'ready'
+      ? t('batch.readyCount', { count: stats.ready })
+      : `${t(`batch.stage.${stats.stage}`)} · ${t('batch.counter', { done: doneCount, count: stats.total })}`
+
+  // Le bouton du bas dit toujours ce qui va se passer, jamais « attends ».
+  const cta = finished
+    ? { label: job.collectionId ? t('batch.seeCollection') : t('batch.seeTiroir'), onPress: handleFinish, disabled: false }
+    : job.destinationChosen
+      ? {
+          label: job.collectionName ? t('batch.autoAdd', { name: job.collectionName }) : t('batch.autoAddNone'),
+          onPress: () => {}, disabled: true,
+        }
+      : {
+          label: job.phase === 'ready' && stats.ready > 0
+            ? t('batch.confirmCta', { count: stats.ready })
+            : t('batch.chooseDestination'),
+          onPress: () => setPickerVisible(true),
+          disabled: job.phase === 'ready' && stats.ready === 0,
+        }
 
   return (
     <FormScreen
@@ -396,98 +242,109 @@ export default function BatchReviewScreen() {
       header={
         <>
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleAbandon} hitSlop={10} style={styles.closeBtn}>
+            <TouchableOpacity
+              onPress={finished ? handleFinish : leave}
+              hitSlop={10}
+              style={styles.closeBtn}
+              accessibilityLabel={t('batch.close')}
+            >
               <X size={22} color={Colors.textPrimary} strokeWidth={1.8} />
             </TouchableOpacity>
             <View style={styles.headerText}>
-              <Text style={styles.title}>{t('batch.reviewTitle')}</Text>
-              <Text style={styles.subtitle}>
-                {settledCount < items.length
-                  ? t('batch.progress', { done: settledCount, total: items.length })
-                  : t('batch.readyCount', { count: readyCount })}
-              </Text>
+              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.subtitle}>{subtitle}</Text>
             </View>
+            {finished
+              ? <View style={styles.doneMark}><Check size={16} color={Colors.textInverse} strokeWidth={3} /></View>
+              : stats.busy && <ActivityIndicator size="small" color={Colors.accent} />}
           </View>
 
-          {settledCount < items.length && (
-            <View style={styles.progressTrack}>
-              <Animated.View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: progressAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['0%', '100%'],
-                    }),
-                  },
-                ]}
-              />
-            </View>
+          {!finished && (
+            <>
+              {/* Les quatre étapes, dans l'ordre : celle en cours est nommée au-dessus. */}
+              <View style={styles.stages}>
+                {BATCH_STAGES.map((stage, i) => (
+                  <View
+                    key={stage}
+                    style={[
+                      styles.stage,
+                      i < stageIndex && styles.stageDone,
+                      i === stageIndex && styles.stageCurrent,
+                    ]}
+                  />
+                ))}
+              </View>
+              <View style={styles.progressTrack}>
+                <Animated.View
+                  style={[
+                    styles.progressFill,
+                    { width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
+                  ]}
+                />
+              </View>
+              {(job.offline || stats.waiting > 0)
+                ? <View style={styles.notice}>
+                    <WifiOff size={14} color={Colors.textSecondary} strokeWidth={1.8} />
+                    <Text style={styles.noticeText}>{t('batch.offline')}</Text>
+                  </View>
+                : stats.busy && <Text style={styles.hint}>{t('batch.backgroundHint')}</Text>}
+            </>
           )}
         </>
       }
       footer={
         <View style={styles.footer}>
           <TouchableOpacity
-            style={[styles.btnPrimary, (isBusy || readyCount === 0) && styles.btnDisabled]}
-            onPress={() => presetCollectionId
-              ? runConfirm(presetCollectionId)
-              : setPickerVisible(true)
-            }
-            disabled={isBusy || readyCount === 0}
+            style={[styles.btnPrimary, cta.disabled && styles.btnDisabled]}
+            onPress={cta.onPress}
+            disabled={cta.disabled}
             activeOpacity={0.85}
           >
-            {phase === 'confirming'
-              ? <ActivityIndicator size="small" color={Colors.textInverse} />
-              : <Text style={styles.btnPrimaryText}>
-                  {t('batch.confirmCta', { count: readyCount })}
-                </Text>
-            }
+            <Text style={styles.btnPrimaryText} numberOfLines={1}>{cta.label}</Text>
           </TouchableOpacity>
         </View>
       }
     >
       <FormFlatList
-        data={visibleItems}
-        keyExtractor={item => item.draftId}
+        data={job.items}
+        keyExtractor={item => item.key}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <View style={styles.sep} />}
         ListFooterComponent={
-          /* En pied de liste plutôt qu'en en-tête : on prolonge la
-             saisie dans le sens de lecture, sans concurrencer le CTA. */
-          <TouchableOpacity
-            style={[styles.addMore, remainingSlots === 0 && styles.addMoreDisabled]}
-            onPress={handleAddMore}
-            disabled={remainingSlots === 0 || isBusy}
-            activeOpacity={0.7}
-          >
-            <Plus
-              size={18}
-              color={remainingSlots === 0 ? Colors.textTertiary : Colors.accent}
-              strokeWidth={2}
-            />
-            <Text
-              style={[
-                styles.addMoreText,
-                remainingSlots === 0 && styles.addMoreTextDisabled,
-              ]}
-            >
-              {remainingSlots === 0
-                ? t('batch.addMoreFull', { max: batchMax })
-                : t('batch.addMore', { count: remainingSlots })}
-            </Text>
-          </TouchableOpacity>
+          finished ? null : (
+            <>
+              <TouchableOpacity
+                style={[styles.addMore, (remainingSlots === 0 || !canExtend) && styles.addMoreDisabled]}
+                onPress={handleAddMore}
+                disabled={remainingSlots === 0 || !canExtend}
+                activeOpacity={0.7}
+              >
+                <Plus
+                  size={18}
+                  color={remainingSlots === 0 ? Colors.textTertiary : Colors.accent}
+                  strokeWidth={2}
+                />
+                <Text style={[styles.addMoreText, remainingSlots === 0 && styles.addMoreTextDisabled]}>
+                  {remainingSlots === 0
+                    ? t('batch.addMoreFull', { max: job.batchMax })
+                    : t('batch.addMore', { count: remainingSlots })}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.cancelBtn} onPress={handleCancelImport} hitSlop={8}>
+                <Text style={styles.cancelText}>{t('batch.cancelImport')}</Text>
+              </TouchableOpacity>
+            </>
+          )
         }
       />
 
-      {/* Destination du lot — dernière décision avant création */}
+      {/* Destination : peut se choisir pendant l'analyse, l'ajout suivra seul. */}
       <CollectionPickerSheet
         visible={pickerVisible}
         title={t('batch.destinationTitle')}
-        helper={t('batch.destinationSub', { count: readyCount })}
-        busy={phase === 'confirming'}
-        onSelect={dest => runConfirm(dest?.id ?? null)}
+        helper={t('batch.destinationSub', { count: stats.total - stats.failed })}
+        onSelect={dest => { setPickerVisible(false); setBatchDestination(dest) }}
         onDismiss={() => setPickerVisible(false)}
       />
     </FormScreen>
@@ -508,6 +365,39 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: Typography.sm, color: Colors.textSecondary, marginTop: 2,
   },
+
+  doneMark: {
+    width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.accent,
+    alignItems: 'center', justifyContent: 'center',
+  },
+
+  stages: {
+    flexDirection: 'row', gap: 4,
+    marginHorizontal: Spacing.md, marginBottom: Spacing.xs,
+  },
+  stage: { flex: 1, height: 3, borderRadius: Radius.full, backgroundColor: Colors.borderLight },
+  stageDone: { backgroundColor: Colors.accent },
+  stageCurrent: { backgroundColor: Colors.accent, opacity: 0.45 },
+
+  hint: {
+    fontSize: Typography.xs, color: Colors.textTertiary,
+    marginHorizontal: Spacing.md, marginTop: Spacing.sm,
+  },
+  notice: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.xs,
+    marginHorizontal: Spacing.md, marginTop: Spacing.sm,
+  },
+  noticeText: { flex: 1, fontSize: Typography.xs, color: Colors.textSecondary },
+
+  thumbBadge: {
+    position: 'absolute', right: -4, bottom: -4,
+    width: 18, height: 18, borderRadius: 9, backgroundColor: Colors.accent,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: Colors.surface,
+  },
+
+  cancelBtn: { alignSelf: 'center', paddingVertical: Spacing.md },
+  cancelText: { fontSize: Typography.sm, color: Colors.textTertiary },
 
   progressTrack: {
     height: 3, backgroundColor: Colors.borderLight,
