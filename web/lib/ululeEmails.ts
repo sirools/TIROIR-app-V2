@@ -1,6 +1,8 @@
 // Mise en forme des deux e-mails de la campagne. Textes : design/i18n/email/fr.json
 // (section ulule). Volontairement sobre : un message d'une personne à une autre.
 import { ULULE_EMAIL_TEXTS as T } from '../locales/ulule.generated'
+import { CROWDFUNDING } from './crowdfunding'
+import { formatEuros, PARIS } from './ulule'
 
 export type RenderedEmail = { subject: string; html: string; text: string }
 
@@ -68,16 +70,28 @@ export function renderThanks(v: { prenom: string }): RenderedEmail {
 
 // ── Lancement, relance, dernières 48 h, bilan ─────────────────────
 
+const parisDate = (options: Intl.DateTimeFormatOptions) =>
+  new Intl.DateTimeFormat('fr-FR', { ...options, timeZone: PARIS }).format(new Date(CROWDFUNDING.endDate))
+
+/** Ce que les textes lisent dans la config de la collecte (lib/crowdfunding.ts). */
+const COLLECTE = {
+  objectif: formatEuros(CROWDFUNDING.goalEuros * 100),
+  fin: parisDate({ day: 'numeric', month: 'long' }),
+  finJour: parisDate({ weekday: 'long', day: 'numeric', month: 'long' }),
+  contrepartieMin: formatEuros(CROWDFUNDING.rewardsEuros.min * 100),
+  contrepartieMax: formatEuros(CROWDFUNDING.rewardsEuros.max * 100),
+}
+
 export type CampaignKind = 'launch' | 'reminder' | 'last48h' | 'recap'
 
 type CampaignValues = {
   prenom: string
   /** Lien perso ; absent pour un contributeur qui n'est pas ambassadeur (bilan). */
   lien: string | null
-  premierPalier: string
-  /** Phrase de progression déjà choisie ; null quand Ulule ne répond pas. */
+  /** Montant collecté, déjà mis en forme ; null quand Ulule ne répond pas. */
   montant: string | null
-  palier: string | null
+  /** L'objectif de la collecte est atteint. */
+  objectifAtteint: boolean
   /** Ambassadeur : lien de désinscription. Contributeur : null, pied « réponds stop ». */
   desinscription: string | null
   adresse: string
@@ -91,16 +105,17 @@ export function renderCampaign(kind: CampaignKind, v: CampaignValues): RenderedE
   }
   const jauge = v.montant === null
     ? null
-    : v.palier === null
-      ? fill(t.progressAllReached ?? T.progressAllReached, { montant: v.montant })
-      : fill(t.progress ?? T.progress, { montant: v.montant, palier: v.palier })
+    : fill(
+      v.objectifAtteint ? t.progressAllReached ?? T.progressAllReached : t.progress ?? T.progress,
+      { montant: v.montant, objectif: COLLECTE.objectif },
+    )
 
   const asText: Record<string, string> = {
-    prenom: v.prenom, premierPalier: v.premierPalier, lien: v.lien ?? '',
+    ...COLLECTE, prenom: v.prenom, lien: v.lien ?? '',
     desinscription: v.desinscription ?? '',
   }
   const asHtml: Record<string, string> = {
-    prenom: esc(v.prenom), premierPalier: esc(v.premierPalier), lien: v.lien ? link(v.lien, v.lien) : '',
+    ...COLLECTE, prenom: esc(v.prenom), lien: v.lien ? link(v.lien, v.lien) : '',
     desinscription: v.desinscription ? link(v.desinscription, T.prelaunch.unsubscribeLabel) : '',
   }
   // Un paragraphe « {jauge} » devient la phrase de progression, ou disparaît.

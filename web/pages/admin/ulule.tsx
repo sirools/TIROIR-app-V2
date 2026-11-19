@@ -369,7 +369,7 @@ export default function Ulule(p: Props) {
       <input id="url" value={settings.pageUrl} onChange={e => setSettings({ ...settings, pageUrl: e.target.value })} />
       <label htmlFor="presale">Numéro de collecte (dans l’adresse du mode édition)</label>
       <input id="presale" value={settings.presaleNumber} onChange={e => setSettings({ ...settings, presaleNumber: e.target.value })} />
-      <label htmlFor="milestones">Paliers de la jauge, en euros (bannière de l’accueil et e-mails)</label>
+      <label htmlFor="milestones">Paliers de la jauge de cette page, en euros (les e-mails suivent l’objectif de la collecte)</label>
       <input id="milestones" value={settings.milestones} onChange={e => setSettings({ ...settings, milestones: e.target.value })} />
       <p className="note">Exemple de destination : <code>{p.exampleUrl}</code></p>
       <button disabled={busy} onClick={() => run(async () => { await call({ action: 'settings', ...settings }); return 'Enregistré.' })}>Enregistrer</button>

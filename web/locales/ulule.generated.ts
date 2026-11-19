@@ -19,22 +19,23 @@ export const ULULE_EMAIL_TEXTS = {
     "unsubscribeLabel": "Te désinscrire",
     "footer": "Tu ne veux plus recevoir ces messages ? {desinscription}"
   },
-  "progress": "On en est à {montant}. Prochain palier : {palier}.",
-  "progressAllReached": "On en est à {montant} : tous les paliers sont dépassés.",
+  "progress": "On en est à {montant}, sur un objectif de {objectif}.",
+  "progressAllReached": "On en est à {montant} : l’objectif de {objectif} est dépassé.",
   "footerContributor": "Tu reçois ce message parce que tu as soutenu Tiroir sur Ulule. Pour ne plus rien recevoir, réponds simplement « stop ».",
   "launch": {
     "subject": "C’est parti : Noël avant Noël",
     "greeting": "Salut {prenom},",
     "body": [
-      "C’est aujourd’hui. La campagne Ulule de Tiroir est en ligne : un Noël avant Noël, un mois pile avant le 24 décembre.",
-      "C’est une collecte de dons : tu donnes le montant que tu veux, sans contrepartie. Les premières heures comptent énormément : une collecte qui démarre fort donne envie aux autres de suivre. Premier palier : {premierPalier}, et j’aimerais l’atteindre dès ce matin."
+      "C’est parti. La collecte Ulule de Tiroir est en ligne, jusqu’au {fin}.",
+      "C’est une collecte « tout ou rien » : il faut réunir {objectif} avant le {fin}, sinon Tiroir ne reçoit rien. Les premiers jours comptent énormément : une collecte qui démarre fort donne envie aux autres de suivre.",
+      "Les contreparties sont 100 % numériques, de {contrepartieMin} à {contrepartieMax} : des mois de Premium, ton nom sur le mur des soutiens de tiroir.app, Tiroir Pro. Elles sont livrées en décembre."
     ],
     "list": [
       "Contribue dès maintenant, même un petit montant : {lien}",
       "Partage ce même lien autour de toi. C’est le tien : il me dit d’où vient chaque soutien."
     ],
     "closing": [
-      "La campagne se termine le 15 décembre.",
+      "La collecte se termine le {fin}.",
       "Merci du fond du cœur."
     ],
     "signature": "Clément"
@@ -43,9 +44,9 @@ export const ULULE_EMAIL_TEXTS = {
     "subject": "Noël avant Noël, à mi-chemin",
     "greeting": "Salut {prenom},",
     "body": [
-      "La campagne Tiroir de famille est à mi-parcours.",
+      "La collecte Tiroir est à mi-parcours.",
       "{jauge}",
-      "Il reste jusqu’au 15 décembre. Chaque partage compte : une personne qui pense à ses parents, à ses grands-parents, à ce qui se transmet, c’est exactement pour elle que je construis Tiroir."
+      "Il reste jusqu’au {fin}. Chaque partage compte : une personne qui pense à ses parents, à ses grands-parents, à ce qui se transmet, c’est exactement pour elle que je construis Tiroir."
     ],
     "list": [
       "Ton lien, à partager ou à utiliser : {lien}"
@@ -59,9 +60,9 @@ export const ULULE_EMAIL_TEXTS = {
     "subject": "Plus que 48 heures",
     "greeting": "Salut {prenom},",
     "body": [
-      "La campagne Tiroir de famille se termine mardi 15 décembre.",
+      "La collecte Tiroir se termine {finJour}.",
       "{jauge}",
-      "Si tu voulais donner un coup de pouce à Tiroir avant Noël, c’est le moment. Même un petit don compte."
+      "Si tu voulais donner un coup de pouce à Tiroir avant Noël, c’est le moment. Même une petite contribution compte : les contreparties commencent à {contrepartieMin}."
     ],
     "list": [
       "Ton lien : {lien}"
@@ -76,9 +77,9 @@ export const ULULE_EMAIL_TEXTS = {
     "greeting": "Salut {prenom},",
     "greetingAnonymous": "Salut,",
     "progress": "Ensemble, on a réuni {montant}.",
-    "progressAllReached": "Ensemble, on a réuni {montant}, au-delà de tous les paliers.",
+    "progressAllReached": "Ensemble, on a réuni {montant} : l’objectif de {objectif} est dépassé.",
     "body": [
-      "La campagne Tiroir de famille s’est terminée hier.",
+      "La collecte Tiroir s’est terminée hier.",
       "{jauge}",
       "Rien de tout ça n’arrive sans toi. Je te tiens au courant de chaque étape, ici et sur la page Ulule.",
       "Joyeux Noël, en avance ou pas."
@@ -92,7 +93,8 @@ export const ULULE_EMAIL_TEXTS = {
     "greeting": "Salut {prenom},",
     "greetingAnonymous": "Salut,",
     "body": [
-      "Ton don à la campagne Tiroir de famille est bien arrivé.",
+      "Ta contribution à la collecte Tiroir est bien arrivée.",
+      "Si tu as choisi une contrepartie, elle est numérique : tu la recevras en décembre.",
       "Merci de me faire confiance. Ça compte énormément pour moi.",
       "Si tu as la moindre question, réponds simplement à ce message : c’est moi qui lis."
     ],
