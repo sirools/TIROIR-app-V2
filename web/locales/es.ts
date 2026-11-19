@@ -252,14 +252,7 @@ const es: Copy = {
     ululeInvite: {
       label: 'Campaña en Ulule',
       close: 'Cerrar',
-      title: 'Navidad antes de Navidad',
-      textBefore: 'El {date}, Tiroir de famille llega a Ulule: un mes antes de Navidad, para dar a Tiroir los medios para crecer.',
-      textLive: 'Hasta el 15 de diciembre, apoya a Tiroir en Ulule con una donación de la cantidad que quieras. Un empujón antes de Navidad.',
-      raised: '{amount} recaudados',
-      next: 'Próxima meta: {amount}',
-      allReached: 'Todas las metas alcanzadas. ¡Gracias!',
-      milestones: 'Metas',
-      cta: 'Ver la campaña',
+      text: 'La campaña de Tiroir ya está en Ulule — apoya el proyecto hasta Navidad →',
     },
   },
   pricing: {

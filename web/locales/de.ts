@@ -252,14 +252,7 @@ const de: Copy = {
     ululeInvite: {
       label: 'Ulule-Kampagne',
       close: 'Schließen',
-      title: 'Weihnachten kommt früher',
-      textBefore: 'Am {date} startet Tiroir de famille auf Ulule: einen Monat vor Weihnachten, damit Tiroir wachsen kann.',
-      textLive: 'Bis zum 15. Dezember kannst du Tiroir auf Ulule mit einer Spende in beliebiger Höhe unterstützen. Ein kleiner Schub vor Weihnachten.',
-      raised: '{amount} gesammelt',
-      next: 'Nächstes Ziel: {amount}',
-      allReached: 'Alle Ziele erreicht. Danke!',
-      milestones: 'Ziele',
-      cta: 'Zur Kampagne',
+      text: 'Die Tiroir-Kampagne läuft jetzt auf Ulule – unterstütze das Projekt bis Weihnachten →',
     },
   },
   pricing: {

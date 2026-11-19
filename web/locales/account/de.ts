@@ -234,9 +234,9 @@ const accountDe: AccountCopy = {
     lastIdentity: 'Deine letzte Anmeldemethode kann nicht entfernt werden: Füge zuerst eine andere hinzu.',
   },
   campaign: {
-    metaTitle: 'Tiroir de famille — Bald verfügbar',
+    metaTitle: 'Tiroir-Kampagne — Bald verfügbar',
     title: 'Wir sehen uns am {date}',
-    text: 'Die Kampagne Tiroir de famille ist noch nicht geöffnet. Dieser Link bringt dich ab dem ersten Tag dorthin.',
+    text: 'Die Tiroir-Kampagne ist noch nicht geöffnet. Dieser Link bringt dich ab dem ersten Tag dorthin.',
     home: 'Tiroir entdecken',
   },
 }

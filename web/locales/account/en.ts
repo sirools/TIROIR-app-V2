@@ -234,9 +234,9 @@ const accountEn: AccountCopy = {
     lastIdentity: 'You can’t unlink your last sign-in method: add another one first.',
   },
   campaign: {
-    metaTitle: 'Tiroir de famille — Coming soon',
+    metaTitle: 'Tiroir campaign — Coming soon',
     title: 'See you on {date}',
-    text: 'The Tiroir de famille campaign isn’t open yet. This link will take you there from day one.',
+    text: 'The Tiroir campaign isn’t open yet. This link will take you there from day one.',
     home: 'Discover Tiroir',
   },
 }

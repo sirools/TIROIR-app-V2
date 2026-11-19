@@ -234,9 +234,9 @@ const accountEs: AccountCopy = {
     lastIdentity: 'No puedes desvincular tu último método de inicio de sesión: añade otro primero.',
   },
   campaign: {
-    metaTitle: 'Tiroir de famille — Próximamente',
+    metaTitle: 'Campaña de Tiroir — Próximamente',
     title: 'Nos vemos el {date}',
-    text: 'La campaña Tiroir de famille aún no está abierta. Este enlace te llevará allí desde el primer día.',
+    text: 'La campaña de Tiroir aún no está abierta. Este enlace te llevará allí desde el primer día.',
     home: 'Descubrir Tiroir',
   },
 }

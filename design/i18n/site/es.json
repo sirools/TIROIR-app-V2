@@ -586,9 +586,9 @@
       "lastIdentity": "No puedes desvincular tu último método de inicio de sesión: añade otro primero."
     },
     "campaign": {
-      "metaTitle": "Tiroir de famille — Próximamente",
+      "metaTitle": "Campaña de Tiroir — Próximamente",
       "title": "Nos vemos el {date}",
-      "text": "La campaña Tiroir de famille aún no está abierta. Este enlace te llevará allí desde el primer día.",
+      "text": "La campaña de Tiroir aún no está abierta. Este enlace te llevará allí desde el primer día.",
       "home": "Descubrir Tiroir"
     }
   },
@@ -925,14 +925,7 @@
     "ululeInvite": {
       "label": "Campaña en Ulule",
       "close": "Cerrar",
-      "title": "Navidad antes de Navidad",
-      "textBefore": "El {date}, Tiroir de famille llega a Ulule: un mes antes de Navidad, para dar a Tiroir los medios para crecer.",
-      "textLive": "Hasta el 15 de diciembre, apoya a Tiroir en Ulule con una donación de la cantidad que quieras. Un empujón antes de Navidad.",
-      "raised": "{amount} recaudados",
-      "next": "Próxima meta: {amount}",
-      "allReached": "Todas las metas alcanzadas. ¡Gracias!",
-      "milestones": "Metas",
-      "cta": "Ver la campaña"
+      "text": "La campaña de Tiroir ya está en Ulule — apoya el proyecto hasta Navidad →"
     }
   },
   "pricing": {

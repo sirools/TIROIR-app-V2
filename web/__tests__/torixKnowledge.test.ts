@@ -33,6 +33,11 @@ describe('Torix trouve la bonne fiche', () => {
     ['Quels articles ai-je écrits sur Medium ?', 'articles'],
     ['Parle-moi de la piste de doctorat', 'these'],
     ['Où est mon portfolio ?', 'fondateur'],
+    // Collecte Ulule
+    ['Quoi de neuf chez Tiroir ?', 'collecte'],
+    ['Quelle est l’actualité de Tiroir ?', 'collecte'],
+    ['Où en est la campagne Ulule ?', 'collecte'],
+    ['Comment soutenir le projet ?', 'collecte'],
   ])('%s → %s', (question, id) => {
     expect(findTopic(question)?.id).toBe(id)
   })
