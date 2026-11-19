@@ -252,7 +252,7 @@ const de: Copy = {
     ululeInvite: {
       label: 'Ulule-Kampagne',
       close: 'Schließen',
-      text: 'Die Tiroir-Kampagne läuft jetzt auf Ulule – unterstütze das Projekt bis Weihnachten →',
+      text: 'Die Tiroir-Kampagne läuft jetzt auf Ulule – unterstütze das Projekt bis zum 21. Dezember →',
     },
   },
   pricing: {

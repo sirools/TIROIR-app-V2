@@ -257,7 +257,7 @@ const fr = {
     ululeInvite: {
       label: 'Collecte Ulule',
       close: 'Fermer',
-      text: 'La collecte Tiroir est en ligne sur Ulule — soutiens le projet jusqu’à Noël →',
+      text: 'La collecte Tiroir est en ligne sur Ulule — soutiens le projet jusqu’au 21 décembre →',
     },
   },
   pricing: {

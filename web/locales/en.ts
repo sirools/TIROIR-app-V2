@@ -251,7 +251,7 @@ const en: Copy = {
     ululeInvite: {
       label: 'Ulule campaign',
       close: 'Close',
-      text: 'The Tiroir campaign is live on Ulule — back the project until Christmas →',
+      text: 'The Tiroir campaign is live on Ulule — back the project until December 21 →',
     },
   },
   pricing: {
