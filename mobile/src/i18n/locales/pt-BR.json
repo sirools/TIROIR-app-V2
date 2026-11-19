@@ -324,7 +324,8 @@
     "destinationSet": "Guardado em: {{name}}",
     "destinationNone": "Sem coleção",
     "changeDestination": "Alterar",
-    "chooseDestination": "Escolher onde guardar"
+    "chooseDestination": "Escolher onde guardar",
+    "waitingPhotos": "A análise começa assim que todas as fotos chegarem."
   },
   "capture": {
     "permissionDeniedTitle": "Permissão negada",
@@ -964,5 +965,35 @@
     "regionAutoHint": "Segue a região do aparelho ({{name}})",
     "regionHelp": "A região serve para estimar o valor dos seus objetos: moeda e anúncios locais. Ela não muda o idioma.",
     "systemSettings": "Abrir os ajustes do aparelho"
+  },
+  "upload": {
+    "addPhotos": "Adicionar fotos",
+    "waitBeforeSave": "A foto ainda está sendo enviada: será possível salvar em instantes.",
+    "tile": {
+      "preparing": "Preparando a foto",
+      "queued": "Foto aguardando envio",
+      "uploading": "Enviando a foto, {{percent}}%",
+      "analyzing": "Torix está olhando a foto",
+      "done": "Foto enviada",
+      "error": "Falha no envio",
+      "errorHint": "Toque duas vezes para tentar de novo",
+      "offline": "Foto aguardando conexão",
+      "waiting": "Aguardando",
+      "retry": "Tentar de novo",
+      "cancel": "Cancelar envio",
+      "remove": "Remover a foto"
+    },
+    "bar": {
+      "progress_one": "{{done}} de {{count}} enviada",
+      "progress_other": "{{done}} de {{count}} enviadas",
+      "analyzing_one": "Torix está olhando a foto…",
+      "analyzing_other": "Torix está olhando as fotos…",
+      "offline": "Sem conexão: o envio será retomado sozinho.",
+      "failed_one": "{{count}} envio falhou",
+      "failed_other": "{{count}} envios falharam",
+      "done_one": "Foto enviada",
+      "done_other": "{{count}} fotos enviadas",
+      "retryAll": "Tentar tudo de novo"
+    }
   }
 }

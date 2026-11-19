@@ -62,6 +62,14 @@ ${colors}
     weight: ${scale(tokens.type.weight)},
     lineHeight: ${scale(tokens.type.lineHeight)},
   },
+  /** Animations : durées (ms), courbes de Bézier, zoom d'entrée */
+  motion: {
+    duration: ${scale(tokens.motion.duration)},
+    easing: { ${Object.entries(tokens.motion.easing).filter(([k]) => !k.startsWith('$')).map(([k, v]) => `${k}: [${v.join(', ')}]`).join(', ')} },
+    enterScale: ${tokens.motion.enterScale},
+  },
+  /** Opacités : voile d'attente */
+  opacity: ${scale(tokens.opacity)},
 } as const
 `
 }

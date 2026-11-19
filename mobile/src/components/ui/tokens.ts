@@ -51,3 +51,9 @@ export const Typography = {
 export const Spacing = Brand.space
 
 export const Radius = Brand.radiusScale
+
+/** Durées (ms), courbes et zoom d'entrée des animations. */
+export const Motion = Brand.motion
+
+/** Opacités partagées (voile posé sur une photo en attente). */
+export const Opacity = Brand.opacity

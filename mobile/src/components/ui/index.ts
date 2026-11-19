@@ -20,7 +20,7 @@ export type { EditableCollection, CollectionPatch } from './CollectionEditSheet'
 export { Checkbox } from './Checkbox'
 export { TorixMark } from './TorixMark'
 export { GoogleButton } from './SocialButton'
-export { Colors, Typography, Spacing, Radius } from './tokens'
+export { Colors, Typography, Spacing, Radius, Motion, Opacity } from './tokens'
 export {
   FormScreen,
   FormScrollView,
@@ -33,3 +33,8 @@ export {
   dismissKeyboard,
   PRIMARY_BUTTON_SPACE,
 } from './keyboard'
+export { ProgressRing } from './ProgressRing'
+export type { ProgressRingProps } from './ProgressRing'
+export { PhotoUploadTile } from './PhotoUploadTile'
+export type { PhotoUploadTileProps } from './PhotoUploadTile'
+export { UploadStatusBar } from './UploadStatusBar'
