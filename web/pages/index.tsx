@@ -49,8 +49,7 @@ export default function Landing() {
 
       <FooterTiroirWeb />
 
-      {/* L'enquête n'existe qu'en français et en anglais. */}
-      {(locale === 'fr' || locale === 'en') && <UluleInvite />}
+      <UluleInvite />
     </>
   )
 }

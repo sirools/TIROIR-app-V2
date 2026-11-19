@@ -255,16 +255,9 @@ const fr = {
       sub: 'Gratuit, sans carte bancaire.',
     },
     ululeInvite: {
-      label: 'Campagne Ulule',
+      label: 'Collecte Ulule',
       close: 'Fermer',
-      title: 'Noël avant Noël',
-      textBefore: 'Le {date}, Tiroir de famille arrive sur Ulule : un mois avant Noël, pour donner à Tiroir les moyens de grandir.',
-      textLive: 'Jusqu’au 15 décembre, soutiens Tiroir sur Ulule par un don, du montant que tu veux. Un coup de pouce avant Noël.',
-      raised: '{amount} collectés',
-      next: 'Prochain palier : {amount}',
-      allReached: 'Tous les paliers sont atteints. Merci !',
-      milestones: 'Paliers',
-      cta: 'Voir la campagne',
+      text: 'La collecte Tiroir est en ligne sur Ulule — soutiens le projet jusqu’au 21 décembre →',
     },
   },
   pricing: {

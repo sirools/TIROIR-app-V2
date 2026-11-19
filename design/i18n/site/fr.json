@@ -599,9 +599,9 @@
     },
     "$comment": "Textes account en français — référence de structure pour en, de, es\n(type AccountCopy). Importé par ../fr.ts sous la clé « account ».\nPages de compte : connexion, inscription, mot de passe, confirmation,\nbienvenue, merci, désinscription, mon compte, profil, mes partages.\nLes marqueurs {email}, {min}, {n}, {date} sont remplacés à l'affichage.",
     "campaign": {
-      "metaTitle": "Tiroir de famille — Rendez-vous",
+      "metaTitle": "Collecte Tiroir — Rendez-vous",
       "title": "Rendez-vous le {date}",
-      "text": "La campagne Tiroir de famille n’est pas encore ouverte. Ce lien t’y emmènera dès le premier jour.",
+      "text": "La collecte Tiroir n’est pas encore ouverte. Ce lien t’y emmènera dès le premier jour.",
       "home": "Découvrir Tiroir"
     }
   },
@@ -945,16 +945,9 @@
       "sub": "Gratuit, sans carte bancaire."
     },
     "ululeInvite": {
-      "label": "Campagne Ulule",
+      "label": "Collecte Ulule",
       "close": "Fermer",
-      "title": "Noël avant Noël",
-      "textBefore": "Le {date}, Tiroir de famille arrive sur Ulule : un mois avant Noël, pour donner à Tiroir les moyens de grandir.",
-      "textLive": "Jusqu’au 15 décembre, soutiens Tiroir sur Ulule par un don, du montant que tu veux. Un coup de pouce avant Noël.",
-      "raised": "{amount} collectés",
-      "next": "Prochain palier : {amount}",
-      "allReached": "Tous les paliers sont atteints. Merci !",
-      "milestones": "Paliers",
-      "cta": "Voir la campagne"
+      "text": "La collecte Tiroir est en ligne sur Ulule — soutiens le projet jusqu’au 21 décembre →"
     }
   },
   "pricing": {

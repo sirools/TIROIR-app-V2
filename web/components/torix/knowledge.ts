@@ -11,6 +11,7 @@
 // doit être mise à jour.
 
 import { answerFor as directionAnswer, detectDirections } from './directions'
+import { CROWDFUNDING } from '../../lib/crowdfunding'
 
 import { REGISTER_LABELS, type Register } from './registers'
 
@@ -34,7 +35,21 @@ export type TorixAnswer = {
 
 // Ordre = priorité à score égal : les fiches précises (échelle, leviers)
 // passent avant la fiche générale des coûts.
+const jourParis = (iso: string) =>
+  new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }).format(new Date(iso))
+
 export const TOPICS: Topic[] = [
+  {
+    // Chiffres lus dans web/lib/crowdfunding.ts : la fiche suit la config.
+    id: 'collecte',
+    keywords: ['ulule', 'collecte', 'cagnotte', 'campagne', 'crowdfunding', 'financement participatif', 'actualite', 'actu', 'quoi de neuf', 'nouveaute', 'nouvelle', 'soutenir tiroir', 'soutenir le projet', 'contrepartie', 'contributeur'],
+    register: 'fait',
+    source: 'web/lib/crowdfunding.ts',
+    answer:
+      `L’actualité de Tiroir, c’est sa collecte sur Ulule : en ligne depuis le ${jourParis(CROWDFUNDING.startDate)}, jusqu’au ${jourParis(CROWDFUNDING.endDate)}.\n` +
+      `Collecte « tout ou rien », objectif ${CROWDFUNDING.goalEuros.toLocaleString('fr-FR')} €. Contreparties 100 % numériques, de ${CROWDFUNDING.rewardsEuros.min} € à ${CROWDFUNDING.rewardsEuros.max} €, livrées en décembre 2026 : mois de Premium, nom sur le mur des soutiens de tiroir.app, Tiroir Pro.\n` +
+      `Le lien : ${CROWDFUNDING.url}`,
+  },
   {
     id: 'principes',
     keywords: ['principe', 'intention', 'garde fou', 'mission', 'vision', 'a quoi sert tiroir', 'c est quoi tiroir', 'tiroir c est quoi', 'pourquoi tiroir', 'capturer', 'retrouver', 'transmettre', 'exporter'],
@@ -405,6 +420,7 @@ export const SUGGESTIONS = [
   'Combien ça coûte à 150 000 ?',
   'Comment réduire les coûts ?',
   'Quelle est la prochaine étape ?',
+  'Quoi de neuf chez Tiroir ?',
   'Quelle est ta doctrine ?',
   'Quelle est la direction artistique ?',
   'C’est quoi la V4 ?',

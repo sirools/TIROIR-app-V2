@@ -251,14 +251,7 @@ const en: Copy = {
     ululeInvite: {
       label: 'Ulule campaign',
       close: 'Close',
-      title: 'Christmas comes early',
-      textBefore: 'On {date}, Tiroir de famille launches on Ulule: one month before Christmas, to give Tiroir the means to grow.',
-      textLive: 'Until December 15, support Tiroir on Ulule with a donation of any amount. A little boost before Christmas.',
-      raised: '{amount} raised',
-      next: 'Next milestone: {amount}',
-      allReached: 'Every milestone reached. Thank you!',
-      milestones: 'Milestones',
-      cta: 'See the campaign',
+      text: 'The Tiroir campaign is live on Ulule — back the project until December 21 →',
     },
   },
   pricing: {
