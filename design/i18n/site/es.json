@@ -799,36 +799,99 @@
       "cta": "Pruébalo gratis",
       "shotAlt": "Foto de una chaqueta vaquera tomada con Tiroir"
     },
-    "pros": {
-      "eyebrow": "Para creativos y profesionales",
-      "title": "Menos papeleo, más oficio.",
-      "sub": "Tu material, tu stock, tus colecciones: documentados en unas fotos, mientras trabajas.",
-      "personas": [
+    "creatives": {
+      "eyebrow": "Para creativos",
+      "title": "Su material, bajo control.",
+      "sub": "Cámaras, objetivos, prendas de vestuario: sepa qué tiene, dónde está y cuánto vale.",
+      "soon": "Próximamente",
+      "points": [
         {
-          "who": "Estilista",
-          "text": "Cada prenda fotografiada y ordenada por sesión. Sabes qué ha salido y qué ha vuelto.",
-          "chip": "Prestada · vuelve el viernes",
-          "alt": "Chaqueta vaquera doblada"
+          "title": "Encontrarlo todo",
+          "text": "Cada pieza está fotografiada y ordenada por colección. Encuéntrela en unos segundos antes de un rodaje."
         },
         {
-          "who": "Jefe de producción",
-          "text": "El material inventariado antes del rodaje y revisado a la vuelta. Todo el equipo, en tu bolsillo.",
-          "chip": "42 piezas · 3 prestadas",
-          "alt": "Cámara analógica"
+          "title": "Conocer su valor",
+          "text": "Torix estimará automáticamente cada pieza, y una curva seguirá su valor a lo largo del tiempo.",
+          "soon": true
         },
         {
-          "who": "Anticuario",
-          "text": "Un puesto entero en una sola sesión gracias al modo ráfaga, con un precio de salida para cada pieza.",
-          "chip": "Ráfaga · 60 objetos",
-          "alt": "Reloj con correa de cuero"
-        },
-        {
-          "who": "Músico",
-          "text": "Instrumentos y accesorios documentados, facturas adjuntas: listos para el seguro o la reventa.",
-          "chip": "Valor ≈ {price}",
-          "alt": "Guitarra eléctrica color crema"
+          "title": "Compartir con seguridad",
+          "text": "Envíe una lista de solo lectura a un asistente o a una empresa de alquiler, sin exponer nada más."
         }
-      ]
+      ],
+      "card": {
+        "label": "Vista previa: la ficha de una cámara de fotos, con su estimación y la curva de su valor durante doce meses.",
+        "preview": "Vista previa",
+        "name": "Cámara de fotos analógica",
+        "meta": "Colección Rodaje · guardada",
+        "estimateLabel": "Estimación de Torix",
+        "trendLabel": "Valor en 12 meses"
+      },
+      "bridge": "¿Necesita una exportación para su seguro o estimar todo un equipo de una vez?",
+      "bridgeLink": "Descubra el plan Pro.",
+      "cta": "Descubrir Premium",
+      "ctaNote": "Plan próximo: precios y detalles en la página de Precios."
+    },
+    "pro": {
+      "eyebrow": "Para profesionales",
+      "badge": "Planes próximos",
+      "title": "Su inventario, un activo bajo control.",
+      "sub": "Podrá estimar, documentar y justificar el valor de todo su equipamiento.",
+      "points": [
+        {
+          "title": "IA incluida",
+          "text": "Los créditos de IA estarán incluidos en su plan, sin recargas que prever. Torix estimará automáticamente cada objeto."
+        },
+        {
+          "title": "Estimación por lotes",
+          "text": "Estimará un equipamiento completo en una sola operación."
+        },
+        {
+          "title": "Fuentes detalladas",
+          "text": "Consultará el detalle de las fuentes de cada estimación, para justificarla."
+        },
+        {
+          "title": "Exportación para el seguro",
+          "text": "Generará una exportación lista para enviar a su aseguradora."
+        }
+      ],
+      "ctaPro": "Descubrir el plan Pro",
+      "ctaNote": "Plan próximo: precios y detalles en la página de Precios.",
+      "business": {
+        "title": "Para empresas",
+        "text": "Todas las funciones Pro, con facturación mensual mediante factura, por transferencia o domiciliación.",
+        "cta": "Contacte con nosotros"
+      },
+      "preview": {
+        "label": "Vista previa ficticia de una exportación para el seguro: cuatro objetos estimados por lotes y su valor total.",
+        "title": "Exportación para el seguro",
+        "tag": "Datos ficticios",
+        "subtitle": "Equipamiento · estimado por lotes",
+        "cols": [
+          "Objeto",
+          "Categoría",
+          "Valor"
+        ],
+        "rows": [
+          [
+            "Cámara de cine",
+            "Imagen"
+          ],
+          [
+            "Objetivo de 35 mm",
+            "Óptica"
+          ],
+          [
+            "Trípode de vídeo",
+            "Maquinaria"
+          ],
+          [
+            "Monitor de campo",
+            "Imagen"
+          ]
+        ],
+        "total": "Total estimado"
+      }
     },
     "everyone": {
       "eyebrow": "Y para todos los demás",

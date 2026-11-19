@@ -77,9 +77,14 @@ function siteFiles(root, header) {
   const { meta, langs, load } = loadI18n(root)
   const ref = meta.reference
   const out = []
-  for (const { code } of langs.filter(l => l.site)) {
+  for (const lang of langs.filter(l => l.site)) {
+    const { code } = lang
     const copy = load('site', code)
     if (!copy) throw new Error(`design/i18n/site/${code}.json manquant (langue du site)`)
+    if (lang.siteFallback) {
+      out.push(partialSiteFile(lang, copy, ref, header))
+      continue
+    }
     const isRef = code === ref
     const head = h => [`// ${header(`site/${code}.json`)}`, ...(h ? ['//', ...commentLines(h, '')] : [])].join('\n')
 
@@ -116,6 +121,32 @@ function siteFiles(root, header) {
   return out
 }
 
+/** Préfixe d'une langue sur le site (pt-BR → pt). */
+export const siteCode = l => l.siteCode ?? l.code
+
+/**
+ * Langue partielle du site (« siteFallback ») : seules ses sections de
+ * premier niveau traduites sont écrites, le reste vient de la langue de
+ * repli (spread), sans fichiers de sections à part.
+ */
+function partialSiteFile(lang, copy, ref, header) {
+  const v = varName(siteCode(lang))
+  const base = lang.siteFallback
+  const own = Object.fromEntries(Object.entries(copy).filter(([k]) => k !== '$comment'))
+  const body = tsValue(own, 0).replace(/^\{\n/, `{\n  ...${varName(base)},\n`)
+  return [`web/locales/${siteCode(lang)}.ts`, [
+    `// ${header(`site/${lang.code}.json`)}`,
+    ...(copy.$comment ? ['//', ...commentLines(copy.$comment, '')] : []),
+    `import type { Copy } from './${ref}'`,
+    `import ${varName(base)} from './${base}'`,
+    '',
+    `const ${v}: Copy = ${body}`,
+    '',
+    `export default ${v}`,
+    '',
+  ].join('\n')]
+}
+
 // ── Liste des langues (app, site, Edge Functions) ─────────────────
 
 function languagesModule(root, header) {
@@ -135,8 +166,11 @@ function languagesModule(root, header) {
   return `// ${header('languages.json')}
 /** Langues proposées dans l'app (iOS et Android), dans l'ordre du sélecteur. */
 export const APP_LANGUAGES = ${JSON.stringify(codes(l => l.app))} as const
-/** Langues proposées sur le site. */
-export const SITE_LANGUAGES = ${JSON.stringify(codes(l => l.site))} as const
+/** Langues proposées sur le site, par leur préfixe (pt-BR → pt). */
+export const SITE_LANGUAGES = ${JSON.stringify(langs.filter(l => l.site).map(siteCode))} as const
+/** Nom et balise Intl de chaque langue du site, par son préfixe. */
+export const SITE_LANGUAGE_NAMES: Record<string, string> = ${JSON.stringify(Object.fromEntries(langs.filter(l => l.site).map(l => [siteCode(l), l.name])))}
+export const SITE_LANGUAGE_INTL: Record<string, string> = ${JSON.stringify(Object.fromEntries(langs.filter(l => l.site).map(l => [siteCode(l), l.intl])))}
 /** Langues dans lesquelles partent les e-mails. */
 export const EMAIL_LANGUAGES = ${JSON.stringify(codes(l => l.email))} as const
 /** Langue de référence : toutes les autres suivent ses clés. */

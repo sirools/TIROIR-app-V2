@@ -7,18 +7,19 @@ import fr, { type Copy } from './fr'
 import en from './en'
 import de from './de'
 import es from './es'
-import { LANGUAGE_NAMES, LANGUAGE_INTL } from './languages.generated'
+import pt from './pt'
+import { SITE_LANGUAGE_NAMES, SITE_LANGUAGE_INTL } from './languages.generated'
 
 /** Accroche active de la homepage : 1, 2 ou 3 (textes dans chaque langue, home.hero.variants). */
 export const HERO_VARIANT: 1 | 2 | 3 = 1
 
-export const COPIES: Record<Locale, Copy> = { fr, en, de, es }
+export const COPIES: Record<Locale, Copy> = { fr, en, de, es, pt }
 
 // Noms et balises Intl : design/i18n/languages.json (module généré).
-export const LOCALE_NAMES = LANGUAGE_NAMES as Record<Locale, string>
+export const LOCALE_NAMES = SITE_LANGUAGE_NAMES as Record<Locale, string>
 
 /** Balise BCP 47 pour Intl (formats de prix, de dates, de nombres). */
-const INTL = LANGUAGE_INTL as Record<Locale, string>
+const INTL = SITE_LANGUAGE_INTL as Record<Locale, string>
 
 /** Balise Intl d'une langue du site, pour toLocaleDateString / toLocaleString. */
 export const intlLocale = (locale: Locale) => INTL[locale]

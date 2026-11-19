@@ -1,4 +1,4 @@
-import { LOCALES, localeUrl, type Locale } from '../../lib/localeRouting'
+import { LOCALES, isTranslated, localeUrl, type Locale } from '../../lib/localeRouting'
 
 const SITE = 'https://www.tiroir.app'
 
@@ -10,7 +10,7 @@ const SITE = 'https://www.tiroir.app'
 export function localeLinks(locale: Locale, pathname: string) {
   return [
     <link key="canonical" rel="canonical" href={localeUrl(SITE, locale, pathname)} />,
-    ...LOCALES.map(l => <link key={l} rel="alternate" hrefLang={l} href={localeUrl(SITE, l, pathname)} />),
+    ...LOCALES.filter(l => isTranslated(l, pathname)).map(l => <link key={l} rel="alternate" hrefLang={l} href={localeUrl(SITE, l, pathname)} />),
     <link key="x-default" rel="alternate" hrefLang="x-default" href={localeUrl(SITE, 'fr', pathname)} />,
   ]
 }

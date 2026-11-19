@@ -1,5 +1,5 @@
 {
-  "$comment": "Seule liste des langues de Tiroir. Ajouter une langue ici, ajouter ses textes dans app/, site/ ou system/, puis node design/generate.mjs. « app » / « site » / « email » : la langue est-elle proposée sur ce support ? Une langue de l'app sans « site » (ou l'inverse) est un écart ISO, signalé par node scripts/i18n-check.mjs. « fallback » : langue partielle, dont les clés absentes viennent de cette langue mère.",
+  "$comment": "Seule liste des langues de Tiroir. Ajouter une langue ici, ajouter ses textes dans app/, site/ ou system/, puis node design/generate.mjs. « app » / « site » / « email » : la langue est-elle proposée sur ce support ? Une langue de l'app sans « site » (ou l'inverse) est un écart ISO, signalé par node scripts/i18n-check.mjs. « fallback » : langue partielle, dont les clés absentes viennent de cette langue mère. « siteCode » : préfixe du site s'il diffère du code (pt-BR → /pt) ; « siteFallback » : site partiel, les sections de premier niveau absentes viennent de cette langue.",
   "reference": "fr",
   "default": "en",
   "$default": "Langue par défaut quand celle de l'appareil n'est pas proposée : l'anglais couvre le plus grand nombre des 175 pays de l'App Store.",
@@ -8,7 +8,11 @@
     { "code": "en", "name": "English", "intl": "en-IE", "app": true, "site": true, "email": true },
     { "code": "es", "name": "Español", "intl": "es-ES", "app": true, "site": true, "email": true },
     { "code": "de", "name": "Deutsch", "intl": "de-DE", "app": true, "site": true, "email": true },
-    { "code": "pt-BR", "name": "Português (Brasil)", "intl": "pt-BR", "app": true, "site": false, "email": true },
+    {
+      "code": "pt-BR", "name": "Português (Brasil)", "intl": "pt-BR", "app": true, "site": true, "email": true,
+      "siteCode": "pt", "siteFallback": "en",
+      "$site": "Site : servi sous /pt (« siteCode »), homepage seulement (web/lib/localeRouting.ts, LOCALE_PATHS). Langue partielle : site/pt-BR.json ne contient que layout, home et errors, le reste vient de l'anglais (« siteFallback »). Décision du fondateur, 08/11/2026."
+    },
     {
       "code": "pt-PT", "name": "Português (Portugal)", "intl": "pt-PT", "app": true, "site": false, "email": true,
       "fallback": "pt-BR",

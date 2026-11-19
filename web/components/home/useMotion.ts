@@ -47,34 +47,3 @@ export function useMotion(root: RefObject<HTMLElement | null>): Motion {
 
   return motion
 }
-
-/**
- * Indice (0, 1, 2…) de l'enfant `[data-step]` le plus centré dans l'écran.
- * Sert aux états discrets (point actif d’un carrousel) :
- * ce n'est pas du mouvement, il tourne donc aussi en mouvement réduit.
- */
-export function useActiveStep(
-  container: RefObject<HTMLElement | null>,
-  opts: { root?: RefObject<HTMLElement | null>; rootMargin?: string } = {},
-): number {
-  const [active, setActive] = useState(0)
-  const { root, rootMargin = '-45% 0px -45% 0px' } = opts
-
-  useEffect(() => {
-    const el = container.current
-    if (!el) return
-    const steps = Array.from(el.querySelectorAll<HTMLElement>('[data-step]'))
-    const obs = new IntersectionObserver(
-      entries => {
-        for (const e of entries) {
-          if (e.isIntersecting) setActive(steps.indexOf(e.target as HTMLElement))
-        }
-      },
-      { root: root?.current ?? null, rootMargin, threshold: root ? 0.6 : 0 },
-    )
-    steps.forEach(s => obs.observe(s))
-    return () => obs.disconnect()
-  }, [container, root, rootMargin])
-
-  return active
-}

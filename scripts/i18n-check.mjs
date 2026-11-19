@@ -79,7 +79,14 @@ for (const kind of ['app', 'site']) {
     const refKeys = Object.keys(ref)
     const extra = keys.filter(k => !(k in ref))
     const badVars = keys.filter(k => k in ref && VARS[kind](flat[k]) !== VARS[kind](ref[k]))
-    if (lang.fallback) {
+    if (kind === 'site' && lang.siteFallback) {
+      // Site partiel : chaque section de premier niveau présente est complète,
+      // les autres viennent de siteFallback.
+      const missing = refKeys.filter(k => Object.keys(data).includes(k.split('.')[0]) && !(k in flat))
+      console.log(`${lang.code} (site partiel, repli sur ${lang.siteFallback}) : ${Object.keys(data).filter(k => !k.startsWith('$')).join(', ')}${missing.length ? ` — ${missing.length} MANQUANTES` : ''}`)
+      for (const k of missing) console.log(`  manquante : ${k}`)
+      if (missing.length) failed = true
+    } else if (lang.fallback) {
       const parent = flatten(load(kind, lang.fallback))
       const copies = keys.filter(k => flat[k] === parent[k])
       console.log(`${lang.code} (partielle, repli sur ${lang.fallback}) : ${keys.length} clés propres`)
@@ -183,6 +190,7 @@ if (!i18next) {
 // ── ISO web / mobile ─────────────────────────────────────────────
 const app = meta.languages.filter(l => l.app).map(l => l.code)
 const site = meta.languages.filter(l => l.site).map(l => l.code)
+const sitePrefixes = meta.languages.filter(l => l.site).map(l => l.siteCode ?? l.code)
 console.log(`\nISO langues — app : ${app.join(', ')} · site : ${site.join(', ')}`)
 const onlyApp = app.filter(c => !site.includes(c))
 const onlySite = site.filter(c => !app.includes(c))
@@ -190,8 +198,8 @@ if (onlyApp.length) console.log(`  seulement dans l'app : ${onlyApp.join(', ')}`
 if (onlySite.length) console.log(`  seulement sur le site : ${onlySite.join(', ')}`)
 const nextConfig = readFileSync(path.join(root, 'web/next.config.js'), 'utf8')
 const nextLocales = (nextConfig.match(/locales:\s*\[([^\]]*)\]/)?.[1] ?? '').match(/'[^']+'/g)?.map(s => s.slice(1, -1)) ?? []
-if ([...nextLocales].sort().join() !== [...site].sort().join()) {
-  console.log(`  web/next.config.js (${nextLocales.join(', ')}) ≠ languages.json (${site.join(', ')})`)
+if ([...nextLocales].sort().join() !== [...sitePrefixes].sort().join()) {
+  console.log(`  web/next.config.js (${nextLocales.join(', ')}) ≠ languages.json (${sitePrefixes.join(', ')})`)
   failed = true
 }
 

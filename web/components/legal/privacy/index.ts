@@ -12,4 +12,6 @@ export const PRIVACY_UPDATED = '2026-06-25'
 
 export const PRIVACY_BODIES: Record<Locale, ComponentType> = {
   fr: FrBody, en: EnBody, de: DeBody, es: EsBody,
+  // Pas encore traduit : la page portugaise renvoie vers l’anglais.
+  pt: EnBody,
 }
