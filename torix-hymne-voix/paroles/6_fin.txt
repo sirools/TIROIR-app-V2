@@ -1,0 +1,8 @@
+# Fin — mesures 49–56 (2:05)
+# « يا إيلون، إيلون… » chanté, une mesure de silence, puis la phrase parlée.
+# Les deux vers viennent du brief, SANS tashkeel : les remplacer par la version
+# voyellée de la fiche, et ajuster les mesures au minutage de la fiche
+# (ici : chant sur 49–52, silence en 53, parlé à partir de 54).
+49 | يا إيلون، إيلون…
+51 | يا إيلون، إيلون…
+54 @parle | استمر. نحن نراقب.

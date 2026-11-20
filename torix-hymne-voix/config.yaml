@@ -1,0 +1,53 @@
+# Hymne « النشيد لإيلون ماسك » — voix de synthèse de Torix.
+# Changer un vers (paroles/*.txt) ou le tempo ici, puis relancer hymne_voix.py.
+
+tempo: 92
+temps_par_mesure: 4
+mesures: 56            # durée du morceau ; le WAV fait exactement cette longueur
+mesures_par_vers: 2    # durée d'un vers quand le fichier de paroles n'en dit rien
+sortie: sortie
+
+tts:
+  voix: ar_JO-kareem-medium   # voix arabe de Piper, téléchargée au premier lancement
+  voix_latine: en_US-amy-medium   # pour Interesting, Tesla, Starlink… (vide = tout par la voix arabe)
+  dossier_voix: voix_piper
+  debit: 1.0                  # > 1 = plus lent
+
+guide:
+  fichier: guide/torix_melodie_guide.mid   # export du clip MIDI « Torix — mélodie guide » (.mid ou .json)
+  decalage_mesures: 0          # 8 si le clip exporté commence à la mesure 9, etc.
+  transposition_octaves: auto  # auto = ramène la mélodie vers tessiture_hz ; sinon -1, 0, 1…
+  tessiture_hz: 300            # centre visé pour une voix féminine
+
+parle:
+  remplissage: 0.9       # part des 2 mesures que le vers doit occuper
+  etirement_min: 0.75    # au-delà de ces bornes la voix se déforme :
+  etirement_max: 1.5     # le vers part sur le temps et laisse du silence
+
+chante:
+  glissando_ms: 40
+  vibrato_cents: 25
+  vibrato_hz: 5.5
+
+murmure:
+  souffle: 0.6           # 0 = voix normale, 1 = chuchotement complet
+  gain_db: -6
+
+conversion_voix:
+  # Commande du module de voix de Torix. {entree} et {sortie} sont remplacés
+  # par les chemins des WAV (48 kHz mono). Vide = pas de conversion.
+  # La hauteur ne doit PAS être transposée par le module (elle suit déjà le guide).
+  commande: ""
+
+finition:
+  deesser: true
+  compression: true
+  crete_dbfs: -3
+
+sections:
+  - {nom: couplet1, fichier: paroles/1_couplet1.txt, style: parle}
+  - {nom: refrain1, fichier: paroles/2_refrain1.txt, style: chante}
+  - {nom: couplet2, fichier: paroles/3_couplet2.txt, style: parle}
+  - {nom: refrain2, fichier: paroles/4_refrain2.txt, style: chante}
+  - {nom: pont,     fichier: paroles/5_pont.txt,     style: murmure}
+  - {nom: fin,      fichier: paroles/6_fin.txt,      style: chante}
