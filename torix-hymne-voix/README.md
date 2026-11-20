@@ -136,9 +136,9 @@ module de voix.
   partie. Un mot anglais au milieu d'un vers chanté est le cas le plus
   fragile. Si c'est insuffisant à l'oreille : raccourcir les notes tenues du
   guide, ou passer un vers en `@parle`.
-- **Pas de vrai moteur de chant.** Aucun moteur local libre ne chante
-  l'arabe avec une banque de voix prête à l'emploi ; d'où la voie « synthèse
-  puis hauteur imposée ». Pour aller plus loin : enregistrer les refrains
+- **Pas de vrai moteur de chant.** Je n'ai pas trouvé de moteur de chant
+  local avec une voix arabe prête à l'emploi (recherche non exhaustive) ;
+  d'où la voie « synthèse puis hauteur imposée » (option B du brief). Pour aller plus loin : enregistrer les refrains
   chantés par une personne (même approximativement) et ne garder que la
   conversion de voix — c'est ce qui donnerait le plus gros gain.
 - **Mots anglais.** Dits par une autre voix (féminine, américaine) ; la
