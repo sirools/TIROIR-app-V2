@@ -1,5 +1,6 @@
-/// Les 4 pièces du sous-sol : les 4 quarts du plan.
-public enum Piece: Sendable {
+/// Les 4 pièces du sous-sol, aux endroits marqués sur le plan Figma.
+/// Entre les pièces, ce sont des couloirs.
+public enum Piece: CaseIterable, Sendable {
     case chaufferie, atelier, caveAVin, localServeur
 
     public var nom: String {
@@ -8,6 +9,16 @@ public enum Piece: Sendable {
         case .atelier: return "l'Atelier"
         case .caveAVin: return "la Cave à vin"
         case .localServeur: return "le Local serveur"
+        }
+    }
+
+    /// Colonnes et lignes couvertes par la pièce.
+    var etendue: (x: ClosedRange<Int>, y: ClosedRange<Int>) {
+        switch self {
+        case .chaufferie: return (9...11, 0...1)
+        case .atelier: return (5...7, 3...4)
+        case .caveAVin: return (0...2, 6...7)
+        case .localServeur: return (10...12, 6...8)
         }
     }
 }
@@ -25,27 +36,28 @@ public struct Niveau: Sendable {
     /// `#` mur, `.` passage, `D` escalier de départ, `E` enceinte, `B` borne.
     /// Une case du jeu est un caractère sur deux (lignes et colonnes impaires).
     ///
-    /// Ce plan sort de `outils/plan.mjs` (graine 20261119). Si le plan Figma
-    /// diffère, c'est ici qu'on le colle : rien d'autre n'est à changer.
+    /// Ce plan est relevé sur la planche Figma « Scan — Plan du sous-sol de
+    /// papa » (page « MLP - V1 ») : murs, escalier, 5 enceintes, 3 bornes.
+    /// Il fait foi. `node outils/verifie-plan.mjs` contrôle qu'il est jouable.
     public static let planNiveau1: [String] = [
         "###########################",
-        "#D#.....#E...B#.....#.....#",
-        "#.#.###.###.#.#.###.#.###.#",
-        "#...#...#...#.#...#...#.#.#",
-        "#####.###.###.#####.###.#.#",
-        "#E#...#...#E#.....#.#...#.#",
-        "#.#.###.###.#####.#.###.#.#",
-        "#...#...#...#...#.#.....#.#",
-        "#.###.###.###.#.#.#####.#.#",
-        "#...#.#.....#.#...#.....#.#",
-        "###.#.#####.#.###########.#",
-        "#...#.....#...#E......#...#",
-        "#.#######.#.#####.###.#.###",
-        "#.#.....#.#B#.....#...#...#",
-        "#.#.###.#.#.#.#####.#####.#",
-        "#..B#.#...#.#...#...#.....#",
-        "#####.#####.###.#.###.###.#",
-        "#E..............#.....#...#",
+        "#D..#....B......#E#.......#",
+        "###.#########.#.#.#.#.#.#.#",
+        "#E#.#.........#.#.......#.#",
+        "#.#.#.#########.#.###.#.#.#",
+        "#.#...#.....#.#.#.#...#.#.#",
+        "#.#####.###.#.#.###.###.#.#",
+        "#.........#.........#...#.#",
+        "#.#######.#.#.#.#####.###.#",
+        "#...#.....#.......#B..#...#",
+        "#.###.#######.#.#.#.#.#.###",
+        "#.#...#B....#.#.#...#...#E#",
+        "#.#.###.###.###.#########.#",
+        "#.....#...#.....#E........#",
+        "#.#.#.###.#########.#.#.#.#",
+        "#.....#...#...#...#.#.....#",
+        "#.#.###.###.#.#.#.###.#.#.#",
+        "#E#.........#...#.........#",
         "###########################",
     ]
 
@@ -82,14 +94,8 @@ public struct Niveau: Sendable {
         self.bornes = bornes
     }
 
-    public func piece(de c: Case) -> Piece {
-        let haut = c.y * 2 < labyrinthe.lignes
-        let gauche = c.x * 2 <= labyrinthe.colonnes
-        switch (haut, gauche) {
-        case (true, true): return .chaufferie
-        case (true, false): return .atelier
-        case (false, true): return .caveAVin
-        case (false, false): return .localServeur
-        }
+    /// La pièce où se trouve la case, ou `nil` dans un couloir.
+    public func piece(de c: Case) -> Piece? {
+        Piece.allCases.first { $0.etendue.x.contains(c.x) && $0.etendue.y.contains(c.y) }
     }
 }

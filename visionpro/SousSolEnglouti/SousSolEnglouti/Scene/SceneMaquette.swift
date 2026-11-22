@@ -21,6 +21,8 @@ struct Cible: Component {
 final class SceneMaquette {
     /// À ajouter au volume. Le sol de la maquette est en bas du volume.
     let racine = Entity()
+    /// Les enceintes cachées que le Messager peut voir (voir `EtatJeu`).
+    var enceintesAPortee: [Case] = []
     /// Un émetteur de son par enceinte, toujours actif même quand
     /// l'enceinte est encore cachée dans le noir.
     private(set) var emetteurs: [Entity] = []
@@ -252,6 +254,7 @@ final class SceneMaquette {
         toutEclaire = false
         retour = nil
         opacite = 1
+        enceintesAPortee = []
         for i in vues.indices { vues[i] = false }
         for i in trouvees.indices {
             trouvees[i] = false
@@ -364,7 +367,7 @@ final class SceneMaquette {
         // l'eau lentement et gardent un halo fixe (aucun clignotement).
         for i in enceintes.indices {
             let l = lumiere[labyrinthe.indice(niveau.enceintes[i])]
-            enceintes[i].isEnabled = trouvees[i] || l > 0.5
+            enceintes[i].isEnabled = trouvees[i] || (l > 0.5 && enceintesAPortee.contains(niveau.enceintes[i]))
             let cible: Float = trouvees[i] ? 1 : 0
             let ecart = cible - elevation[i]
             if abs(ecart) > 0.0005 {

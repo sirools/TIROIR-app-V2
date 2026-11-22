@@ -26,7 +26,7 @@ final class ModeleJeu {
     /// Depuis combien de temps chaque enceinte a été trouvée (nil : cachée).
     @ObservationIgnored private var depuisTrouvee: [Double?] = Array(repeating: nil, count: 5)
 
-    var piece: Piece { etat.niveau.piece(de: etat.position) }
+    var piece: Piece? { etat.niveau.piece(de: etat.position) }
 
     // MARK: - Cycle de vie
 
@@ -89,6 +89,7 @@ final class ModeleJeu {
     private func applique(_ evenements: [EtatJeu.Evenement]) {
         guard !evenements.isEmpty else { return }
         inactivite = 0
+        scene.enceintesAPortee = etat.enceintesAPortee
         for evenement in evenements {
             switch evenement {
             case .deplace(let c):

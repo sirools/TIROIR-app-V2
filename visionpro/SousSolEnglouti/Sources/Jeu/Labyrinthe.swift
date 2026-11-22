@@ -20,7 +20,7 @@ public struct Case: Hashable, Sendable {
     }
 }
 
-/// Ordre fixe : nord, est, sud, ouest (le générateur en dépend).
+/// Ordre fixe : nord, est, sud, ouest.
 public enum Direction: CaseIterable, Sendable {
     case nord, est, sud, ouest
 
@@ -118,29 +118,5 @@ public struct Labyrinthe: Equatable, Sendable {
             }
         }
         return distances
-    }
-
-    /// Backtracking récursif depuis la case (0, 0).
-    public static func genere(colonnes: Int, lignes: Int, graine: UInt32) -> Labyrinthe {
-        var labyrinthe = Labyrinthe(colonnes: colonnes, lignes: lignes)
-        var hasard = GenerateurAleatoire(graine: graine)
-        var vues: Set<Case> = [Case(0, 0)]
-        var pile: [Case] = [Case(0, 0)]
-        while let c = pile.last {
-            let libres = Direction.allCases.filter {
-                let v = c.voisine($0)
-                return labyrinthe.contient(v) && !vues.contains(v)
-            }
-            if libres.isEmpty {
-                pile.removeLast()
-                continue
-            }
-            let direction = libres[hasard.indice(parmi: libres.count)]
-            labyrinthe.ouvre(c, direction)
-            let suivante = c.voisine(direction)
-            vues.insert(suivante)
-            pile.append(suivante)
-        }
-        return labyrinthe
     }
 }

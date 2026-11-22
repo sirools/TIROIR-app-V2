@@ -32,7 +32,7 @@ struct VueCommandes: View {
                     .accessibilityElement()
                     .accessibilityLabel("\(etat.piles) piles sur \(Reglages.piles)")
 
-                    Text("Tu es dans \(modele.piece.nom)")
+                    Text("Tu es dans \(modele.piece?.nom ?? "un couloir")")
                         .foregroundStyle(.secondary)
                 }
             }

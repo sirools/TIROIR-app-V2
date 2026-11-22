@@ -66,9 +66,20 @@ public struct EtatJeu: Sendable {
         return evenements
     }
 
-    /// Touche une enceinte : elle compte si la lampe l'éclaire.
+    /// Les enceintes encore cachées que le Messager peut voir et toucher :
+    /// éclairées par la lampe, et à deux pas au plus (pas derrière un mur).
+    public var enceintesAPortee: [Case] {
+        let pas = niveau.labyrinthe.distances(depuis: position)
+        return niveau.enceintes.filter { c in
+            !trouvees.contains(c)
+                && lumiere(c) > 0
+                && (pas[c] ?? Int.max) <= Reglages.pasPourVoirUneEnceinte
+        }
+    }
+
+    /// Touche une enceinte : elle compte si elle est à portée.
     public mutating func toucherEnceinte(_ c: Case) -> [Evenement] {
-        guard lumiere(c) > 0 else { return [] }
+        guard enceintesAPortee.contains(c) else { return [] }
         return trouver(c)
     }
 

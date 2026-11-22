@@ -9,7 +9,7 @@ donne-t-elle envie d'explorer, sans surcharger ?
 
 > **État : écrit sans Xcode, jamais compilé.** Le code a été rédigé dans un
 > environnement Linux sans compilateur Swift. Le plan du niveau et les
-> scénarios des tests ont été vérifiés avec un script Node, mais le premier
+> scénarios des tests ont été vérifiés avec des scripts Node, mais le premier
 > lancement dans Xcode peut demander quelques corrections de compilation.
 
 ## Lancer
@@ -35,7 +35,8 @@ swift test
 
 - Regarder une pastille bleu clair à côté du Messager et pincer : il y va.
   Une case à la fois, jamais à travers un mur.
-- La lampe éclaire la case du Messager et ses 8 voisines (rayon 1,5 case).
+- La lampe éclaire la case du Messager et ses 8 voisines (rayon 1,5 case),
+  murs compris.
 - 4 piles, 6 cases par pile. Une borne verte recharge tout. Lampe vide :
   le Messager s'efface et réapparaît à la dernière borne (ou à l'escalier),
   piles pleines, sans aucun message.
@@ -53,26 +54,32 @@ swift test
 | `Tests/JeuTests/` | Les tests des règles (`swift test`). |
 | `SousSolEnglouti/` | L'app : maquette 3D (`Scene/`), son et voix (`Son/`), écrans (`Vues/`). |
 | `SousSolEnglouti/Ressources/` | Les sons. |
-| `outils/` | `plan.mjs` (plan du niveau), `sons.py` (mélodies temporaires). |
+| `outils/` | `verifie-plan.mjs` (contrôle du plan), `sons.py` (mélodies temporaires). |
 
 Les nombres à régler après un essai sont dans `Sources/Jeu/Reglages.swift`.
 
 ## Le plan du niveau
 
-Le plan est figé dans `Sources/Jeu/Niveau.swift`, en ASCII lisible. Il sort
-de `outils/plan.mjs` : backtracking récursif, 13 × 9, graine 20261119.
+Le plan est figé dans `Sources/Jeu/Niveau.swift`, en ASCII lisible. Il est
+relevé sur la planche Figma « Scan — Plan du sous-sol de papa » (page
+« MLP - V1 ») : mêmes murs, même escalier, mêmes cases pour les 5 enceintes
+et les 3 bornes, mêmes 4 pièces. Pour le modifier, changer `planNiveau1`,
+puis contrôler qu'il reste jouable :
 
-**À vérifier contre Figma.** Le fichier Figma n'était pas accessible : le
-générateur aléatoire utilisé là-bas n'étant pas connu, rien ne garantit que
-ce plan soit le même, ni que les enceintes et les bornes soient aux mêmes
-cases. Si le plan diffère, coller celui de Figma dans `planNiveau1` : rien
-d'autre n'est à changer (le test « plan figé = graine » est alors à retirer).
+```bash
+node outils/verifie-plan.mjs
+```
 
-Avec 24 cases d'autonomie, ce labyrinthe aux longs couloirs ne se parcourt
-pas en entier. Les enceintes et les bornes ont donc été placées pour que
-tout soit faisable : chaque enceinte est à un aller-retour d'une borne, et
-le parcours complet demande environ 92 pas. Conséquence : le quart nord-est
-(l'Atelier) n'a pas d'enceinte et reste hors de portée de la lampe.
+Avec 4 piles de 6 cases, deux enceintes seulement (Chaufferie, Cave à vin)
+permettent l'aller-retour depuis une borne. Les trois autres sont à 15, 20
+et 21 pas de la borne la plus proche : on les atteint, puis la lampe
+s'éteint sur le retour et le Messager repart de la borne. Un parcours
+direct demande environ 120 pas, avec deux extinctions.
+
+La lampe éclaire à travers les murs, comme sur la « Vue en jeu » de Figma.
+Une enceinte, elle, ne se montre et ne se touche que si le Messager peut
+la rejoindre en 2 pas au plus : sans cela, celle qui est juste derrière le
+mur de l'escalier serait trouvée dès la première seconde.
 
 ## Sons et voix
 
