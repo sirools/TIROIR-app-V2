@@ -158,6 +158,30 @@ describe('règles du hackathon', () => {
     for (const line of lines) expect(line).toMatch(/^[A-Z_]+=$/)
   })
 
+  test('app : les sept fonctions d’IA hors Firebase ne passent que par la porte, fermée dans le build hackathon', () => {
+    const gate = mobile('src/services/legacyAI.ts')
+    expect(gate).toContain('export const LEGACY_AI_ENABLED = !HACKATHON_BUILD')
+    const functions = ['chat-turn', 'describe-object', 'detect-scene', 'estimate-value', 'assistant-chat', 'enhance-object-photo', 'scene-thumbnail']
+    for (const fn of functions) expect(gate, fn).toContain(`'${fn}'`)
+
+    // Aucun écran ni service n'appelle l'une d'elles en direct.
+    const walk = (dir: string): string[] => readdirSync(path.join(web, '../mobile', dir), { withFileTypes: true })
+      .flatMap(e => e.isDirectory() ? walk(`${dir}/${e.name}`) : /\.tsx?$/.test(e.name) ? [`${dir}/${e.name}`] : [])
+    for (const file of [...walk('app'), ...walk('src')]) {
+      if (file === 'src/services/legacyAI.ts') continue
+      const code = mobile(file)
+      for (const fn of functions) {
+        expect(code, `${file} → ${fn}`).not.toContain(`functions.invoke('${fn}'`)
+      }
+      // chat-turn est appelé par fetch : seul son service a le droit de le nommer.
+      if (code.includes('functions/v1/chat-turn')) expect(file).toBe('src/services/assistant/SupabaseAssistantService.ts')
+    }
+    // Ce service n'est pas instancié dans le build hackathon.
+    expect(mobile('src/services/assistant/index.ts')).toMatch(/!LEGACY_AI_ENABLED\s+\? disabled/)
+    // Les drapeaux serveur (scène, assistant) restent fermés.
+    expect(mobile('src/features/objects/useFeatureFlags.ts')).toContain('if (!LEGACY_AI_ENABLED)')
+  })
+
   test('la consigne de l’appareil ne s’appuie que sur ce que Vision a vu', () => {
     const prompt = observationsPrompt('fr', { labels: ['lamp', 'desk'], texts: ['IKEA "TERTIAL"'] })
     expect(prompt).toContain('lamp, desk')

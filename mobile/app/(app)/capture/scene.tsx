@@ -10,6 +10,7 @@ import * as ImageManipulator from 'expo-image-manipulator'
 import * as FileSystem from 'expo-file-system/legacy'
 import { ArrowLeft, Camera, Images, AlertTriangle, Minus, Plus, Trash2, RotateCcw, Sparkles } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
+import { invokeAI } from '@/services/legacyAI'
 import { useAuth } from '@/features/auth/AuthContext'
 import { functionError } from '@/lib/functionError'
 import { BUY_CREDITS_ROUTE, isCreditsRefusal, offerCredits } from '@/lib/buyCredits'
@@ -304,7 +305,7 @@ export default function SceneDetectionScreen() {
         }
       }
 
-      const { data: res, error: fnError } = await supabase.functions.invoke('scene-thumbnail', {
+      const { data: res, error: fnError } = await invokeAI('scene-thumbnail', {
         body: { scene_id: result.scene_id, index: i, mode, image },
       })
       if (fnError) throw await functionError(fnError)
@@ -406,7 +407,7 @@ export default function SceneDetectionScreen() {
         encoding: FileSystem.EncodingType.Base64,
       })
 
-      const { data: res, error: fnError } = await supabase.functions.invoke('detect-scene', {
+      const { data: res, error: fnError } = await invokeAI('detect-scene', {
         // Envoyé seulement par un admin : le serveur ignore ce champ pour
         // tous les autres, mais autant ne pas le transmettre du tout.
         body: { image: { data, media_type: 'image/jpeg' }, ...(isAdmin ? { model } : {}) },

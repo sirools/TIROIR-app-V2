@@ -48,6 +48,13 @@ photo itself to Gemini.
 | `mobile/app/(app)/capture/express.tsx` | the screen |
 | `mobile/plugins/withFirebaseSpm.js`, `mobile/app.config.js` | Firebase (Swift Package Manager) added to the hackathon build only |
 
+In the hackathon build, Tiroir's seven earlier AI features (card from
+photos, description, value estimate, scene detection, scene thumbnails,
+photo retouch, chat assistant — Supabase Edge Functions calling other
+providers) are switched off and hidden: `mobile/src/services/legacyAI.ts`
+is the single gate, closed when `EXPO_PUBLIC_HACKATHON_BUILD=true`. The
+website has no other AI call. Without the flag, nothing changes.
+
 Status: the **web** side runs and is tested in a browser. The **iOS** side
 is written but has **not been compiled or run on a device yet**.
 

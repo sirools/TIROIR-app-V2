@@ -7,6 +7,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Send, Package } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
+import { invokeAI } from '@/services/legacyAI'
 import { useAuth } from '@/features/auth/AuthContext'
 import { isPaidPlan } from '@/lib/plan'
 import { FormScreen, Colors, Typography, Spacing, Radius } from '@/components/ui'
@@ -99,7 +100,7 @@ export default function AssistantScreen() {
 
     try {
       const history = messages.slice(-6).map(m => ({ role: m.role, content: m.content }))
-      const { data, error } = await supabase.functions.invoke('assistant-chat', {
+      const { data, error } = await invokeAI('assistant-chat', {
         body: { message: text, history },
       })
       if (error) throw error

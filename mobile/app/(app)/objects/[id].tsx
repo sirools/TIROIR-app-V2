@@ -28,6 +28,7 @@ import { decode } from 'base64-arraybuffer'
 import { Plus, Minus, Pencil, Trash2, ArrowLeft, MoreHorizontal, ChevronRight, ChevronUp, ChevronDown, MapPin, Share2, Sparkles, Star, Info, CalendarDays, UserRound, ExternalLink } from 'lucide-react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { supabase } from '@/lib/supabase'
+import { LEGACY_AI_ENABLED, invokeAI } from '@/services/legacyAI'
 import { functionError } from '@/lib/functionError'
 import { isCreditsRefusal, offerCredits } from '@/lib/buyCredits'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -481,7 +482,7 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
     setStudioOpen(false)
     setEnhancing(true)
     try {
-      const { data, error } = await supabase.functions.invoke('enhance-object-photo', {
+      const { data, error } = await invokeAI('enhance-object-photo', {
         body: { object_id: objectId, image_id: img.id, ...(options ?? { mode: 'enhance' }) },
       })
       if (error) {
@@ -656,8 +657,8 @@ function ImageSlider({ images, objectId, onImagesChange }: ImageSliderProps) {
         }
       </TouchableOpacity>
 
-      {/* Bouton améliorer (IA, premium) */}
-      {total > 0 && (
+      {/* Bouton améliorer (IA, premium) — absent du build hackathon */}
+      {LEGACY_AI_ENABLED && total > 0 && (
         <TouchableOpacity
           style={sl.enhanceBtn}
           onPress={openStudio}
@@ -1534,11 +1535,11 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
               )}
             </TouchableOpacity>
           )
-        ) : (
+        ) : LEGACY_AI_ENABLED ? (
           <TouchableOpacity onPress={onEstimate} activeOpacity={0.8}>
             <Text style={vc.marketEstimateLink}>{t('object.value.estimateAi')}</Text>
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
 
       {/* Drawer d'explication */}
@@ -1592,13 +1593,15 @@ function MarketValueSection({ object, estimating, sources, confidence, currSym, 
               </View>
             )}
             <View style={vc.infoActions}>
-              <TouchableOpacity
-                style={[vc.marketActionBtn, vc.marketActionRefresh]}
-                onPress={() => { setInfoOpen(false); onEstimate() }}
-                activeOpacity={0.75}
-              >
-                <Text style={[vc.marketActionText, { color: '#15803D' }]}>{t('object.value.refresh')}</Text>
-              </TouchableOpacity>
+              {LEGACY_AI_ENABLED && (
+                <TouchableOpacity
+                  style={[vc.marketActionBtn, vc.marketActionRefresh]}
+                  onPress={() => { setInfoOpen(false); onEstimate() }}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[vc.marketActionText, { color: '#15803D' }]}>{t('object.value.refresh')}</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={[vc.marketActionBtn, vc.marketActionDelete]}
                 onPress={() => { setInfoOpen(false); onClearMarketValue() }}
@@ -2583,15 +2586,17 @@ export default function ObjectScreen() {
    *  copier, modifier et supprimer n'ont rien sur quoi agir. */
   function summaryMenuOptions() {
     const hasDescription = Boolean(object?.description?.trim())
+    // Build hackathon : pas de rédaction par l'IA historique.
+    const ai = (label: string) => (LEGACY_AI_ENABLED ? [{ label, onPress: runDescribe }] : [])
     if (!hasDescription) {
       return [
-        { label: t('object.summaryGenerate'), onPress: runDescribe },
+        ...ai(t('object.summaryGenerate')),
         { label: t('object.summaryWrite'), onPress: startEditDesc },
         { label: t('common.cancel'), onPress: () => {}, cancel: true },
       ]
     }
     return [
-      { label: t('object.summaryRegenerate'), onPress: runDescribe },
+      ...ai(t('object.summaryRegenerate')),
       { label: t('object.summaryCopy'), onPress: copyDescription },
       { label: t('object.summaryEdit'), onPress: startEditDesc },
       { label: t('object.summaryDelete'), onPress: deleteDescription, destructive: true },
@@ -2602,7 +2607,7 @@ export default function ObjectScreen() {
   async function runDescribe() {
     setDescribing(true)
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('describe-object', {
+      const { data, error: fnError } = await invokeAI('describe-object', {
         body: { object_id: id, locale: i18n.language },
       })
       if (fnError) throw await functionError(fnError)
@@ -2700,7 +2705,7 @@ export default function ObjectScreen() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error(t('documents.notAuthenticated'))
-      const res = await supabase.functions.invoke('estimate-value', {
+      const res = await invokeAI('estimate-value', {
         body: { object_id: object.id },
       })
       // Le motif vit dans le corps de la réponse : `invoke` ne rend qu'un

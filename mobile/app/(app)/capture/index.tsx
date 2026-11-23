@@ -17,6 +17,7 @@ import { type PhotoSource, queueZoomCopy, zoomPathFor } from '@/services/zoomCop
 import { isPaidPlan, Plan } from '@/lib/plan'
 import { useFeatureFlags } from '@/features/objects/useFeatureFlags'
 import { HACKATHON_BUILD } from '@/services/hybridAI/config'
+import { LEGACY_AI_ENABLED } from '@/services/legacyAI'
 import {
   Screen, Colors, Typography, Spacing, Radius,
   CollectionPickerSheet, PickedCollection, useToast,
@@ -216,6 +217,7 @@ export default function CaptureScreen() {
   }
 
   function goToBatchReview(picked: PickedImage[]) {
+    if (!LEGACY_AI_ENABLED) return
     if (picked.length === 0) return
     // runId distinct à chaque lancement : l'écran de review réutilise
     // la même route, c'est ce jeton qui lui dit qu'il s'agit d'un
@@ -232,6 +234,7 @@ export default function CaptureScreen() {
   }
 
   async function handleNext() {
+    if (!LEGACY_AI_ENABLED) return
     if (images.length === 0) {
       Alert.alert(t('capture.needPhotoTitle'), t('capture.needPhotoMessage'))
       return
@@ -368,8 +371,8 @@ export default function CaptureScreen() {
         {/* Titre */}
         <View style={styles.header}>
           <Text style={styles.title}>{t('capture.title')}</Text>
-          <Text style={styles.subtitle}>{t('capture.subtitle')}</Text>
-          <Text style={[styles.quotaCounter, quotaExhausted && styles.quotaCounterExhausted]}>
+          {LEGACY_AI_ENABLED && <Text style={styles.subtitle}>{t('capture.subtitle')}</Text>}
+          <Text style={[styles.quotaCounter, !LEGACY_AI_ENABLED && { display: 'none' }, quotaExhausted && styles.quotaCounterExhausted]}>
             {quotaLimit === null
               ? t('capture.quotaUnlimited')
               : quotaExhausted
@@ -439,14 +442,19 @@ export default function CaptureScreen() {
               />
             )}
 
-            <Text style={styles.groupLabel}>{t('capture.groupMultiple')}</Text>
+            {/* Le lot passe par chat-turn : absent du build hackathon. */}
+            {LEGACY_AI_ENABLED && (
+              <>
+                <Text style={styles.groupLabel}>{t('capture.groupMultiple')}</Text>
 
-            <BatchEntry
-              title={t('batch.entryTitle')}
-              subtitle={batchAvailable ? t('batch.entrySub', { max: batchMax }) : t('batch.entryBlocked')}
-              enabled={batchAvailable}
-              onPress={batchAvailable ? pickMultipleObjects : explainBatchBlocked}
-            />
+                <BatchEntry
+                  title={t('batch.entryTitle')}
+                  subtitle={batchAvailable ? t('batch.entrySub', { max: batchMax }) : t('batch.entryBlocked')}
+                  enabled={batchAvailable}
+                  onPress={batchAvailable ? pickMultipleObjects : explainBatchBlocked}
+                />
+              </>
+            )}
 
             {/* Détection de scène — derrière le drapeau serveur. Le point
                 d'entrée est explicite pendant le POC : le banc doit mesurer
@@ -465,7 +473,7 @@ export default function CaptureScreen() {
         {/* Dès la 2e photo, l'ambiguïté « photo de plus / objet de plus »
             devient réelle : on la lève ici, dans un bloc distinct de la
             grille de photos. */}
-        {images.length >= 2 && (
+        {LEGACY_AI_ENABLED && images.length >= 2 && (
           <BatchEntry
             title={t('batch.addAnotherTitle', { count: images.length })}
             subtitle={batchAvailable
@@ -479,8 +487,8 @@ export default function CaptureScreen() {
         {/* Séparateur */}
         {hasImages && <View style={styles.sep} />}
 
-        {/* CTA principal */}
-        <TouchableOpacity
+        {/* CTA principal — analyse par chat-turn, absente du build hackathon */}
+        {LEGACY_AI_ENABLED && <TouchableOpacity
           style={[styles.btnPrimary, (!hasImages || loading || quotaExhausted) && styles.btnPrimaryDisabled]}
           onPress={handleNext}
           activeOpacity={0.85}
@@ -489,10 +497,10 @@ export default function CaptureScreen() {
           <Text style={styles.btnPrimaryText}>
             {loading ? t('capture.preparing') : hasImages ? t('capture.analyzeCta', { count: images.length }) : t('capture.addPhotoToContinue')}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity>}
 
         {/* Lien recharge — visible quand quota épuisé et photos sélectionnées */}
-        {hasImages && quotaExhausted && (
+        {LEGACY_AI_ENABLED && hasImages && quotaExhausted && (
           <View style={styles.quotaBanner}>
             <Text style={styles.quotaText}>
               <Text style={styles.quotaLink}>{/* TODO: onPress → écran recharge */}{t('capture.rechargeQuota')}</Text>
