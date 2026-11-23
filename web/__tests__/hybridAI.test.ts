@@ -4,7 +4,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
-import { enrichmentPrompt, parseEnrichment, parseQuickCard, quickCardPrompt } from '../lib/hybridAI/card'
+import { enrichmentPrompt, observationsPrompt, parseEnrichment, parseQuickCard, quickCardPrompt } from '../lib/hybridAI/card'
 import { DRAFTS_KEY, MAX_DRAFTS, loadDrafts, nextStep, saveDrafts, upsertDraft, type Draft } from '../lib/hybridAI/drafts'
 import { debugTokenFor } from '../lib/hybridAI/firebase'
 
@@ -131,6 +131,40 @@ describe('App Check : jeton de debug', () => {
 
 describe('règles du hackathon', () => {
   const read = (file: string) => readFileSync(path.join(web, file), 'utf8')
+  const mobile = (file: string) => readFileSync(path.join(web, '../mobile', file), 'utf8')
+
+  test('site et app partagent le même contrat, les mêmes consignes, les mêmes brouillons', () => {
+    for (const file of ['types.ts', 'card.ts', 'drafts.ts']) {
+      expect(mobile(`src/services/hybridAI/${file}`), file).toBe(read(`lib/hybridAI/${file}`))
+    }
+  })
+
+  test('app : l’écran ne parle qu’au service, le cloud passe par Firebase AI Logic', () => {
+    const screen = mobile('app/(app)/capture/express.tsx')
+    expect(screen).toContain("from '@/services/hybridAI'")
+    expect(screen).not.toMatch(/tiroir-hybrid-ai|supabase|functions\/v1/)
+    const swift = mobile('modules/tiroir-hybrid-ai/ios/TiroirHybridAIModule.swift')
+    expect(swift).toContain('import FirebaseAILogic')
+    expect(swift).toContain('AppCheck.setAppCheckProviderFactory')
+    expect(swift).toContain('geminiLanguageModel')
+    expect(swift).not.toMatch(/api\.anthropic\.com|generativelanguage\.googleapis\.com|api\.openai\.com/)
+  })
+
+  test('app : sans le drapeau, Firebase n’entre pas dans le build', () => {
+    expect(mobile('modules/tiroir-hybrid-ai/ios/TiroirHybridAI.podspec')).toMatch(/if hackathon\s+spm_dependency/)
+    expect(mobile('app.config.js')).toContain('if (!HACKATHON) return config')
+    const lines = mobile('.env.example').split('\n').filter(l => l.startsWith('EXPO_PUBLIC_FIREBASE_') && !l.includes('APPCHECK_DEBUG'))
+    expect(lines.length).toBeGreaterThanOrEqual(4)
+    for (const line of lines) expect(line).toMatch(/^[A-Z_]+=$/)
+  })
+
+  test('la consigne de l’appareil ne s’appuie que sur ce que Vision a vu', () => {
+    const prompt = observationsPrompt('fr', { labels: ['lamp', 'desk'], texts: ['IKEA "TERTIAL"'] })
+    expect(prompt).toContain('lamp, desk')
+    expect(prompt).toContain('IKEA  TERTIAL')
+    expect(prompt).toContain('French')
+    expect(observationsPrompt('en', { labels: [], texts: [] })).toContain('readable on the object: none')
+  })
 
   test('la page ne parle qu’au service : ni Firebase ni fournisseur d’IA en direct', () => {
     const page = read('pages/fiche-express.tsx')

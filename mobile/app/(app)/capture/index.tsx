@@ -16,6 +16,7 @@ import { hasPhotoZoom } from '@/lib/plan'
 import { type PhotoSource, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
 import { isPaidPlan, Plan } from '@/lib/plan'
 import { useFeatureFlags } from '@/features/objects/useFeatureFlags'
+import { HACKATHON_BUILD } from '@/services/hybridAI/config'
 import {
   Screen, Colors, Typography, Spacing, Radius,
   CollectionPickerSheet, PickedCollection, useToast,
@@ -428,6 +429,16 @@ export default function CaptureScreen() {
                 sur la situation de l'utilisateur, pas comme des noms de
                 fonctionnalité. Toujours visibles : une affordance qui
                 disparaît en silence est introuvable et inexplicable. */}
+            {/* Fiche express (IA hybride, Firebase AI Logic) : build hackathon seulement. */}
+            {HACKATHON_BUILD && (
+              <BatchEntry
+                title={t('express.entryTitle')}
+                subtitle={t('express.entrySub')}
+                enabled
+                onPress={() => router.push('/capture/express')}
+              />
+            )}
+
             <Text style={styles.groupLabel}>{t('capture.groupMultiple')}</Text>
 
             <BatchEntry

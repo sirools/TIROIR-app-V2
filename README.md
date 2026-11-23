@@ -36,8 +36,43 @@ Every piece of information carries a badge, “On device” or “Cloud”.
 | `web/pages/fiche-express.tsx` | the page |
 | `web/__tests__/hybridAI.test.ts` | tests |
 
-Status: the **web** side is in place. The **iOS** side (Apple Foundation
-Models through Firebase AI Logic, in a local Expo module) is in progress.
+On iPhone, Apple's on-device model is text-only: Apple's Vision framework
+first reads the photo on the device (image labels and visible text), then
+the on-device model writes the card from that. The cloud step sends the
+photo itself to Gemini.
+
+| Where (iOS) | What |
+| --- | --- |
+| `mobile/modules/tiroir-hybrid-ai/ios/TiroirHybridAIModule.swift` | native module: Vision, Apple Foundation Models, Gemini through Firebase AI Logic, App Check |
+| `mobile/src/services/hybridAI/ios.ts` | iOS implementation of `HybridAI`, device → cloud hand-over |
+| `mobile/app/(app)/capture/express.tsx` | the screen |
+| `mobile/plugins/withFirebaseSpm.js`, `mobile/app.config.js` | Firebase (Swift Package Manager) added to the hackathon build only |
+
+Status: the **web** side runs and is tested in a browser. The **iOS** side
+is written but has **not been compiled or run on a device yet**.
+
+### Build the iOS app
+
+Requirements: a Mac with Xcode 26.2 or later (or EAS Build), an iPhone with
+Apple Intelligence turned on for the on-device step, the Firebase iOS app
+registered for the bundle identifier `com.sirools.tiroir`.
+
+```bash
+cd mobile
+npm install
+cp .env.example .env
+```
+
+In `mobile/.env`: set `EXPO_PUBLIC_HACKATHON_BUILD=true`, fill the
+`EXPO_PUBLIC_FIREBASE_*` values from `GoogleService-Info.plist`, and the
+Supabase values (the app needs an account to open).
+
+```bash
+eas build --profile hackathon --platform ios
+```
+
+In the app: Capture › Express card. The screen shows the App Check debug
+token of the installation; register it in the Firebase console.
 
 ### Run the web demo
 

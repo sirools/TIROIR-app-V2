@@ -43,6 +43,31 @@ export function quickCardPrompt(locale: string): string {
   ].join('\n')
 }
 
+/**
+ * Ce que l'appareil a vu sur la photo sans modèle de langage (sur iPhone :
+ * le framework Vision d'Apple) — étiquettes d'image et texte lisible.
+ */
+export type PhotoObservations = { labels: string[]; texts: string[] }
+
+/**
+ * Fiche rapide pour un modèle embarqué qui ne lit pas les images : il
+ * rédige à partir de ce que l'appareil a observé sur la photo.
+ */
+export function observationsPrompt(locale: string, seen: PhotoObservations): string {
+  const list = (items: string[]) => (items.length ? items.map(i => i.replace(/[\n"]/g, ' ').trim()).join(', ') : 'none')
+  return [
+    'You catalogue personal belongings for a home inventory app.',
+    'An on-device image analysis of a photo of one object returned:',
+    `- image labels, most likely first: ${list(seen.labels.slice(0, 8))}`,
+    `- text readable on the object: ${list(seen.texts.slice(0, 8))}`,
+    `Write, in ${languageName(locale)}:`,
+    '- name: the object, 2 to 6 words, no trailing period;',
+    '- category: one or two words (for example: books, tools, clothing, electronics, toys, kitchen, furniture, art);',
+    '- description: one sentence, 25 words at most, using only the labels and the text above.',
+    'Use the readable text as a brand, title or model only when it clearly is one.',
+  ].join('\n')
+}
+
 export function enrichmentPrompt(locale: string, quick: QuickCard): string {
   return [
     'You are Torix, the assistant of the Tiroir home inventory app.',

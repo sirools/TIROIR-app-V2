@@ -25,6 +25,16 @@
       "ios": {
         "resourceClass": "m-medium"
       }
+    },
+    "hackathon": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_HACKATHON_BUILD": "true"
+      },
+      "ios": {
+        "simulator": false
+      }
     }
   },
   "submit": {
