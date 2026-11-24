@@ -683,9 +683,8 @@ const fr = {
     badgeCloud: 'Cloud',
     stepQuick: 'Fiche rapide',
     stepEnrich: 'Enrichissement',
-    quickRunning: 'Ton appareil regarde la photo…',
     quickWaiting: 'Pas de réseau et pas d’IA embarquée : la fiche se remplira au retour du réseau.',
-    enrichRunning: 'Torix complète la fiche dans le cloud…',
+    enrichRunning: 'Torix passe au cloud pour compléter la fiche…',
     enrichWaiting: 'Brouillon enregistré. Torix le complétera au retour du réseau.',
     draft: 'Brouillon',
     complete: 'Fiche complète',
@@ -705,6 +704,10 @@ const fr = {
     notConfigured: 'Firebase n’est pas configuré sur ce site : renseigne les variables de web/.env.example.',
     photoAlt: 'Photo de l’objet',
     privacy: 'Sur l’appareil, la photo ne quitte pas ton navigateur. Dans le cloud, elle est envoyée à Gemini par Firebase AI Logic.',
+    torixOnDevice: 'Torix choisit ton appareil : la fiche se rédige ici, sans réseau.',
+    torixCloud: 'Torix choisit le cloud : pas d’IA embarquée disponible ici.',
+    torixDoneHybrid: 'Torix a rédigé la fiche sur ton appareil, puis l’a complétée dans le cloud.',
+    torixDoneCloud: 'Torix a rédigé et complété la fiche dans le cloud.',
   },
 }
 

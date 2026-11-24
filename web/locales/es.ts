@@ -672,9 +672,8 @@ const es: Copy = {
     badgeCloud: 'Nube',
     stepQuick: 'Ficha rápida',
     stepEnrich: 'Enriquecimiento',
-    quickRunning: 'Tu dispositivo está mirando la foto…',
     quickWaiting: 'Sin conexión y sin IA integrada: la ficha se rellenará cuando vuelva la conexión.',
-    enrichRunning: 'Torix completa la ficha en la nube…',
+    enrichRunning: 'Torix pasa a la nube para completar la ficha…',
     enrichWaiting: 'Borrador guardado. Torix lo completará cuando vuelva la conexión.',
     draft: 'Borrador',
     complete: 'Ficha completa',
@@ -694,6 +693,10 @@ const es: Copy = {
     notConfigured: 'Firebase no está configurado en este sitio: rellena las variables de web/.env.example.',
     photoAlt: 'Foto del objeto',
     privacy: 'En el dispositivo, la foto no sale de tu navegador. En la nube, se envía a Gemini mediante Firebase AI Logic.',
+    torixOnDevice: 'Torix elige tu dispositivo: la ficha se redacta aquí, sin conexión.',
+    torixCloud: 'Torix elige la nube: aquí no hay IA integrada disponible.',
+    torixDoneHybrid: 'Torix redactó la ficha en tu dispositivo y luego la completó en la nube.',
+    torixDoneCloud: 'Torix redactó y completó la ficha en la nube.',
   },
 }
 

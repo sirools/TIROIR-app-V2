@@ -1345,9 +1345,8 @@
     "badgeCloud": "Cloud",
     "stepQuick": "Schnellkarte",
     "stepEnrich": "Ergänzung",
-    "quickRunning": "Dein Gerät sieht sich das Foto an…",
     "quickWaiting": "Kein Netz und keine KI auf dem Gerät: Die Karte füllt sich, sobald du wieder online bist.",
-    "enrichRunning": "Torix ergänzt die Karte in der Cloud…",
+    "enrichRunning": "Torix wechselt in die Cloud, um die Karte zu ergänzen…",
     "enrichWaiting": "Entwurf gespeichert. Torix ergänzt ihn, sobald du wieder online bist.",
     "draft": "Entwurf",
     "complete": "Vollständige Karte",
@@ -1366,6 +1365,10 @@
     "photoFailed": "Dieses Bild konnte nicht gelesen werden. Versuche es mit einem JPEG- oder PNG-Foto.",
     "notConfigured": "Firebase ist auf dieser Website nicht eingerichtet: Trage die Variablen aus web/.env.example ein.",
     "photoAlt": "Foto des Gegenstands",
-    "privacy": "Auf dem Gerät verlässt das Foto deinen Browser nicht. In der Cloud wird es über Firebase AI Logic an Gemini gesendet."
+    "privacy": "Auf dem Gerät verlässt das Foto deinen Browser nicht. In der Cloud wird es über Firebase AI Logic an Gemini gesendet.",
+    "torixOnDevice": "Torix wählt dein Gerät: Die Karte entsteht hier, ohne Netz.",
+    "torixCloud": "Torix wählt die Cloud: Hier ist keine KI auf dem Gerät verfügbar.",
+    "torixDoneHybrid": "Torix hat die Karte auf deinem Gerät geschrieben und in der Cloud ergänzt.",
+    "torixDoneCloud": "Torix hat die Karte in der Cloud geschrieben und ergänzt."
   }
 }

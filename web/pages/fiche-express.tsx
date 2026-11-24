@@ -176,6 +176,13 @@ export default function FicheExpressPage() {
   const badge = (source: AiSource) => (
     <SourceBadge source={source} label={source === 'on_device' ? t.badgeOnDevice : t.badgeCloud} />
   )
+  // Torix est l'aiguilleur : il dit où part la demande, puis ce qu'il a fait.
+  const torixLine = !current ? null
+    : step === 'quick' && phase === 'running' ? (device === 'available' ? t.torixOnDevice : t.torixCloud)
+    : step === 'enrich' && phase === 'running' ? t.enrichRunning
+    : step === 'enrich' && phase === 'waiting' ? t.enrichWaiting
+    : step === 'done' ? (current.quick?.source === 'on_device' ? t.torixDoneHybrid : t.torixDoneCloud)
+    : null
   const src = (d: Draft) => `data:${d.photo.mimeType};base64,${d.photo.base64}`
 
   return (
@@ -247,10 +254,7 @@ export default function FicheExpressPage() {
                 <p className="state" role="status">
                   {step === 'done' && <strong className="ok">{t.complete}</strong>}
                   {step !== 'done' && current.quick && <strong>{t.draft}</strong>}
-                  {step === 'quick' && phase === 'running' && <span> {t.quickRunning}</span>}
                   {step === 'quick' && phase === 'waiting' && <span> {t.quickWaiting}</span>}
-                  {step === 'enrich' && phase === 'running' && <span> {t.enrichRunning}</span>}
-                  {step === 'enrich' && phase === 'waiting' && <span> {t.enrichWaiting}</span>}
                   {phase === 'failed' && (
                     <span className="fail">
                       {' '}{t.failed}{' '}
@@ -260,6 +264,13 @@ export default function FicheExpressPage() {
                     </span>
                   )}
                 </p>
+
+                {torixLine && (
+                  <p className="torix" role="status" key={torixLine}>
+                    <span className="spark" aria-hidden="true">✦</span>
+                    <span>{torixLine}</span>
+                  </p>
+                )}
 
                 {current.quick && (
                   <dl className="fields appear">
@@ -355,7 +366,9 @@ export default function FicheExpressPage() {
         .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--border); }
         .steps li.done .dot { background: var(--sage); border-color: var(--sage); }
         .steps li.active .dot { border-color: var(--orange); animation: pulse 1s ease-in-out infinite; }
-        .state { font-size: 14px; line-height: 1.5; color: var(--muted); margin: 0 0 16px; min-height: 21px; }
+        .state { font-size: 14px; line-height: 1.5; color: var(--muted); margin: 0 0 12px; min-height: 21px; }
+        .torix { display: flex; gap: 8px; align-items: baseline; margin: 0 0 16px; padding: 10px 12px; border-radius: 12px; background: var(--beige); border: 1px solid var(--border); font-size: 14px; line-height: 1.5; font-weight: 600; color: var(--ink); animation: appear 0.45s ease-out; }
+        .spark { color: var(--orange); font-size: 15px; }
         .state strong { color: var(--ink); }
         .state .ok { color: var(--success); }
         .fail { color: var(--error); }
@@ -385,7 +398,7 @@ export default function FicheExpressPage() {
           .card { grid-template-columns: minmax(0, 1fr); }
           .page-title { font-size: 26px; }
         }
-        @media (prefers-reduced-motion: reduce) { .appear, .steps li.active .dot { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { .appear, .torix, .steps li.active .dot { animation: none; } }
       `}</style>
     </>
   )
