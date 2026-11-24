@@ -1,0 +1,8 @@
+{
+  "name": "tiroir-hybrid-ai",
+  "version": "1.0.0",
+  "description": "Brique d'IA hybride de Tiroir : Apple Foundation Models sur l'appareil, Gemini dans le cloud, par Firebase AI Logic.",
+  "license": "MIT",
+  "private": true,
+  "main": "index.ts"
+}

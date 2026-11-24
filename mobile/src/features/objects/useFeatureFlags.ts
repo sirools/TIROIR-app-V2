@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { LEGACY_AI_ENABLED } from '@/services/legacyAI'
 
 export interface FeatureFlags {
   /** Capture multi-objets par détection. Coûteuse en tokens, donc verrouillée. */
@@ -20,12 +21,19 @@ const NONE: FeatureFlags = { multiAdd: false, assistant: false }
  *
  * Par défaut à `false` : tant qu'on ne sait pas, on ne montre pas. Un point
  * d'entrée qui apparaît puis disparaît est pire que celui qui arrive tard.
+ *
+ * Build hackathon : les deux drapeaux restent à `false`, quel que soit le
+ * serveur — ces fonctions s'appuient sur l'IA hors Firebase.
  */
 export function useFeatureFlags(): { flags: FeatureFlags; loaded: boolean } {
   const [flags, setFlags] = useState<FeatureFlags>(NONE)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
+    if (!LEGACY_AI_ENABLED) {
+      setLoaded(true)
+      return
+    }
     let cancelled = false
     supabase.rpc('get_feature_flags').then(({ data, error }) => {
       if (cancelled) return

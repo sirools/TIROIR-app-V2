@@ -70,6 +70,7 @@ export const TOPICS: Topic[] = [
       '• Sonnet 4.6 + recherche web : estimation de valeur.\n' +
       '• Sonnet 5 / Opus 5 : scènes des forfaits payants.\n' +
       '• Gemini 2.5 Flash Image : retouche photo et vignettes.\n' +
+      '• Fiche express (build hackathon seulement, derrière un drapeau) : Firebase AI Logic — modèle embarqué d’abord (Chrome sur le site, Apple Foundation Models sur iPhone, après lecture de la photo par Vision), Gemini 3.5 Flash-Lite dans le cloud ensuite.\n' +
       'Ni Midjourney ni DALL·E.',
   },
   {
