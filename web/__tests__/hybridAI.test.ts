@@ -5,7 +5,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { enrichmentPrompt, observationsPrompt, parseEnrichment, parseQuickCard, quickCardPrompt } from '../lib/hybridAI/card'
-import { DRAFTS_KEY, MAX_DRAFTS, loadDrafts, nextStep, saveDrafts, upsertDraft, type Draft } from '../lib/hybridAI/drafts'
+import { DRAFTS_KEY, MAX_DRAFTS, inventoryFields, loadDrafts, nextStep, saveDrafts, upsertDraft, type Draft } from '../lib/hybridAI/drafts'
 import { debugTokenFor } from '../lib/hybridAI/firebase'
 
 const web = path.resolve(__dirname, '..')
@@ -108,6 +108,31 @@ describe('brouillons sur l’appareil', () => {
     const store = memory()
     store.setItem(DRAFTS_KEY, '{cassé')
     expect(loadDrafts(store)).toEqual([])
+  })
+
+  test('ajout au Tiroir : nom, description détaillée, catégorie, valeur au milieu de la fourchette', () => {
+    const quick = { data: { name: 'Lampe', category: 'luminaire', description: 'Courte.' }, source: 'on_device' as const }
+    const value = { low: 25, high: 46, currency: 'EUR' as const, note: 'Selon l’état.' }
+    const enrichment = { data: { detailedDescription: 'Longue.', value }, source: 'cloud' as const }
+    const now = new Date('2026-11-24T10:00:00Z')
+    expect(inventoryFields(draft('a', 1, { quick, enrichment }), now)).toEqual({
+      title: 'Lampe',
+      description: 'Longue.',
+      attributes: { category: 'luminaire' },
+      market_value: 36,
+      value_currency: '€',
+      value_estimated_at: '2026-11-24T10:00:00.000Z',
+      value_sources: { sources: [], confidence: 'low', value_min: 25, value_max: 46, summary: 'Selon l’état.', ai_value: 36 },
+    })
+  })
+
+  test('ajout au Tiroir : sans estimation, aucune valeur n’est écrite ; sans nom, refus', () => {
+    const quick = { data: { name: 'Lampe', category: '', description: 'Courte.' }, source: 'cloud' as const }
+    const enrichment = { data: { detailedDescription: 'Longue.', value: null }, source: 'cloud' as const }
+    const now = new Date()
+    expect(inventoryFields(draft('a', 1, { quick, enrichment }), now)).toEqual({ title: 'Lampe', description: 'Longue.', attributes: {} })
+    expect(inventoryFields(draft('a', 1, { quick }), now).description).toBe('Courte.')
+    expect(() => inventoryFields(draft('a', 1), now)).toThrow()
   })
 
   test('mettre à jour un brouillon ne le duplique pas', () => {

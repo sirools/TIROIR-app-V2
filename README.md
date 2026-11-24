@@ -78,7 +78,8 @@ Supabase values (the app needs an account to open).
 eas build --profile hackathon --platform ios
 ```
 
-In the app: Capture › Express card. The screen shows the App Check debug
+In the app: Capture › Express card. A complete card can be saved to the
+inventory with “Add to my Tiroir”. The screen shows the App Check debug
 token of the installation; register it in the Firebase console.
 
 ### Run the web demo

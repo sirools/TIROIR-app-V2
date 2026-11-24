@@ -12,13 +12,15 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import { useNetworkState } from 'expo-network'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { Screen, Colors, Typography, Spacing, Radius } from '@/components/ui'
+import { Screen, Colors, Typography, Spacing, Radius, useToast } from '@/components/ui'
 import {
   HACKATHON_BUILD, NoAiReachableError, appCheckDebugToken, hybridAI, isFirebaseConfigured, isInBuild,
   type AiSource, type OnDeviceStatus, type Photo,
 } from '@/services/hybridAI'
 import { nextStep, upsertDraft, type Draft } from '@/services/hybridAI/drafts'
 import { readDrafts, writeDrafts } from '@/services/hybridAI/draftsStorage'
+import { ObjectQuotaError, addToInventory } from '@/services/hybridAI/inventory'
+import { useAuth } from '@/features/auth/AuthContext'
 
 /** Largeur de la photo envoyée au modèle. */
 const MAX_WIDTH = 1024
@@ -65,6 +67,9 @@ export default function ExpressCardScreen() {
   const router = useRouter()
   const { t, i18n } = useTranslation()
   const network = useNetworkState()
+  const { user } = useAuth()
+  const { showToast } = useToast()
+  const [adding, setAdding] = useState(false)
   // Tant que l'état du réseau n'est pas connu, on le suppose présent.
   const online = network.isConnected !== false
   const [drafts, setDrafts] = useState<Draft[]>([])
@@ -158,6 +163,31 @@ export default function ExpressCardScreen() {
     setCurrentId(draft.id)
     void advance(draft.id, online)
     hybridAI.onDeviceStatus(locale).then(setDevice)
+  }
+
+  // Ajoute la fiche complète à l'inventaire ; le brouillon garde l'identifiant de l'objet.
+  async function addToTiroir(draft: Draft) {
+    if (adding || !user || draft.objectId) return
+    setAdding(true)
+    try {
+      const objectId = await addToInventory(draft, user.id)
+      if (draftsRef.current.some(d => d.id === draft.id)) {
+        store(upsertDraft(draftsRef.current, { ...draft, objectId }))
+      }
+      showToast(t('capture.created'))
+    } catch (error) {
+      if (error instanceof ObjectQuotaError) {
+        Alert.alert(t('capture.objectQuotaTitle'), t('capture.objectQuotaBody'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('capture.objectQuotaUpgrade'), onPress: () => router.push('/paywall') },
+        ])
+      } else {
+        console.warn('[fiche-express] ajout', error)
+        Alert.alert(t('express.addFailed'))
+      }
+    } finally {
+      setAdding(false)
+    }
   }
 
   function remove(id: string) {
@@ -293,6 +323,27 @@ export default function ExpressCardScreen() {
             </View>
           )}
 
+          {step === 'done' && !current.objectId && (
+            <TouchableOpacity
+              style={[styles.button, styles.buttonPrimary, styles.add, (adding || !online) && styles.addOff]}
+              onPress={() => void addToTiroir(current)}
+              disabled={adding || !online}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.buttonText, { color: Colors.textInverse }]}>
+                {adding ? t('express.adding') : t('express.addToTiroir')}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {current.objectId && (
+            <View style={styles.added}>
+              <Text style={styles.stateOk}>{t('express.added')}</Text>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/objects/[id]', params: { id: current.objectId! } })}>
+                <Text style={[styles.link, styles.addedLink]}>{t('express.viewObject')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <TouchableOpacity onPress={() => remove(current.id)}>
             <Text style={[styles.link, styles.remove]}>{t('express.remove')}</Text>
           </TouchableOpacity>
@@ -386,6 +437,10 @@ const styles = StyleSheet.create({
   enriched: { marginTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
   link: { fontSize: Typography.sm, fontWeight: Typography.semibold, color: Colors.accent, textDecorationLine: 'underline', marginTop: Spacing.sm },
   remove: { color: Colors.textSecondary, marginTop: Spacing.md },
+  add: { flex: 0, marginTop: Spacing.lg },
+  addOff: { opacity: 0.5 },
+  added: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginTop: Spacing.lg },
+  addedLink: { marginTop: 0 },
   list: { marginTop: Spacing.lg },
   listTitle: { fontSize: Typography.md, fontWeight: Typography.bold, color: Colors.textPrimary, marginBottom: Spacing.sm },
   thumbs: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
