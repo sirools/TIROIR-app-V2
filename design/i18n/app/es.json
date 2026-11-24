@@ -1005,6 +1005,11 @@
     "notConfigured": "Firebase no está configurado: rellena las variables de mobile/.env.example.",
     "debugTokenTitle": "Token de depuración de App Check",
     "debugTokenHelp": "Regístralo en Firebase: Security › App Check › Apps › Manage debug tokens.",
-    "privacy": "En el dispositivo, la foto no sale de tu iPhone. En la nube, se envía a Gemini mediante Firebase AI Logic."
+    "privacy": "En el dispositivo, la foto no sale de tu iPhone. En la nube, se envía a Gemini mediante Firebase AI Logic.",
+    "addToTiroir": "Añadir a mi Tiroir",
+    "adding": "Añadiendo…",
+    "added": "En tu Tiroir",
+    "viewObject": "Ver la ficha",
+    "addFailed": "No se ha podido añadir. Inténtalo de nuevo."
   }
 }
