@@ -16,6 +16,8 @@ import { hasPhotoZoom } from '@/lib/plan'
 import { type PhotoSource, queueZoomCopy, zoomPathFor } from '@/services/zoomCopy'
 import { isPaidPlan, Plan } from '@/lib/plan'
 import { useFeatureFlags } from '@/features/objects/useFeatureFlags'
+import { HACKATHON_BUILD } from '@/services/hybridAI/config'
+import { LEGACY_AI_ENABLED } from '@/services/legacyAI'
 import {
   Screen, Colors, Typography, Spacing, Radius,
   CollectionPickerSheet, PickedCollection, useToast, TiroirLoader,
@@ -244,6 +246,7 @@ export default function CaptureScreen() {
 
   /** Rafale : l'appareil photo reste ouvert, chaque photo devient un objet. */
   function openBurst() {
+    if (!LEGACY_AI_ENABLED) return
     if (isBatchActive()) {
       showToast(t('batch.alreadyRunning'))
       router.push('/capture/review')
@@ -268,6 +271,7 @@ export default function CaptureScreen() {
   }
 
   function goToBatchReview(assets: BatchAsset[]) {
+    if (!LEGACY_AI_ENABLED) return
     if (assets.length === 0 || !user) return
     // Le lot existe dès cette ligne, avant tout appel réseau : l'écran de
     // suivi a déjà toutes les photos à montrer quand il s'ouvre.
@@ -282,6 +286,7 @@ export default function CaptureScreen() {
   }
 
   async function handleNext() {
+    if (!LEGACY_AI_ENABLED) return
     if (images.length === 0) {
       Alert.alert(t('capture.needPhotoTitle'), t('capture.needPhotoMessage'))
       return
@@ -423,8 +428,8 @@ export default function CaptureScreen() {
         {/* Titre */}
         <View style={styles.header}>
           <Text style={styles.title}>{t('capture.title')}</Text>
-          <Text style={styles.subtitle}>{t('capture.subtitle')}</Text>
-          <Text style={[styles.quotaCounter, quotaExhausted && styles.quotaCounterExhausted]}>
+          {LEGACY_AI_ENABLED && <Text style={styles.subtitle}>{t('capture.subtitle')}</Text>}
+          <Text style={[styles.quotaCounter, !LEGACY_AI_ENABLED && { display: 'none' }, quotaExhausted && styles.quotaCounterExhausted]}>
             {quotaLimit === null
               ? t('capture.quotaUnlimited')
               : quotaExhausted
@@ -484,22 +489,37 @@ export default function CaptureScreen() {
                 sur la situation de l'utilisateur, pas comme des noms de
                 fonctionnalité. Toujours visibles : une affordance qui
                 disparaît en silence est introuvable et inexplicable. */}
-            <Text style={styles.groupLabel}>{t('capture.groupMultiple')}</Text>
+            {/* Fiche express (IA hybride, Firebase AI Logic) : build hackathon seulement. */}
+            {HACKATHON_BUILD && (
+              <BatchEntry
+                title={t('express.entryTitle')}
+                subtitle={t('express.entrySub')}
+                enabled
+                onPress={() => router.push('/capture/express')}
+              />
+            )}
 
-            <BatchEntry
-              title={t('batch.entryTitle')}
-              subtitle={batchAvailable ? t('batch.entrySub', { max: batchMax }) : t('batch.entryBlocked')}
-              enabled={batchAvailable}
-              onPress={batchAvailable ? pickMultipleObjects : explainBatchBlocked}
-            />
+            {/* Le lot passe par chat-turn : absent du build hackathon. */}
+            {LEGACY_AI_ENABLED && (
+              <>
+                <Text style={styles.groupLabel}>{t('capture.groupMultiple')}</Text>
 
-            <BatchEntry
-              title={t('burst.entryTitle')}
-              subtitle={batchAvailable ? t('burst.entrySub', { max: batchMax }) : t('batch.entryBlocked')}
-              enabled={batchAvailable}
-              onPress={batchAvailable ? openBurst : explainBatchBlocked}
-              icon={Zap}
-            />
+                <BatchEntry
+                  title={t('batch.entryTitle')}
+                  subtitle={batchAvailable ? t('batch.entrySub', { max: batchMax }) : t('batch.entryBlocked')}
+                  enabled={batchAvailable}
+                  onPress={batchAvailable ? pickMultipleObjects : explainBatchBlocked}
+                />
+
+                <BatchEntry
+                  title={t('burst.entryTitle')}
+                  subtitle={batchAvailable ? t('burst.entrySub', { max: batchMax }) : t('batch.entryBlocked')}
+                  enabled={batchAvailable}
+                  onPress={batchAvailable ? openBurst : explainBatchBlocked}
+                  icon={Zap}
+                />
+              </>
+            )}
 
             {/* Détection de scène — derrière le drapeau serveur. Le point
                 d'entrée est explicite pendant le POC : le banc doit mesurer
@@ -518,7 +538,7 @@ export default function CaptureScreen() {
         {/* Dès la 2e photo, l'ambiguïté « photo de plus / objet de plus »
             devient réelle : on la lève ici, dans un bloc distinct de la
             grille de photos. */}
-        {images.length >= 2 && (
+        {LEGACY_AI_ENABLED && images.length >= 2 && (
           <BatchEntry
             title={t('batch.addAnotherTitle', { count: images.length })}
             subtitle={batchAvailable
@@ -532,8 +552,8 @@ export default function CaptureScreen() {
         {/* Séparateur */}
         {hasImages && <View style={styles.sep} />}
 
-        {/* CTA principal */}
-        <TouchableOpacity
+        {/* CTA principal — analyse par chat-turn, absente du build hackathon */}
+        {LEGACY_AI_ENABLED && <TouchableOpacity
           style={[styles.btnPrimary, (!hasImages || loading || quotaExhausted) && styles.btnPrimaryDisabled]}
           onPress={handleNext}
           activeOpacity={0.85}
@@ -542,10 +562,10 @@ export default function CaptureScreen() {
           <Text style={styles.btnPrimaryText}>
             {loading ? t('capture.preparing') : hasImages ? t('capture.analyzeCta', { count: images.length }) : t('capture.addPhotoToContinue')}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity>}
 
         {/* Lien recharge — visible quand quota épuisé et photos sélectionnées */}
-        {hasImages && quotaExhausted && (
+        {LEGACY_AI_ENABLED && hasImages && quotaExhausted && (
           <View style={styles.quotaBanner}>
             <Text style={styles.quotaText}>
               <Text style={styles.quotaLink}>{/* TODO: onPress → écran recharge */}{t('capture.rechargeQuota')}</Text>

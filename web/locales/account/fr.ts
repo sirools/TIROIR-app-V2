@@ -241,9 +241,9 @@ const accountFr = {
     lastIdentity: 'Impossible de délier ton dernier moyen de connexion : ajoute-en un autre d’abord.',
   },
   campaign: {
-    metaTitle: 'Tiroir de famille — Rendez-vous',
+    metaTitle: 'Collecte Tiroir — Rendez-vous',
     title: 'Rendez-vous le {date}',
-    text: 'La campagne Tiroir de famille n’est pas encore ouverte. Ce lien t’y emmènera dès le premier jour.',
+    text: 'La collecte Tiroir n’est pas encore ouverte. Ce lien t’y emmènera dès le premier jour.',
     home: 'Découvrir Tiroir',
   },
 }

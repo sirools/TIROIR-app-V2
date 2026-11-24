@@ -586,9 +586,9 @@
       "lastIdentity": "You can’t unlink your last sign-in method: add another one first."
     },
     "campaign": {
-      "metaTitle": "Tiroir de famille — Coming soon",
+      "metaTitle": "Tiroir campaign — Coming soon",
       "title": "See you on {date}",
-      "text": "The Tiroir de famille campaign isn’t open yet. This link will take you there from day one.",
+      "text": "The Tiroir campaign isn’t open yet. This link will take you there from day one.",
       "home": "Discover Tiroir"
     }
   },
@@ -925,14 +925,7 @@
     "ululeInvite": {
       "label": "Ulule campaign",
       "close": "Close",
-      "title": "Christmas comes early",
-      "textBefore": "On {date}, Tiroir de famille launches on Ulule: one month before Christmas, to give Tiroir the means to grow.",
-      "textLive": "Until December 15, support Tiroir on Ulule with a donation of any amount. A little boost before Christmas.",
-      "raised": "{amount} raised",
-      "next": "Next milestone: {amount}",
-      "allReached": "Every milestone reached. Thank you!",
-      "milestones": "Milestones",
-      "cta": "See the campaign"
+      "text": "The Tiroir campaign is live on Ulule — back the project until December 21 →"
     }
   },
   "pricing": {
@@ -1472,5 +1465,49 @@
       "notFoundTitle": "Sale not found",
       "notFoundText": "This link does not exist, or no longer does."
     }
+  },
+  "express": {
+    "metaTitle": "Express card — Tiroir",
+    "title": "Express card",
+    "intro": "Take a photo of an item. Your device drafts the card right away, even offline. The cloud completes it afterwards.",
+    "pick": "Take or choose a photo",
+    "pickAgain": "New photo",
+    "online": "Online",
+    "offline": "Offline",
+    "deviceLabel": "On-device AI",
+    "device": {
+      "available": "ready",
+      "downloadable": "ready to download",
+      "downloading": "downloading…",
+      "unavailable": "unavailable here: everything goes to the cloud"
+    },
+    "download": "Download the model",
+    "downloadProgress": "Downloading: {percent}%",
+    "badgeOnDevice": "On device",
+    "badgeCloud": "Cloud",
+    "stepQuick": "Quick card",
+    "stepEnrich": "Enrichment",
+    "quickRunning": "Your device is looking at the photo…",
+    "quickWaiting": "No network and no on-device AI: the card will fill in once you are back online.",
+    "enrichRunning": "Torix is completing the card in the cloud…",
+    "enrichWaiting": "Draft saved. Torix will complete it once you are back online.",
+    "draft": "Draft",
+    "complete": "Complete card",
+    "name": "Name",
+    "category": "Category",
+    "description": "Description",
+    "detailed": "Detailed description",
+    "value": "Estimated value",
+    "valueRange": "{low} to {high}",
+    "valueNone": "No estimate possible from this photo.",
+    "signedTorix": "Estimate signed by Torix. Check it before selling.",
+    "drafts": "Your cards on this device",
+    "remove": "Delete",
+    "retry": "Try again",
+    "failed": "The analysis did not complete.",
+    "photoFailed": "This image could not be read. Try a JPEG or PNG photo.",
+    "notConfigured": "Firebase is not configured on this site: fill in the variables from web/.env.example.",
+    "photoAlt": "Photo of the item",
+    "privacy": "On device, the photo never leaves your browser. In the cloud, it is sent to Gemini through Firebase AI Logic."
   }
 }

@@ -3,9 +3,10 @@
 // l'API répond 401 : on renvoie null, et rien ne s'affiche.
 // Seulement côté serveur : la page publique passe par /api/ulule/progress.
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { CROWDFUNDING } from './crowdfunding'
 import { DEFAULT_MILESTONES_CENTS, progressOf, type Progress } from './ulule'
 
-export const FALLBACK_PAGE_URL = 'https://fr.ulule.com/tiroir-app/'
+export const FALLBACK_PAGE_URL = CROWDFUNDING.url
 /** Adresse de la page si la base est illisible ; la base reste la source. */
 export const fallbackPageUrl = () => process.env.ULULE_PAGE_URL || FALLBACK_PAGE_URL
 

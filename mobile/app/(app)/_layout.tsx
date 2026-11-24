@@ -122,6 +122,7 @@ export default function AppLayout() {
         <Tabs.Screen name="capture/review"    options={{ href: null }} />
         <Tabs.Screen name="capture/burst"     options={{ href: null }} />
         <Tabs.Screen name="capture/scene"     options={{ href: null }} />
+        <Tabs.Screen name="capture/express"   options={{ href: null }} />
         <Tabs.Screen name="objects/[id]"      options={{ href: null }} />
         <Tabs.Screen name="objects/edit/[id]" options={{ href: null }} />
         <Tabs.Screen name="collections/index" options={{ href: null }} />

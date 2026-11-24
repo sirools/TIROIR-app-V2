@@ -21,6 +21,7 @@
     "@tamagui/web": "1.126.4",
     "bcryptjs": "^3.0.2",
     "cookie": "^1.0.2",
+    "firebase": "^13.4.0",
     "lucide-react": "^0.544.0",
     "mini-css-extract-plugin": "^2.9.1",
     "next": "14.2.14",

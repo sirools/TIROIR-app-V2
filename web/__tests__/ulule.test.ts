@@ -166,37 +166,44 @@ describe('jauge et paliers', () => {
 
 describe('e-mails de la campagne', () => {
   const base = {
-    prenom: 'Marie', lien: 'https://tiroir.app/u/marie-dupont', premierPalier: '1\u00a0000\u00a0€',
-    montant: '1\u00a0250\u00a0€', palier: '2\u00a0000\u00a0€',
+    prenom: 'Marie', lien: 'https://tiroir.app/u/marie-dupont',
+    montant: '1\u00a0250\u00a0€', objectifAtteint: false,
     desinscription: 'https://tiroir.app/desinscription?t=abc', adresse: '',
   }
 
-  test('lancement : Noël avant Noël, collecte de dons, premier palier, lien perso, désinscription', () => {
+  test('lancement : Noël avant Noël, tout ou rien, objectif, date de fin, lien perso, désinscription', () => {
     const m = renderCampaign('launch', base)
     expect(m.subject).toContain('Noël avant Noël')
-    expect(m.text).toContain('collecte de dons')
-    expect(m.text).toContain('Premier palier : 1\u00a0000\u00a0€')
+    expect(m.text).toContain('tout ou rien')
+    expect(m.text).toContain('il faut réunir 4\u00a0000\u00a0€ avant le 21 décembre')
+    expect(m.text).toContain('de 5\u00a0€ à 450\u00a0€')
     expect(m.text).toContain('https://tiroir.app/u/marie-dupont')
     expect(m.html).toContain('href="https://tiroir.app/desinscription?t=abc"')
     expect(m.html).not.toMatch(/\{\w+\}/)
     expect(m.text).not.toMatch(/\{\w+\}/)
   })
 
-  test('collecte de dons : aucune contrepartie promise', () => {
-    for (const k of ['launch', 'reminder', 'last48h', 'recap'] as const) {
-      expect(renderCampaign(k, base).text).not.toMatch(/contreparties|cadeau|sous le sapin/i)
+  test('aucune mention interdite, aucune date ni palier périmés', () => {
+    const tous = [
+      ...(['launch', 'reminder', 'last48h', 'recap'] as const).map(k => renderCampaign(k, base).text),
+      renderThanks({ prenom: 'Marie' }).text,
+    ]
+    for (const text of tous) {
+      expect(text).not.toMatch(/famille|carte postale|t-shirt|soirée|15 décembre|palier|\bdons?\b/i)
     }
   })
 
   test('relance : la jauge quand Ulule répond, rien sinon', () => {
-    expect(renderCampaign('reminder', base).text).toContain('On en est à 1\u00a0250\u00a0€. Prochain palier : 2\u00a0000\u00a0€.')
-    const blind = renderCampaign('reminder', { ...base, montant: null, palier: null })
+    expect(renderCampaign('reminder', base).text).toContain('On en est à 1\u00a0250\u00a0€, sur un objectif de 4\u00a0000\u00a0€.')
+    const blind = renderCampaign('reminder', { ...base, montant: null })
     expect(blind.text).not.toContain('On en est')
     expect(blind.html).not.toMatch(/\{\w+\}/)
   })
 
-  test('48 h : tous les paliers dépassés', () => {
-    expect(renderCampaign('last48h', { ...base, palier: null }).text).toContain('tous les paliers sont dépassés')
+  test('48 h : jour de fin, objectif dépassé', () => {
+    const m = renderCampaign('last48h', { ...base, montant: '4\u00a0200\u00a0€', objectifAtteint: true })
+    expect(m.text).toContain('se termine lundi 21 décembre.')
+    expect(m.text).toContain('l’objectif de 4\u00a0000\u00a0€ est dépassé')
   })
 
   test('bilan à un contributeur : sans lien perso, sans prénom, pied « stop »', () => {

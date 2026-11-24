@@ -2,9 +2,8 @@
 import { createHash } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { DEFAULT_SITE_HOST } from './backofficeRouting'
-import {
-  DEFAULT_MILESTONES_CENTS, firstNameOf, formatEuros, formatLaunchDate, parseExport, progressOf, type ExportOrder,
-} from './ulule'
+import { CROWDFUNDING } from './crowdfunding'
+import { firstNameOf, formatEuros, formatLaunchDate, parseExport, type ExportOrder } from './ulule'
 import { renderCampaign, renderPrelaunch, renderThanks, type CampaignKind, type RenderedEmail } from './ululeEmails'
 import { fetchUluleAmountCents } from './ululeProgress'
 
@@ -66,7 +65,6 @@ export async function sendEmail(params: {
 type Context = {
   campaign: { launch_at: string; page_url: string; presale_number: string; paid_statuses: string[]; milestones_cents?: number[] }
   adresse: string
-  milestones: number[]
   /** Montant lu sur Ulule une fois par lot ; null si Ulule ne répond pas. */
   amountCents: number | null
 }
@@ -81,7 +79,6 @@ async function campaignContext(db: SupabaseClient, kind?: EmailKind): Promise<Co
   return {
     campaign,
     adresse: (settings?.email_postal_address ?? '').trim() as string,
-    milestones: campaign.milestones_cents?.length ? campaign.milestones_cents : DEFAULT_MILESTONES_CENTS,
     amountCents: needsAmount ? await fetchUluleAmountCents(campaign.presale_number, campaign.page_url) : null,
   }
 }
@@ -98,13 +95,12 @@ function messageFor(kind: EmailKind, r: Recipient, ctx: Context): { email: Rende
   if (kind === 'prelaunch') return prelaunchFor({ name: r.name, slug: r.slug!, token: r.token! }, ctx.campaign.launch_at, ctx.adresse)
 
   const desinscription = r.token ? unsubscribeLink(r.token) : null
-  const progress = ctx.amountCents === null ? null : progressOf(ctx.amountCents, ctx.milestones)
   const email = renderCampaign(kind as CampaignKind, {
     prenom: firstNameOf(r.name),
     lien: r.slug ? personalLink(r.slug) : null,
-    premierPalier: formatEuros(ctx.milestones[0] ?? 0),
-    montant: progress ? formatEuros(progress.amountCents) : null,
-    palier: progress?.nextCents ? formatEuros(progress.nextCents) : null,
+    montant: ctx.amountCents === null ? null : formatEuros(ctx.amountCents),
+    // Tout ou rien : la jauge des e-mails se mesure à l'objectif de la collecte.
+    objectifAtteint: (ctx.amountCents ?? 0) >= CROWDFUNDING.goalEuros * 100,
     desinscription,
     adresse: ctx.adresse,
   })

@@ -586,9 +586,9 @@
       "lastIdentity": "Deine letzte Anmeldemethode kann nicht entfernt werden: Füge zuerst eine andere hinzu."
     },
     "campaign": {
-      "metaTitle": "Tiroir de famille — Bald verfügbar",
+      "metaTitle": "Tiroir-Kampagne — Bald verfügbar",
       "title": "Wir sehen uns am {date}",
-      "text": "Die Kampagne Tiroir de famille ist noch nicht geöffnet. Dieser Link bringt dich ab dem ersten Tag dorthin.",
+      "text": "Die Tiroir-Kampagne ist noch nicht geöffnet. Dieser Link bringt dich ab dem ersten Tag dorthin.",
       "home": "Tiroir entdecken"
     }
   },
@@ -925,14 +925,7 @@
     "ululeInvite": {
       "label": "Ulule-Kampagne",
       "close": "Schließen",
-      "title": "Weihnachten kommt früher",
-      "textBefore": "Am {date} startet Tiroir de famille auf Ulule: einen Monat vor Weihnachten, damit Tiroir wachsen kann.",
-      "textLive": "Bis zum 15. Dezember kannst du Tiroir auf Ulule mit einer Spende in beliebiger Höhe unterstützen. Ein kleiner Schub vor Weihnachten.",
-      "raised": "{amount} gesammelt",
-      "next": "Nächstes Ziel: {amount}",
-      "allReached": "Alle Ziele erreicht. Danke!",
-      "milestones": "Ziele",
-      "cta": "Zur Kampagne"
+      "text": "Die Tiroir-Kampagne läuft jetzt auf Ulule – unterstütze das Projekt bis zum 21. Dezember →"
     }
   },
   "pricing": {
@@ -1330,5 +1323,49 @@
       "notFoundTitle": "Verkauf nicht gefunden",
       "notFoundText": "Diesen Link gibt es nicht oder nicht mehr."
     }
+  },
+  "express": {
+    "metaTitle": "Express-Karte — Tiroir",
+    "title": "Express-Karte",
+    "intro": "Fotografiere einen Gegenstand. Dein Gerät schlägt die Karte sofort vor, auch ohne Netz. Die Cloud ergänzt sie danach.",
+    "pick": "Foto aufnehmen oder auswählen",
+    "pickAgain": "Neues Foto",
+    "online": "Online",
+    "offline": "Offline",
+    "deviceLabel": "KI auf dem Gerät",
+    "device": {
+      "available": "bereit",
+      "downloadable": "zum Herunterladen bereit",
+      "downloading": "wird heruntergeladen…",
+      "unavailable": "hier nicht verfügbar: alles läuft über die Cloud"
+    },
+    "download": "Modell herunterladen",
+    "downloadProgress": "Download: {percent} %",
+    "badgeOnDevice": "Auf dem Gerät",
+    "badgeCloud": "Cloud",
+    "stepQuick": "Schnellkarte",
+    "stepEnrich": "Ergänzung",
+    "quickRunning": "Dein Gerät sieht sich das Foto an…",
+    "quickWaiting": "Kein Netz und keine KI auf dem Gerät: Die Karte füllt sich, sobald du wieder online bist.",
+    "enrichRunning": "Torix ergänzt die Karte in der Cloud…",
+    "enrichWaiting": "Entwurf gespeichert. Torix ergänzt ihn, sobald du wieder online bist.",
+    "draft": "Entwurf",
+    "complete": "Vollständige Karte",
+    "name": "Name",
+    "category": "Kategorie",
+    "description": "Beschreibung",
+    "detailed": "Ausführliche Beschreibung",
+    "value": "Geschätzter Wert",
+    "valueRange": "{low} bis {high}",
+    "valueNone": "Mit diesem Foto ist keine Schätzung möglich.",
+    "signedTorix": "Schätzung von Torix. Prüfe sie vor einem Verkauf.",
+    "drafts": "Deine Karten auf diesem Gerät",
+    "remove": "Löschen",
+    "retry": "Erneut versuchen",
+    "failed": "Die Analyse wurde nicht abgeschlossen.",
+    "photoFailed": "Dieses Bild konnte nicht gelesen werden. Versuche es mit einem JPEG- oder PNG-Foto.",
+    "notConfigured": "Firebase ist auf dieser Website nicht eingerichtet: Trage die Variablen aus web/.env.example ein.",
+    "photoAlt": "Foto des Gegenstands",
+    "privacy": "Auf dem Gerät verlässt das Foto deinen Browser nicht. In der Cloud wird es über Firebase AI Logic an Gemini gesendet."
   }
 }
