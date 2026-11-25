@@ -974,9 +974,8 @@
     "badgeCloud": "Nuvem",
     "stepQuick": "Ficha rápida",
     "stepEnrich": "Enriquecimento",
-    "quickRunning": "Seu aparelho está olhando a foto…",
     "quickWaiting": "Sem rede e sem IA no aparelho: a ficha será preenchida quando a rede voltar.",
-    "enrichRunning": "Torix está completando a ficha na nuvem…",
+    "enrichRunning": "Torix passa para a nuvem para completar a ficha…",
     "enrichWaiting": "Rascunho salvo. Torix vai completá-lo quando a rede voltar.",
     "draft": "Rascunho",
     "complete": "Ficha completa",
@@ -1010,6 +1009,10 @@
     "adding": "Adicionando…",
     "added": "No seu Tiroir",
     "viewObject": "Abrir a ficha",
-    "addFailed": "Não foi possível adicionar. Tente de novo."
+    "addFailed": "Não foi possível adicionar. Tente de novo.",
+    "torixOnDevice": "Torix escolhe seu aparelho: a ficha é escrita aqui, sem rede.",
+    "torixCloud": "Torix escolhe a nuvem: não há IA no aparelho disponível aqui.",
+    "torixDoneHybrid": "Torix escreveu a ficha no seu aparelho e depois a completou na nuvem.",
+    "torixDoneCloud": "Torix escreveu e completou a ficha na nuvem."
   }
 }

@@ -207,6 +207,18 @@ describe('règles du hackathon', () => {
     expect(mobile('src/features/objects/useFeatureFlags.ts')).toContain('if (!LEGACY_AI_ENABLED)')
   })
 
+  test('Torix dit où part la demande, sur le site comme dans l’app', () => {
+    const page = read('pages/fiche-express.tsx')
+    const screen = mobile('app/(app)/capture/express.tsx')
+    for (const key of ['torixOnDevice', 'torixCloud', 'torixDoneHybrid', 'torixDoneCloud']) {
+      expect(page, key).toContain(`t.${key}`)
+      expect(screen, key).toContain(`express.${key}`)
+    }
+    expect(screen).toContain('<TorixMark')
+    // La page publique n'importe rien du Torix privé (savoir, fiches, Lab).
+    expect(page).not.toMatch(/components\/torix/)
+  })
+
   test('la consigne de l’appareil ne s’appuie que sur ce que Vision a vu', () => {
     const prompt = observationsPrompt('fr', { labels: ['lamp', 'desk'], texts: ['IKEA "TERTIAL"'] })
     expect(prompt).toContain('lamp, desk')

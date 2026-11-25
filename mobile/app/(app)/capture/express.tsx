@@ -12,7 +12,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import { useNetworkState } from 'expo-network'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { Screen, Colors, Typography, Spacing, Radius, useToast } from '@/components/ui'
+import { Screen, Colors, Typography, Spacing, Radius, TorixMark, useToast } from '@/components/ui'
 import {
   HACKATHON_BUILD, NoAiReachableError, appCheckDebugToken, hybridAI, isFirebaseConfigured, isInBuild,
   type AiSource, type OnDeviceStatus, type Photo,
@@ -200,6 +200,13 @@ export default function ExpressCardScreen() {
   const current = drafts.find(d => d.id === currentId) ?? null
   const phase = current ? phases[current.id] : undefined
   const step = current ? nextStep(current) : 'done'
+  // Torix est l'aiguilleur : il dit où part la demande, puis ce qu'il a fait.
+  const torixLine = !current ? null
+    : step === 'quick' && phase === 'running' ? (device === 'available' ? t('express.torixOnDevice') : t('express.torixCloud'))
+    : step === 'enrich' && phase === 'running' ? t('express.enrichRunning')
+    : step === 'enrich' && phase === 'waiting' ? t('express.enrichWaiting')
+    : step === 'done' ? (current.quick?.source === 'on_device' ? t('express.torixDoneHybrid') : t('express.torixDoneCloud'))
+    : null
   const uri = (d: Draft) => `data:${d.photo.mimeType};base64,${d.photo.base64}`
   const euros = (n: number) => {
     try {
@@ -273,10 +280,7 @@ export default function ExpressCardScreen() {
           <Text style={styles.state}>
             {step === 'done' && <Text style={styles.stateOk}>{t('express.complete')}</Text>}
             {step !== 'done' && current.quick && <Text style={styles.stateStrong}>{t('express.draft')} </Text>}
-            {step === 'quick' && phase === 'running' && t('express.quickRunning')}
             {step === 'quick' && phase === 'waiting' && t('express.quickWaiting')}
-            {step === 'enrich' && phase === 'running' && t('express.enrichRunning')}
-            {step === 'enrich' && phase === 'waiting' && t('express.enrichWaiting')}
             {phase === 'failed' && <Text style={styles.stateFail}>{t('express.failed')}</Text>}
           </Text>
           {phase === 'failed' && (
@@ -284,6 +288,8 @@ export default function ExpressCardScreen() {
               <Text style={styles.link}>{t('express.retry')}</Text>
             </TouchableOpacity>
           )}
+
+          {torixLine && <TorixMark label={torixLine} size={16} style={styles.torix} textStyle={styles.torixText} />}
 
           {current.quick && (
             <>
@@ -423,6 +429,11 @@ const styles = StyleSheet.create({
   stateStrong: { fontWeight: Typography.bold, color: Colors.textPrimary },
   stateOk: { fontWeight: Typography.bold, color: Colors.success },
   stateFail: { color: Colors.error },
+  torix: {
+    alignItems: 'flex-start', marginTop: Spacing.sm, padding: Spacing.sm + 4, borderRadius: Radius.md,
+    backgroundColor: Colors.accentLight, borderWidth: 1, borderColor: Colors.border,
+  },
+  torixText: { flex: 1, fontSize: Typography.sm, lineHeight: 19, fontWeight: Typography.semibold, color: Colors.textPrimary },
   field: { marginTop: Spacing.md },
   fieldHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: 4 },
   fieldLabel: { fontSize: Typography.xs, fontWeight: Typography.semibold, color: Colors.textSecondary },

@@ -1487,9 +1487,8 @@
     "badgeCloud": "Cloud",
     "stepQuick": "Quick card",
     "stepEnrich": "Enrichment",
-    "quickRunning": "Your device is looking at the photo…",
     "quickWaiting": "No network and no on-device AI: the card will fill in once you are back online.",
-    "enrichRunning": "Torix is completing the card in the cloud…",
+    "enrichRunning": "Torix hands over to the cloud to complete the card…",
     "enrichWaiting": "Draft saved. Torix will complete it once you are back online.",
     "draft": "Draft",
     "complete": "Complete card",
@@ -1508,6 +1507,10 @@
     "photoFailed": "This image could not be read. Try a JPEG or PNG photo.",
     "notConfigured": "Firebase is not configured on this site: fill in the variables from web/.env.example.",
     "photoAlt": "Photo of the item",
-    "privacy": "On device, the photo never leaves your browser. In the cloud, it is sent to Gemini through Firebase AI Logic."
+    "privacy": "On device, the photo never leaves your browser. In the cloud, it is sent to Gemini through Firebase AI Logic.",
+    "torixOnDevice": "Torix picks your device: the card is written here, with no network.",
+    "torixCloud": "Torix picks the cloud: no on-device AI available here.",
+    "torixDoneHybrid": "Torix wrote the card on your device, then completed it in the cloud.",
+    "torixDoneCloud": "Torix wrote and completed the card in the cloud."
   }
 }
