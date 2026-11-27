@@ -31,7 +31,12 @@ type StoredMessage = MessageRow & { body: string }
 /** Adresse du site telle que le visiteur l'a ouverte : les liens des e-mails y ramènent. */
 export function originOf(req: IncomingMessage): string {
   const host = String(req.headers.host ?? 'tiroir.app')
-  return `${/^(localhost|127\.|\[::1\])/.test(host) ? 'http' : 'https'}://${host}`
+  return `${isLocalHost(host) ? 'http' : 'https'}://${host}`
+}
+
+/** Poste local ou réseau privé (la préprod du NAS, http://192.168.…) : servi en http. */
+export function isLocalHost(host: string): boolean {
+  return /^(localhost|127\.|\[::1\]|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)
 }
 
 export function clientIp(req: IncomingMessage): string | null {

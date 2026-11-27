@@ -7,6 +7,7 @@ import {
 } from '../lib/messaging'
 import { decryptBody, encryptBody, GUEST_LINK_TTL_MS, guestToken, ipHash, readGuestToken } from '../lib/messagingCrypto'
 import { EMAIL_COLORS, renderNewMessage, renderVerify } from '../lib/messagingEmails'
+import { isLocalHost } from '../lib/messagingServer'
 import fr from '../locales/fr'
 
 const THREAD = '11111111-1111-4111-8111-111111111111'
@@ -215,6 +216,13 @@ describe('messagerie : e-mails', () => {
   test('couleurs : celles de design/tokens.json', () => {
     const tokens = JSON.parse(readFileSync(join(__dirname, '../../design/tokens.json'), 'utf8')).color
     for (const [name, value] of Object.entries(EMAIL_COLORS)) expect(tokens[name].value).toBe(value)
+  })
+})
+
+describe('messagerie : adresse des liens', () => {
+  test('https partout, http seulement en local et sur le réseau privé (préprod du NAS)', () => {
+    for (const host of ['localhost:3000', '127.0.0.1:3000', '192.168.1.23:8151', '10.0.0.4', '172.20.1.1']) expect(isLocalHost(host)).toBe(true)
+    for (const host of ['www.tiroir.app', 'tiroir.app', '172.32.0.1', '193.168.1.1']) expect(isLocalHost(host)).toBe(false)
   })
 })
 

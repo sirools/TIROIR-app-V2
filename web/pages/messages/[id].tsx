@@ -56,7 +56,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     if (loaded && guest) {
       const delivered = await deliverPending(admin, originOf(ctx.req), loaded.thread, loaded.participants, guest)
       ctx.res.setHeader('Set-Cookie', serialize(guestCookieName(threadId), key, {
-        httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: Math.floor(GUEST_LINK_TTL_MS / 1000),
+        // Pas de drapeau Secure sur la préprod du NAS, servie en http.
+        httpOnly: true, sameSite: 'lax', secure: originOf(ctx.req).startsWith('https://'), path: '/', maxAge: Math.floor(GUEST_LINK_TTL_MS / 1000),
       }))
       return { redirect: { destination: `${prefix}${path}${delivered ? '?envoye=1' : ''}`, permanent: false } }
     }
