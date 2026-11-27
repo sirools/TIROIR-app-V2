@@ -28,6 +28,8 @@ export async function sendEmail(params: {
   email: RenderedEmail
   headers?: Record<string, string>
   idempotencyKey?: string
+  /** Expéditeur affiché ; par défaut celui de la campagne. */
+  from?: string
 }): Promise<SendResult> {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) return { ok: false, error: 'RESEND_API_KEY manquante', rateLimited: true }
@@ -40,7 +42,7 @@ export async function sendEmail(params: {
         ...(params.idempotencyKey ? { 'Idempotency-Key': params.idempotencyKey } : {}),
       },
       body: JSON.stringify({
-        from: FROM,
+        from: params.from ?? FROM,
         to: [params.to],
         reply_to: 'hello@tiroir.app',
         subject: params.email.subject,

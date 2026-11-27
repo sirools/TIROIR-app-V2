@@ -20,7 +20,7 @@ export const TRANSLATED_PATHS: readonly string[] = [
   '/email-confirme', '/bienvenue', '/merci', '/desinscription',
   '/mon-compte', '/profil', '/mes-partages',
   // Inventaire du propriétaire connecté (inventory, dans web/locales)
-  '/mes-collections', '/accueil', '/ventes',
+  '/mes-collections', '/accueil', '/ventes', '/messages',
   // À propos et pages juridiques (web/locales/about, web/locales/legal)
   '/about', '/cgu', '/privacy',
 ]
@@ -33,7 +33,7 @@ export const TRANSLATED_PREFIXES: readonly string[] = ['/s/', '/share/o/']
  * de TRANSLATED_PREFIXES, qui désigne aussi les pages des destinataires
  * (servies dans la langue du navigateur) : ici la langue reste celle choisie.
  */
-export const OWNER_PREFIXES: readonly string[] = ['/mes-collections/', '/ventes/']
+export const OWNER_PREFIXES: readonly string[] = ['/mes-collections/', '/ventes/', '/messages/']
 
 /** La page existe-t-elle dans cette langue ? */
 export function isTranslated(locale: Locale, pathname: string): boolean {

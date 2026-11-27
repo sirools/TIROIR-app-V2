@@ -1,6 +1,8 @@
 // pages/ventes/[token].tsx — la salle d'une vente privée. Le lien suffit
 // pour la voir (avec son mot de passe s'il en a un) ; il faut un compte
-// Tiroir pour enchérir ou écrire. Le vendeur y retrouve ses outils : le
+// Tiroir pour enchérir ou écrire sur la vente. « Contacter le vendeur »,
+// près du prix, ouvre une conversation privée, avec ou sans compte
+// (components/messaging/ContactSeller). Le vendeur y retrouve ses outils : le
 // lien à envoyer, son prix de réserve, « Retirer » et « Marquer Remis ».
 //
 // Sans paiement : à la fin, Tiroir affiche le meilleur enchérisseur,
@@ -14,6 +16,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import HeaderApp from '../../components/layout/HeaderApp'
 import HeaderTiroirWeb from '../../components/layout/HeaderTiroirWeb'
 import FooterTiroirWeb from '../../components/layout/FooterTiroirWeb'
+import ContactSeller from '../../components/messaging/ContactSeller'
 import { adminSupabase, serverSupabase } from '../../lib/supabase'
 import { hasSignedCookie } from '../../lib/shareCookieSignature'
 import { auctionsEnabled, MESSAGE_MAX, timeLeft } from '../../lib/auction'
@@ -295,6 +298,9 @@ export default function AuctionPage({ token, view, gated, loggedIn }: Props) {
                     <Link href={loginHref} legacyBehavior passHref><a className="primary link">{t.signInToBid}</a></Link>
                     <p className="hint">{t.signInHint} <Link href={`/inscription?next=${encodeURIComponent(`/ventes/${token}`)}`} legacyBehavior passHref><a>{t.createAccount}</a></Link></p>
                   </div>
+                )}
+                {!isSeller && view.state !== 'cancelled' && (
+                  <ContactSeller token={token} sellerName={view.seller.firstName} loggedIn={loggedIn} />
                 )}
               </div>
 
