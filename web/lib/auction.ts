@@ -20,7 +20,6 @@ export const DURATIONS = [1, 3, 7, 14] as const
 export const MAX_LOT = 20
 /** Pas minimal entre deux offres, dans l'unité de la devise. */
 export const BID_STEP = 1
-export const MESSAGE_MAX = 500
 export const TITLE_MAX = 80
 
 export type AuctionRow = {
@@ -106,11 +105,4 @@ export function parseNewAuction(body: Record<string, unknown>): { ok: true; valu
   const password = typeof body.password === 'string' && body.password.trim() ? body.password.trim() : null
   if (password !== null && (password.length < 4 || password.length > 100)) return { ok: false, error: 'password' }
   return { ok: true, value: { ids, title, startPrice, reservePrice, days: days as NewAuction['days'], password } }
-}
-
-/** Message d'un invité : une ligne ou quelques-unes, sans mise en forme. */
-export function parseMessage(raw: unknown): string | null {
-  if (typeof raw !== 'string') return null
-  const text = raw.replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim()
-  return text && text.length <= MESSAGE_MAX ? text : null
 }

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import {
-  auctionsEnabled, minNextBid, outcome, parseAmount, parseMessage, parseNewAuction, timeLeft, topBid,
+  auctionsEnabled, minNextBid, outcome, parseAmount, parseNewAuction, timeLeft, topBid,
   type AuctionRow, type BidRow,
 } from '../lib/auction'
 
@@ -77,12 +77,6 @@ describe('enchères : formulaires', () => {
     expect(parseNewAuction({ ...ok, reservePrice: '40' })).toEqual({ ok: false, error: 'reservePrice' })
     expect(parseNewAuction({ ...ok, days: 2 })).toEqual({ ok: false, error: 'days' })
     expect(parseNewAuction({ ...ok, password: 'abc' })).toEqual({ ok: false, error: 'password' })
-  })
-  test('message : texte court, lignes vides resserrées', () => {
-    expect(parseMessage('  Bonjour,\n\n\n\nencore dispo ? ')).toBe('Bonjour,\n\nencore dispo ?')
-    expect(parseMessage('   ')).toBeNull()
-    expect(parseMessage('x'.repeat(501))).toBeNull()
-    expect(parseMessage(42)).toBeNull()
   })
   test('interrupteur', () => {
     expect(auctionsEnabled(undefined)).toBe(true)

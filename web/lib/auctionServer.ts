@@ -1,5 +1,6 @@
-// Côté serveur de la salle des ventes. Les tables auctions, auction_bids
-// et auction_messages n'ont aucune politique RLS : tout passe par ici, avec
+// Côté serveur de la salle des ventes. Les tables auctions et auction_bids
+// (et auction_messages, l'ancien fil public, qui n'est plus lu ni écrit :
+// on écrit au vendeur en privé, lib/messagingServer.ts) n'ont aucune politique RLS : tout passe par ici, avec
 // la clé service, après que la route ou la page a vérifié la session, le
 // lien et son mot de passe. Un invité ne reçoit que ce que cette vue
 // compose : jamais l'emplacement, les notes, le prix d'achat ni le prix de
@@ -82,7 +83,6 @@ export type AuctionView = {
   seller: Person
   lots: AuctionLot[]
   bids: { id: string; amount: number; at: string; who: Person; mine: boolean }[]
-  messages: { id: string; body: string; at: string; who: Person; mine: boolean; fromSeller: boolean }[]
   /** L'offre gagnante, une fois la vente terminée. */
   winner: { who: Person; amount: number; mine: boolean } | null
   viewer: 'seller' | 'guest' | 'anonymous'
@@ -93,14 +93,12 @@ export type AuctionView = {
 /** Tout ce qu'une page de vente affiche, composé pour ce visiteur. */
 export async function loadAuctionView(admin: SupabaseClient, auction: AuctionRecord, viewerId: string | null): Promise<AuctionView> {
   const isSeller = viewerId === auction.user_id
-  const [bidsByAuction, { data: messageRows }, { data: objectRows }, { data: imageRows }] = await Promise.all([
+  const [bidsByAuction, { data: objectRows }, { data: imageRows }] = await Promise.all([
     loadBids(admin, [auction.id]),
-    admin.from('auction_messages').select('id, author_id, body, created_at').eq('auction_id', auction.id).order('created_at').limit(500),
     admin.from('objects').select('id, title, description, quantity, attributes').in('id', auction.object_ids).eq('user_id', auction.user_id),
     admin.from('object_images').select('object_id, storage_path').in('object_id', auction.object_ids).eq('user_id', auction.user_id).order('position'),
   ])
   const bids = bidsByAuction.get(auction.id) ?? []
-  const messages = messageRows ?? []
 
   const paths = (imageRows ?? []).map(i => i.storage_path as string)
   const signed = new Map<string, string>()
@@ -109,7 +107,7 @@ export async function loadAuctionView(admin: SupabaseClient, auction: AuctionRec
     for (const s of data ?? []) if (s.path && s.signedUrl) signed.set(s.path, s.signedUrl)
   }
 
-  const authors = await loadAuthors(admin, [auction.user_id, ...bids.map(b => b.bidder_id), ...messages.map(m => m.author_id)])
+  const authors = await loadAuthors(admin, [auction.user_id, ...bids.map(b => b.bidder_id)])
   const person = (id: string): Person => {
     const a = authors.get(id)
     return { firstName: a?.firstName ?? '', avatarUrl: a?.avatarUrl ?? null }
@@ -144,10 +142,6 @@ export async function loadAuctionView(admin: SupabaseClient, auction: AuctionRec
       }]
     }),
     bids: bids.map(b => ({ id: b.id, amount: b.amount, at: b.created_at, who: person(b.bidder_id), mine: b.bidder_id === viewerId })),
-    messages: messages.map(m => ({
-      id: m.id, body: m.body, at: m.created_at, who: person(m.author_id),
-      mine: m.author_id === viewerId, fromSeller: m.author_id === auction.user_id,
-    })),
     winner: result.winner
       ? { who: person(result.winner.bidder_id), amount: result.winner.amount, mine: result.winner.bidder_id === viewerId }
       : null,
