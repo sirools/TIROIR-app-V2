@@ -1,5 +1,5 @@
 // En-tête de l'espace connecté (« Mon Tiroir ») : Accueil, Collections,
-// Partages, Ventes, puis l'avatar et son menu — Profil, Abonnement,
+// Partages, Ventes, Messages (avec sa pastille de non-lus), puis l'avatar et son menu — Profil, Abonnement,
 // Réglages, Déconnexion, et tout en bas un retour discret vers le site et
 // les tarifs. Le site vitrine garde son propre en-tête (HeaderTiroirWeb),
 // qui montre « Mon Tiroir » à l'utilisateur connecté.
@@ -18,11 +18,13 @@ const TABS = [
   { key: 'navCollections', href: '/mes-collections', match: ['/mes-collections'] },
   { key: 'navShares', href: '/mes-partages', match: ['/mes-partages'] },
   { key: 'navSales', href: '/ventes', match: ['/ventes'] },
+  { key: 'navMessages', href: '/messages', match: ['/messages'] },
 ] as const
 
 export default function HeaderApp() {
   const router = useRouter()
   const { t: { layout: t } } = useCopy()
+  const [unread, setUnread] = useState(0)
   const [name, setName] = useState<string | null>(null)
   const [avatar, setAvatar] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -55,6 +57,27 @@ export default function HeaderApp() {
       window.removeEventListener('tiroir:profile-updated', onProfile)
     }
   }, [])
+
+  // Pastille de non-lus : relue à chaque changement de page (ouvrir un fil
+  // le marque lu) et toutes les minutes tant que l'onglet est visible.
+  useEffect(() => {
+    let alive = true
+    const load = () => {
+      if (document.visibilityState !== 'visible') return
+      fetch('/api/messages')
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => { if (alive && d) setUnread(Number(d.unread) || 0) })
+        .catch(() => { /* la pastille attendra */ })
+    }
+    load()
+    const poll = setInterval(load, 60_000)
+    router.events.on('routeChangeComplete', load)
+    return () => {
+      alive = false
+      clearInterval(poll)
+      router.events.off('routeChangeComplete', load)
+    }
+  }, [router.events])
 
   // Le menu se ferme au clic ailleurs, à Échap et au changement de page.
   useEffect(() => {
@@ -97,7 +120,12 @@ export default function HeaderApp() {
             const active = tab.match.some(m => path === m || path.startsWith(`${m}/`))
             return (
               <Link key={tab.key} href={tab.href} legacyBehavior passHref>
-                <a className={active ? 'tab active' : 'tab'} aria-current={active ? 'page' : undefined}>{t[tab.key]}</a>
+                <a className={active ? 'tab active' : 'tab'} aria-current={active ? 'page' : undefined}>
+                  {t[tab.key]}
+                  {tab.key === 'navMessages' && unread > 0 && (
+                    <span className="badge" aria-label={t.navUnread.replace('{n}', String(unread))}>{unread > 99 ? '99+' : unread}</span>
+                  )}
+                </a>
               </Link>
             )
           })}
@@ -141,6 +169,7 @@ export default function HeaderApp() {
         .tab { display: flex; align-items: center; min-height: 60px; padding: 0 12px; font-size: 15px; font-weight: 600; color: var(--muted); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; }
         .tab:hover { color: var(--ink); }
         .tab.active { color: var(--ink); border-bottom-color: var(--orange); }
+        .badge { margin-left: 6px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--orange); color: var(--white); font-size: 12px; font-weight: 700; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
         .account { position: relative; flex-shrink: 0; }
         .avatar { width: 40px; height: 40px; padding: 0; border-radius: 999px; border: 1.5px solid var(--border); background: var(--beige); color: var(--ink); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -160,7 +189,9 @@ export default function HeaderApp() {
           .logo strong { display: none; }
           .account { margin-left: auto; }
           .tabs { order: 3; flex-basis: 100%; margin: 0 -16px; padding: 0 8px; border-top: 1px solid var(--border-light); }
-          .tab { min-height: 46px; font-size: 14px; }
+          .tab { min-height: 46px; font-size: 14px; padding: 0 8px; }
+          .tabs { gap: 0; }
+          .badge { margin-left: 4px; }
         }
       `}</style>
     </header>

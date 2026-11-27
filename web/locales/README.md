@@ -38,6 +38,7 @@ payante (Premium, Pro, Business) ? Oui → vous. Non → tu.
 | `share` (pages ouvertes par les destinataires d'un partage) | tu |
 | `account` (connexion, inscription, mot de passe, profil, mes partages, désinscription) | tu |
 | `about` | tu |
+| `messages` (messagerie privée : contacter le vendeur, boîte de réception, fil, e-mails) | tu |
 | Pages juridiques (`components/legal/`) | vous, documents contractuels qui couvrent aussi les formules payantes |
 
 Cas tranchés par le fondateur (2026-11-08) :
