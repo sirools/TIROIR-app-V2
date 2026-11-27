@@ -63,7 +63,10 @@ export function guestFromCookie(req: IncomingMessage, threadId: string): string 
  */
 export async function messagingReady(admin: SupabaseClient): Promise<boolean> {
   // Les trois tables : une migration appliquée à moitié ne suffit pas.
-  const checks = await Promise.all(MESSAGING_TABLES.map(table => admin.from(table).select('id', { count: 'exact', head: true }).limit(1)))
+  // Une vraie lecture, pas une requête HEAD : pour une table absente, le
+  // client Supabase transforme la réponse 404 d'un HEAD en succès sans
+  // erreur, et le contrôle répondait « prête » sur une base vide.
+  const checks = await Promise.all(MESSAGING_TABLES.map(table => admin.from(table).select('id').limit(1)))
   return checks.every(c => !c.error)
 }
 

@@ -252,6 +252,11 @@ describe('messagerie : rien de privé dans le navigateur', () => {
       + server.slice(server.indexOf('export type InboxItem'), server.indexOf('export async function listThreads'))
     expect(views).not.toMatch(/email/i)
   })
+  test('le contrôle « base prête » lit vraiment les tables (un HEAD sur une table absente ne renvoie pas d’erreur)', () => {
+    const server = read('lib/messagingServer.ts')
+    const body = server.slice(server.indexOf('export async function messagingReady('))
+    expect(body.slice(0, body.indexOf('\n}\n'))).not.toMatch(/head:\s*true/)
+  })
   test('chaque route de fil passe par viewerParticipant', () => {
     const server = read('lib/messagingServer.ts')
     for (const fn of ['reply', 'report', 'loadThreadView']) {
