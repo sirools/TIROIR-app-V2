@@ -226,6 +226,19 @@ describe('messagerie : adresse des liens', () => {
   })
 })
 
+describe('messagerie : rien d’écrit au vendeur n’est public', () => {
+  const read = (path: string) => readFileSync(join(__dirname, '..', path), 'utf8')
+  test('la page d’une vente n’affiche ni n’envoie plus de message public', () => {
+    const page = read('pages/ventes/[token].tsx')
+    expect(page).not.toMatch(/view\.messages|action: 'message'|auction-message/)
+    expect(page).toContain('<ContactSeller')
+  })
+  test('la route de la vente n’a plus d’action « message », et le serveur ne lit plus l’ancien fil', () => {
+    expect(read('pages/api/auctions/[token].ts')).not.toMatch(/'message'|from\('auction_messages'\)/)
+    expect(read('lib/auctionServer.ts')).not.toMatch(/from\('auction_messages'\)/)
+  })
+})
+
 describe('messagerie : rien de privé dans le navigateur', () => {
   const read = (path: string) => readFileSync(join(__dirname, '..', path), 'utf8')
   test('les pages et le formulaire ne manipulent jamais l’adresse d’un participant', () => {

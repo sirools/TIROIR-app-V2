@@ -1,9 +1,12 @@
 // pages/ventes/[token].tsx — la salle d'une vente privée. Le lien suffit
 // pour la voir (avec son mot de passe s'il en a un) ; il faut un compte
-// Tiroir pour enchérir ou écrire sur la vente. « Contacter le vendeur »,
-// près du prix, ouvre une conversation privée, avec ou sans compte
-// (components/messaging/ContactSeller). Le vendeur y retrouve ses outils : le
-// lien à envoyer, son prix de réserve, « Retirer » et « Marquer Remis ».
+// Tiroir pour enchérir. Le vendeur y retrouve ses outils : le lien à
+// envoyer, son prix de réserve, « Retirer » et « Marquer Remis ».
+//
+// Rien de ce qu'on écrit au vendeur n'apparaît sur cette page : « Contacter
+// le vendeur », près du prix, ouvre une conversation PRIVÉE, avec ou sans
+// compte (components/messaging/ContactSeller), lue dans /messages. L'ancien
+// fil public sous la vente a été retiré.
 //
 // Sans paiement : à la fin, Tiroir affiche le meilleur enchérisseur,
 // vendeur et acheteur s'arrangent. Ce que voit un invité est composé par
@@ -19,7 +22,7 @@ import FooterTiroirWeb from '../../components/layout/FooterTiroirWeb'
 import ContactSeller from '../../components/messaging/ContactSeller'
 import { adminSupabase, serverSupabase } from '../../lib/supabase'
 import { hasSignedCookie } from '../../lib/shareCookieSignature'
-import { auctionsEnabled, MESSAGE_MAX, timeLeft } from '../../lib/auction'
+import { auctionsEnabled, timeLeft } from '../../lib/auction'
 import { auctionCookieKey, loadAuctionByToken, loadAuctionView, type AuctionView, type Person } from '../../lib/auctionServer'
 import { messagingReady } from '../../lib/messagingServer'
 import { fill, intlLocale, useCopy } from '../../locales'
@@ -64,13 +67,11 @@ function Avatar({ who }: { who: Person }) {
 
 export default function AuctionPage({ token, view, gated, loggedIn, canContact }: Props) {
   const router = useRouter()
-  const { t: { inventory: { auction: t }, share }, locale } = useCopy()
+  const { t: { inventory: { auction: t }, share, layout, messages: { contact: tm } }, locale } = useCopy()
   const [password, setPassword] = useState('')
   const [passwordWrong, setPasswordWrong] = useState(false)
   const [amount, setAmount] = useState('')
   const [bidError, setBidError] = useState<string | null>(null)
-  const [message, setMessage] = useState('')
-  const [messageFailed, setMessageFailed] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [manageFailed, setManageFailed] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -121,19 +122,6 @@ export default function AuctionPage({ token, view, gated, loggedIn, canContact }
     else setBidError((t.bidErrors as Record<string, string>)[r.error ?? ''] ?? t.bidErrors.generic)
     // Réussie ou dépassée : dans les deux cas l'état de la vente a bougé.
     void refresh()
-  }
-
-  async function send(e: FormEvent) {
-    e.preventDefault()
-    if (busy || !message.trim()) return
-    setBusy('message')
-    setMessageFailed(false)
-    const r = await call({ action: 'message', body: message }).catch(() => ({ ok: false, error: null }))
-    setBusy(null)
-    if (r.ok) {
-      setMessage('')
-      void refresh()
-    } else setMessageFailed(true)
   }
 
   async function manage(action: 'cancel' | 'handed_over', confirmText: string) {
@@ -329,6 +317,16 @@ export default function AuctionPage({ token, view, gated, loggedIn, canContact }
                 </div>
               )}
 
+              {isSeller && canContact && (
+                <div className="block">
+                  <h2>{layout.navMessages}</h2>
+                  <p className="hint">{tm.sellerHint}</p>
+                  <div className="tools">
+                    <Link href="/messages" legacyBehavior passHref><a className="ghost link">{tm.sellerLink}</a></Link>
+                  </div>
+                </div>
+              )}
+
               {view.bids.length > 0 && (
                 <div className="block">
                   <h2>{t.bidsTitle}</h2>
@@ -345,30 +343,6 @@ export default function AuctionPage({ token, view, gated, loggedIn, canContact }
                 </div>
               )}
 
-              <div className="block">
-                <h2>{t.messagesTitle}</h2>
-                {view.messages.length === 0 ? <p className="hint">{t.noMessage}</p> : (
-                  <ul className="messages">
-                    {view.messages.map(m => (
-                      <li key={m.id}>
-                        <Avatar who={m.who} />
-                        <div>
-                          <p className="who">{m.who.firstName}{m.fromSeller ? ` · ${t.seller}` : ''}{m.mine ? ` (${t.you})` : ''} <span className="when">{day(m.at)}</span></p>
-                          <p className="text">{m.body}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {view.viewer !== 'anonymous' && view.state !== 'cancelled' && (
-                  <form onSubmit={send} className="message-form">
-                    <label className="sr-only" htmlFor="auction-message">{t.messagesTitle}</label>
-                    <textarea id="auction-message" rows={2} maxLength={MESSAGE_MAX} value={message} placeholder={t.messagePlaceholder} onChange={e => setMessage(e.target.value)} />
-                    <div role="status" aria-live="polite">{messageFailed && <p className="alert">{t.messageFailed}</p>}</div>
-                    <button type="submit" className="ghost" disabled={busy !== null || !message.trim()}>{busy === 'message' ? t.sending : t.send}</button>
-                  </form>
-                )}
-              </div>
             </div>
           </div>
         </main>
@@ -419,19 +393,18 @@ export default function AuctionPage({ token, view, gated, loggedIn, canContact }
         textarea { resize: vertical; line-height: 1.4; }
         .primary { min-height: 46px; padding: 0 20px; border-radius: 10px; border: 0; background: var(--orange); color: var(--white); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
         .primary.link { display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .ghost.link { display: inline-flex; align-items: center; text-decoration: none; }
         .ghost { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1.5px solid var(--orange); background: transparent; color: var(--orange-700); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
         .text-btn { min-height: 44px; padding: 0 4px; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: underline; cursor: pointer; }
         .tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
         .alert { margin: 10px 0 0; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--orange); font-size: 14px; }
-        .bids, .messages { display: block; list-style: none; margin: 0; padding: 0; }
+        .bids { display: block; list-style: none; margin: 0; padding: 0; }
         .bids li { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 14px; }
-        .bids li + li, .messages li + li { border-top: 1px solid var(--border-light); }
+        .bids li + li { border-top: 1px solid var(--border-light); }
         .who { font-weight: 600; margin: 0; font-size: 14px; }
         .when { font-size: 12px; font-weight: 400; color: var(--muted); }
         .bids .when { margin-left: auto; }
         .bid-amount { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 72px; text-align: right; }
-        .messages li { display: flex; gap: 10px; padding: 10px 0; }
-        .message-form { margin-top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
         .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
         button:disabled { opacity: 0.5; cursor: default; }
         input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }

@@ -2,11 +2,13 @@
 // `action` :
 //   verify       un invité saisit le mot de passe du lien (cookie signé) ;
 //   bid          un invité connecté enchérit ;
-//   message      un invité connecté, ou le vendeur, laisse un message ;
 //   cancel       le vendeur retire sa vente ;
 //   handed_over  le vendeur déclare l'objet remis au gagnant.
 //
-// Pour enchérir ou écrire : une session vérifiée, et le mot de passe du
+// Écrire au vendeur ne passe plus par ici : c'est une conversation privée
+// (pages/api/messages/contact.ts). L'ancien fil public a été retiré.
+//
+// Pour enchérir : une session vérifiée, et le mot de passe du
 // lien s'il en a un (le vendeur en est dispensé). La règle de l'offre est
 // appliquée en base, vente verrouillée (place_auction_bid).
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -15,7 +17,7 @@ import { serialize } from 'cookie'
 import { adminSupabase } from '../../../lib/supabase'
 import { COOKIE_MAX_AGE_SEC, makeCookieName } from '../../../lib/shareAuth'
 import { hasSignedCookie, signedCookieValue } from '../../../lib/shareCookieSignature'
-import { auctionsEnabled, parseAmount, parseMessage } from '../../../lib/auction'
+import { auctionsEnabled, parseAmount } from '../../../lib/auction'
 import { auctionCookieKey, hashPassword, loadAuctionByToken, manageAuction } from '../../../lib/auctionServer'
 
 const BID_ERRORS: Record<string, number> = { AUCTION_NOT_FOUND: 404, AUCTION_CLOSED: 409, OWN_AUCTION: 403, BID_TOO_LOW: 409 }
@@ -71,18 +73,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const known = Object.keys(BID_ERRORS).find(code => error.message.includes(code))
       if (known) return res.status(BID_ERRORS[known]).json({ error: known })
       console.error('place_auction_bid', error.message)
-      return res.status(500).json({ error: 'INTERNAL_ERROR' })
-    }
-    return res.status(201).json({ ok: true })
-  }
-
-  if (action === 'message') {
-    const text = parseMessage(body.body)
-    if (!text) return res.status(400).json({ error: 'INVALID_MESSAGE' })
-    if (auction.cancelled_at) return res.status(409).json({ error: 'AUCTION_CLOSED' })
-    const { error } = await admin.from('auction_messages').insert({ auction_id: auction.id, author_id: user.id, body: text })
-    if (error) {
-      console.error('auction_messages', error.message)
       return res.status(500).json({ error: 'INTERNAL_ERROR' })
     }
     return res.status(201).json({ ok: true })
