@@ -1,15 +1,23 @@
 // « Contacter le vendeur », près du prix d'une vente (/ventes/<jeton>).
-// Connecté : un champ message. Sans compte : prénom, e-mail, message — le
-// message part quand le visiteur ouvre le lien reçu par e-mail. L'envoi
-// passe par /api/messages/contact ; le texte est chiffré côté serveur.
+// Connecté : un champ message (et le choix d'un pseudo, la première fois).
+// Sans compte : pseudo, e-mail, message — le message part quand le
+// visiteur ouvre le lien reçu par e-mail. L'envoi passe par
+// /api/messages/contact ; le texte est chiffré côté serveur.
 import Link from 'next/link'
 import { useState, type FormEvent } from 'react'
-import { BODY_MAX, NAME_MAX } from '../../lib/messaging'
+import { BODY_MAX, PSEUDO_MAX } from '../../lib/messaging'
 import { fill, useCopy } from '../../locales'
 
-type Props = { token: string; sellerName: string; loggedIn: boolean }
+type Props = {
+  token: string
+  /** Pseudo du vendeur (ou prénom de son profil s'il n'en a pas). */
+  sellerName: string
+  loggedIn: boolean
+  /** Compte connecté sans pseudo : il en choisit un avant son premier message. */
+  needsPseudo?: boolean
+}
 
-export default function ContactSeller({ token, sellerName, loggedIn }: Props) {
+export default function ContactSeller({ token, sellerName, loggedIn, needsPseudo = false }: Props) {
   const { t: { messages: { contact: t } }, locale } = useCopy()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
@@ -28,7 +36,7 @@ export default function ContactSeller({ token, sellerName, loggedIn }: Props) {
     try {
       const res = await fetch('/api/messages/contact', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, body, name, email, website, locale }),
+        body: JSON.stringify({ token, body, website, locale, ...(loggedIn ? (needsPseudo ? { pseudo: name } : {}) : { name, email }) }),
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok) {
@@ -54,10 +62,18 @@ export default function ContactSeller({ token, sellerName, loggedIn }: Props) {
         <form onSubmit={submit} noValidate>
           <h2>{fill(t.title, { name: sellerName })}</h2>
           <p className="hint">{fill(t.private, { name: sellerName })}</p>
-          {!loggedIn && (
+          {(!loggedIn || needsPseudo) && (
             <>
               <label htmlFor="contact-name">{t.name}</label>
-              <input id="contact-name" type="text" autoComplete="given-name" maxLength={NAME_MAX} value={name} onChange={e => setName(e.target.value)} required />
+              <input
+                id="contact-name" type="text" autoComplete="nickname" autoCapitalize="none" spellCheck={false}
+                maxLength={PSEUDO_MAX} value={name} onChange={e => setName(e.target.value)} required aria-describedby="contact-name-hint"
+              />
+              <p className="hint" id="contact-name-hint">{fill(loggedIn ? t.pseudoMember : t.pseudoHint, { name: sellerName })}</p>
+            </>
+          )}
+          {!loggedIn && (
+            <>
               <label htmlFor="contact-email">{t.email}</label>
               <input id="contact-email" type="email" autoComplete="email" inputMode="email" maxLength={254} value={email} onChange={e => setEmail(e.target.value)} required aria-describedby="contact-email-hint" />
               <p className="hint" id="contact-email-hint">{fill(t.emailHint, { name: sellerName })}</p>
@@ -69,10 +85,10 @@ export default function ContactSeller({ token, sellerName, loggedIn }: Props) {
             </>
           )}
           <label htmlFor="contact-body">{t.message}</label>
-          <textarea id="contact-body" rows={4} maxLength={BODY_MAX} value={body} placeholder={t.placeholder} onChange={e => setBody(e.target.value)} required autoFocus={loggedIn} />
+          <textarea id="contact-body" rows={4} maxLength={BODY_MAX} value={body} placeholder={t.placeholder} onChange={e => setBody(e.target.value)} required autoFocus={loggedIn && !needsPseudo} />
           <div role="status" aria-live="polite">{error && <p className="alert">{error}</p>}</div>
           <div className="actions">
-            <button type="submit" className="cta" disabled={busy || !body.trim() || (!loggedIn && (!name.trim() || !email.trim()))}>{busy ? t.sending : t.send}</button>
+            <button type="submit" className="cta" disabled={busy || !body.trim() || ((!loggedIn || needsPseudo) && !name.trim()) || (!loggedIn && !email.trim())}>{busy ? t.sending : t.send}</button>
             <button type="button" className="text-btn" onClick={() => setOpen(false)}>{t.cancel}</button>
           </div>
         </form>

@@ -5,14 +5,19 @@ import { randomUUID } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { RATE } from '../lib/messaging'
-import { readGuestToken } from '../lib/messagingCrypto'
-import { contactSeller, deliverPending, listThreads, loadThread, loadThreadView, messagingReady, reply, report } from '../lib/messagingServer'
+import { decryptEmail, emailHash, readGuestToken } from '../lib/messagingCrypto'
+import {
+  clearThread, contactSeller, deliverPending, listThreads, loadThread, loadThreadView, messagingReady, reply, report, revokeGuestLinks, setPseudo,
+} from '../lib/messagingServer'
 
 type Row = Record<string, unknown>
 const UNIQUE: Record<string, string[][]> = { threads: [['dedupe_key']], thread_participants: [['thread_id', 'user_id']] }
 const DEFAULTS: Record<string, Row> = {
   threads: { reported_at: null },
-  thread_participants: { user_id: null, guest_name: null, guest_email: null, guest_verified_at: null, locale: null, last_read_at: null },
+  thread_participants: {
+    user_id: null, guest_name: null, guest_email: null, guest_email_hash: null, guest_verified_at: null, guest_link_epoch: 0,
+    locale: null, last_read_at: null, cleared_at: null,
+  },
   thread_messages: { delivered_at: null, ip_hash: null },
 }
 
@@ -21,7 +26,7 @@ function fakeDb(seed: Record<string, Row[]>, emails: Record<string, string>) {
   const tables: Record<string, Row[]> = { threads: [], thread_participants: [], thread_messages: [], auction_bids: [], object_images: [], ...seed }
   class Query {
     private filters: ((r: Row) => boolean)[] = []
-    private op: 'select' | 'insert' | 'upsert' | 'update' = 'select'
+    private op: 'select' | 'insert' | 'upsert' | 'update' | 'delete' = 'select'
     private payload: Row[] = []
     private patch: Row = {}
     private ignore = false
@@ -37,6 +42,7 @@ function fakeDb(seed: Record<string, Row[]>, emails: Record<string, string>) {
       this.op = 'upsert'; this.payload = ([] as Row[]).concat(rows); this.ignore = !!opts.ignoreDuplicates; this.conflict = opts.onConflict.split(','); return this
     }
     update(patch: Row) { this.op = 'update'; this.patch = patch; return this }
+    delete() { this.op = 'delete'; return this }
     eq(col: string, v: unknown) { this.filters.push(r => r[col] === v); return this }
     in(col: string, vs: unknown[]) { this.filters.push(r => vs.includes(r[col])); return this }
     is(col: string, v: null) { this.filters.push(r => r[col] === v); return this }
@@ -49,7 +55,7 @@ function fakeDb(seed: Record<string, Row[]>, emails: Record<string, string>) {
     private clash(row: Row, keys: string[]) {
       return tables[this.table].find(r => keys.every(k => r[k] !== null && r[k] !== undefined && r[k] === row[k]))
     }
-    private run(): { data: unknown; error: { message: string } | null; count?: number } {
+    private run(): { data: unknown; error: { message: string; code?: string } | null; count?: number } {
       const all = tables[this.table] ?? (tables[this.table] = [])
       let rows: Row[]
       if (this.op === 'insert' || this.op === 'upsert') {
@@ -66,7 +72,20 @@ function fakeDb(seed: Record<string, Row[]>, emails: Record<string, string>) {
         }
       } else {
         rows = all.filter(r => this.filters.every(f => f(r)))
+        // Index unique de la migration : profiles.pseudo_key.
+        const wanted = this.table === 'profiles' && typeof this.patch.pseudo_key === 'string' ? this.patch.pseudo_key : null
+        if (this.op === 'update' && wanted && all.some(r => !rows.includes(r) && r.pseudo_key === wanted)) {
+          return { data: null, error: { message: 'duplicate key value violates unique constraint "profiles_pseudo_key_unique"', code: '23505' } }
+        }
         if (this.op === 'update') rows.forEach(r => Object.assign(r, this.patch))
+        if (this.op === 'delete') {
+          tables[this.table] = all.filter(r => !rows.includes(r))
+          // ON DELETE CASCADE d'un fil.
+          if (this.table === 'threads') {
+            const ids = new Set(rows.map(r => r.id))
+            for (const child of ['thread_participants', 'thread_messages']) tables[child] = tables[child].filter(r => !ids.has(r.thread_id))
+          }
+        }
       }
       if (this.sort) {
         const { col, asc } = this.sort
@@ -116,8 +135,9 @@ beforeEach(() => {
   db = fakeDb({
     auctions: [{ ...AUCTION, token: '24953a59b49e', object_ids: ['o1'], start_price: 450, currency: 'EUR' }],
     profiles: [
-      { id: SELLER, display_name: 'Clément Vendeur', avatar_path: null },
-      { id: BUYER, display_name: 'Nora Acheteuse', avatar_path: null },
+      { id: SELLER, display_name: 'Clément Vendeur', avatar_path: null, pseudo: 'Clement_DJ', pseudo_key: 'clement_dj' },
+      { id: BUYER, display_name: 'Nora Acheteuse', avatar_path: null, pseudo: 'nora75', pseudo_key: 'nora75' },
+      { id: STRANGER, display_name: 'Sam Tiers', avatar_path: null, pseudo: null, pseudo_key: null },
     ],
   }, { [SELLER]: SELLER_EMAIL, [BUYER]: BUYER_EMAIL })
 })
@@ -126,11 +146,11 @@ afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
 /** L'invité ouvre le lien reçu : ce que fait pages/messages/[id].tsx. */
 async function openLink(mail: Sent) {
   const [, threadId, key] = linkIn(mail)
-  const participantId = readGuestToken(threadId, decodeURIComponent(key))!
+  const pass = readGuestToken(threadId, decodeURIComponent(key))!
   const loaded = (await loadThread(db.admin, threadId))!
-  const me = loaded.participants.find(p => p.id === participantId)!
+  const me = loaded.participants.find(p => p.id === pass.participantId)!
   const delivered = await deliverPending(db.admin, ORIGIN, loaded.thread, loaded.participants, me)
-  return { threadId, participantId, delivered }
+  return { threadId, participantId: pass.participantId, pass, delivered }
 }
 
 describe('messagerie : un visiteur sans compte écrit au vendeur', () => {
@@ -139,10 +159,16 @@ describe('messagerie : un visiteur sans compte écrit au vendeur', () => {
     expect(r).toMatchObject({ ok: true, pending: true })
     expect(sent).toHaveLength(1)
     expect(sent[0].to).toEqual([GUEST_EMAIL])
-    expect(sent[0].subject).toBe('Confirme ton message à Clément')
+    expect(sent[0].subject).toBe('Confirme ton message à Clement_DJ')
+    expect(sent[0].text + sent[0].html).not.toContain('disponible')
     expect((await listThreads(db.admin, SELLER)).items).toHaveLength(0)
-    // En base : chiffré, jamais le texte.
+    // En base : chiffré, jamais le texte ; l'adresse de l'invité non plus, ni dans la clé du fil.
     expect(JSON.stringify(db.tables.thread_messages)).not.toContain('disponible')
+    expect(JSON.stringify(db.tables.thread_participants)).not.toContain(GUEST_EMAIL)
+    expect(JSON.stringify(db.tables.threads)).not.toContain(GUEST_EMAIL)
+    const stored = db.tables.thread_participants.find(p => p.role === 'buyer')!
+    expect(decryptEmail(stored.guest_email as string)).toBe(GUEST_EMAIL)
+    expect(stored.guest_email_hash).toBe(emailHash(GUEST_EMAIL))
   })
 
   test('le lien confirme : le vendeur reçoit le message, dans Tiroir et par e-mail, sans l’adresse de l’invité', async () => {
@@ -153,7 +179,8 @@ describe('messagerie : un visiteur sans compte écrit au vendeur', () => {
     const mail = sent[1]
     expect(mail.to).toEqual([SELLER_EMAIL])
     expect(mail.subject).toBe('Léa t’a écrit à propos de « Kit de DJing »')
-    expect(mail.text).toContain('Toujours disponible ?')
+    // L'e-mail dit qui et à propos de quoi, jamais le texte.
+    expect(mail.text + mail.html).not.toContain('Toujours disponible ?')
     expect(mail.text).toContain(`${ORIGIN}/messages/${threadId}`)
     expect(mail.text).not.toContain('?k=')
     expect(mail.html + mail.text + mail.subject).not.toContain(GUEST_EMAIL)
@@ -173,26 +200,26 @@ describe('messagerie : un visiteur sans compte écrit au vendeur', () => {
     tick()
     const { threadId, participantId } = await openLink(sent[0])
     tick()
-    const view = (await loadThreadView(db.admin, threadId, { userId: SELLER, guestParticipantId: null }))!
+    const view = (await loadThreadView(db.admin, threadId, { userId: SELLER, guest: null }))!
     expect(view.messages.map(m => [m.body, m.mine])).toEqual([['Toujours disponible ?', false]])
     expect(view.listing).toMatchObject({ token: '24953a59b49e', title: 'Kit de DJing', price: 450, currency: 'EUR' })
     expect(JSON.stringify(view)).not.toContain(GUEST_EMAIL)
     expect((await listThreads(db.admin, SELLER)).unread).toBe(0)
 
     tick()
-    expect(await reply(db.admin, { threadId, viewer: { userId: SELLER, guestParticipantId: null }, text: 'Oui, passe quand tu veux.', ip: null, origin: ORIGIN })).toEqual({ ok: true })
+    expect(await reply(db.admin, { threadId, viewer: { userId: SELLER, guest: null }, text: 'Oui, passe quand tu veux.', ip: null, origin: ORIGIN })).toEqual({ ok: true })
     const mail = sent[2]
     expect(mail.to).toEqual([GUEST_EMAIL])
-    expect(mail.subject).toBe('Clément t’a écrit à propos de « Kit de DJing »')
-    expect(mail.text).toContain('Oui, passe quand tu veux.')
+    expect(mail.subject).toBe('Clement_DJ t’a écrit à propos de « Kit de DJing »')
+    expect(mail.text + mail.html).not.toContain('Oui, passe quand tu veux.')
     expect(mail.html + mail.text + mail.subject).not.toContain(SELLER_EMAIL)
     const [, linkThread, key] = linkIn(mail)
     expect(linkThread).toBe(threadId)
-    expect(readGuestToken(threadId, decodeURIComponent(key))).toBe(participantId)
+    expect(readGuestToken(threadId, decodeURIComponent(key))).toEqual({ participantId, epoch: 0 })
 
     // L'invité poursuit le fil par son lien, sans compte.
     tick()
-    const guestViewer = { userId: null, guestParticipantId: participantId }
+    const guestViewer = { userId: null, guest: { participantId, epoch: 0 } }
     const asGuest = (await loadThreadView(db.admin, threadId, guestViewer))!
     expect(asGuest.me).toEqual({ name: 'Léa', isGuest: true })
     expect(asGuest.messages.map(m => m.mine)).toEqual([true, false])
@@ -231,7 +258,8 @@ describe('messagerie : un compte écrit au vendeur', () => {
     expect(first).toMatchObject({ ok: true, pending: false })
     expect(sent).toHaveLength(1)
     expect(sent[0].to).toEqual([SELLER_EMAIL])
-    expect(sent[0].subject).toBe('Nora t’a écrit à propos de « Kit de DJing »')
+    expect(sent[0].subject).toBe('nora75 t’a écrit à propos de « Kit de DJing »')
+    expect(sent[0].text + sent[0].html).not.toContain('Bonjour')
     expect(sent[0].html + sent[0].text).not.toContain(BUYER_EMAIL)
     tick()
     const second = await contactSeller(db.admin, { ...base, buyer: { userId: BUYER }, text: 'Encore moi' })
@@ -244,6 +272,82 @@ describe('messagerie : un compte écrit au vendeur', () => {
   test('le vendeur ne peut pas s’écrire sur sa propre vente', async () => {
     expect(await contactSeller(db.admin, { ...base, buyer: { userId: SELLER }, text: 'Moi-même' })).toEqual({ ok: false, error: 'OWN_LISTING' })
     expect(db.tables.threads).toHaveLength(0)
+  })
+})
+
+describe('messagerie : pseudo', () => {
+  test('un compte sans pseudo doit en choisir un avant son premier message ; il est gardé dans son profil', async () => {
+    expect(await contactSeller(db.admin, { ...base, buyer: { userId: STRANGER }, text: 'Bonjour' })).toEqual({ ok: false, error: 'PSEUDO_REQUIRED' })
+    expect(db.tables.threads).toHaveLength(0)
+    // Déjà pris (sans tenir compte de la casse) : refusé, rien n'est créé.
+    expect(await contactSeller(db.admin, { ...base, buyer: { userId: STRANGER, pseudo: 'NORA75' }, text: 'Bonjour' })).toEqual({ ok: false, error: 'PSEUDO_TAKEN' })
+    expect(db.tables.threads).toHaveLength(0)
+    const r = await contactSeller(db.admin, { ...base, buyer: { userId: STRANGER, pseudo: 'sam.tiers' }, text: 'Bonjour' })
+    expect(r).toMatchObject({ ok: true, pending: false })
+    expect(db.tables.profiles.find(p => p.id === STRANGER)!.pseudo).toBe('sam.tiers')
+    expect(sent[0].subject).toBe('sam.tiers t’a écrit à propos de « Kit de DJing »')
+    // Le vendeur le voit sous ce pseudo, jamais sous son nom de profil.
+    expect(JSON.stringify(await listThreads(db.admin, SELLER))).not.toContain('Sam')
+  })
+  test('changer de pseudo : unique, sans tenir compte de la casse', async () => {
+    expect(await setPseudo(db.admin, STRANGER, 'clement_dj')).toEqual({ ok: false, error: 'PSEUDO_TAKEN' })
+    expect(await setPseudo(db.admin, STRANGER, 'sam_42')).toEqual({ ok: true })
+    // Garder le sien en changeant la casse est permis.
+    expect(await setPseudo(db.admin, SELLER, 'clement_dj')).toEqual({ ok: true })
+    // Les majuscules accentuées comptent aussi : « LÉA » et « léa » sont le même pseudo.
+    expect(await setPseudo(db.admin, BUYER, 'LÉA')).toEqual({ ok: true })
+    expect(await setPseudo(db.admin, STRANGER, 'léa')).toEqual({ ok: false, error: 'PSEUDO_TAKEN' })
+  })
+})
+
+describe('messagerie : supprimer une conversation', () => {
+  test('le vendeur la supprime : elle sort de sa boîte, l’acheteur garde la sienne', async () => {
+    const r = await contactSeller(db.admin, { ...base, buyer: { userId: BUYER }, text: 'Bonjour' })
+    const threadId = (r as { threadId: string }).threadId
+    tick()
+    expect(await clearThread(db.admin, { threadId, viewer: { userId: SELLER, guest: null } })).toBe(true)
+    expect((await listThreads(db.admin, SELLER)).items).toHaveLength(0)
+    expect((await loadThreadView(db.admin, threadId, { userId: SELLER, guest: null }))!.messages).toHaveLength(0)
+    expect((await listThreads(db.admin, BUYER)).items).toHaveLength(1)
+    // Un nouveau message la fait réapparaître, sans l'historique supprimé.
+    tick()
+    await contactSeller(db.admin, { ...base, buyer: { userId: BUYER }, text: 'Toujours là ?' })
+    const view = (await loadThreadView(db.admin, threadId, { userId: SELLER, guest: null }))!
+    expect(view.messages.map(m => m.body)).toEqual(['Toujours là ?'])
+  })
+  test('quand les deux l’ont supprimée, le fil disparaît de la base', async () => {
+    const r = await contactSeller(db.admin, { ...base, buyer: { userId: BUYER }, text: 'Bonjour' })
+    const threadId = (r as { threadId: string }).threadId
+    tick()
+    await clearThread(db.admin, { threadId, viewer: { userId: SELLER, guest: null } })
+    expect(db.tables.threads).toHaveLength(1)
+    tick()
+    await clearThread(db.admin, { threadId, viewer: { userId: BUYER, guest: null } })
+    expect(db.tables.threads).toHaveLength(0)
+    expect(db.tables.thread_messages).toHaveLength(0)
+  })
+  test('un tiers ne peut pas la supprimer', async () => {
+    const r = await contactSeller(db.admin, { ...base, buyer: { userId: BUYER }, text: 'Bonjour' })
+    expect(await clearThread(db.admin, { threadId: (r as { threadId: string }).threadId, viewer: { userId: STRANGER, guest: null } })).toBe(false)
+  })
+})
+
+describe('messagerie : l’invité bloque ses anciens liens', () => {
+  test('l’ancien lien ne vaut plus rien, le nouveau arrive par e-mail et ouvre le fil', async () => {
+    await contactSeller(db.admin, { ...base, buyer: guest, text: 'Bonjour' })
+    const { threadId, pass } = await openLink(sent[0])
+    const before = sent.length
+    expect(await revokeGuestLinks(db.admin, { threadId, viewer: { userId: null, guest: pass }, origin: ORIGIN })).toBe(true)
+    expect(await loadThreadView(db.admin, threadId, { userId: null, guest: pass })).toBeNull()
+    const mail = sent[before]
+    expect(mail.to).toEqual([GUEST_EMAIL])
+    expect(mail.subject).toBe('Ton nouveau lien pour la conversation avec Clement_DJ')
+    const [, , key] = linkIn(mail)
+    const fresh = readGuestToken(threadId, decodeURIComponent(key))!
+    expect(fresh).toEqual({ participantId: pass.participantId, epoch: 1 })
+    expect(await loadThreadView(db.admin, threadId, { userId: null, guest: fresh })).not.toBeNull()
+    // Le vendeur, lui, n'a pas de lien à révoquer : refusé.
+    expect(await revokeGuestLinks(db.admin, { threadId, viewer: { userId: SELLER, guest: null }, origin: ORIGIN })).toBe(false)
   })
 })
 
@@ -273,22 +377,22 @@ describe('messagerie : un tiers', () => {
   test('ne lit pas, n’écrit pas et ne signale pas, même avec l’identifiant du fil', async () => {
     const r = await contactSeller(db.admin, { ...base, buyer: { userId: BUYER }, text: 'Bonjour' })
     const threadId = (r as { threadId: string }).threadId
-    const stranger = { userId: STRANGER, guestParticipantId: null }
+    const stranger = { userId: STRANGER, guest: null }
     expect(await loadThreadView(db.admin, threadId, stranger)).toBeNull()
     expect(await reply(db.admin, { threadId, viewer: stranger, text: 'Coucou', ip: null, origin: ORIGIN })).toEqual({ ok: false, error: 'NOT_FOUND' })
     expect(await report(db.admin, { threadId, viewer: stranger })).toBe(false)
-    expect(await loadThreadView(db.admin, threadId, { userId: null, guestParticipantId: null })).toBeNull()
+    expect(await loadThreadView(db.admin, threadId, { userId: null, guest: null })).toBeNull()
     expect(db.tables.thread_messages).toHaveLength(1)
     expect((await listThreads(db.admin, STRANGER)).items).toHaveLength(0)
     // Le lien d'un invité d'un autre fil n'ouvre pas celui-ci.
     await contactSeller(db.admin, { ...base, buyer: guest, text: 'Autre fil' })
-    const { participantId } = await openLink(sent[sent.length - 1])
-    expect(await loadThreadView(db.admin, threadId, { userId: null, guestParticipantId: participantId })).toBeNull()
+    const { pass } = await openLink(sent[sent.length - 1])
+    expect(await loadThreadView(db.admin, threadId, { userId: null, guest: pass })).toBeNull()
   })
   test('« Signaler » écrit à l’équipe, sans le contenu ni les adresses', async () => {
     const r = await contactSeller(db.admin, { ...base, buyer: { userId: BUYER }, text: 'Texte privé' })
     const threadId = (r as { threadId: string }).threadId
-    expect(await report(db.admin, { threadId, viewer: { userId: SELLER, guestParticipantId: null } })).toBe(true)
+    expect(await report(db.admin, { threadId, viewer: { userId: SELLER, guest: null } })).toBe(true)
     const mail = sent[sent.length - 1]
     expect(mail.to).toEqual(['hello@tiroir.app'])
     expect(mail.text).toContain(threadId)

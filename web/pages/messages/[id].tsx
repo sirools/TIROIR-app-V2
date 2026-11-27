@@ -3,9 +3,12 @@
 //
 // Qui peut l'ouvrir : un participant, et lui seul.
 //   · un compte connecté qui a sa place dans le fil ;
-//   · un invité, par le lien signé de son e-mail (?k=…) : le lien confirme
-//     son adresse, remet ses messages en attente, puis reste dans un
-//     cookie propre à ce fil — l'adresse de la page redevient nue.
+//   · un invité, par le lien signé de son e-mail (?k=…, 7 jours, de
+//     l'époque en cours) : le lien confirme son adresse, remet ses
+//     messages en attente, puis reste dans un cookie propre à ce fil —
+//     l'adresse de la page redevient nue.
+// Chacun peut supprimer la conversation de sa messagerie ; un invité peut
+// bloquer tous ses anciens liens et en recevoir un neuf.
 // Pour tout autre visiteur, même avec l'adresse exacte : 404 s'il est
 // connecté, écran « lien plus valable » sinon. Rien du fil n'est chargé.
 //
@@ -50,9 +53,9 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   // Arrivée par le lien d'un e-mail : confirmer, remettre, poser le cookie, nettoyer l'adresse.
   const key = typeof ctx.query.k === 'string' ? ctx.query.k : null
   if (key) {
-    const participantId = readGuestToken(threadId, key)
-    const loaded = participantId ? await loadThread(admin, threadId) : null
-    const guest = loaded && viewerParticipant(loaded.participants, { userId: null, guestParticipantId: participantId })
+    const pass = readGuestToken(threadId, key)
+    const loaded = pass ? await loadThread(admin, threadId) : null
+    const guest = loaded && viewerParticipant(loaded.participants, { userId: null, guest: pass })
     if (loaded && guest) {
       const delivered = await deliverPending(admin, originOf(ctx.req), loaded.thread, loaded.participants, guest)
       ctx.res.setHeader('Set-Cookie', serialize(guestCookieName(threadId), key, {
@@ -63,8 +66,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     }
   }
 
-  const viewer = { userId, guestParticipantId: guestFromCookie(ctx.req, threadId) }
-  const view = viewer.userId || viewer.guestParticipantId ? await loadThreadView(admin, threadId, viewer) : null
+  const viewer = { userId, guest: guestFromCookie(ctx.req, threadId) }
+  const view = viewer.userId || viewer.guest ? await loadThreadView(admin, threadId, viewer) : null
   // Connecté mais pas participant : le fil n'existe pas pour lui.
   if (!view && userId) return { notFound: true as const }
   return {
@@ -82,6 +85,7 @@ export default function ThreadPage({ view, loggedIn, justSent, loginHref }: Prop
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [reported, setReported] = useState(view?.reported ?? false)
+  const [notice, setNotice] = useState<'cleared' | 'revoked' | null>(null)
   const end = useRef<HTMLDivElement>(null)
   const count = view?.messages.length ?? 0
 
@@ -89,11 +93,12 @@ export default function ThreadPage({ view, loggedIn, justSent, loginHref }: Prop
 
   // Pas de temps réel : le fil se relit toutes les quinze secondes, onglet visible.
   useEffect(() => {
-    if (!view) return
+    // Après « Supprimer » ou « Bloquer mes anciens liens », on ne relit plus : l'accès vient d'être retiré.
+    if (!view || notice) return
     const poll = setInterval(() => { if (document.visibilityState === 'visible') void refresh() }, 15_000)
     return () => clearInterval(poll)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view?.id])
+  }, [view?.id, notice])
 
   useEffect(() => { end.current?.scrollIntoView({ block: 'nearest' }) }, [count])
 
@@ -153,6 +158,25 @@ export default function ThreadPage({ view, loggedIn, justSent, loginHref }: Prop
     } else setError(r.error === 'RATE_LIMITED' ? t.rateLimited : t.failed)
   }
 
+  async function clearConversation() {
+    if (busy || !window.confirm(t.clearConfirm)) return
+    setBusy(true)
+    const r = await call({ action: 'clear' }).catch(() => ({ ok: false, error: null }))
+    setBusy(false)
+    if (!r.ok) return setError(t.failed)
+    if (loggedIn) void router.push('/messages')
+    else setNotice('cleared')
+  }
+
+  async function revokeLinks() {
+    if (busy || !window.confirm(t.revokeConfirm)) return
+    setBusy(true)
+    const r = await call({ action: 'revoke_links' }).catch(() => ({ ok: false, error: null }))
+    setBusy(false)
+    if (r.ok) setNotice('revoked')
+    else setError(t.failed)
+  }
+
   async function reportThread() {
     if (busy || !window.confirm(t.reportConfirm)) return
     const r = await call({ action: 'report' }).catch(() => ({ ok: false, error: null }))
@@ -194,6 +218,7 @@ export default function ThreadPage({ view, loggedIn, justSent, loginHref }: Prop
           <div role="status" aria-live="polite">
             {justSent && <p className="notice">{tc.sent}</p>}
             {reported && <p className="notice">{t.reported}</p>}
+            {notice && <p className="notice">{notice === 'cleared' ? t.cleared : t.revoked}</p>}
           </div>
 
           <div className="thread">
@@ -217,11 +242,16 @@ export default function ThreadPage({ view, loggedIn, justSent, loginHref }: Prop
             <textarea id="thread-reply" rows={3} maxLength={BODY_MAX} value={body} placeholder={t.placeholder} onChange={e => setBody(e.target.value)} />
             <div role="status" aria-live="polite">{error && <p className="alert">{error}</p>}</div>
             <div className="actions">
-              <button type="submit" className="primary" disabled={busy || !body.trim()}>{busy ? t.sending : t.send}</button>
+              <button type="submit" className="primary" disabled={busy || !body.trim() || notice !== null}>{busy ? t.sending : t.send}</button>
               {!reported && <button type="button" className="text-btn" onClick={reportThread}>{t.report}</button>}
             </div>
             {view.me.isGuest && <p className="hint">{fill(t.guestNote, { name: view.me.name })}</p>}
             <p className="hint">{t.private}</p>
+            <p className="hint">{t.retention}</p>
+            <div className="manage">
+              <button type="button" className="text-btn" disabled={busy || notice !== null} onClick={clearConversation}>{t.clear}</button>
+              {view.me.isGuest && <button type="button" className="text-btn" disabled={busy || notice !== null} onClick={revokeLinks}>{t.revoke}</button>}
+            </div>
           </form>
         </main>
         <FooterTiroirWeb />
@@ -254,6 +284,7 @@ export default function ThreadPage({ view, loggedIn, justSent, loginHref }: Prop
         .actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
         .primary { min-height: 46px; padding: 0 20px; border-radius: 10px; border: 0; background: var(--orange); color: var(--white); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
         .text-btn { min-height: 44px; padding: 0 4px; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: underline; cursor: pointer; }
+        .manage { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; }
         .hint { margin: 10px 0 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
         .alert { margin: 10px 0 0; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--orange); font-size: 14px; }
         button:disabled { opacity: 0.5; cursor: default; }
