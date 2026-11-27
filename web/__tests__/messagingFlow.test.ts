@@ -257,6 +257,16 @@ describe('messagerie : base pas encore migrée', () => {
     expect(await messagingReady(db.admin)).toBe(true)
     expect(await listThreads(unmigrated, SELLER)).toEqual({ items: [], unread: 0, ready: false })
   })
+  test('migration appliquée à moitié (une seule table) : pas de bouton non plus', async () => {
+    const ok = { data: null, error: null, count: 0 }
+    const answer = (table: string) => {
+      const result = table === 'threads' ? ok : missing
+      const q: Record<string, unknown> = { then: (resolve: (v: typeof result) => unknown) => Promise.resolve(result).then(resolve) }
+      for (const m of ['select', 'limit']) q[m] = () => q
+      return q
+    }
+    expect(await messagingReady({ from: answer } as unknown as SupabaseClient)).toBe(false)
+  })
 })
 
 describe('messagerie : un tiers', () => {

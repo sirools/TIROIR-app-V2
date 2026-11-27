@@ -62,8 +62,17 @@ export function guestFromCookie(req: IncomingMessage, threadId: string): string 
  * un bouton qui échoue serait pire qu'un bouton absent.
  */
 export async function messagingReady(admin: SupabaseClient): Promise<boolean> {
-  const { error } = await admin.from('threads').select('id', { count: 'exact', head: true }).limit(1)
-  return !error
+  // Les trois tables : une migration appliquée à moitié ne suffit pas.
+  const checks = await Promise.all(MESSAGING_TABLES.map(table => admin.from(table).select('id', { count: 'exact', head: true }).limit(1)))
+  return checks.every(c => !c.error)
+}
+
+export const MESSAGING_TABLES = ['threads', 'thread_participants', 'thread_messages'] as const
+
+/** Trace d'un échec de la base, avec l'étape : c'est ce qu'on lit dans les journaux de Vercel. */
+function dbFailure(step: string, error?: { message?: string } | null): { ok: false; error: 'DB' } {
+  console.error(`[messagerie] ${step}`, error?.message ?? '(aucune ligne)')
+  return { ok: false, error: 'DB' }
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -241,19 +250,21 @@ export async function contactSeller(admin: SupabaseClient, input: {
 
   const key = listingKey(auction.id, buyer)
   // La contrainte d'unicité tranche si deux envois arrivent ensemble : le second retrouve le fil du premier.
-  await admin.from('threads').upsert({ kind: 'annonce', auction_id: auction.id, dedupe_key: key }, { onConflict: 'dedupe_key', ignoreDuplicates: true })
-  const { data: row } = await admin.from('threads').select('id').eq('dedupe_key', key).maybeSingle()
-  if (!row) return { ok: false, error: 'DB' }
+  const created = await admin.from('threads').upsert({ kind: 'annonce', auction_id: auction.id, dedupe_key: key }, { onConflict: 'dedupe_key', ignoreDuplicates: true })
+  if (created.error) return dbFailure('création du fil', created.error)
+  const { data: row, error: rowError } = await admin.from('threads').select('id').eq('dedupe_key', key).maybeSingle()
+  if (!row) return dbFailure('lecture du fil', rowError)
   const loaded = await loadThread(admin, row.id as string)
-  if (!loaded) return { ok: false, error: 'DB' }
+  if (!loaded) return dbFailure('chargement du fil')
   const { thread } = loaded
   let participants = loaded.participants
 
   if (!participants.some(p => p.role === 'seller')) {
-    await admin.from('thread_participants').upsert(
+    const added = await admin.from('thread_participants').upsert(
       { thread_id: thread.id, role: 'seller', user_id: auction.user_id },
       { onConflict: 'thread_id,user_id', ignoreDuplicates: true },
     )
+    if (added.error) return dbFailure('participant vendeur', added.error)
   }
   let me = participants.find(p => p.role === 'buyer') ?? null
   if (!me) {
@@ -262,10 +273,7 @@ export async function contactSeller(admin: SupabaseClient, input: {
         ? { thread_id: thread.id, role: 'buyer', user_id: buyer.userId, locale }
         : { thread_id: thread.id, role: 'buyer', guest_name: buyer.name, guest_email: buyer.email, locale },
     ).select(PARTICIPANT_COLUMNS).single()
-    if (error || !data) {
-      console.error('[messagerie] participant', error?.message)
-      return { ok: false, error: 'DB' }
-    }
+    if (error || !data) return dbFailure('participant acheteur', error)
     me = data as ParticipantRow
   }
   participants = (await loadThread(admin, thread.id))?.participants ?? participants
