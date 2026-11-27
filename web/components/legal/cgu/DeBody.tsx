@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { LegalSection } from '../../layout/LegalPage'
-import { CONTACT_EMAIL, SUPPORT_EMAIL } from '../contacts'
+import { BUSINESS_EMAIL, BUSINESS_MAILTO, BUSINESS_SUBJECT, CONTACT_EMAIL, SUPPORT_EMAIL } from '../contacts'
 
 // Conditions Générales d'Utilisation — traduction allemande (la version
 // française fait foi).
@@ -82,7 +82,19 @@ export default function DeBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="5. Nutzerinhalte">
+      <LegalSection title="5. Pro- und Business-Tarife">
+        <p>
+          Die Tarife Pro und Business richten sich an gewerbliche Nutzer. Inhalt und Preise werden auf
+          der Preisseite dargestellt.
+        </p>
+        <p>
+          Alle Anliegen zu diesen Tarifen (Informationen, Angebot, Abschluss, Rechnungsstellung) erfolgen
+          per E-Mail an <a href={BUSINESS_MAILTO}>{BUSINESS_EMAIL}</a>, mit dem Betreff
+          „{BUSINESS_SUBJECT}“.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="6. Nutzerinhalte">
         <p>
           Sie behalten sämtliche Rechte des geistigen Eigentums an den Fotos, Beschreibungen und
           Dokumenten, die Sie in den Dienst hochladen (&bdquo;Nutzerinhalte&ldquo;).
@@ -100,7 +112,7 @@ export default function DeBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="6. Freigabelinks">
+      <LegalSection title="7. Freigabelinks">
         <p>
           Der Dienst ermöglicht es Ihnen, öffentliche Links zu erstellen, die einen Nur-Lese-Zugriff
           auf eine Auswahl von Gegenständen Ihrer Wahl gewähren. Sie sind allein verantwortlich für die
@@ -109,7 +121,7 @@ export default function DeBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="7. Künstliche Intelligenz">
+      <LegalSection title="8. Künstliche Intelligenz">
         <p>
           Die von der künstlichen Intelligenz erstellten Beschreibungen, Kategorisierungen und
           Wertschätzungen dienen ausschließlich der Orientierung. Sie stellen in keinem Fall ein
@@ -119,7 +131,7 @@ export default function DeBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="8. Verfügbarkeit des Dienstes">
+      <LegalSection title="9. Verfügbarkeit des Dienstes">
         <p>
           Wir bemühen uns um eine durchgehende Verfügbarkeit des Dienstes, ohne zu garantieren, dass
           es zu keinen Unterbrechungen kommt, insbesondere aufgrund von Wartungsarbeiten. Wir haften
@@ -127,7 +139,7 @@ export default function DeBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="9. Haftungsbeschränkung">
+      <LegalSection title="10. Haftungsbeschränkung">
         <p>
           Der Dienst wird &bdquo;wie besehen&ldquo; bereitgestellt. Soweit nach geltendem Recht
           zulässig, lehnen wir jede Haftung für mittelbare Schäden ab, die sich aus der Nutzung oder
@@ -139,7 +151,7 @@ export default function DeBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="10. Kündigung">
+      <LegalSection title="11. Kündigung">
         <p>
           Sie können Ihr Konto jederzeit in der App oder durch eine Nachricht an{' '}
           <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> löschen. Die Löschung des Kontos führt
@@ -152,7 +164,7 @@ export default function DeBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="11. Änderungen der Nutzungsbedingungen">
+      <LegalSection title="12. Änderungen der Nutzungsbedingungen">
         <p>
           Wir können diese Nutzungsbedingungen jederzeit ändern. Jede wesentliche Änderung wird Ihnen
           mindestens 30 Tage vor ihrem Inkrafttreten per E-Mail oder in der App mitgeteilt. Die
@@ -161,7 +173,7 @@ export default function DeBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="12. Anwendbares Recht und Gerichtsstand">
+      <LegalSection title="13. Anwendbares Recht und Gerichtsstand">
         <p>
           Diese Nutzungsbedingungen unterliegen französischem Recht. Für alle Streitigkeiten über ihre
           Auslegung oder Durchführung sind ausschließlich die französischen Gerichte zuständig,
@@ -172,6 +184,7 @@ export default function DeBody() {
       <LegalSection title="Kontakt">
         <p>Bei Fragen zu diesen Nutzungsbedingungen:</p>
         <p><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
+        <p>Für die Tarife Pro und Business: <a href={BUSINESS_MAILTO}>{BUSINESS_EMAIL}</a></p>
       </LegalSection>
     </>
   )

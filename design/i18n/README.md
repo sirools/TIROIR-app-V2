@@ -24,6 +24,11 @@ de langue, tout Tiroir suit (sa langue est aussi gardée dans son compte,
    diffèrent.
 2. Les fichiers `app/`, `site/`, `system/` de la langue (le script dit ce
    qui manque).
+   Sur le site, une langue peut être servie sous un autre préfixe
+   (`"siteCode": "pt"` pour pt-BR) et rester partielle
+   (`"siteFallback": "en"`) : son `site/<langue>.json` ne contient alors que
+   des sections de premier niveau entières (pt-BR : `layout`, `home`,
+   `errors`), le reste vient de la langue de repli.
 3. `node design/generate.mjs` : l'app (ressources, sélecteur, Réglages ›
    Tiroir › Langue, demandes d'accès iOS) et le site suivent seuls.
 4. À la main, pour l'instant : la liste `locales` de `web/next.config.js` et

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { LegalSection } from '../../layout/LegalPage'
-import { CONTACT_EMAIL, SUPPORT_EMAIL } from '../contacts'
+import { BUSINESS_EMAIL, BUSINESS_MAILTO, BUSINESS_SUBJECT, CONTACT_EMAIL, SUPPORT_EMAIL } from '../contacts'
 
 // Conditions Générales d'Utilisation — traduction espagnole (la version
 // française fait foi).
@@ -80,7 +80,19 @@ export default function EsBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="5. Contenido del usuario">
+      <LegalSection title="5. Planes Pro y Business">
+        <p>
+          Los planes Pro y Business están destinados a profesionales. Su contenido y sus precios se
+          presentan en la página de Precios.
+        </p>
+        <p>
+          Cualquier gestión relativa a estos planes (solicitud de información, presupuesto, suscripción,
+          facturación) se realiza por correo electrónico a <a href={BUSINESS_MAILTO}>{BUSINESS_EMAIL}</a>,
+          con el asunto «{BUSINESS_SUBJECT}».
+        </p>
+      </LegalSection>
+
+      <LegalSection title="6. Contenido del usuario">
         <p>
           Usted conserva la totalidad de los derechos de propiedad intelectual sobre las fotos,
           descripciones y documentos que sube al Servicio («Contenido del Usuario»).
@@ -98,7 +110,7 @@ export default function EsBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="6. Enlaces para compartir">
+      <LegalSection title="7. Enlaces para compartir">
         <p>
           El Servicio le permite generar enlaces públicos que dan acceso de solo lectura a una
           selección de objetos de su elección. Usted es el único responsable de la información que
@@ -107,7 +119,7 @@ export default function EsBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="7. Inteligencia artificial">
+      <LegalSection title="8. Inteligencia artificial">
         <p>
           Las descripciones, categorizaciones y estimaciones de valor generadas por la inteligencia
           artificial se proporcionan únicamente a título orientativo. En ningún caso constituyen una
@@ -116,7 +128,7 @@ export default function EsBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="8. Disponibilidad del servicio">
+      <LegalSection title="9. Disponibilidad del servicio">
         <p>
           Nos esforzamos por garantizar una disponibilidad continua del Servicio, sin garantizar la
           ausencia de interrupciones, en particular por operaciones de mantenimiento. No podremos ser
@@ -124,7 +136,7 @@ export default function EsBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="9. Limitación de responsabilidad">
+      <LegalSection title="10. Limitación de responsabilidad">
         <p>
           El Servicio se proporciona «tal cual». En la medida en que lo permita la ley aplicable,
           declinamos toda responsabilidad por los daños indirectos derivados del uso o de la
@@ -136,7 +148,7 @@ export default function EsBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="10. Resolución">
+      <LegalSection title="11. Resolución">
         <p>
           Puede eliminar su cuenta en cualquier momento desde la aplicación o contactándonos en{' '}
           <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. La eliminación de la cuenta conlleva
@@ -149,7 +161,7 @@ export default function EsBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="11. Modificaciones de las CGU">
+      <LegalSection title="12. Modificaciones de las CGU">
         <p>
           Podemos modificar las presentes CGU en cualquier momento. Cualquier modificación sustancial
           le será notificada por correo electrónico o en la aplicación al menos 30 días antes de su
@@ -158,7 +170,7 @@ export default function EsBody() {
         </p>
       </LegalSection>
 
-      <LegalSection title="12. Legislación aplicable y jurisdicción">
+      <LegalSection title="13. Legislación aplicable y jurisdicción">
         <p>
           Las presentes CGU se rigen por el derecho francés. Cualquier litigio relativo a su
           interpretación o ejecución será competencia exclusiva de los tribunales franceses, sin
@@ -169,6 +181,7 @@ export default function EsBody() {
       <LegalSection title="Contacto">
         <p>Para cualquier pregunta relativa a las presentes CGU:</p>
         <p><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
+        <p>Para los planes Pro y Business: <a href={BUSINESS_MAILTO}>{BUSINESS_EMAIL}</a></p>
       </LegalSection>
     </>
   )

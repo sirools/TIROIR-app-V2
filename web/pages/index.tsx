@@ -5,7 +5,8 @@ import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import UluleInvite from '../components/UluleInvite'
 import Hero from '../components/home/Hero'
 import PhotoSimple from '../components/home/PhotoSimple'
-import ForPros from '../components/home/ForPros'
+import Creatives from '../components/home/Creatives'
+import ProBusiness from '../components/home/ProBusiness'
 import ForEveryone from '../components/home/ForEveryone'
 import Value from '../components/home/Value'
 import PricingFaq from '../components/home/PricingFaq'
@@ -39,7 +40,8 @@ export default function Landing() {
         <main>
           <Hero />
           <PhotoSimple />
-          <ForPros />
+          <Creatives />
+          <ProBusiness />
           <ForEveryone />
           <Value />
           <PricingFaq />

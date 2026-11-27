@@ -12,7 +12,10 @@ import { SHARE_EMAIL_COPY, shareEmailLang, shareEmailUrl } from '../../supabase/
 // complétude des textes.
 const ROOT = path.resolve(__dirname, '../..')
 const meta = JSON.parse(readFileSync(path.join(ROOT, 'design/i18n/languages.json'), 'utf8'))
-const siteLanguages: string[] = meta.languages.filter((l: { site: boolean }) => l.site).map((l: { code: string }) => l.code)
+// Préfixe du site : siteCode s'il est donné (pt-BR → pt).
+const siteLanguages: string[] = meta.languages
+  .filter((l: { site: boolean }) => l.site)
+  .map((l: { code: string; siteCode?: string }) => l.siteCode ?? l.code)
 
 describe('design/i18n', () => {
   test('aucune langue trouée, variables identiques (scripts/i18n-check.mjs)', () => {

@@ -1,8 +1,11 @@
 // Généré par design/generate.mjs depuis design/i18n/languages.json — ne pas modifier à la main.
 /** Langues proposées dans l'app (iOS et Android), dans l'ordre du sélecteur. */
 export const APP_LANGUAGES = ["fr","en","es","de","pt-BR","pt-PT"] as const
-/** Langues proposées sur le site. */
-export const SITE_LANGUAGES = ["fr","en","es","de"] as const
+/** Langues proposées sur le site, par leur préfixe (pt-BR → pt). */
+export const SITE_LANGUAGES = ["fr","en","es","de","pt"] as const
+/** Nom et balise Intl de chaque langue du site, par son préfixe. */
+export const SITE_LANGUAGE_NAMES: Record<string, string> = {"fr":"Français","en":"English","es":"Español","de":"Deutsch","pt":"Português (Brasil)"}
+export const SITE_LANGUAGE_INTL: Record<string, string> = {"fr":"fr-FR","en":"en-IE","es":"es-ES","de":"de-DE","pt":"pt-BR"}
 /** Langues dans lesquelles partent les e-mails. */
 export const EMAIL_LANGUAGES = ["fr","en","es","de","pt-BR","pt-PT","da"] as const
 /** Langue de référence : toutes les autres suivent ses clés. */

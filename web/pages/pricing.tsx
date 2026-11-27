@@ -7,6 +7,7 @@ import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { localeLinks } from '../components/layout/LocaleLinks'
 import StoreButtons from '../components/StoreButtons'
 import { OFFERS_V4, displayVatRate, withVat } from '../lib/offers'
+import { BUSINESS_MAILTO } from '../components/legal/contacts'
 import { fill, formatEur, useCopy } from '../locales'
 import { useBillingCopy } from '../locales/billing'
 import { creditsSaleOpen, stripeEnv, type BillingPeriod, type PlanTier } from '../lib/stripeConfig'
@@ -36,8 +37,7 @@ const ITEM: React.CSSProperties = { display: 'flex', alignItems: 'flex-start', g
 
 type Props = { paymentOpen: boolean; creditsOpen: boolean }
 
-/** Business : sur devis, pas de paiement en ligne. */
-const BUSINESS_CONTACT = 'mailto:clement.ougier@gmail.com?subject=Tiroir%20Business'
+// Business : sur devis, pas de paiement en ligne (adresse : components/legal/contacts.ts).
 
 export default function Pricing({ paymentOpen, creditsOpen }: Props) {
   const { t: { pricing: t }, locale } = useCopy()
@@ -188,7 +188,7 @@ export default function Pricing({ paymentOpen, creditsOpen }: Props) {
                 </ul>
                 <div style={{ marginTop: 'auto' }}>
                   <a
-                    href={BUSINESS_CONTACT}
+                    href={BUSINESS_MAILTO}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       padding: '13px 16px', borderRadius: 12, background: 'white',
