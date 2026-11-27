@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator,
   RefreshControl, Alert, TextInput, Image, Dimensions, Modal, Animated, ScrollView,
@@ -9,7 +9,7 @@ import {
   ArrowLeft, MoreHorizontal, Minus, Plus,
   CheckSquare, Square, Trash2, MoveRight, Tag, Share2, CheckCircle,
   Camera, Images, Layers, ChevronRight, ChevronDown, FolderPlus,
-  Search, SlidersHorizontal,
+  Search, SlidersHorizontal, RotateCw,
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import {
@@ -21,6 +21,7 @@ import { SharePanel } from '@/components/SharePanel'
 import { Collection, TiroirObject, ObjectGroup } from '@/types/database'
 import { isLot, lotTotal } from '@/features/objects/quantity'
 import { setIconOverride } from '@/utils/collectionIconCache'
+import { useBatchJob, type BatchItem } from '@/features/batch/batchStore'
 
 // ── Zoom levels ───────────────────────────────────────────────────────────────
 
@@ -101,6 +102,47 @@ function chunk<T>(items: T[], cols: number): T[][] {
   const rows: T[][] = []
   for (let i = 0; i < items.length; i += cols) rows.push(items.slice(i, i + cols))
   return rows
+}
+
+// ── Cartes provisoires d'un import en cours ───────────────────────────────────
+
+/**
+ * Les photos d'un import multiple destiné à cette collection, visibles
+ * tout de suite avec leur vignette locale. Chaque carte disparaît quand
+ * son objet est enregistré : il réapparaît alors dans la grille, complet.
+ */
+function PendingBatchCards({ items, cols, onPress }: { items: BatchItem[]; cols: number; onPress: () => void }) {
+  const { t } = useTranslation()
+  const size = cardSize(cols)
+  const gap = gridGap(cols)
+  return (
+    <View style={{ marginBottom: gap }}>
+      {chunk(items, cols).map((row, i) => (
+        <View key={i} style={[styles.gridRow, { gap, marginBottom: gap }]}>
+          {row.map(item => {
+            const failed = item.status === 'error' || item.addFailed
+            return (
+              <TouchableOpacity key={item.key} onPress={onPress} activeOpacity={0.85} style={{ width: size }}>
+                <View style={[styles.pendingThumb, { width: size, height: size }]}>
+                  <Image source={{ uri: item.thumbUri }} style={styles.pendingImg} resizeMode="cover" />
+                  <View style={styles.pendingVeil}>
+                    {failed
+                      ? <RotateCw size={18} color="#fff" strokeWidth={2} />
+                      : <ActivityIndicator size="small" color="#fff" />}
+                  </View>
+                </View>
+                {cols <= 4 && (
+                  <Text style={[styles.pendingLabel, failed && styles.pendingLabelError]} numberOfLines={1}>
+                    {failed ? t('batch.retry') : (item.title ?? item.data?.title ?? t('batch.pending'))}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+      ))}
+    </View>
+  )
 }
 
 // ── Composant carte objet ─────────────────────────────────────────────────────
@@ -267,7 +309,7 @@ const cardStyles = StyleSheet.create({
 /** Une ligne de la liste : en-tête de groupe, rangée de cartes, ou filet. */
 type GridRow =
   | { type: 'group'; key: string; group: ObjectGroup; count: number; collapsed: boolean }
-  | { type: 'items'; key: string; items: TiroirObject[] }
+  | { type: 'items'; key: string; items: TiroirObject[]; withAdd?: boolean }
   | { type: 'divider'; key: string }
   | { type: 'loose'; key: string }
 
@@ -659,6 +701,17 @@ export default function CollectionDetailScreen() {
 
   useFocusEffect(useCallback(() => { load() }, [load]))
 
+  // Import multiple destiné à cette collection : ses photos s'affichent
+  // tout de suite, en cartes provisoires, et la grille se recharge chaque
+  // fois que des objets viennent d'être enregistrés.
+  const batchJob = useBatchJob()
+  const batchHere = batchJob && batchJob.collectionId === id ? batchJob : null
+  const pendingItems = batchHere ? batchHere.items.filter(it => it.status !== 'added') : []
+  const batchAddedCount = batchHere ? batchHere.items.length - pendingItems.length : 0
+  useEffect(() => {
+    if (batchAddedCount > 0) load()
+  }, [batchAddedCount, load])
+
   function onRefresh() { setRefreshing(true); load() }
 
   /**
@@ -766,6 +819,15 @@ export default function CollectionDetailScreen() {
     rows.push({ type: 'loose', key: 'loose-label' })
   }
   chunk(loose, cols).forEach((r, i) => rows.push({ type: 'items', key: `loose-${i}`, items: r }))
+
+  // Carte « + » : toujours la dernière de la grille, pour continuer à
+  // remplir la collection sans repasser par le menu. Pas pendant une
+  // recherche — on y lit des résultats, on n'y ajoute rien.
+  if (!filter.trim()) {
+    const last = rows[rows.length - 1]
+    if (last?.type === 'items' && last.items.length < cols && last.key.startsWith('loose-')) last.withAdd = true
+    else rows.push({ type: 'items', key: 'add-card', items: [], withAdd: true })
+  }
 
   function toggleGroup(groupId: string) {
     setCollapsed(prev => {
@@ -1163,13 +1225,27 @@ export default function CollectionDetailScreen() {
         contentContainerStyle={[styles.grid, { paddingBottom: isSelectMode ? TAB_BAR_H + 80 : TAB_BAR_H + 16 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />}
-        ListEmptyComponent={
-          filter.trim()
-            ? <EmptyState
-                title={t('collectionDetail.emptyTitle')}
-                subtitle={t('collectionDetail.emptyNoResults')}
+        ListHeaderComponent={
+          pendingItems.length > 0 && !filter.trim()
+            ? <PendingBatchCards
+                items={pendingItems}
+                cols={cols}
+                onPress={() => router.push('/capture/review')}
               />
-            : <FirstObjectInvite collectionId={collection.id} collectionName={collection.name} />
+            : null
+        }
+        ListEmptyComponent={
+          <EmptyState
+            title={t('collectionDetail.emptyTitle')}
+            subtitle={t('collectionDetail.emptyNoResults')}
+          />
+        }
+        ListFooterComponent={
+          // Collection vide : la carte « + » ouvre la grille, les trois
+          // raccourcis (photo, photothèque, plusieurs objets) restent dessous.
+          objects.length === 0 && pendingItems.length === 0 && !filter.trim()
+            ? <FirstObjectInvite collectionId={collection.id} collectionName={collection.name} />
+            : null
         }
         renderItem={({ item: row }) => {
           if (row.type === 'divider') return <View style={styles.groupDivider} />
@@ -1213,6 +1289,24 @@ export default function CollectionDetailScreen() {
                   isSelected={selectedIds.has(item.id)}
                 />
               ))}
+              {row.withAdd && (
+                <TouchableOpacity
+                  // Visible en mode sélection, mais ce n'est pas un objet : inerte.
+                  disabled={isSelectMode}
+                  onPress={() => router.push({ pathname: '/capture', params: { collectionId: collection.id } })}
+                  activeOpacity={0.7}
+                  style={{ width: cardSize(cols), opacity: isSelectMode ? 0.4 : 1 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('collectionDetail.addObjects')}
+                >
+                  <View style={[styles.addCard, { width: cardSize(cols), height: cardSize(cols) }]}>
+                    <Plus size={cols >= 4 ? 20 : 26} color={Colors.accent} strokeWidth={1.8} />
+                  </View>
+                  {cols <= 4 && (
+                    <Text style={styles.addCardLabel} numberOfLines={1}>{t('collectionDetail.addObjects')}</Text>
+                  )}
+                </TouchableOpacity>
+              )}
             </View>
           )
         }}
@@ -1613,6 +1707,19 @@ const styles = StyleSheet.create({
 
   grid: { flexGrow: 1, paddingTop: Spacing.sm },
   gridRow: { flexDirection: 'row', paddingHorizontal: GRID_PADDING },
+  addCard: {
+    borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  addCardLabel: { fontSize: Typography.xs, color: Colors.accent, marginTop: 4, fontWeight: Typography.medium },
+  pendingThumb: { borderRadius: Radius.md, overflow: 'hidden', backgroundColor: Colors.surfaceWarm },
+  pendingImg: { width: '100%', height: '100%' },
+  pendingVeil: {
+    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
+    backgroundColor: 'rgba(0,0,0,0.28)', alignItems: 'center', justifyContent: 'center',
+  },
+  pendingLabel: { fontSize: Typography.xs, color: Colors.textSecondary, marginTop: 4 },
+  pendingLabelError: { color: Colors.error },
   /**
    * Même rythme vertical qu'un en-tête de groupe, pour que la liste garde
    * une seule grille. Mais typographie en retrait : « hors groupes » n'est

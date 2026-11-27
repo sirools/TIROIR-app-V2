@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, Image, TouchableOpacity,
   ScrollView, Alert, Animated, ActivityIndicator, Platform,
 } from 'react-native'
-import { Camera, Images, Layers, ChevronRight } from 'lucide-react-native'
+import { Camera, Images, Layers, ChevronRight, Zap } from 'lucide-react-native'
 import * as ImagePicker from 'expo-image-picker'
 import * as ImageManipulator from 'expo-image-manipulator'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -20,8 +20,9 @@ import { HACKATHON_BUILD } from '@/services/hybridAI/config'
 import { LEGACY_AI_ENABLED } from '@/services/legacyAI'
 import {
   Screen, Colors, Typography, Spacing, Radius,
-  CollectionPickerSheet, PickedCollection, useToast,
+  CollectionPickerSheet, PickedCollection, useToast, TiroirLoader,
 } from '@/components/ui'
+import { startBatch, isBatchActive, type BatchAsset } from '@/features/batch/batchStore'
 
 interface PickedImage {
   uri: string
@@ -65,9 +66,16 @@ export default function CaptureScreen() {
   const [quotaLoaded, setQuotaLoaded] = useState(false)
   const [plan, setPlan] = useState<Plan>('free')
   const autoStarted = useRef(false)
+  /**
+   * Vrai dès le toucher, avant même l'ouverture de la photothèque : quand
+   * elle se referme, l'attente est déjà à l'écran. Sans lui, le temps que
+   * le système remette les photos ressemble à une app figée.
+   */
+  const [picking, setPicking] = useState(false)
 
   useFocusEffect(useCallback(() => {
     setImages([])
+    setPicking(false)
     setLoading(false)
     setLoadingManual(false)
     setManualPickerVisible(false)
@@ -137,15 +145,20 @@ export default function CaptureScreen() {
       Alert.alert(t('capture.permissionDeniedTitle'), t('capture.permissionLibrary'))
       return
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      quality: 0.9,
-      selectionLimit: 5,
-    })
-    if (!result.canceled) {
-      const picked = await compressAll(result.assets)
-      setImages(prev => [...prev, ...picked].slice(0, 5))
+    setPicking(true)
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        quality: 0.9,
+        selectionLimit: 5,
+      })
+      if (!result.canceled) {
+        const picked = await compressAll(result.assets)
+        setImages(prev => [...prev, ...picked].slice(0, 5))
+      }
+    } finally {
+      setPicking(false)
     }
   }
 
@@ -190,6 +203,12 @@ export default function CaptureScreen() {
    * sur le même objet.
    */
   async function pickMultipleObjects() {
+    // Un seul import à la fois : on ramène vers celui qui tourne.
+    if (isBatchActive()) {
+      showToast(t('batch.alreadyRunning'))
+      router.push('/capture/review')
+      return
+    }
     if (batchMax < 2) {
       Alert.alert(t('capture.quotaExhausted', { used: quotaUsed, limit: quotaLimit }))
       return
@@ -199,38 +218,71 @@ export default function CaptureScreen() {
       Alert.alert(t('capture.permissionDeniedTitle'), t('capture.permissionLibrary'))
       return
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      quality: 0.9,
-      selectionLimit: batchMax,
-    })
-    if (result.canceled) return
+    setPicking(true)
+    let result: ImagePicker.ImagePickerResult
+    try {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        // Qualité 1 : le système rend les photos telles quelles au lieu de
+        // les réencoder une à une avant de nous les donner. La compression
+        // se fait ensuite, photo par photo, pendant que l'écran avance.
+        quality: 1,
+        selectionLimit: batchMax,
+      })
+    } catch (e) {
+      setPicking(false)
+      throw e
+    }
+    if (result.canceled) {
+      setPicking(false)
+      return
+    }
 
-    const picked = await compressAll(result.assets)
-    goToBatchReview(picked)
+    // Aucune compression ici : les vignettes locales suffisent à afficher
+    // le lot tout de suite.
+    goToBatchReview(result.assets.map(a => ({ uri: a.uri, width: a.width, height: a.height })))
+  }
+
+  /** Rafale : l'appareil photo reste ouvert, chaque photo devient un objet. */
+  function openBurst() {
+    if (!LEGACY_AI_ENABLED) return
+    if (isBatchActive()) {
+      showToast(t('batch.alreadyRunning'))
+      router.push('/capture/review')
+      return
+    }
+    router.push({
+      pathname: '/capture/burst',
+      params: { batchMax: String(batchMax), ...(collectionId ? { collectionId } : {}) },
+    })
   }
 
   /** Bascule la sélection courante en lot : une photo = un objet. */
   function convertSelectionToBatch() {
-    goToBatchReview(images.slice(0, batchMax))
+    if (isBatchActive()) {
+      showToast(t('batch.alreadyRunning'))
+      router.push('/capture/review')
+      return
+    }
+    goToBatchReview(
+      images.slice(0, batchMax).map(img => ({ uri: img.uri, prepared: true, source: img.source })),
+    )
   }
 
-  function goToBatchReview(picked: PickedImage[]) {
+  function goToBatchReview(assets: BatchAsset[]) {
     if (!LEGACY_AI_ENABLED) return
-    if (picked.length === 0) return
-    // runId distinct à chaque lancement : l'écran de review réutilise
-    // la même route, c'est ce jeton qui lui dit qu'il s'agit d'un
-    // nouveau lot et non du précédent, déjà confirmé.
-    router.push({
-      pathname: '/capture/review',
-      params: {
-        images: JSON.stringify(picked),
-        runId: String(Date.now()),
-        batchMax: String(batchMax),
-        ...(collectionId ? { collectionId } : {}),
-      },
+    if (assets.length === 0 || !user) return
+    // Le lot existe dès cette ligne, avant tout appel réseau : l'écran de
+    // suivi a déjà toutes les photos à montrer quand il s'ouvre.
+    startBatch({
+      assets,
+      userId: user.id,
+      withZoom: hasPhotoZoom(profile?.plan),
+      batchMax,
+      collectionId: collectionId ?? null,
     })
+    router.push('/capture/review')
   }
 
   async function handleNext() {
@@ -354,6 +406,11 @@ export default function CaptureScreen() {
 
   return (
     <Screen edges={['top', 'bottom']}>
+      {picking && (
+        <View style={styles.pickingOverlay}>
+          <TiroirLoader label={t('batch.preparing')} />
+        </View>
+      )}
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -453,6 +510,14 @@ export default function CaptureScreen() {
                   enabled={batchAvailable}
                   onPress={batchAvailable ? pickMultipleObjects : explainBatchBlocked}
                 />
+
+                <BatchEntry
+                  title={t('burst.entryTitle')}
+                  subtitle={batchAvailable ? t('burst.entrySub', { max: batchMax }) : t('batch.entryBlocked')}
+                  enabled={batchAvailable}
+                  onPress={batchAvailable ? openBurst : explainBatchBlocked}
+                  icon={Zap}
+                />
               </>
             )}
 
@@ -548,12 +613,13 @@ export default function CaptureScreen() {
 // disparaître.
 
 function BatchEntry({
-  title, subtitle, enabled, onPress,
+  title, subtitle, enabled, onPress, icon: Icon = Layers,
 }: {
   title: string
   subtitle: string
   enabled: boolean
   onPress: () => void
+  icon?: typeof Layers
 }) {
   return (
     <TouchableOpacity
@@ -561,7 +627,7 @@ function BatchEntry({
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Layers
+      <Icon
         size={20}
         color={enabled ? Colors.accent : Colors.textTertiary}
         strokeWidth={1.6}
@@ -580,6 +646,11 @@ function BatchEntry({
 // ── Styles ─────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  pickingOverlay: {
+    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 10,
+    backgroundColor: Colors.background,
+    alignItems: 'center', justifyContent: 'center',
+  },
   scroll: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
