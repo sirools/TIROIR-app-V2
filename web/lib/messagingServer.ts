@@ -56,6 +56,16 @@ export function guestFromCookie(req: IncomingMessage, threadId: string): string 
   return readGuestToken(threadId, cookieFrom(req.headers.cookie, guestCookieName(threadId)))
 }
 
+/**
+ * La base a-t-elle les tables de la messagerie ? Tant que la migration
+ * n'est pas appliquée, la vente ne propose pas « Contacter le vendeur » :
+ * un bouton qui échoue serait pire qu'un bouton absent.
+ */
+export async function messagingReady(admin: SupabaseClient): Promise<boolean> {
+  const { error } = await admin.from('threads').select('id', { count: 'exact', head: true }).limit(1)
+  return !error
+}
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export async function loadThread(admin: SupabaseClient, threadId: string): Promise<{ thread: ThreadRow; participants: ParticipantRow[] } | null> {

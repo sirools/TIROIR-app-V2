@@ -21,9 +21,10 @@ import { adminSupabase, serverSupabase } from '../../lib/supabase'
 import { hasSignedCookie } from '../../lib/shareCookieSignature'
 import { auctionsEnabled, MESSAGE_MAX, timeLeft } from '../../lib/auction'
 import { auctionCookieKey, loadAuctionByToken, loadAuctionView, type AuctionView, type Person } from '../../lib/auctionServer'
+import { messagingReady } from '../../lib/messagingServer'
 import { fill, intlLocale, useCopy } from '../../locales'
 
-type Props = { token: string; view: AuctionView | null; gated: boolean; loggedIn: boolean }
+type Props = { token: string; view: AuctionView | null; gated: boolean; loggedIn: boolean; canContact: boolean }
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   ctx.res.setHeader('X-Robots-Tag', 'noindex, nofollow')
@@ -44,9 +45,11 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   // Lien protégé : rien de la vente n'est chargé avant le mot de passe (le vendeur en est dispensé).
   const cookieKey = auctionCookieKey(token)
   if (viewerId !== auction.user_id && auction.password_hash && !hasSignedCookie(cookieKey, ctx.req, auction.password_hash)) {
-    return { props: { token, view: null, gated: true, loggedIn: viewerId !== null } }
+    return { props: { token, view: null, gated: true, loggedIn: viewerId !== null, canContact: false } }
   }
-  return { props: { token, view: await loadAuctionView(admin, auction, viewerId), gated: false, loggedIn: viewerId !== null } }
+  // Sans les tables de la messagerie en base, la vente s'affiche sans « Contacter le vendeur ».
+  const [view, canContact] = await Promise.all([loadAuctionView(admin, auction, viewerId), messagingReady(admin)])
+  return { props: { token, view, gated: false, loggedIn: viewerId !== null, canContact } }
 }
 
 function Avatar({ who }: { who: Person }) {
@@ -59,7 +62,7 @@ function Avatar({ who }: { who: Person }) {
     )
 }
 
-export default function AuctionPage({ token, view, gated, loggedIn }: Props) {
+export default function AuctionPage({ token, view, gated, loggedIn, canContact }: Props) {
   const router = useRouter()
   const { t: { inventory: { auction: t }, share }, locale } = useCopy()
   const [password, setPassword] = useState('')
@@ -299,7 +302,7 @@ export default function AuctionPage({ token, view, gated, loggedIn }: Props) {
                     <p className="hint">{t.signInHint} <Link href={`/inscription?next=${encodeURIComponent(`/ventes/${token}`)}`} legacyBehavior passHref><a>{t.createAccount}</a></Link></p>
                   </div>
                 )}
-                {!isSeller && view.state !== 'cancelled' && (
+                {canContact && !isSeller && view.state !== 'cancelled' && (
                   <ContactSeller token={token} sellerName={view.seller.firstName} loggedIn={loggedIn} />
                 )}
               </div>

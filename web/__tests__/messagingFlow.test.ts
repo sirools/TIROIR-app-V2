@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { RATE } from '../lib/messaging'
 import { readGuestToken } from '../lib/messagingCrypto'
-import { contactSeller, deliverPending, listThreads, loadThread, loadThreadView, reply, report } from '../lib/messagingServer'
+import { contactSeller, deliverPending, listThreads, loadThread, loadThreadView, messagingReady, reply, report } from '../lib/messagingServer'
 
 type Row = Record<string, unknown>
 const UNIQUE: Record<string, string[][]> = { threads: [['dedupe_key']], thread_participants: [['thread_id', 'user_id']] }
@@ -244,6 +244,18 @@ describe('messagerie : un compte écrit au vendeur', () => {
   test('le vendeur ne peut pas s’écrire sur sa propre vente', async () => {
     expect(await contactSeller(db.admin, { ...base, buyer: { userId: SELLER }, text: 'Moi-même' })).toEqual({ ok: false, error: 'OWN_LISTING' })
     expect(db.tables.threads).toHaveLength(0)
+  })
+})
+
+describe('messagerie : base pas encore migrée', () => {
+  const missing = { data: null, error: { message: 'relation "public.threads" does not exist' }, count: null }
+  const chain: Record<string, unknown> = { then: (resolve: (v: typeof missing) => unknown) => Promise.resolve(missing).then(resolve) }
+  for (const m of ['select', 'eq', 'in', 'limit', 'order', 'not']) chain[m] = () => chain
+  const unmigrated = { from: () => chain } as unknown as SupabaseClient
+  test('la vente ne propose pas le contact, et la boîte de réception reste vide sans planter', async () => {
+    expect(await messagingReady(unmigrated)).toBe(false)
+    expect(await messagingReady(db.admin)).toBe(true)
+    expect(await listThreads(unmigrated, SELLER)).toEqual({ items: [], unread: 0, ready: false })
   })
 })
 
