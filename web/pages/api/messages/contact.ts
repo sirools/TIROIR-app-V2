@@ -3,7 +3,9 @@
 // visiteur avec le vendeur (lib/messagingServer.ts).
 //
 //   connecté      le message part aussitôt, sans ressaisir ses coordonnées ;
-//   sans compte   prénom, adresse, message : le message attend que le
+//                 un compte sans pseudo en choisit un (`pseudo`), gardé
+//                 dans son profil ;
+//   sans compte   pseudo, adresse, message : le message attend que le
 //                 visiteur ouvre le lien reçu par e-mail.
 //
 // Garde-fous : mot de passe du lien s'il en a un, piège à robots (champ
@@ -16,10 +18,10 @@ import { hasSignedCookie } from '../../../lib/shareCookieSignature'
 import { auctionsEnabled } from '../../../lib/auction'
 import { auctionCookieKey, loadAuctionByToken } from '../../../lib/auctionServer'
 import { asLocale } from '../../../lib/localeRouting'
-import { parseBody, parseEmail, parseGuestName } from '../../../lib/messaging'
+import { parseBody, parseEmail, parsePseudo } from '../../../lib/messaging'
 import { clientIp, contactSeller, originOf } from '../../../lib/messagingServer'
 
-const STATUS = { OWN_LISTING: 403, RATE_LIMITED: 429, DB: 500 } as const
+const STATUS = { OWN_LISTING: 403, RATE_LIMITED: 429, PSEUDO_REQUIRED: 400, PSEUDO_TAKEN: 409, DB: 500 } as const
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -46,10 +48,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const text = parseBody(body.body)
   if (!text) return res.status(400).json({ error: 'INVALID_MESSAGE' })
 
-  let buyer: { userId: string } | { name: string; email: string }
-  if (user) buyer = { userId: user.id }
-  else {
-    const name = parseGuestName(body.name)
+  let buyer: { userId: string; pseudo: string | null } | { name: string; email: string }
+  if (user) {
+    const wanted = typeof body.pseudo === 'string' && body.pseudo.trim() ? parsePseudo(body.pseudo) : null
+    if (typeof body.pseudo === 'string' && body.pseudo.trim() && !wanted) return res.status(400).json({ error: 'INVALID_NAME' })
+    buyer = { userId: user.id, pseudo: wanted }
+  } else {
+    const name = parsePseudo(body.name)
     if (!name) return res.status(400).json({ error: 'INVALID_NAME' })
     const email = parseEmail(body.email)
     if (!email) return res.status(400).json({ error: 'INVALID_EMAIL' })

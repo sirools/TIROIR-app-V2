@@ -5,10 +5,13 @@ import { supabase, serverSupabase, signOutEverywhere } from '../lib/supabase'
 import { uploadAvatar, removeAvatar } from '../lib/avatar'
 import PersonaSelect from '../components/account/PersonaSelect'
 import { isPersona } from '../lib/personas'
+import { PSEUDO_MAX, PSEUDO_PATTERN } from '../lib/messaging'
 import HeaderApp from '../components/layout/HeaderApp'
 import FooterTiroirWeb from '../components/layout/FooterTiroirWeb'
 import { asLocale, localePrefix } from '../lib/localeRouting'
 import { intlLocale, useCopy } from '../locales'
+
+const isPseudo = (v: string) => PSEUDO_PATTERN.test(v.normalize('NFC'))
 
 type ProfileError = 'saveError' | 'photoUnsupported' | 'photoSaveError' | 'photoRemoveError'
 
@@ -21,10 +24,12 @@ interface Props {
   avatarPath: string | null
   /** Profil choisi à l'inscription (web/lib/personas.ts), ou null. */
   persona: string | null
+  /** Pseudo de la messagerie privée, ou null s'il n'est pas encore choisi. */
+  pseudo: string | null
   memberSince: string | null
 }
 
-export default function Profil({ userId, email, displayName, avatarUrl, avatarPath, memberSince, persona: initialPersona }: Props) {
+export default function Profil({ userId, email, displayName, avatarUrl, avatarPath, memberSince, persona: initialPersona, pseudo: initialPseudo }: Props) {
   const { t: { account: { profile: t }, inventory: { persona: tp } }, locale } = useCopy()
   const [name, setName] = useState(displayName)
   const [savedName, setSavedName] = useState(displayName)
@@ -37,6 +42,10 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
   const [savedPersona, setSavedPersona] = useState(initialPersona ?? '')
   const [personaSaving, setPersonaSaving] = useState(false)
   const [personaState, setPersonaState] = useState<'saved' | 'failed' | null>(null)
+  const [pseudo, setPseudo] = useState(initialPseudo ?? '')
+  const [savedPseudo, setSavedPseudo] = useState(initialPseudo ?? '')
+  const [pseudoSaving, setPseudoSaving] = useState(false)
+  const [pseudoState, setPseudoState] = useState<'saved' | 'pseudoInvalid' | 'pseudoTaken' | 'saveError' | null>(null)
   const [photoBusy, setPhotoBusy] = useState(false)
   const [photoError, setPhotoError] = useState<ProfileError | null>(null)
   const [viewerOpen, setViewerOpen] = useState(false)
@@ -99,6 +108,26 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
     }
     setSavedPersona(persona)
     setPersonaState('saved')
+  }
+
+  // Par le serveur : le navigateur n'a pas le droit d'écrire le pseudo (format et unicité contrôlés là-bas).
+  async function handlePseudo(e: React.FormEvent) {
+    e.preventDefault()
+    const wanted = pseudo.trim()
+    if (pseudoSaving || !wanted || wanted === savedPseudo) return
+    if (!isPseudo(wanted)) return setPseudoState('pseudoInvalid')
+    setPseudoSaving(true)
+    setPseudoState(null)
+    const res = await fetch('/api/profile/pseudo', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pseudo: wanted }),
+    }).catch(() => null)
+    const data = res ? await res.json().catch(() => ({})) : {}
+    setPseudoSaving(false)
+    if (res?.ok) {
+      setSavedPseudo(data.pseudo ?? wanted)
+      setPseudo(data.pseudo ?? wanted)
+      setPseudoState('saved')
+    } else setPseudoState(data.error === 'PSEUDO_TAKEN' ? 'pseudoTaken' : data.error === 'INVALID_PSEUDO' ? 'pseudoInvalid' : 'saveError')
   }
 
   async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
@@ -231,6 +260,24 @@ export default function Profil({ userId, email, displayName, avatarUrl, avatarPa
             </div>
             {error && <p className="feedback feedback--error">{t[error]}</p>}
             {saved && !dirty && <p className="feedback feedback--ok">{t.nameSaved}</p>}
+          </form>
+
+          <form onSubmit={handlePseudo} className="form">
+            <label className="label" htmlFor="profile-pseudo">{t.pseudoLabel}</label>
+            <div className="row">
+              <input
+                id="profile-pseudo" className="input" type="text" value={pseudo} maxLength={PSEUDO_MAX}
+                autoComplete="nickname" autoCapitalize="none" spellCheck={false} placeholder={t.pseudoPlaceholder}
+                aria-describedby="profile-pseudo-hint"
+                onChange={e => { setPseudo(e.target.value); setPseudoState(null) }}
+              />
+              <button className="save-btn" type="submit" disabled={pseudoSaving || !pseudo.trim() || pseudo.trim() === savedPseudo}>
+                {pseudoSaving ? t.saving : t.save}
+              </button>
+            </div>
+            <p className="feedback" id="profile-pseudo-hint">{t.pseudoHint}</p>
+            {pseudoState === 'saved' && <p className="feedback feedback--ok">{t.pseudoSaved}</p>}
+            {pseudoState && pseudoState !== 'saved' && <p className="feedback feedback--error">{t[pseudoState]}</p>}
           </form>
 
           <div className="form">
@@ -554,6 +601,17 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       avatarPath: profile?.avatar_path ?? null,
       memberSince: profile?.created_at ?? null,
       persona: profile?.persona ?? null,
+      pseudo: await loadPseudo(session.user.id),
     },
   }
+}
+
+/**
+ * Lu à part, avec la clé service : la colonne n'existe qu'après la
+ * migration 20261127140000, et la page doit s'ouvrir avant.
+ */
+async function loadPseudo(userId: string): Promise<string | null> {
+  const { adminSupabase } = await import('../lib/supabase')
+  const { data, error } = await adminSupabase().from('profiles').select('pseudo').eq('id', userId).maybeSingle()
+  return error ? null : (data?.pseudo as string | null | undefined) ?? null
 }

@@ -24,10 +24,16 @@ import { adminSupabase, serverSupabase } from '../../lib/supabase'
 import { hasSignedCookie } from '../../lib/shareCookieSignature'
 import { auctionsEnabled, timeLeft } from '../../lib/auction'
 import { auctionCookieKey, loadAuctionByToken, loadAuctionView, type AuctionView, type Person } from '../../lib/auctionServer'
-import { messagingReady } from '../../lib/messagingServer'
+import { messagingNames, messagingReady, pseudoOf } from '../../lib/messagingServer'
 import { fill, intlLocale, useCopy } from '../../locales'
 
-type Props = { token: string; view: AuctionView | null; gated: boolean; loggedIn: boolean; canContact: boolean }
+type Props = {
+  token: string; view: AuctionView | null; gated: boolean; loggedIn: boolean; canContact: boolean
+  /** Pseudo du vendeur dans la messagerie (à défaut, son prénom). */
+  sellerPseudo: string
+  /** Le visiteur connecté n'a pas encore de pseudo. */
+  needsPseudo: boolean
+}
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   ctx.res.setHeader('X-Robots-Tag', 'noindex, nofollow')
@@ -48,11 +54,21 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   // Lien protégé : rien de la vente n'est chargé avant le mot de passe (le vendeur en est dispensé).
   const cookieKey = auctionCookieKey(token)
   if (viewerId !== auction.user_id && auction.password_hash && !hasSignedCookie(cookieKey, ctx.req, auction.password_hash)) {
-    return { props: { token, view: null, gated: true, loggedIn: viewerId !== null, canContact: false } }
+    return { props: { token, view: null, gated: true, loggedIn: viewerId !== null, canContact: false, sellerPseudo: '', needsPseudo: false } }
   }
   // Sans les tables de la messagerie en base, la vente s'affiche sans « Contacter le vendeur ».
   const [view, canContact] = await Promise.all([loadAuctionView(admin, auction, viewerId), messagingReady(admin)])
-  return { props: { token, view, gated: false, loggedIn: viewerId !== null, canContact } }
+  let sellerPseudo = view.seller.firstName
+  let needsPseudo = false
+  if (canContact) {
+    const [names, mine] = await Promise.all([
+      messagingNames(admin, [auction.user_id]),
+      viewerId && viewerId !== auction.user_id ? pseudoOf(admin, viewerId) : Promise.resolve('—'),
+    ])
+    sellerPseudo = names.get(auction.user_id) || sellerPseudo
+    needsPseudo = !mine
+  }
+  return { props: { token, view, gated: false, loggedIn: viewerId !== null, canContact, sellerPseudo, needsPseudo } }
 }
 
 function Avatar({ who }: { who: Person }) {
@@ -65,7 +81,7 @@ function Avatar({ who }: { who: Person }) {
     )
 }
 
-export default function AuctionPage({ token, view, gated, loggedIn, canContact }: Props) {
+export default function AuctionPage({ token, view, gated, loggedIn, canContact, sellerPseudo, needsPseudo }: Props) {
   const router = useRouter()
   const { t: { inventory: { auction: t }, share, layout, messages: { contact: tm } }, locale } = useCopy()
   const [password, setPassword] = useState('')
@@ -291,7 +307,7 @@ export default function AuctionPage({ token, view, gated, loggedIn, canContact }
                   </div>
                 )}
                 {canContact && !isSeller && view.state !== 'cancelled' && (
-                  <ContactSeller token={token} sellerName={view.seller.firstName} loggedIn={loggedIn} />
+                  <ContactSeller token={token} sellerName={sellerPseudo} loggedIn={loggedIn} needsPseudo={loggedIn && needsPseudo} />
                 )}
               </div>
 

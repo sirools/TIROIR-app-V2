@@ -4,29 +4,39 @@
 // (session vérifiée, ou lien signé d'un invité). Chaque lecture et chaque
 // écriture commence par viewerParticipant() : sans place dans le fil, rien.
 //
-// Ce qui part vers le navigateur ou dans un e-mail : des prénoms, le titre
-// et la photo de la vente, les textes des messages. Jamais une adresse.
+// Ce qui part vers le navigateur : des pseudos, le titre et la photo de la
+// vente, les textes des messages. Dans un e-mail : un pseudo, le titre de
+// la vente, un lien — jamais le texte d'un message. Jamais une adresse,
+// nulle part. En base : messages et adresses d'invités chiffrés
+// (lib/messagingCrypto.ts).
 import type { IncomingMessage } from 'node:http'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { COPIES } from '../locales'
 import { accountLocale } from './accountLocale'
 import { localePrefix, type Locale } from './localeRouting'
 import {
-  excerpt, listingKey, rateAllowed, unreadCount, viewerParticipant,
+  everyoneCleared, excerpt, listingKey, pseudoKey, rateAllowed, unreadCount, viewerParticipant, visibleTo,
   type MessageRow, type ParticipantRow, type Viewer,
 } from './messaging'
-import { decryptBody, encryptBody, guestCookieName, guestToken, ipHash, readGuestToken } from './messagingCrypto'
-import { renderNewMessage, renderVerify } from './messagingEmails'
+import {
+  decryptBody, decryptEmail, emailHash, encryptBody, encryptEmail, guestCookieName, guestToken, ipHash, readGuestToken,
+  type GuestPass,
+} from './messagingCrypto'
+import { renderNewLink, renderNewMessage, renderVerify } from './messagingEmails'
+import { firstNameOf } from './suggestions'
 import { loadAuthors } from './shareSuggestions'
 import { sendEmail } from './ululeServer'
 
 const FROM = 'Tiroir <hello@tiroir.app>'
 const REPORT_TO = 'hello@tiroir.app'
-const PARTICIPANT_COLUMNS = 'id, thread_id, role, user_id, guest_name, guest_email, guest_verified_at, locale, last_read_at'
+const PARTICIPANT_COLUMNS =
+  'id, thread_id, role, user_id, guest_name, guest_email, guest_verified_at, guest_link_epoch, locale, last_read_at, cleared_at'
 const MESSAGE_COLUMNS = 'id, thread_id, author_id, body, delivered_at, created_at'
 
 export type ThreadRow = { id: string; kind: 'annonce' | 'direct'; auction_id: string | null; last_message_at: string; reported_at: string | null }
 type StoredMessage = MessageRow & { body: string }
+
+// ── Requête ────────────────────────────────────────────────────────
 
 /** Adresse du site telle que le visiteur l'a ouverte : les liens des e-mails y ramènent. */
 export function originOf(req: IncomingMessage): string {
@@ -52,25 +62,33 @@ function cookieFrom(header: string | undefined, name: string): string | null {
 }
 
 /** L'invité que le cookie de ce fil désigne (lien signé posé à l'ouverture), ou null. */
-export function guestFromCookie(req: IncomingMessage, threadId: string): string | null {
+export function guestFromCookie(req: IncomingMessage, threadId: string): GuestPass | null {
   return readGuestToken(threadId, cookieFrom(req.headers.cookie, guestCookieName(threadId)))
 }
 
+// ── État de la base ────────────────────────────────────────────────
+
 /**
- * La base a-t-elle les tables de la messagerie ? Tant que la migration
- * n'est pas appliquée, la vente ne propose pas « Contacter le vendeur » :
- * un bouton qui échoue serait pire qu'un bouton absent.
+ * Ce que le code lit et écrit : sans l'une de ces tables ou colonnes, la
+ * vente ne propose pas « Contacter le vendeur » (un bouton qui échoue
+ * serait pire qu'un bouton absent).
  */
+export const MESSAGING_SCHEMA: Record<string, string> = {
+  threads: 'id',
+  thread_participants: 'id, guest_email_hash, guest_link_epoch, cleared_at',
+  thread_messages: 'id',
+  profiles: 'pseudo, pseudo_key',
+}
+/** Ancien nom, gardé pour les tests. */
+export const MESSAGING_TABLES = Object.keys(MESSAGING_SCHEMA)
+
 export async function messagingReady(admin: SupabaseClient): Promise<boolean> {
-  // Les trois tables : une migration appliquée à moitié ne suffit pas.
   // Une vraie lecture, pas une requête HEAD : pour une table absente, le
   // client Supabase transforme la réponse 404 d'un HEAD en succès sans
   // erreur, et le contrôle répondait « prête » sur une base vide.
-  const checks = await Promise.all(MESSAGING_TABLES.map(table => admin.from(table).select('id').limit(1)))
+  const checks = await Promise.all(Object.entries(MESSAGING_SCHEMA).map(([table, columns]) => admin.from(table).select(columns).limit(1)))
   return checks.every(c => !c.error)
 }
-
-export const MESSAGING_TABLES = ['threads', 'thread_participants', 'thread_messages'] as const
 
 /** Trace d'un échec de la base, avec l'étape : c'est ce qu'on lit dans les journaux de Vercel. */
 function dbFailure(step: string, error?: { message?: string } | null): { ok: false; error: 'DB' } {
@@ -90,16 +108,49 @@ export async function loadThread(admin: SupabaseClient, threadId: string): Promi
   return { thread: thread as ThreadRow, participants: (participants ?? []) as ParticipantRow[] }
 }
 
-// ── Qui est qui ────────────────────────────────────────────────────
+// ── Pseudos ────────────────────────────────────────────────────────
 
 export type Person = { name: string; avatarUrl: string | null }
 
+/**
+ * Le nom sous lequel chaque compte apparaît dans la messagerie : son
+ * pseudo, ou à défaut le prénom de son profil (comptes qui n'ont pas
+ * encore choisi de pseudo).
+ */
+export async function messagingNames(admin: SupabaseClient, userIds: string[]): Promise<Map<string, string>> {
+  const ids = Array.from(new Set(userIds.filter(Boolean)))
+  const out = new Map<string, string>()
+  if (!ids.length) return out
+  const { data } = await admin.from('profiles').select('id, pseudo, display_name').in('id', ids)
+  for (const p of (data ?? []) as { id: string; pseudo: string | null; display_name: string | null }[]) {
+    out.set(p.id, p.pseudo || firstNameOf(p.display_name))
+  }
+  return out
+}
+
+/** Le pseudo choisi par ce compte, ou null s'il n'en a pas encore. */
+export async function pseudoOf(admin: SupabaseClient, userId: string): Promise<string | null> {
+  const { data } = await admin.from('profiles').select('pseudo').eq('id', userId).maybeSingle()
+  return (data?.pseudo as string | null | undefined) ?? null
+}
+
+export type PseudoResult = { ok: true } | { ok: false; error: 'PSEUDO_TAKEN' | 'DB' }
+
+/** Enregistre le pseudo d'un compte. L'unicité (sans tenir compte de la casse) est garantie par la base, sur pseudo_key. */
+export async function setPseudo(admin: SupabaseClient, userId: string, pseudo: string): Promise<PseudoResult> {
+  const { error } = await admin.from('profiles').update({ pseudo, pseudo_key: pseudoKey(pseudo) }).eq('id', userId)
+  if (!error) return { ok: true }
+  if (error.code === '23505' || /duplicate|unique/i.test(error.message)) return { ok: false, error: 'PSEUDO_TAKEN' }
+  return dbFailure('pseudo', error)
+}
+
 async function loadPeople(admin: SupabaseClient, participants: ParticipantRow[]): Promise<Map<string, Person>> {
-  const authors = await loadAuthors(admin, participants.flatMap(p => (p.user_id ? [p.user_id] : [])))
-  return new Map(participants.map(p => {
-    const a = p.user_id ? authors.get(p.user_id) : null
-    return [p.id, { name: p.user_id ? a?.firstName ?? '' : p.guest_name ?? '', avatarUrl: a?.avatarUrl ?? null }]
-  }))
+  const userIds = participants.flatMap(p => (p.user_id ? [p.user_id] : []))
+  const [names, authors] = await Promise.all([messagingNames(admin, userIds), loadAuthors(admin, userIds)])
+  return new Map(participants.map(p => [p.id, {
+    name: p.user_id ? names.get(p.user_id) ?? '' : p.guest_name ?? '',
+    avatarUrl: p.user_id ? authors.get(p.user_id)?.avatarUrl ?? null : null,
+  }]))
 }
 
 // ── La vente rappelée en tête d'un fil ─────────────────────────────
@@ -140,14 +191,14 @@ async function loadListings(admin: SupabaseClient, auctionIds: string[]): Promis
 // ── Limitation de débit ────────────────────────────────────────────
 
 async function sendAllowed(
-  admin: SupabaseClient, kind: 'guest' | 'member', who: { userId: string } | { email: string } | { participantId: string }, ip: string | null,
+  admin: SupabaseClient, kind: 'guest' | 'member', who: { userId: string } | { emailHash: string } | { participantId: string }, ip: string | null,
 ): Promise<boolean> {
   const since = new Date(Date.now() - 3600_000).toISOString()
   let authorIds: string[]
   if ('participantId' in who) authorIds = [who.participantId]
   else {
     const query = admin.from('thread_participants').select('id').limit(500)
-    const { data } = 'userId' in who ? await query.eq('user_id', who.userId) : await query.eq('guest_email', who.email)
+    const { data } = 'userId' in who ? await query.eq('user_id', who.userId) : await query.eq('guest_email_hash', who.emailHash)
     authorIds = (data ?? []).map(p => p.id as string)
   }
   const hash = ipHash(ip)
@@ -166,9 +217,18 @@ async function sendAllowed(
 
 const threadPath = (locale: Locale, threadId: string) => `${localePrefix(locale)}/messages/${threadId}`
 
+/** Lien vers le fil ; pour un invité, il porte sa place, signée, de l'époque en cours. */
+function threadLink(origin: string, locale: Locale, threadId: string, p: Pick<ParticipantRow, 'id' | 'user_id' | 'guest_link_epoch'>): string {
+  const path = `${origin}${threadPath(locale, threadId)}`
+  return p.user_id ? path : `${path}?k=${encodeURIComponent(guestToken(threadId, p.id, p.guest_link_epoch ?? 0))}`
+}
+
 /** Adresse et langue d'un participant. L'adresse ne sort jamais de ce fichier. */
 async function contactOf(admin: SupabaseClient, p: ParticipantRow): Promise<{ email: string; locale: Locale } | null> {
-  if (!p.user_id) return p.guest_email ? { email: p.guest_email, locale: accountLocale(p.locale) ?? 'fr' } : null
+  if (!p.user_id) {
+    const email = decryptEmail(p.guest_email)
+    return email ? { email, locale: accountLocale(p.locale) ?? 'fr' } : null
+  }
   const { data } = await admin.auth.admin.getUserById(p.user_id)
   const email = data?.user?.email
   return email ? { email, locale: accountLocale(data.user?.user_metadata?.locale) ?? accountLocale(p.locale) ?? 'fr' } : null
@@ -180,21 +240,20 @@ async function threadTitle(admin: SupabaseClient, thread: ThreadRow): Promise<st
   return (data?.title as string | undefined) ?? 'Tiroir'
 }
 
-/** Prévient les autres participants : prénom de l'auteur, vente, texte, lien vers le fil. */
+/** Prévient les autres participants : pseudo de l'auteur, vente, lien vers le fil. Jamais le texte. */
 async function notifyOthers(
-  admin: SupabaseClient, origin: string, thread: ThreadRow, participants: ParticipantRow[], author: ParticipantRow, text: string,
+  admin: SupabaseClient, origin: string, thread: ThreadRow, participants: ParticipantRow[], author: ParticipantRow,
 ): Promise<void> {
   const [people, title] = await Promise.all([loadPeople(admin, participants), threadTitle(admin, thread)])
   const from = people.get(author.id)?.name || '—'
   await Promise.all(participants.filter(p => p.id !== author.id).map(async p => {
     const contact = await contactOf(admin, p)
     if (!contact) return
-    const path = threadPath(contact.locale, thread.id)
-    // Un invité n'a pas de session : son lien porte sa place dans le fil, signée.
-    const link = p.user_id ? `${origin}${path}` : `${origin}${path}?k=${encodeURIComponent(guestToken(thread.id, p.id))}`
     const result = await sendEmail({
       to: contact.email, from: FROM,
-      email: renderNewMessage(COPIES[contact.locale].messages.email, contact.locale, { from, title, text, link }),
+      email: renderNewMessage(COPIES[contact.locale].messages.email, contact.locale, {
+        from, title, link: threadLink(origin, contact.locale, thread.id, p), personal: p.user_id === null,
+      }),
     })
     if (!result.ok) console.error('[messagerie] notification', result.error)
   }))
@@ -211,7 +270,7 @@ async function insertMessage(
     delivered_at: delivered ? now : null, ip_hash: ipHash(ip),
   })
   if (error) {
-    console.error('[messagerie] message', error.message)
+    dbFailure('message', error)
     return false
   }
   if (delivered) {
@@ -224,7 +283,7 @@ async function insertMessage(
   return true
 }
 
-export type ContactError = 'OWN_LISTING' | 'RATE_LIMITED' | 'DB'
+export type ContactError = 'OWN_LISTING' | 'RATE_LIMITED' | 'PSEUDO_REQUIRED' | 'PSEUDO_TAKEN' | 'DB'
 export type ContactResult =
   | { ok: true; threadId: string; /** Sans compte : le message attend la confirmation de l'adresse. */ pending: boolean }
   | { ok: false; error: ContactError }
@@ -232,13 +291,14 @@ export type ContactResult =
 /**
  * « Contacter le vendeur » : crée le fil de cette vente pour cet acheteur,
  * ou rouvre celui qui existe (unicité : threads.dedupe_key), et y pose le
- * message. Avec un compte, il est remis aussitôt. Sans compte, il attend
- * que l'invité ouvre le lien reçu par e-mail — à chaque fois : n'importe
- * qui peut saisir l'adresse d'un autre dans le formulaire.
+ * message. Avec un compte, il est remis aussitôt — un compte sans pseudo
+ * doit en choisir un (`pseudo`), enregistré dans son profil. Sans compte,
+ * le message attend que l'invité ouvre le lien reçu par e-mail — à chaque
+ * fois : n'importe qui peut saisir l'adresse d'un autre dans le formulaire.
  */
 export async function contactSeller(admin: SupabaseClient, input: {
   auction: { id: string; user_id: string; title: string }
-  buyer: { userId: string } | { name: string; email: string }
+  buyer: { userId: string; pseudo?: string | null } | { name: string; email: string }
   text: string
   locale: Locale
   ip: string | null
@@ -247,11 +307,17 @@ export async function contactSeller(admin: SupabaseClient, input: {
   const { auction, buyer, text, locale, ip, origin } = input
   const isMember = 'userId' in buyer
   if (isMember && buyer.userId === auction.user_id) return { ok: false, error: 'OWN_LISTING' }
-  if (!(await sendAllowed(admin, isMember ? 'member' : 'guest', isMember ? { userId: buyer.userId } : { email: buyer.email }, ip))) {
+  const hash = isMember ? null : emailHash(buyer.email)
+  if (!(await sendAllowed(admin, isMember ? 'member' : 'guest', isMember ? { userId: buyer.userId } : { emailHash: hash! }, ip))) {
     return { ok: false, error: 'RATE_LIMITED' }
   }
+  if (isMember && !(await pseudoOf(admin, buyer.userId))) {
+    if (!buyer.pseudo) return { ok: false, error: 'PSEUDO_REQUIRED' }
+    const saved = await setPseudo(admin, buyer.userId, buyer.pseudo)
+    if (!saved.ok) return saved
+  }
 
-  const key = listingKey(auction.id, buyer)
+  const key = listingKey(auction.id, isMember ? { userId: buyer.userId } : { emailHash: hash! })
   // La contrainte d'unicité tranche si deux envois arrivent ensemble : le second retrouve le fil du premier.
   const created = await admin.from('threads').upsert({ kind: 'annonce', auction_id: auction.id, dedupe_key: key }, { onConflict: 'dedupe_key', ignoreDuplicates: true })
   if (created.error) return dbFailure('création du fil', created.error)
@@ -274,7 +340,10 @@ export async function contactSeller(admin: SupabaseClient, input: {
     const { data, error } = await admin.from('thread_participants').insert(
       isMember
         ? { thread_id: thread.id, role: 'buyer', user_id: buyer.userId, locale }
-        : { thread_id: thread.id, role: 'buyer', guest_name: buyer.name, guest_email: buyer.email, locale },
+        : {
+          thread_id: thread.id, role: 'buyer', locale,
+          guest_name: buyer.name, guest_email: encryptEmail(buyer.email), guest_email_hash: hash,
+        },
     ).select(PARTICIPANT_COLUMNS).single()
     if (error || !data) return dbFailure('participant acheteur', error)
     me = data as ParticipantRow
@@ -284,18 +353,18 @@ export async function contactSeller(admin: SupabaseClient, input: {
   if (!(await insertMessage(admin, thread, me, text, ip, isMember))) return { ok: false, error: 'DB' }
 
   if (isMember) {
-    await notifyOthers(admin, origin, thread, participants, me, text)
+    await notifyOthers(admin, origin, thread, participants, me)
     return { ok: true, threadId: thread.id, pending: false }
   }
 
   // Invité : rien n'est remis au vendeur avant qu'il ouvre ce lien.
   const people = await loadPeople(admin, participants)
   const seller = participants.find(p => p.role === 'seller')
-  const link = `${origin}${threadPath(locale, thread.id)}?k=${encodeURIComponent(guestToken(thread.id, me.id))}`
   const sent = await sendEmail({
     to: buyer.email, from: FROM,
     email: renderVerify(COPIES[locale].messages.email, locale, {
-      name: me.guest_name ?? buyer.name, seller: (seller && people.get(seller.id)?.name) || '—', title: auction.title, text, link,
+      name: me.guest_name ?? buyer.name, seller: (seller && people.get(seller.id)?.name) || '—', title: auction.title,
+      link: threadLink(origin, locale, thread.id, me),
     }),
   })
   if (!sent.ok) {
@@ -317,14 +386,13 @@ export async function deliverPending(
   const { data } = await admin.from('thread_messages')
     .update({ delivered_at: now }).eq('thread_id', thread.id).eq('author_id', guest.id).is('delivered_at', null)
     .select(MESSAGE_COLUMNS)
-  const delivered = ((data ?? []) as StoredMessage[]).sort((a, b) => a.created_at.localeCompare(b.created_at))
+  const delivered = (data ?? []) as StoredMessage[]
   if (!delivered.length) return 0
   await Promise.all([
     admin.from('threads').update({ last_message_at: now }).eq('id', thread.id),
     admin.from('thread_participants').update({ guest_verified_at: guest.guest_verified_at ?? now, last_read_at: now }).eq('id', guest.id),
   ])
-  const text = delivered.flatMap(m => decryptBody(thread.id, m.body) ?? []).join('\n\n')
-  if (text) await notifyOthers(admin, origin, thread, participants, guest, text)
+  await notifyOthers(admin, origin, thread, participants, guest)
   return delivered.length
 }
 
@@ -340,11 +408,11 @@ export async function reply(
   if (!loaded || !me) return { ok: false, error: 'NOT_FOUND' }
   if (!(await sendAllowed(admin, 'member', { participantId: me.id }, input.ip))) return { ok: false, error: 'RATE_LIMITED' }
   if (!(await insertMessage(admin, loaded.thread, me, input.text, input.ip, true))) return { ok: false, error: 'DB' }
-  await notifyOthers(admin, input.origin, loaded.thread, loaded.participants, me, input.text)
+  await notifyOthers(admin, input.origin, loaded.thread, loaded.participants, me)
   return { ok: true }
 }
 
-/** « Signaler » : prévient l'équipe, sans le contenu des messages. */
+/** « Signaler » : prévient l'équipe, sans le contenu des messages ni les adresses. */
 export async function report(admin: SupabaseClient, input: { threadId: string; viewer: Viewer }): Promise<boolean> {
   const loaded = await loadThread(admin, input.threadId)
   const me = loaded && viewerParticipant(loaded.participants, input.viewer)
@@ -359,10 +427,64 @@ export async function report(admin: SupabaseClient, input: { threadId: string; v
   const subject = `${COPIES.fr.messages.email.reportSubject} — ${loaded.thread.id}`
   const result = await sendEmail({
     to: REPORT_TO, from: FROM,
-    email: { subject, text: lines.join('\n'), html: `<p>${lines.join('<br>')}</p>` },
+    email: { subject, text: lines.join('\n'), html: `<p>${lines.map(l => l.replace(/[<>&]/g, '')).join('<br>')}</p>` },
   })
   if (!result.ok) console.error('[messagerie] signalement', result.error)
   return result.ok
+}
+
+/**
+ * « Supprimer la conversation » : ce participant ne voit plus rien de ce
+ * qui précède. Quand tous l'ont supprimée depuis le dernier message, le fil
+ * disparaît de la base. Un nouveau message la fait réapparaître, sans
+ * l'historique supprimé.
+ */
+export async function clearThread(admin: SupabaseClient, input: { threadId: string; viewer: Viewer }): Promise<boolean> {
+  const loaded = await loadThread(admin, input.threadId)
+  const me = loaded && viewerParticipant(loaded.participants, input.viewer)
+  if (!loaded || !me) return false
+  const now = new Date().toISOString()
+  const { error } = await admin.from('thread_participants').update({ cleared_at: now, last_read_at: now }).eq('id', me.id)
+  if (error) {
+    dbFailure('suppression', error)
+    return false
+  }
+  const participants = loaded.participants.map(p => (p.id === me.id ? { ...p, cleared_at: now } : p))
+  if (everyoneCleared(participants, loaded.thread.last_message_at)) {
+    await admin.from('threads').delete().eq('id', loaded.thread.id)
+  }
+  return true
+}
+
+/**
+ * Un invité bloque tous les liens déjà envoyés pour ce fil (e-mail
+ * transféré, boîte partagée…) et en reçoit un neuf. Réservé à l'invité lui-même.
+ */
+export async function revokeGuestLinks(
+  admin: SupabaseClient, input: { threadId: string; viewer: Viewer; origin: string },
+): Promise<boolean> {
+  const loaded = await loadThread(admin, input.threadId)
+  const me = loaded && viewerParticipant(loaded.participants, { userId: null, guest: input.viewer.guest })
+  if (!loaded || !me || me.user_id !== null) return false
+  const epoch = (me.guest_link_epoch ?? 0) + 1
+  const { error } = await admin.from('thread_participants').update({ guest_link_epoch: epoch }).eq('id', me.id).eq('guest_link_epoch', me.guest_link_epoch ?? 0)
+  if (error) {
+    dbFailure('révocation', error)
+    return false
+  }
+  const contact = await contactOf(admin, me)
+  if (!contact) return true
+  const [people, title] = await Promise.all([loadPeople(admin, loaded.participants), threadTitle(admin, loaded.thread)])
+  const other = loaded.participants.find(p => p.id !== me.id)
+  const result = await sendEmail({
+    to: contact.email, from: FROM,
+    email: renderNewLink(COPIES[contact.locale].messages.email, contact.locale, {
+      name: me.guest_name ?? '', other: (other && people.get(other.id)?.name) || '—', title,
+      link: threadLink(input.origin, contact.locale, loaded.thread.id, { ...me, guest_link_epoch: epoch }),
+    }),
+  })
+  if (!result.ok) console.error('[messagerie] nouveau lien', result.error)
+  return true
 }
 
 // ── Lire ───────────────────────────────────────────────────────────
@@ -373,7 +495,7 @@ export type ThreadView = {
   other: Person
   listing: ListingSummary | null
   reported: boolean
-  /** `body` nul : message indéchiffrable (clé changée). */
+  /** `body` nul : message indéchiffrable (clé perdue). */
   messages: { id: string; body: string | null; at: string; mine: boolean }[]
 }
 
@@ -399,7 +521,7 @@ export async function loadThreadView(admin: SupabaseClient, threadId: string, vi
     other: (other && people.get(other.id)) || { name: '', avatarUrl: null },
     listing: thread.auction_id ? listings.get(thread.auction_id) ?? null : null,
     reported: thread.reported_at !== null,
-    messages: ((rows ?? []) as StoredMessage[]).map(m => ({
+    messages: ((rows ?? []) as StoredMessage[]).filter(m => visibleTo(m, me)).map(m => ({
       id: m.id, body: decryptBody(thread.id, m.body), at: m.delivered_at ?? m.created_at, mine: m.author_id === me.id,
     })),
   }
@@ -439,10 +561,11 @@ export async function listThreads(admin: SupabaseClient, userId: string): Promis
 
   const items = ((threads ?? []) as ThreadRow[]).flatMap((t): InboxItem[] => {
     const self = me.get(t.id)
-    const inThread = messages.filter(m => m.thread_id === t.id)
+    if (!self) return []
+    const inThread = messages.filter(m => m.thread_id === t.id && visibleTo(m, self))
     const last = inThread[0]
-    // Un fil dont rien n'a encore été remis (invité non confirmé) n'apparaît pas.
-    if (!self || !last) return []
+    // Rien de visible (invité non confirmé, ou conversation supprimée) : le fil n'apparaît pas.
+    if (!last) return []
     const other = participants.find(p => p.thread_id === t.id && p.id !== self.id)
     const listing = t.auction_id ? listings.get(t.auction_id) : null
     return [{
