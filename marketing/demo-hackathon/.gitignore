@@ -1,0 +1,12 @@
+# Les médias (rushes, VO, captures, exports) restent sur le disque :
+# trop lourds pour git. Seuls la structure et le script sont suivis.
+01_VO/*
+02_Rushes/*
+03_Captures_web/*
+04_Captures_iPhone/*
+05_Mockup/*
+06_Exports/*
+!*/.gitkeep
+*.aep
+*.aep Logs/
+Adobe After Effects Auto-Save/
